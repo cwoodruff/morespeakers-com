@@ -1,0 +1,231 @@
+﻿@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Home";
+}
+
+<div class="hero">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold">Connect. Learn. Speak.</h1>
+                <p class="lead">Join MoreSpeakers.com to connect with experienced mentors and advance your speaking career in technology.</p>
+                <div class="d-flex gap-3 flex-wrap">
+                    @if (!User.Identity.IsAuthenticated)
+                    {
+                        <a href="@Url.Page("/Account/Register", new { area = "Identity", speakerType = "NewSpeaker" })" 
+                           class="btn btn-light btn-lg">
+                            <i class="bi bi-person-plus me-2"></i>Join as New Speaker
+                        </a>
+                        <a href="@Url.Page("/Account/Register", new { area = "Identity", speakerType = "ExperiencedSpeaker" })" 
+                           class="btn btn-outline-light btn-lg">
+                            <i class="bi bi-award me-2"></i>Become a Mentor
+                        </a>
+                    }
+                    else
+                    {
+                        <a asp-page="/Profile/Index" class="btn btn-light btn-lg">
+                            <i class="bi bi-person me-2"></i>View My Profile
+                        </a>
+                        <a asp-page="/Speakers/Browse" class="btn btn-outline-light btn-lg">
+                            <i class="bi bi-search me-2"></i>Browse Speakers
+                        </a>
+                    }
+                </div>
+            </div>
+            <div class="col-lg-6 text-center">
+                <img src="~/images/hero-illustration.svg" alt="Speakers connecting" class="img-fluid" style="max-height: 400px;">
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Statistics Section -->
+    <div class="row mb-5">
+        <div class="col-md-4 mb-3">
+            <div class="stat-card">
+                <div class="stat-number">@Model.NewSpeakersCount</div>
+                <div class="stat-label">New Speakers</div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="stat-card">
+                <div class="stat-number">@Model.ExperiencedSpeakersCount</div>
+                <div class="stat-label">Mentors</div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="stat-card">
+                <div class="stat-number">@Model.ActiveMentorshipsCount</div>
+                <div class="stat-label">Active Mentorships</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- How It Works Section -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="text-center mb-5">How MoreSpeakers.com Works</h2>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <div class="display-4 text-primary mb-3">
+                        <i class="bi bi-person-plus-fill"></i>
+                    </div>
+                    <h5 class="card-title">1. Create Your Profile</h5>
+                    <p class="card-text">Sign up as a new speaker seeking mentorship or as an experienced speaker ready to mentor others. Share your expertise, goals, and background.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <div class="display-4 text-primary mb-3">
+                        <i class="bi bi-people-fill"></i>
+                    </div>
+                    <h5 class="card-title">2. Connect & Match</h5>
+                    <p class="card-text">Browse speakers by expertise areas. New speakers can request mentorship from experienced speakers, or mentors can reach out to new speakers.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <div class="display-4 text-primary mb-3">
+                        <i class="bi bi-trophy-fill"></i>
+                    </div>
+                    <h5 class="card-title">3. Grow Together</h5>
+                    <p class="card-text">Work together on speaking skills, talk development, conference selection, and abstract writing. Build lasting relationships in the tech community.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Featured Speakers Section -->
+    @if (Model.FeaturedSpeakers?.Any() == true)
+    {
+        <div class="row mb-5">
+            <div class="col-12">
+                <h2 class="text-center mb-4">Featured Mentors</h2>
+                <p class="text-center text-muted mb-5">Connect with these experienced speakers who are ready to help you grow</p>
+            </div>
+            @foreach (var speaker in Model.FeaturedSpeakers.Take(3))
+            {
+                <div class="col-md-4 mb-4">
+                    <div class="card speaker-card h-100">
+                        @if (!string.IsNullOrEmpty(speaker.HeadshotUrl))
+                        {
+                            <img src="@speaker.HeadshotUrl" class="card-img-top" alt="@speaker.FullName">
+                        }
+                        else
+                        {
+                            <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                                <i class="bi bi-person-circle display-1 text-muted"></i>
+                            </div>
+                        }
+                        <div class="card-body">
+                            <h5 class="card-title">@speaker.FullName</h5>
+                            <p class="card-text">@(speaker.Bio.Length > 150 ? speaker.Bio.Substring(0, 150) + "..." : speaker.Bio)</p>
+                            <div class="mb-3">
+                                @foreach (var expertise in speaker.UserExpertise.Take(3))
+                                {
+                                    <span class="expertise-tag">@expertise.Expertise.Name</span>
+                                }
+                            </div>
+                        </div>
+                        <div class="card-footer bg-transparent">
+                            <a asp-page="/Profile/View" asp-route-id="@speaker.Id" class="btn btn-primary w-100">
+                                <i class="bi bi-eye me-2"></i>View Profile
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    <!-- Popular Expertise Areas -->
+    @if (Model.PopularExpertise?.Any() == true)
+    {
+        <div class="row mb-5">
+            <div class="col-12">
+                <h2 class="text-center mb-4">Popular Expertise Areas</h2>
+                <p class="text-center text-muted mb-4">Explore speakers by technology and expertise</p>
+                <div class="text-center">
+                    @foreach (var expertise in Model.PopularExpertise)
+                    {
+                        <a asp-page="/Speakers/Browse" asp-route-expertise="@expertise.Id" 
+                           class="expertise-tag me-2 mb-2">
+                            @expertise.Name
+                            <span class="badge bg-light text-dark ms-1">@expertise.UserExpertise.Count</span>
+                        </a>
+                    }
+                </div>
+                <div class="text-center mt-4">
+                    <a asp-page="/Speakers/Browse" class="btn btn-outline-primary">
+                        <i class="bi bi-search me-2"></i>Browse All Speakers
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Call to Action -->
+    @if (!User.Identity.IsAuthenticated)
+    {
+        <div class="row">
+            <div class="col-12">
+                <div class="card bg-primary text-white">
+                    <div class="card-body text-center py-5">
+                        <h3 class="card-title">Ready to Start Your Speaking Journey?</h3>
+                        <p class="card-text lead">Join thousands of speakers who are growing their careers through mentorship.</p>
+                        <div class="d-flex gap-3 justify-content-center flex-wrap">
+                            <a href="@Url.Page("/Account/Register", new { area = "Identity", speakerType = "NewSpeaker" })" 
+                               class="btn btn-light btn-lg">
+                                <i class="bi bi-person-plus me-2"></i>Join as New Speaker
+                            </a>
+                            <a href="@Url.Page("/Account/Register", new { area = "Identity", speakerType = "ExperiencedSpeaker" })" 
+                               class="btn btn-outline-light btn-lg">
+                                <i class="bi bi-award me-2"></i>Become a Mentor
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        // Add smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                document.querySelector(this.getAttribute('href')).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+
+        // Add fade-in animation for cards
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('fade-in');
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.card').forEach(card => {
+            observer.observe(card);
+        });
+    </script>
+}

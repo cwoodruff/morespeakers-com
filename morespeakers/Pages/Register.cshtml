@@ -1,0 +1,446 @@
+@page
+@model RegisterModel
+@{
+    ViewData["Title"] = "Register";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card">
+                <div class="card-header text-center">
+                    <h3 class="mb-0">
+                        <i class="bi bi-person-plus me-2"></i>
+                        Create Your Account
+                    </h3>
+                    <p class="text-muted mt-2">Join the MoreSpeakers.com community</p>
+                </div>
+                <div class="card-body">
+                    <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post" enctype="multipart/form-data">
+                        <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+                        
+                        <!-- Speaker Type Selection -->
+                        <div class="mb-4">
+                            <label class="form-label">I want to join as:</label>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="card speaker-type-card" _="on click add .selected to me then remove .selected from .speaker-type-card then set the checked of #speakerType_1 to true">
+                                        <div class="card-body text-center">
+                                            <i class="bi bi-person display-4 text-primary mb-2"></i>
+                                            <h6>New Speaker</h6>
+                                            <p class="small text-muted">Seeking mentorship and guidance</p>
+                                            <input type="radio" id="speakerType_1" name="Input.SpeakerTypeId" value="1" class="d-none" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card speaker-type-card" _="on click add .selected to me then remove .selected from .speaker-type-card then set the checked of #speakerType_2 to true">
+                                        <div class="card-body text-center">
+                                            <i class="bi bi-award display-4 text-success mb-2"></i>
+                                            <h6>Experienced Speaker</h6>
+                                            <p class="small text-muted">Ready to mentor others</p>
+                                            <input type="radio" id="speakerType_2" name="Input.SpeakerTypeId" value="2" class="d-none" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <span asp-validation-for="Input.SpeakerTypeId" class="text-danger"></span>
+                        </div>
+
+                        <!-- Basic Information -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <input asp-for="Input.FirstName" class="form-control" autocomplete="given-name" aria-required="true" placeholder="First Name" />
+                                    <label asp-for="Input.FirstName">First Name</label>
+                                    <span asp-validation-for="Input.FirstName" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <input asp-for="Input.LastName" class="form-control" autocomplete="family-name" aria-required="true" placeholder="Last Name" />
+                                    <label asp-for="Input.LastName">Last Name</label>
+                                    <span asp-validation-for="Input.LastName" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
+                            <label asp-for="Input.Email">Email</label>
+                            <span asp-validation-for="Input.Email" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            <input asp-for="Input.PhoneNumber" class="form-control" autocomplete="tel" aria-required="true" placeholder="Phone Number" />
+                            <label asp-for="Input.PhoneNumber">Phone Number</label>
+                            <span asp-validation-for="Input.PhoneNumber" class="text-danger"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <input asp-for="Input.Password" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
+                                    <label asp-for="Input.Password">Password</label>
+                                    <span asp-validation-for="Input.Password" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <input asp-for="Input.ConfirmPassword" class="form-control" autocomplete="new-password" aria-required="true" placeholder="confirm password" />
+                                    <label asp-for="Input.ConfirmPassword">Confirm Password</label>
+                                    <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Bio -->
+                        <div class="mb-3">
+                            <label asp-for="Input.Bio" class="form-label">Bio</label>
+                            <textarea asp-for="Input.Bio" class="form-control" rows="4" placeholder="Tell us about yourself, your background, and experience..." aria-required="true"></textarea>
+                            <div class="form-text">Maximum 1000 words</div>
+                            <span asp-validation-for="Input.Bio" class="text-danger"></span>
+                        </div>
+
+                        <!-- Goals/What you can help with -->
+                        <div class="mb-3">
+                            <label asp-for="Input.Goals" class="form-label">
+                                <span id="goalsLabel">What are your speaking goals?</span>
+                            </label>
+                            <textarea asp-for="Input.Goals" class="form-control" rows="3" placeholder="Describe what you want to achieve or how you can help others..." aria-required="true"></textarea>
+                            <div class="form-text" id="goalsHelp">
+                                For new speakers: What do you want to learn? For experienced speakers: How can you help mentor others?
+                            </div>
+                            <span asp-validation-for="Input.Goals" class="text-danger"></span>
+                        </div>
+
+                        <!-- Expertise Areas -->
+                        <div class="mb-3">
+                            <label class="form-label">Technology & Expertise Areas <span class="text-danger">*</span></label>
+                            <div id="expertiseContainer" class="border rounded p-3">
+                                <div class="row" id="availableExpertise">
+                                    @foreach (var expertise in Model.AllExpertise)
+                                    {
+                                        <div class="col-6 col-md-4 col-lg-3 mb-2">
+                                            <label class="expertise-checkbox">
+                                                <input type="checkbox" name="Input.SelectedExpertiseIds" value="@expertise.Id" class="d-none" />
+                                                <span class="expertise-tag selectable">@expertise.Name</span>
+                                            </label>
+                                        </div>
+                                    }
+                                </div>
+                                <div class="mt-3">
+                                    <button type="button" class="btn btn-outline-secondary btn-sm" id="addCustomExpertise">
+                                        <i class="bi bi-plus"></i> Add Custom Expertise
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="form-text">Select at least one area of expertise</div>
+                            <span asp-validation-for="Input.SelectedExpertiseIds" class="text-danger"></span>
+                        </div>
+
+                        <!-- Social Media Links -->
+                        <div class="mb-3">
+                            <label class="form-label">Social Media Links <span class="text-danger">*</span></label>
+                            <div id="socialMediaContainer">
+                                <div class="social-media-entry mb-2">
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <select name="Input.SocialMediaPlatforms[0]" class="form-select" required>
+                                                <option value="">Select Platform</option>
+                                                <option value="LinkedIn">LinkedIn</option>
+                                                <option value="Twitter">Twitter/X</option>
+                                                <option value="GitHub">GitHub</option>
+                                                <option value="Website">Personal Website</option>
+                                                <option value="Blog">Blog</option>
+                                                <option value="YouTube">YouTube</option>
+                                                <option value="Mastodon">Mastodon</option>
+                                                <option value="Other">Other</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-7">
+                                            <input type="url" name="Input.SocialMediaUrls[0]" class="form-control" placeholder="https://..." required />
+                                        </div>
+                                        <div class="col-md-1">
+                                            <button type="button" class="btn btn-outline-danger btn-sm remove-social" disabled>
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-outline-secondary btn-sm mt-2" id="addSocialMedia">
+                                <i class="bi bi-plus"></i> Add Another Link
+                            </button>
+                            <div class="form-text">At least one social media link is required</div>
+                        </div>
+
+                        <!-- Sessionize Profile (Optional) -->
+                        <div class="mb-3">
+                            <div class="form-floating">
+                                <input asp-for="Input.SessionizeUrl" class="form-control" placeholder="https://sessionize.com/your-profile" />
+                                <label asp-for="Input.SessionizeUrl">Sessionize Profile URL (Optional)</label>
+                                <span asp-validation-for="Input.SessionizeUrl" class="text-danger"></span>
+                            </div>
+                            <div class="form-text">
+                                <i class="bi bi-info-circle"></i>
+                                <a href="https://sessionize.com" target="_blank" class="text-decoration-none">Sessionize</a> is a popular platform for conference speakers
+                            </div>
+                        </div>
+
+                        <!-- Headshot Upload -->
+                        <div class="mb-4">
+                            <label asp-for="Input.HeadshotFile" class="form-label">Profile Photo (Optional)</label>
+                            <div class="file-upload-area" id="headshotUpload">
+                                <i class="bi bi-cloud-upload display-4 text-muted mb-2"></i>
+                                <p class="mb-2">Click to upload or drag and drop</p>
+                                <p class="small text-muted">PNG, JPG, GIF up to 5MB</p>
+                                <input asp-for="Input.HeadshotFile" type="file" class="d-none" accept="image/*" />
+                            </div>
+                            <span asp-validation-for="Input.HeadshotFile" class="text-danger"></span>
+                        </div>
+
+                        <button id="registerSubmit" type="submit" class="btn btn-primary btn-lg w-100">
+                            <i class="bi bi-person-plus me-2"></i>
+                            Create Account
+                        </button>
+                    </form>
+
+                    <div class="text-center mt-3">
+                        <p class="text-muted">
+                            Already have an account? 
+                            <a asp-page="./Login" asp-route-returnUrl="@Model.ReturnUrl" class="text-decoration-none">Sign in</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <style>
+        .speaker-type-card {
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 2px solid #dee2e6;
+        }
+        
+        .speaker-type-card:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+        
+        .speaker-type-card.selected {
+            border-color: var(--primary-color);
+            background-color: rgba(13, 110, 253, 0.05);
+        }
+        
+        .expertise-checkbox {
+            cursor: pointer;
+            margin: 0;
+        }
+        
+        .expertise-checkbox input:checked + .expertise-tag {
+            background-color: var(--success-color);
+        }
+        
+        .social-media-entry:first-child .remove-social {
+            display: none;
+        }
+    </style>
+    
+    <script>
+        // Handle speaker type selection label updates
+        document.querySelectorAll('input[name="Input.SpeakerTypeId"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                const goalsLabel = document.getElementById('goalsLabel');
+                const goalsHelp = document.getElementById('goalsHelp');
+                
+                if (this.value === '1') { // New Speaker
+                    goalsLabel.textContent = 'What are your speaking goals?';
+                    goalsHelp.textContent = 'Describe what you want to learn from mentorship (e.g., improve speaking skills, get help with talk abstracts, conference selection advice)';
+                } else { // Experienced Speaker
+                    goalsLabel.textContent = 'How can you help mentor others?';
+                    goalsHelp.textContent = 'Describe how you can help new speakers (e.g., speaking coaching, talk development, conference recommendations)';
+                }
+            });
+        });
+
+        // Handle expertise selection
+        document.querySelectorAll('.expertise-checkbox').forEach(label => {
+            label.addEventListener('click', function(e) {
+                e.preventDefault();
+                const checkbox = this.querySelector('input[type="checkbox"]');
+                const tag = this.querySelector('.expertise-tag');
+                
+                checkbox.checked = !checkbox.checked;
+                tag.classList.toggle('selected', checkbox.checked);
+            });
+        });
+
+        // Add custom expertise
+        document.getElementById('addCustomExpertise').addEventListener('click', function() {
+            const customName = prompt('Enter custom expertise area:');
+            if (customName && customName.trim()) {
+                const container = document.getElementById('availableExpertise');
+                const div = document.createElement('div');
+                div.className = 'col-6 col-md-4 col-lg-3 mb-2';
+                div.innerHTML = `
+                    <label class="expertise-checkbox">
+                        <input type="checkbox" name="Input.CustomExpertise" value="${customName.trim()}" class="d-none" checked />
+                        <span class="expertise-tag selectable selected">${customName.trim()}</span>
+                    </label>
+                `;
+                container.appendChild(div);
+                
+                // Add event listener to new item
+                div.querySelector('.expertise-checkbox').addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const checkbox = this.querySelector('input[type="checkbox"]');
+                    const tag = this.querySelector('.expertise-tag');
+                    
+                    checkbox.checked = !checkbox.checked;
+                    tag.classList.toggle('selected', checkbox.checked);
+                });
+            }
+        });
+
+        // Social Media Management
+        let socialMediaCount = 1;
+        
+        document.getElementById('addSocialMedia').addEventListener('click', function() {
+            const container = document.getElementById('socialMediaContainer');
+            const div = document.createElement('div');
+            div.className = 'social-media-entry mb-2';
+            div.innerHTML = `
+                <div class="row">
+                    <div class="col-md-4">
+                        <select name="Input.SocialMediaPlatforms[${socialMediaCount}]" class="form-select">
+                            <option value="">Select Platform</option>
+                            <option value="LinkedIn">LinkedIn</option>
+                            <option value="Twitter">Twitter/X</option>
+                            <option value="GitHub">GitHub</option>
+                            <option value="Website">Personal Website</option>
+                            <option value="Blog">Blog</option>
+                            <option value="YouTube">YouTube</option>
+                            <option value="Mastodon">Mastodon</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="col-md-7">
+                        <input type="url" name="Input.SocialMediaUrls[${socialMediaCount}]" class="form-control" placeholder="https://..." />
+                    </div>
+                    <div class="col-md-1">
+                        <button type="button" class="btn btn-outline-danger btn-sm remove-social">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+            container.appendChild(div);
+            socialMediaCount++;
+            
+            // Update remove button states
+            updateRemoveButtons();
+        });
+
+        // Handle remove social media
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.remove-social')) {
+                e.target.closest('.social-media-entry').remove();
+                updateRemoveButtons();
+            }
+        });
+
+        function updateRemoveButtons() {
+            const entries = document.querySelectorAll('.social-media-entry');
+            entries.forEach((entry, index) => {
+                const removeBtn = entry.querySelector('.remove-social');
+                removeBtn.disabled = entries.length === 1;
+            });
+        }
+
+        // File upload handling
+        const headshotUpload = document.getElementById('headshotUpload');
+        const headshotInput = headshotUpload.querySelector('input[type="file"]');
+
+        headshotUpload.addEventListener('click', () => headshotInput.click());
+
+        headshotUpload.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.classList.add('dragover');
+        });
+
+        headshotUpload.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            this.classList.remove('dragover');
+        });
+
+        headshotUpload.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                headshotInput.files = files;
+                updateFileDisplay(files[0]);
+            }
+        });
+
+        headshotInput.addEventListener('change', function() {
+            if (this.files.length > 0) {
+                updateFileDisplay(this.files[0]);
+            }
+        });
+
+        function updateFileDisplay(file) {
+            const container = headshotUpload;
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    container.innerHTML = `
+                        <img src="${e.target.result}" alt="Preview" style="max-width: 200px; max-height: 200px; border-radius: 8px;">
+                        <p class="mt-2 mb-0">${file.name}</p>
+                        <button type="button" class="btn btn-sm btn-outline-secondary mt-1" onclick="clearFileUpload()">
+                            <i class="bi bi-trash"></i> Remove
+                        </button>
+                    `;
+                };
+                reader.readAsDataURL(file);
+            } else {
+                container.innerHTML = `
+                    <i class="bi bi-file-earmark display-4 text-muted mb-2"></i>
+                    <p class="mb-0">${file.name}</p>
+                    <button type="button" class="btn btn-sm btn-outline-secondary mt-1" onclick="clearFileUpload()">
+                        <i class="bi bi-trash"></i> Remove
+                    </button>
+                `;
+            }
+        }
+
+        function clearFileUpload() {
+            headshotInput.value = '';
+            headshotUpload.innerHTML = `
+                <i class="bi bi-cloud-upload display-4 text-muted mb-2"></i>
+                <p class="mb-2">Click to upload or drag and drop</p>
+                <p class="small text-muted">PNG, JPG, GIF up to 5MB</p>
+                <input asp-for="Input.HeadshotFile" type="file" class="d-none" accept="image/*" />
+            `;
+        }
+
+        // Initialize first speaker type if provided via query string
+        const urlParams = new URLSearchParams(window.location.search);
+        const speakerType = urlParams.get('speakerType');
+        if (speakerType === 'NewSpeaker') {
+            document.getElementById('speakerType_1').checked = true;
+            document.querySelector('[_="on click add .selected to me then remove .selected from .speaker-type-card then set the checked of #speakerType_1 to true"]').classList.add('selected');
+            document.getElementById('speakerType_1').dispatchEvent(new Event('change'));
+        } else if (speakerType === 'ExperiencedSpeaker') {
+            document.getElementById('speakerType_2').checked = true;
+            document.querySelector('[_="on click add .selected to me then remove .selected from .speaker-type-card then set the checked of #speakerType_2 to true"]').classList.add('selected');
+            document.getElementById('speakerType_2').dispatchEvent(new Event('change'));
+        }
+    </script>
+}
