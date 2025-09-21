@@ -21,7 +21,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         // Configure User entity
         builder.Entity<User>(entity =>
         {
-            entity.ToTable("Users");
+            entity.ToTable("AspNetUsers");
             
             entity.Property(e => e.Id)
                 .HasDefaultValueSql("NEWID()");

@@ -1,14 +1,11 @@
 var builder = DistributedApplication.CreateBuilder(args);
 
 // Add SQL Server database
-var sqlServer = builder.AddSqlServer("sqlserver")
-    .WithDataVolume();
-
-var database = sqlServer.AddDatabase("morespeakers");
+var sqldb = builder.AddConnectionString("sqldb");
 
 // Add the main web application
 var webApp = builder.AddProject<Projects.morespeakers>("web")
-    .WithReference(database)
+    .WaitFor(sqldb)
     .WithExternalHttpEndpoints();
 
 // Add Redis cache for session management (optional)

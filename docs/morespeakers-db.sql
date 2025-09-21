@@ -796,7 +796,7 @@ VALUES
 
 -- Update the completed mentorship with completion date
 UPDATE Mentorships
-SET CompletedDate = DATEADD(day, -15, GETUTCDATE()),
+SET CompletedDate = DATEADD(day, -1, GETUTCDATE()),
     Status = 'Completed'
 WHERE NewSpeakerId = @NewSpeakerId
   AND MentorId = @ExperiencedSpeaker2Id;
@@ -813,23 +813,3 @@ PRINT '- alex.johnson@example.com (New Speaker)';
 PRINT '- john.smith@example.com (Experienced Speaker)';
 PRINT '- sarah.chen@example.com (Experienced Speaker)';
 */
-
--- =============================================
--- Database Health Check
--- =============================================
-PRINT 'Database schema created successfully!';
-PRINT 'Tables created: ' + CAST((SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE') AS VARCHAR(10));
-PRINT 'Views created: ' + CAST((SELECT COUNT(*) FROM INFORMATION_SCHEMA.VIEWS) AS VARCHAR(10));
-PRINT 'Procedures created: ' + CAST((SELECT COUNT(*) FROM INFORMATION_SCHEMA.ROUTINES WHERE ROUTINE_TYPE = 'PROCEDURE') AS VARCHAR(10));
-PRINT 'Functions created: ' + CAST((SELECT COUNT(*) FROM INFORMATION_SCHEMA.ROUTINES WHERE ROUTINE_TYPE = 'FUNCTION') AS VARCHAR(10));
-
--- Verify table relationships
-SELECT
-    TABLE_NAME,
-    CONSTRAINT_NAME,
-    CONSTRAINT_TYPE
-FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS
-WHERE CONSTRAINT_TYPE IN ('PRIMARY KEY', 'FOREIGN KEY')
-ORDER BY TABLE_NAME, CONSTRAINT_TYPE;
-
-GO

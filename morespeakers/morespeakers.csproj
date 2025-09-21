@@ -5,6 +5,7 @@
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <UserSecretsId>aspnet-morespeakers-3f5747e1-0cb2-46db-ba42-302d1dccea79</UserSecretsId>
+        <RootNamespace>MoreSpeakers</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>

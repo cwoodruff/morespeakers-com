@@ -9,7 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
 
 // Add database context
-builder.AddSqlServerDbContext<ApplicationDbContext>("morespeakers");
+builder.AddSqlServerDbContext<ApplicationDbContext>("sqldb");
 
 // Add Redis cache for session management
 builder.AddRedisDistributedCache(connectionName: "cache");
