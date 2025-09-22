@@ -1,0 +1,541 @@
+@page
+@model RegisterModel
+@{
+    ViewData["Title"] = "Join MoreSpeakers.com";
+}
+
+<div class="container-fluid">
+    <div class="row min-vh-100">
+        <!-- Welcome Section -->
+        <div class="col-xl-4 col-lg-5 d-none d-lg-flex align-items-center justify-content-center bg-primary text-white">
+            <div class="text-center px-4">
+                <div class="mb-4">
+                    <i class="bi bi-megaphone-fill display-1"></i>
+                </div>
+                <h2 class="fw-bold mb-3">Start Your Speaking Journey</h2>
+                <p class="lead mb-4">Join thousands of speakers who are growing their careers through mentorship and community support.</p>
+
+                <div class="row text-center">
+                    <div class="col-4">
+                        <div class="bg-white bg-opacity-10 rounded p-3 mb-3">
+                            <i class="bi bi-person-plus-fill h3 mb-2 d-block"></i>
+                            <h6 class="fw-bold">New Speakers</h6>
+                            <small>Learn from experienced mentors</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="bg-white bg-opacity-10 rounded p-3 mb-3">
+                            <i class="bi bi-award-fill h3 mb-2 d-block"></i>
+                            <h6 class="fw-bold">Mentors</h6>
+                            <small>Share your expertise</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="bg-white bg-opacity-10 rounded p-3 mb-3">
+                            <i class="bi bi-people-fill h3 mb-2 d-block"></i>
+                            <h6 class="fw-bold">Community</h6>
+                            <small>Connect and grow together</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Registration Form Section -->
+        <div class="col-xl-8 col-lg-7 py-5">
+            <div class="container">
+                <div class="row justify-content-center">
+                    <div class="col-lg-8">
+                        <div class="text-center mb-4">
+                            <h1 class="h3 fw-bold text-primary">Create Your Speaker Profile</h1>
+                            <p class="text-muted">Tell us about yourself and join the community</p>
+                        </div>
+
+                        <div class="card shadow-sm border-0">
+                            <div class="card-body p-4">
+                                <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post" data-validate>
+                                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                                    <!-- Progress Indicator -->
+                                    <div class="mb-4">
+                                        <div class="row text-center">
+                                            <div class="col">
+                                                <div class="step active" data-step="1">
+                                                    <div class="step-circle">1</div>
+                                                    <small>Account</small>
+                                                </div>
+                                            </div>
+                                            <div class="col">
+                                                <div class="step" data-step="2">
+                                                    <div class="step-circle">2</div>
+                                                    <small>Profile</small>
+                                                </div>
+                                            </div>
+                                            <div class="col">
+                                                <div class="step" data-step="3">
+                                                    <div class="step-circle">3</div>
+                                                    <small>Expertise</small>
+                                                </div>
+                                            </div>
+                                            <div class="col">
+                                                <div class="step" data-step="4">
+                                                    <div class="step-circle">4</div>
+                                                    <small>Social</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Step 1: Basic Account Information -->
+                                    <div class="form-step" data-step="1">
+                                        <h5 class="mb-4">Account Information</h5>
+
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label asp-for="Input.FirstName" class="form-label fw-medium">First Name</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text bg-light border-end-0">
+                                                        <i class="bi bi-person text-muted"></i>
+                                                    </span>
+                                                    <input asp-for="Input.FirstName" class="form-control border-start-0" placeholder="Enter your first name" />
+                                                </div>
+                                                <span asp-validation-for="Input.FirstName" class="text-danger small"></span>
+                                            </div>
+
+                                            <div class="col-md-6 mb-3">
+                                                <label asp-for="Input.LastName" class="form-label fw-medium">Last Name</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text bg-light border-end-0">
+                                                        <i class="bi bi-person text-muted"></i>
+                                                    </span>
+                                                    <input asp-for="Input.LastName" class="form-control border-start-0" placeholder="Enter your last name" />
+                                                </div>
+                                                <span asp-validation-for="Input.LastName" class="text-danger small"></span>
+                                            </div>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label asp-for="Input.Email" class="form-label fw-medium">Email Address</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-light border-end-0">
+                                                    <i class="bi bi-envelope text-muted"></i>
+                                                </span>
+                                                <input asp-for="Input.Email" class="form-control border-start-0" autocomplete="username" placeholder="Enter your email" />
+                                            </div>
+                                            <span asp-validation-for="Input.Email" class="text-danger small"></span>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label asp-for="Input.PhoneNumber" class="form-label fw-medium">Phone Number</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text bg-light border-end-0">
+                                                    <i class="bi bi-telephone text-muted"></i>
+                                                </span>
+                                                <input asp-for="Input.PhoneNumber" class="form-control border-start-0" placeholder="Enter your phone number" />
+                                            </div>
+                                            <span asp-validation-for="Input.PhoneNumber" class="text-danger small"></span>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label asp-for="Input.Password" class="form-label fw-medium">Password</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text bg-light border-end-0">
+                                                        <i class="bi bi-lock text-muted"></i>
+                                                    </span>
+                                                    <input asp-for="Input.Password" class="form-control border-start-0" autocomplete="new-password" placeholder="Create a strong password" />
+                                                </div>
+                                                <span asp-validation-for="Input.Password" class="text-danger small"></span>
+                                            </div>
+
+                                            <div class="col-md-6 mb-3">
+                                                <label asp-for="Input.ConfirmPassword" class="form-label fw-medium">Confirm Password</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text bg-light border-end-0">
+                                                        <i class="bi bi-shield-check text-muted"></i>
+                                                    </span>
+                                                    <input asp-for="Input.ConfirmPassword" class="form-control border-start-0" autocomplete="new-password" placeholder="Confirm your password" />
+                                                </div>
+                                                <span asp-validation-for="Input.ConfirmPassword" class="text-danger small"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Step 2: Profile Information -->
+                                    <div class="form-step d-none" data-step="2">
+                                        <h5 class="mb-4">Your Speaker Profile</h5>
+
+                                        <div class="mb-3">
+                                            <label asp-for="Input.SpeakerTypeId" class="form-label fw-medium">Speaker Type</label>
+                                            <div class="row">
+                                                @foreach (var speakerType in Model.SpeakerTypes)
+                                                {
+                                                    <div class="col-md-6 mb-3">
+                                                        <div class="card speaker-type-card" style="cursor: pointer;">
+                                                            <div class="card-body text-center">
+                                                                <input type="radio" asp-for="Input.SpeakerTypeId" value="@speakerType.Id" class="d-none speaker-type-radio" id="speakerType@(speakerType.Id)" />
+                                                                <label for="speakerType@(speakerType.Id)" class="w-100 m-0" style="cursor: pointer;">
+                                                                    <i class="bi @(speakerType.Id == 1 ? "bi-person-plus" : "bi-award") h3 text-primary mb-2 d-block"></i>
+                                                                    <h6 class="fw-bold">@(speakerType.Id == 1 ? "New Speaker" : "Experienced Speaker")</h6>
+                                                                    <p class="small text-muted mb-0">@speakerType.Description</p>
+                                                                </label>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                }
+                                            </div>
+                                            <span asp-validation-for="Input.SpeakerTypeId" class="text-danger small"></span>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label asp-for="Input.Bio" class="form-label fw-medium">Bio</label>
+                                            <textarea asp-for="Input.Bio" class="form-control" rows="4" placeholder="Tell us about yourself, your speaking experience, and what makes you passionate about sharing knowledge..."></textarea>
+                                            <span asp-validation-for="Input.Bio" class="text-danger small"></span>
+                                            <div class="form-text">
+                                                <small class="text-muted">This will be displayed on your public profile.</small>
+                                            </div>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label asp-for="Input.Goals" class="form-label fw-medium">Goals</label>
+                                            <textarea asp-for="Input.Goals" class="form-control" rows="3" placeholder="What are your speaking goals? What do you hope to achieve through mentorship?"></textarea>
+                                            <span asp-validation-for="Input.Goals" class="text-danger small"></span>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label asp-for="Input.SessionizeUrl" class="form-label fw-medium">Sessionize Profile URL</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text bg-light border-end-0">
+                                                        <i class="bi bi-link text-muted"></i>
+                                                    </span>
+                                                    <input asp-for="Input.SessionizeUrl" class="form-control border-start-0" placeholder="https://sessionize.com/your-profile" />
+                                                </div>
+                                                <span asp-validation-for="Input.SessionizeUrl" class="text-danger small"></span>
+                                                <div class="form-text">
+                                                    <small class="text-muted">Optional: Link to your Sessionize speaker profile</small>
+                                                </div>
+                                            </div>
+
+                                            <div class="col-md-6 mb-3">
+                                                <label asp-for="Input.HeadshotUrl" class="form-label fw-medium">Headshot URL</label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text bg-light border-end-0">
+                                                        <i class="bi bi-image text-muted"></i>
+                                                    </span>
+                                                    <input asp-for="Input.HeadshotUrl" class="form-control border-start-0" placeholder="https://example.com/your-photo.jpg" />
+                                                </div>
+                                                <span asp-validation-for="Input.HeadshotUrl" class="text-danger small"></span>
+                                                <div class="form-text">
+                                                    <small class="text-muted">Optional: Direct link to your profile photo</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Step 3: Expertise Selection -->
+                                    <div class="form-step d-none" data-step="3">
+                                        <h5 class="mb-4">Areas of Expertise</h5>
+                                        <p class="text-muted mb-4">Select the technologies, topics, and areas where you have experience or interest.</p>
+
+                                        <div class="mb-4">
+                                            <label class="form-label fw-medium">Select Your Expertise Areas</label>
+                                            <div class="expertise-grid">
+                                                @foreach (var expertise in Model.AvailableExpertise)
+                                                {
+                                                    <div class="form-check expertise-item">
+                                                        <input class="form-check-input" type="checkbox" name="Input.SelectedExpertiseIds" value="@expertise.Id" id="expertise@(expertise.Id)" />
+                                                        <label class="form-check-label" for="expertise@(expertise.Id)">
+                                                            @expertise.Name
+                                                        </label>
+                                                    </div>
+                                                }
+                                            </div>
+                                            <span asp-validation-for="Input.SelectedExpertiseIds" class="text-danger small"></span>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label class="form-label fw-medium">Custom Expertise Areas</label>
+                                            <div id="customExpertiseContainer">
+                                                <div class="input-group mb-2 custom-expertise-input">
+                                                    <input type="text" name="Input.CustomExpertise" class="form-control" placeholder="Enter a custom expertise area" />
+                                                    <button type="button" class="btn btn-outline-primary" onclick="addCustomExpertise()">
+                                                        <i class="bi bi-plus"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div class="form-text">
+                                                <small class="text-muted">Add expertise areas not listed above</small>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Step 4: Social Media Links -->
+                                    <div class="form-step d-none" data-step="4">
+                                        <h5 class="mb-4">Social Media & Professional Links</h5>
+                                        <p class="text-muted mb-4">Share your professional social media profiles to help others connect with you.</p>
+
+                                        <div id="socialMediaContainer">
+                                            <div class="row mb-3 social-media-row">
+                                                <div class="col-md-4">
+                                                    <select name="Input.SocialMediaPlatforms" class="form-select">
+                                                        <option value="">Select Platform</option>
+                                                        <option value="LinkedIn">LinkedIn</option>
+                                                        <option value="Twitter">Twitter</option>
+                                                        <option value="GitHub">GitHub</option>
+                                                        <option value="YouTube">YouTube</option>
+                                                        <option value="Website">Personal Website</option>
+                                                        <option value="Blog">Blog</option>
+                                                        <option value="Other">Other</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <input type="url" name="Input.SocialMediaUrls" class="form-control" placeholder="https://..." />
+                                                </div>
+                                                <div class="col-md-2">
+                                                    <button type="button" class="btn btn-outline-primary w-100" onclick="addSocialMediaRow()">
+                                                        <i class="bi bi-plus"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Navigation Buttons -->
+                                    <div class="d-flex justify-content-between mt-4">
+                                        <button type="button" id="prevBtn" class="btn btn-outline-secondary" onclick="changeStep(-1)" style="display: none;">
+                                            <i class="bi bi-arrow-left me-2"></i>Previous
+                                        </button>
+                                        <button type="button" id="nextBtn" class="btn btn-primary" onclick="changeStep(1)">
+                                            Next<i class="bi bi-arrow-right ms-2"></i>
+                                        </button>
+                                        <button type="submit" id="submitBtn" class="btn btn-success" style="display: none;">
+                                            <i class="bi bi-person-plus me-2"></i>Create Account
+                                        </button>
+                                    </div>
+                                </form>
+
+                                <div class="text-center mt-4">
+                                    <small class="text-muted">
+                                        By creating an account, you agree to our
+                                        <a href="#" class="text-decoration-none">Terms of Service</a> and
+                                        <a href="/Privacy" class="text-decoration-none">Privacy Policy</a>
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="text-center mt-4">
+                            <p class="text-muted mb-0">Already have an account?</p>
+                            <a asp-page="./Login" asp-route-returnUrl="@Model.ReturnUrl" class="btn btn-outline-primary mt-2">
+                                <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .step {
+        position: relative;
+        margin-bottom: 1rem;
+    }
+
+    .step-circle {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: #e9ecef;
+        color: #6c757d;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 0.5rem;
+        font-weight: bold;
+        transition: all 0.3s ease;
+    }
+
+    .step.active .step-circle {
+        background-color: var(--bs-primary);
+        color: white;
+    }
+
+    .step.completed .step-circle {
+        background-color: var(--bs-success);
+        color: white;
+    }
+
+    .expertise-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 0.5rem;
+        max-height: 300px;
+        overflow-y: auto;
+        padding: 1rem;
+        border: 1px solid #dee2e6;
+        border-radius: 0.375rem;
+        background-color: #f8f9fa;
+    }
+
+    .expertise-item {
+        background: white;
+        padding: 0.5rem;
+        border-radius: 0.25rem;
+        border: 1px solid #dee2e6;
+        transition: all 0.2s ease;
+    }
+
+    .expertise-item:hover {
+        border-color: var(--bs-primary);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .speaker-type-card {
+        transition: all 0.3s ease;
+        border: 2px solid transparent;
+    }
+
+    .speaker-type-card:hover {
+        border-color: var(--bs-primary);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .speaker-type-radio:checked + label .speaker-type-card {
+        border-color: var(--bs-primary);
+        background-color: var(--bs-primary-bg-subtle);
+    }
+</style>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        let currentStep = 1;
+        const totalSteps = 4;
+
+        function changeStep(direction) {
+            if (direction === 1 && currentStep < totalSteps) {
+                if (validateCurrentStep()) {
+                    currentStep++;
+                    showStep(currentStep);
+                }
+            } else if (direction === -1 && currentStep > 1) {
+                currentStep--;
+                showStep(currentStep);
+            }
+        }
+
+        function showStep(step) {
+            // Hide all steps
+            document.querySelectorAll('.form-step').forEach(s => s.classList.add('d-none'));
+            // Show current step
+            document.querySelector(`[data-step="${step}"]`).classList.remove('d-none');
+
+            // Update step indicators
+            document.querySelectorAll('.step').forEach(s => {
+                s.classList.remove('active');
+                const stepNum = parseInt(s.dataset.step);
+                if (stepNum < step) {
+                    s.classList.add('completed');
+                } else if (stepNum === step) {
+                    s.classList.add('active');
+                } else {
+                    s.classList.remove('completed');
+                }
+            });
+
+            // Update navigation buttons
+            document.getElementById('prevBtn').style.display = step === 1 ? 'none' : 'block';
+            document.getElementById('nextBtn').style.display = step === totalSteps ? 'none' : 'block';
+            document.getElementById('submitBtn').style.display = step === totalSteps ? 'block' : 'none';
+        }
+
+        function validateCurrentStep() {
+            const currentStepElement = document.querySelector(`[data-step="${currentStep}"]`);
+            const requiredFields = currentStepElement.querySelectorAll('[required]');
+            let isValid = true;
+
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    field.classList.add('is-invalid');
+                    isValid = false;
+                } else {
+                    field.classList.remove('is-invalid');
+                }
+            });
+
+            return isValid;
+        }
+
+        function addCustomExpertise() {
+            const container = document.getElementById('customExpertiseContainer');
+            const newInput = document.createElement('div');
+            newInput.className = 'input-group mb-2 custom-expertise-input';
+            newInput.innerHTML = `
+                <input type="text" name="Input.CustomExpertise" class="form-control" placeholder="Enter a custom expertise area" />
+                <button type="button" class="btn btn-outline-danger" onclick="removeCustomExpertise(this)">
+                    <i class="bi bi-trash"></i>
+                </button>
+            `;
+            container.appendChild(newInput);
+        }
+
+        function removeCustomExpertise(button) {
+            button.closest('.custom-expertise-input').remove();
+        }
+
+        function addSocialMediaRow() {
+            const container = document.getElementById('socialMediaContainer');
+            const newRow = document.createElement('div');
+            newRow.className = 'row mb-3 social-media-row';
+            newRow.innerHTML = `
+                <div class="col-md-4">
+                    <select name="Input.SocialMediaPlatforms" class="form-select">
+                        <option value="">Select Platform</option>
+                        <option value="LinkedIn">LinkedIn</option>
+                        <option value="Twitter">Twitter</option>
+                        <option value="GitHub">GitHub</option>
+                        <option value="YouTube">YouTube</option>
+                        <option value="Website">Personal Website</option>
+                        <option value="Blog">Blog</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <input type="url" name="Input.SocialMediaUrls" class="form-control" placeholder="https://..." />
+                </div>
+                <div class="col-md-2">
+                    <button type="button" class="btn btn-outline-danger w-100" onclick="removeSocialMediaRow(this)">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            `;
+            container.appendChild(newRow);
+        }
+
+        function removeSocialMediaRow(button) {
+            if (document.querySelectorAll('.social-media-row').length > 1) {
+                button.closest('.social-media-row').remove();
+            }
+        }
+
+        // Speaker type card selection
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.speaker-type-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    const radio = this.querySelector('input[type="radio"]');
+                    if (radio) {
+                        radio.checked = true;
+                        // Update card appearance
+                        document.querySelectorAll('.speaker-type-card').forEach(c => c.classList.remove('selected'));
+                        this.classList.add('selected');
+                    }
+                });
+            });
+        });
+    </script>
+}

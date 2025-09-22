@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using morespeakers.Data;
 using morespeakers.Models;
 using morespeakers.Services;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 

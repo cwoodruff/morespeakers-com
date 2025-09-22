@@ -1,0 +1,138 @@
+﻿@page
+@model LoginModel
+
+@{
+    ViewData["Title"] = "Welcome Back";
+}
+
+<div class="container-fluid">
+    <div class="row min-vh-100">
+        <!-- Welcome Section -->
+        <div class="col-lg-6 d-none d-lg-flex align-items-center justify-content-center bg-primary text-white">
+            <div class="text-center px-4">
+                <div class="mb-4">
+                    <i class="bi bi-megaphone-fill display-1"></i>
+                </div>
+                <h2 class="fw-bold mb-3">Welcome Back to MoreSpeakers.com</h2>
+                <p class="lead mb-4">Continue your speaking journey and connect with mentors who will help you grow.</p>
+                <div class="d-flex justify-content-center gap-4">
+                    <div class="text-center">
+                        <i class="bi bi-people-fill h3 mb-2 d-block"></i>
+                        <small>Connect with Mentors</small>
+                    </div>
+                    <div class="text-center">
+                        <i class="bi bi-chat-dots-fill h3 mb-2 d-block"></i>
+                        <small>Develop Your Talks</small>
+                    </div>
+                    <div class="text-center">
+                        <i class="bi bi-trophy-fill h3 mb-2 d-block"></i>
+                        <small>Grow Your Career</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Login Form Section -->
+        <div class="col-lg-6 d-flex align-items-center justify-content-center py-5">
+            <div class="w-100" style="max-width: 400px;">
+                <div class="text-center mb-4">
+                    <h1 class="h3 fw-bold text-primary">Sign In</h1>
+                    <p class="text-muted">Enter your credentials to access your account</p>
+                </div>
+
+                <div class="card shadow-sm border-0">
+                    <div class="card-body p-4">
+                        <form id="account" method="post">
+                            <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                            <div class="mb-3">
+                                <label asp-for="Input.Email" class="form-label fw-medium">Email Address</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0">
+                                        <i class="bi bi-envelope text-muted"></i>
+                                    </span>
+                                    <input asp-for="Input.Email" class="form-control border-start-0" autocomplete="username" aria-required="true" placeholder="Enter your email" />
+                                </div>
+                                <span asp-validation-for="Input.Email" class="text-danger small"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label asp-for="Input.Password" class="form-label fw-medium">Password</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0">
+                                        <i class="bi bi-lock text-muted"></i>
+                                    </span>
+                                    <input asp-for="Input.Password" class="form-control border-start-0" autocomplete="current-password" aria-required="true" placeholder="Enter your password" />
+                                </div>
+                                <span asp-validation-for="Input.Password" class="text-danger small"></span>
+                            </div>
+
+                            <div class="form-check mb-4">
+                                <input class="form-check-input" asp-for="Input.RememberMe" />
+                                <label class="form-check-label" asp-for="Input.RememberMe">
+                                    Remember me on this device
+                                </label>
+                            </div>
+
+                            <button id="login-submit" type="submit" class="btn btn-primary w-100 py-2 mb-3">
+                                <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+                            </button>
+                        </form>
+
+                        <div class="text-center">
+                            <div class="d-flex align-items-center mb-3">
+                                <hr class="flex-grow-1">
+                                <span class="px-3 text-muted small">Need help?</span>
+                                <hr class="flex-grow-1">
+                            </div>
+
+                            <div class="d-flex flex-column gap-2">
+                                <a id="forgot-password" asp-page="./ForgotPassword" class="text-decoration-none">
+                                    <i class="bi bi-question-circle me-1"></i>Forgot your password?
+                                </a>
+                                <a id="resend-confirmation" asp-page="./ResendEmailConfirmation" class="text-decoration-none">
+                                    <i class="bi bi-envelope me-1"></i>Resend email confirmation
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-center mt-4">
+                    <p class="text-muted mb-0">Don't have an account?</p>
+                    <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl" class="btn btn-outline-primary mt-2">
+                        <i class="bi bi-person-plus me-2"></i>Create Account
+                    </a>
+                </div>
+
+                @if ((Model.ExternalLogins?.Count ?? 0) > 0)
+                {
+                    <div class="mt-4">
+                        <div class="text-center mb-3">
+                            <div class="d-flex align-items-center">
+                                <hr class="flex-grow-1">
+                                <span class="px-3 text-muted small">Or continue with</span>
+                                <hr class="flex-grow-1">
+                            </div>
+                        </div>
+
+                        <form id="external-account" asp-page="./ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl" method="post">
+                            <div class="d-grid gap-2">
+                                @foreach (var provider in Model.ExternalLogins!)
+                                {
+                                    <button type="submit" class="btn btn-outline-secondary" name="provider" value="@provider.Name" title="Log in using your @provider.DisplayName account">
+                                        <i class="bi bi-@provider.Name.ToLower() me-2"></i>@provider.DisplayName
+                                    </button>
+                                }
+                            </div>
+                        </form>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

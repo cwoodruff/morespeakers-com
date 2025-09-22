@@ -14,7 +14,7 @@
     <script src="https://unpkg.com/htmx.org@1.9.6"></script>
     <script src="https://unpkg.com/hyperscript.org@0.9.11"></script>
 </head>
-<body>
+<body class="d-flex flex-column min-vh-100">
     <header>
         <nav class="navbar navbar-expand-sm navbar-dark bg-primary shadow-sm">
             <div class="container">
@@ -32,7 +32,7 @@
                             <a class="nav-link" asp-area="" asp-page="/Index">Home</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-page="/Speakers/Browse">Browse Speakers</a>
+                            <a class="nav-link" asp-area="" asp-page="/BrowseSpeakers">Browse Speakers</a>
                         </li>
                         @if (User.Identity?.IsAuthenticated == true)
                         {
@@ -89,12 +89,12 @@
         </nav>
     </header>
 
-    <main role="main">
+    <main role="main" class="flex-grow-1">
         @RenderBody()
     </main>
 
-    <footer class="border-top footer text-muted bg-light mt-5">
-        <div class="container py-4">
+    <footer class="border-top footer text-muted bg-light mt-auto">
+        <div class="container py-2">
             <div class="row">
                 <div class="col-md-6">
                     <h6 class="fw-bold text-primary">MoreSpeakers.com</h6>
@@ -105,9 +105,10 @@
                     <h6 class="fw-bold">Quick Links</h6>
                     <ul class="list-unstyled small">
                         <li><a href="~/" class="text-decoration-none">Home</a></li>
-                        <li><a asp-page="/Speakers/Browse" class="text-decoration-none">Browse Speakers</a></li>
+                        <li><a asp-page="/BrowseSpeakers" class="text-decoration-none">Browse Speakers</a></li>
                         <li><a asp-page="/About" class="text-decoration-none">About</a></li>
                         <li><a asp-page="/Privacy" class="text-decoration-none">Privacy Policy</a></li>
+                        <li><a asp-page="/TermsOfService" class="text-decoration-none">Terms of Service</a></li>
                     </ul>
                 </div>
                 <div class="col-md-3">

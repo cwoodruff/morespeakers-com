@@ -1,7 +1,20 @@
 {
   "permissions": {
     "allow": [
-      "Bash(dir:*)"
+      "Bash(dir:*)",
+      "Bash(dotnet tool:*)",
+      "Bash(dotnet add package:*)",
+      "Bash(dotnet aspnet-codegenerator identity:*)",
+      "Bash(mkdir:*)",
+      "Bash(dotnet new:*)",
+      "Bash(dotnet build)",
+      "Bash(dotnet test)",
+      "Bash(dotnet test:*)",
+      "Bash(dotnet run:*)",
+      "Bash(taskkill:*)",
+      "Bash(wmic:*)",
+      "Bash(dotnet clean:*)",
+      "Bash(dotnet build:*)"
     ],
     "deny": [],
     "ask": []

@@ -1,6 +1,6 @@
 :root {
-    --primary-color: #0d6efd;
-    --primary-dark: #0b5ed7;
+    --primary-color: #fd7e14;
+    --primary-dark: #e55d0e;
     --secondary-color: #6c757d;
     --success-color: #198754;
     --warning-color: #ffc107;
@@ -41,7 +41,21 @@ h1, h2, h3, h4, h5, h6 {
     font-weight: 300;
 }
 
+/* Bootstrap color overrides */
+.bg-primary {
+    background-color: var(--primary-color) !important;
+}
+
+.text-primary {
+    color: var(--primary-color) !important;
+}
+
+.border-primary {
+    border-color: var(--primary-color) !important;
+}
+
 /* Navigation */
+
 .navbar-brand {
     font-size: 1.5rem;
     font-weight: 700;
@@ -244,7 +258,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .form-control:focus, .form-select:focus {
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+    box-shadow: 0 0 0 0.2rem rgba(253, 126, 20, 0.25);
 }
 
 .form-label {
@@ -270,12 +284,12 @@ h1, h2, h3, h4, h5, h6 {
 
 .file-upload-area:hover {
     border-color: var(--primary-color);
-    background-color: rgba(13, 110, 253, 0.05);
+    background-color: rgba(253, 126, 20, 0.05);
 }
 
 .file-upload-area.dragover {
     border-color: var(--primary-color);
-    background-color: rgba(13, 110, 253, 0.1);
+    background-color: rgba(253, 126, 20, 0.1);
 }
 
 /* Mentorship status badges */
