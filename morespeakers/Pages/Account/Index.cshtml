@@ -1,0 +1,228 @@
+@page
+@model morespeakers.Pages.Account.IndexModel
+@{
+    ViewData["Title"] = "My Account";
+}
+
+<div class="container py-4">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="d-flex align-items-center mb-4">
+                <div class="me-3">
+                    @if (!string.IsNullOrEmpty(Model.CurrentUser.HeadshotUrl))
+                    {
+                        <img src="@Model.CurrentUser.HeadshotUrl" alt="Profile Photo" class="speaker-avatar" />
+                    }
+                    else
+                    {
+                        <div class="speaker-avatar bg-primary d-flex align-items-center justify-content-center">
+                            <i class="bi bi-person-fill text-white" style="font-size: 3rem;"></i>
+                        </div>
+                    }
+                </div>
+                <div>
+                    <h1 class="h3 mb-1">@Model.CurrentUser.FirstName @Model.CurrentUser.LastName</h1>
+                    <p class="text-muted mb-1">@Model.SpeakerType?.Name Speaker</p>
+                    <span class="badge bg-primary">@Model.UserExpertise.Count() Expertise Areas</span>
+                </div>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-person-gear me-2"></i>Account Details
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <!-- First Name -->
+                        <div class="col-md-6">
+                            <div id="firstname-container">
+                                @{ ViewData["Field"] = "FirstName"; ViewData["PageModel"] = Model; }
+                                <partial name="_DisplayField" />
+                            </div>
+                        </div>
+
+                        <!-- Last Name -->
+                        <div class="col-md-6">
+                            <div id="lastname-container">
+                                @{ ViewData["Field"] = "LastName"; ViewData["PageModel"] = Model; }
+                                <partial name="_DisplayField" />
+                            </div>
+                        </div>
+
+                        <!-- Email -->
+                        <div class="col-md-6">
+                            <div id="email-container">
+                                @{ ViewData["Field"] = "Email"; ViewData["PageModel"] = Model; }
+                                <partial name="_DisplayField" />
+                            </div>
+                        </div>
+
+                        <!-- Phone Number -->
+                        <div class="col-md-6">
+                            <div id="phonenumber-container">
+                                @{ ViewData["Field"] = "PhoneNumber"; ViewData["PageModel"] = Model; }
+                                <partial name="_DisplayField" />
+                            </div>
+                        </div>
+
+                        <!-- Speaker Type -->
+                        <div class="col-md-6">
+                            <div id="speakertypeid-container">
+                                @{ ViewData["Field"] = "SpeakerTypeId"; ViewData["PageModel"] = Model; }
+                                <partial name="_DisplayField" />
+                            </div>
+                        </div>
+
+                        <!-- Sessionize URL -->
+                        <div class="col-md-6">
+                            <div id="sessionizeurl-container">
+                                @{ ViewData["Field"] = "SessionizeUrl"; ViewData["PageModel"] = Model; }
+                                <partial name="_DisplayField" />
+                            </div>
+                        </div>
+
+                        <!-- Headshot URL -->
+                        <div class="col-12">
+                            <div id="headshoturl-container">
+                                @{ ViewData["Field"] = "HeadshotUrl"; ViewData["PageModel"] = Model; }
+                                <partial name="_DisplayField" />
+                            </div>
+                        </div>
+
+                        <!-- Bio -->
+                        <div class="col-12">
+                            <div id="bio-container">
+                                @{ ViewData["Field"] = "Bio"; ViewData["PageModel"] = Model; }
+                                <partial name="_DisplayField" />
+                            </div>
+                        </div>
+
+                        <!-- Goals -->
+                        <div class="col-12">
+                            <div id="goals-container">
+                                @{ ViewData["Field"] = "Goals"; ViewData["PageModel"] = Model; }
+                                <partial name="_DisplayField" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Expertise Section -->
+            <div class="card shadow-sm mt-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-lightbulb me-2"></i>Areas of Expertise
+                    </h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.UserExpertise.Any())
+                    {
+                        <div class="d-flex flex-wrap gap-2">
+                            @foreach (var expertise in Model.UserExpertise)
+                            {
+                                <span class="expertise-tag">@expertise.Expertise.Name</span>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted mb-0">No expertise areas added yet.</p>
+                    }
+                </div>
+            </div>
+
+            <!-- Social Media Section -->
+            <div class="card shadow-sm mt-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-share me-2"></i>Social Media & Links
+                    </h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.SocialMedia.Any())
+                    {
+                        <div class="social-links">
+                            @foreach (var social in Model.SocialMedia)
+                            {
+                                <a href="@social.Url" target="_blank" class="social-link">
+                                    <i class="bi @GetSocialIcon(social.Platform)"></i>
+                                    @social.Platform
+                                </a>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted mb-0">No social media links added yet.</p>
+                    }
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="d-flex gap-2 mt-4">
+                <a asp-page="/Profile/Edit" class="btn btn-outline-primary">
+                    <i class="bi bi-pencil me-2"></i>Advanced Edit
+                </a>
+                <a asp-page="/Privacy" class="btn btn-outline-secondary">
+                    <i class="bi bi-shield-check me-2"></i>Privacy Settings
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    private string GetSocialIcon(string platform)
+    {
+        return platform.ToLower() switch
+        {
+            "linkedin" => "bi-linkedin",
+            "twitter" => "bi-twitter",
+            "github" => "bi-github",
+            "youtube" => "bi-youtube",
+            "website" => "bi-globe",
+            "blog" => "bi-journal-text",
+            _ => "bi-link-45deg"
+        };
+    }
+}
+
+@section Scripts {
+    <script src="https://unpkg.com/htmx.org@1.9.6"></script>
+
+    <script>
+        // HTMX event listeners for better UX
+        document.addEventListener('htmx:beforeRequest', function(event) {
+            const button = event.detail.elt;
+            if (button.classList.contains('edit-btn')) {
+                button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Loading...';
+                button.disabled = true;
+            }
+        });
+
+        document.addEventListener('htmx:afterRequest', function(event) {
+            // Re-enable buttons after request
+            const buttons = document.querySelectorAll('.edit-btn[disabled]');
+            buttons.forEach(btn => {
+                btn.disabled = false;
+                if (btn.textContent.includes('Loading')) {
+                    btn.innerHTML = '<i class="bi bi-pencil me-1"></i>Edit';
+                }
+            });
+        });
+
+        // Auto-focus on edit fields
+        document.addEventListener('htmx:afterSwap', function(event) {
+            const input = event.target.querySelector('input, textarea');
+            if (input) {
+                input.focus();
+                if (input.type === 'text' || input.type === 'email') {
+                    input.select();
+                }
+            }
+        });
+    </script>
+}

@@ -14,7 +14,7 @@
     <script src="https://unpkg.com/htmx.org@1.9.6"></script>
     <script src="https://unpkg.com/hyperscript.org@0.9.11"></script>
 </head>
-<body class="d-flex flex-column min-vh-100">
+<body>
     <header>
         <nav class="navbar navbar-expand-sm navbar-dark bg-primary shadow-sm">
             <div class="container">
@@ -53,6 +53,9 @@
                                     @User.Identity.Name
                                 </a>
                                 <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" asp-area="" asp-page="/Account/Index">
+                                        <i class="bi bi-person-gear me-2"></i>My Account
+                                    </a></li>
                                     <li><a class="dropdown-item" asp-area="" asp-page="/Profile/Index">
                                         <i class="bi bi-person me-2"></i>My Profile
                                     </a></li>
@@ -89,37 +92,37 @@
         </nav>
     </header>
 
-    <main role="main" class="flex-grow-1">
+    <main role="main">
         @RenderBody()
     </main>
 
-    <footer class="border-top footer text-muted bg-light mt-auto">
-        <div class="container py-2">
-            <div class="row">
+    <footer class="footer text-muted">
+        <div class="container">
+            <div class="row gy-2">
                 <div class="col-md-6">
-                    <h6 class="fw-bold text-primary">MoreSpeakers.com</h6>
-                    <p class="small mb-2">Connecting new speakers with experienced mentors in the technology community.</p>
-                    <p class="small text-muted">&copy; 2025 MoreSpeakers.com. All rights reserved.</p>
+                    <h6 class="fw-bold text-primary mb-1">MoreSpeakers.com</h6>
+                    <p class="small mb-1">Connecting new speakers with experienced mentors in the technology community.</p>
+                    <p class="small text-muted mb-0">&copy; 2025 MoreSpeakers.com. All rights reserved.</p>
                 </div>
                 <div class="col-md-3">
-                    <h6 class="fw-bold">Quick Links</h6>
-                    <ul class="list-unstyled small">
-                        <li><a href="~/" class="text-decoration-none">Home</a></li>
-                        <li><a asp-page="/BrowseSpeakers" class="text-decoration-none">Browse Speakers</a></li>
-                        <li><a asp-page="/About" class="text-decoration-none">About</a></li>
-                        <li><a asp-page="/Privacy" class="text-decoration-none">Privacy Policy</a></li>
-                        <li><a asp-page="/TermsOfService" class="text-decoration-none">Terms of Service</a></li>
+                    <h6 class="fw-bold mb-1">Quick Links</h6>
+                    <ul class="list-unstyled small mb-0">
+                        <li class="mb-1"><a href="~/" class="text-decoration-none">Home</a></li>
+                        <li class="mb-1"><a asp-page="/BrowseSpeakers" class="text-decoration-none">Browse Speakers</a></li>
+                        <li class="mb-1"><a asp-page="/About" class="text-decoration-none">About</a></li>
+                        <li class="mb-1"><a asp-page="/Privacy" class="text-decoration-none">Privacy Policy</a></li>
+                        <li class="mb-0"><a asp-page="/TermsOfService" class="text-decoration-none">Terms of Service</a></li>
                     </ul>
                 </div>
                 <div class="col-md-3">
-                    <h6 class="fw-bold">Get Started</h6>
-                    <ul class="list-unstyled small">
+                    <h6 class="fw-bold mb-1">Get Started</h6>
+                    <ul class="list-unstyled small mb-0">
                         @if (User.Identity?.IsAuthenticated != true)
                         {
-                            <li><a asp-area="Identity" asp-page="/Account/Register" class="text-decoration-none">Join as New Speaker</a></li>
-                            <li><a asp-area="Identity" asp-page="/Account/Register" class="text-decoration-none">Become a Mentor</a></li>
+                            <li class="mb-1"><a asp-area="Identity" asp-page="/Account/Register" class="text-decoration-none">Join as New Speaker</a></li>
+                            <li class="mb-1"><a asp-area="Identity" asp-page="/Account/Register" class="text-decoration-none">Become a Mentor</a></li>
                         }
-                        <li><a href="mailto:support@morespeakers.com" class="text-decoration-none">Contact Support</a></li>
+                        <li class="mb-0"><a href="mailto:support@morespeakers.com" class="text-decoration-none">Contact Support</a></li>
                     </ul>
                 </div>
             </div>

@@ -58,7 +58,7 @@
 
                                     <!-- Progress Indicator -->
                                     <div class="mb-4">
-                                        <div class="row text-center">
+                                        <div class="row text-center" id="stepIndicator">
                                             <div class="col">
                                                 <div class="step active" data-step="1">
                                                     <div class="step-circle">1</div>
@@ -86,227 +86,27 @@
                                         </div>
                                     </div>
 
-                                    <!-- Step 1: Basic Account Information -->
-                                    <div class="form-step" data-step="1">
-                                        <h5 class="mb-4">Account Information</h5>
-
-                                        <div class="row">
-                                            <div class="col-md-6 mb-3">
-                                                <label asp-for="Input.FirstName" class="form-label fw-medium">First Name</label>
-                                                <div class="input-group">
-                                                    <span class="input-group-text bg-light border-end-0">
-                                                        <i class="bi bi-person text-muted"></i>
-                                                    </span>
-                                                    <input asp-for="Input.FirstName" class="form-control border-start-0" placeholder="Enter your first name" />
-                                                </div>
-                                                <span asp-validation-for="Input.FirstName" class="text-danger small"></span>
-                                            </div>
-
-                                            <div class="col-md-6 mb-3">
-                                                <label asp-for="Input.LastName" class="form-label fw-medium">Last Name</label>
-                                                <div class="input-group">
-                                                    <span class="input-group-text bg-light border-end-0">
-                                                        <i class="bi bi-person text-muted"></i>
-                                                    </span>
-                                                    <input asp-for="Input.LastName" class="form-control border-start-0" placeholder="Enter your last name" />
-                                                </div>
-                                                <span asp-validation-for="Input.LastName" class="text-danger small"></span>
-                                            </div>
-                                        </div>
-
-                                        <div class="mb-3">
-                                            <label asp-for="Input.Email" class="form-label fw-medium">Email Address</label>
-                                            <div class="input-group">
-                                                <span class="input-group-text bg-light border-end-0">
-                                                    <i class="bi bi-envelope text-muted"></i>
-                                                </span>
-                                                <input asp-for="Input.Email" class="form-control border-start-0" autocomplete="username" placeholder="Enter your email" />
-                                            </div>
-                                            <span asp-validation-for="Input.Email" class="text-danger small"></span>
-                                        </div>
-
-                                        <div class="mb-3">
-                                            <label asp-for="Input.PhoneNumber" class="form-label fw-medium">Phone Number</label>
-                                            <div class="input-group">
-                                                <span class="input-group-text bg-light border-end-0">
-                                                    <i class="bi bi-telephone text-muted"></i>
-                                                </span>
-                                                <input asp-for="Input.PhoneNumber" class="form-control border-start-0" placeholder="Enter your phone number" />
-                                            </div>
-                                            <span asp-validation-for="Input.PhoneNumber" class="text-danger small"></span>
-                                        </div>
-
-                                        <div class="row">
-                                            <div class="col-md-6 mb-3">
-                                                <label asp-for="Input.Password" class="form-label fw-medium">Password</label>
-                                                <div class="input-group">
-                                                    <span class="input-group-text bg-light border-end-0">
-                                                        <i class="bi bi-lock text-muted"></i>
-                                                    </span>
-                                                    <input asp-for="Input.Password" class="form-control border-start-0" autocomplete="new-password" placeholder="Create a strong password" />
-                                                </div>
-                                                <span asp-validation-for="Input.Password" class="text-danger small"></span>
-                                            </div>
-
-                                            <div class="col-md-6 mb-3">
-                                                <label asp-for="Input.ConfirmPassword" class="form-label fw-medium">Confirm Password</label>
-                                                <div class="input-group">
-                                                    <span class="input-group-text bg-light border-end-0">
-                                                        <i class="bi bi-shield-check text-muted"></i>
-                                                    </span>
-                                                    <input asp-for="Input.ConfirmPassword" class="form-control border-start-0" autocomplete="new-password" placeholder="Confirm your password" />
-                                                </div>
-                                                <span asp-validation-for="Input.ConfirmPassword" class="text-danger small"></span>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Step 2: Profile Information -->
-                                    <div class="form-step d-none" data-step="2">
-                                        <h5 class="mb-4">Your Speaker Profile</h5>
-
-                                        <div class="mb-3">
-                                            <label asp-for="Input.SpeakerTypeId" class="form-label fw-medium">Speaker Type</label>
-                                            <div class="row">
-                                                @foreach (var speakerType in Model.SpeakerTypes)
-                                                {
-                                                    <div class="col-md-6 mb-3">
-                                                        <div class="card speaker-type-card" style="cursor: pointer;">
-                                                            <div class="card-body text-center">
-                                                                <input type="radio" asp-for="Input.SpeakerTypeId" value="@speakerType.Id" class="d-none speaker-type-radio" id="speakerType@(speakerType.Id)" />
-                                                                <label for="speakerType@(speakerType.Id)" class="w-100 m-0" style="cursor: pointer;">
-                                                                    <i class="bi @(speakerType.Id == 1 ? "bi-person-plus" : "bi-award") h3 text-primary mb-2 d-block"></i>
-                                                                    <h6 class="fw-bold">@(speakerType.Id == 1 ? "New Speaker" : "Experienced Speaker")</h6>
-                                                                    <p class="small text-muted mb-0">@speakerType.Description</p>
-                                                                </label>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                }
-                                            </div>
-                                            <span asp-validation-for="Input.SpeakerTypeId" class="text-danger small"></span>
-                                        </div>
-
-                                        <div class="mb-3">
-                                            <label asp-for="Input.Bio" class="form-label fw-medium">Bio</label>
-                                            <textarea asp-for="Input.Bio" class="form-control" rows="4" placeholder="Tell us about yourself, your speaking experience, and what makes you passionate about sharing knowledge..."></textarea>
-                                            <span asp-validation-for="Input.Bio" class="text-danger small"></span>
-                                            <div class="form-text">
-                                                <small class="text-muted">This will be displayed on your public profile.</small>
-                                            </div>
-                                        </div>
-
-                                        <div class="mb-3">
-                                            <label asp-for="Input.Goals" class="form-label fw-medium">Goals</label>
-                                            <textarea asp-for="Input.Goals" class="form-control" rows="3" placeholder="What are your speaking goals? What do you hope to achieve through mentorship?"></textarea>
-                                            <span asp-validation-for="Input.Goals" class="text-danger small"></span>
-                                        </div>
-
-                                        <div class="row">
-                                            <div class="col-md-6 mb-3">
-                                                <label asp-for="Input.SessionizeUrl" class="form-label fw-medium">Sessionize Profile URL</label>
-                                                <div class="input-group">
-                                                    <span class="input-group-text bg-light border-end-0">
-                                                        <i class="bi bi-link text-muted"></i>
-                                                    </span>
-                                                    <input asp-for="Input.SessionizeUrl" class="form-control border-start-0" placeholder="https://sessionize.com/your-profile" />
-                                                </div>
-                                                <span asp-validation-for="Input.SessionizeUrl" class="text-danger small"></span>
-                                                <div class="form-text">
-                                                    <small class="text-muted">Optional: Link to your Sessionize speaker profile</small>
-                                                </div>
-                                            </div>
-
-                                            <div class="col-md-6 mb-3">
-                                                <label asp-for="Input.HeadshotUrl" class="form-label fw-medium">Headshot URL</label>
-                                                <div class="input-group">
-                                                    <span class="input-group-text bg-light border-end-0">
-                                                        <i class="bi bi-image text-muted"></i>
-                                                    </span>
-                                                    <input asp-for="Input.HeadshotUrl" class="form-control border-start-0" placeholder="https://example.com/your-photo.jpg" />
-                                                </div>
-                                                <span asp-validation-for="Input.HeadshotUrl" class="text-danger small"></span>
-                                                <div class="form-text">
-                                                    <small class="text-muted">Optional: Direct link to your profile photo</small>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Step 3: Expertise Selection -->
-                                    <div class="form-step d-none" data-step="3">
-                                        <h5 class="mb-4">Areas of Expertise</h5>
-                                        <p class="text-muted mb-4">Select the technologies, topics, and areas where you have experience or interest.</p>
-
-                                        <div class="mb-4">
-                                            <label class="form-label fw-medium">Select Your Expertise Areas</label>
-                                            <div class="expertise-grid">
-                                                @foreach (var expertise in Model.AvailableExpertise)
-                                                {
-                                                    <div class="form-check expertise-item">
-                                                        <input class="form-check-input" type="checkbox" name="Input.SelectedExpertiseIds" value="@expertise.Id" id="expertise@(expertise.Id)" />
-                                                        <label class="form-check-label" for="expertise@(expertise.Id)">
-                                                            @expertise.Name
-                                                        </label>
-                                                    </div>
-                                                }
-                                            </div>
-                                            <span asp-validation-for="Input.SelectedExpertiseIds" class="text-danger small"></span>
-                                        </div>
-
-                                        <div class="mb-3">
-                                            <label class="form-label fw-medium">Custom Expertise Areas</label>
-                                            <div id="customExpertiseContainer">
-                                                <div class="input-group mb-2 custom-expertise-input">
-                                                    <input type="text" name="Input.CustomExpertise" class="form-control" placeholder="Enter a custom expertise area" />
-                                                    <button type="button" class="btn btn-outline-primary" onclick="addCustomExpertise()">
-                                                        <i class="bi bi-plus"></i>
-                                                    </button>
-                                                </div>
-                                            </div>
-                                            <div class="form-text">
-                                                <small class="text-muted">Add expertise areas not listed above</small>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Step 4: Social Media Links -->
-                                    <div class="form-step d-none" data-step="4">
-                                        <h5 class="mb-4">Social Media & Professional Links</h5>
-                                        <p class="text-muted mb-4">Share your professional social media profiles to help others connect with you.</p>
-
-                                        <div id="socialMediaContainer">
-                                            <div class="row mb-3 social-media-row">
-                                                <div class="col-md-4">
-                                                    <select name="Input.SocialMediaPlatforms" class="form-select">
-                                                        <option value="">Select Platform</option>
-                                                        <option value="LinkedIn">LinkedIn</option>
-                                                        <option value="Twitter">Twitter</option>
-                                                        <option value="GitHub">GitHub</option>
-                                                        <option value="YouTube">YouTube</option>
-                                                        <option value="Website">Personal Website</option>
-                                                        <option value="Blog">Blog</option>
-                                                        <option value="Other">Other</option>
-                                                    </select>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <input type="url" name="Input.SocialMediaUrls" class="form-control" placeholder="https://..." />
-                                                </div>
-                                                <div class="col-md-2">
-                                                    <button type="button" class="btn btn-outline-primary w-100" onclick="addSocialMediaRow()">
-                                                        <i class="bi bi-plus"></i>
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
+                                    <!-- Step Container -->
+                                    <div id="stepContainer">
+                                        <partial name="_RegisterStep1" model="Model" />
                                     </div>
 
                                     <!-- Navigation Buttons -->
-                                    <div class="d-flex justify-content-between mt-4">
-                                        <button type="button" id="prevBtn" class="btn btn-outline-secondary" onclick="changeStep(-1)" style="display: none;">
+                                    <div class="d-flex justify-content-between mt-4" id="navigationButtons">
+                                        <button type="button" id="prevBtn" class="btn btn-outline-secondary" style="display: none;"
+                                                hx-post="/Identity/Account/Register?handler=PreviousStep"
+                                                hx-target="#stepContainer"
+                                                hx-include="#registerForm"
+                                                hx-vals='{"step": "2"}'
+                                                hx-swap="innerHTML">
                                             <i class="bi bi-arrow-left me-2"></i>Previous
                                         </button>
-                                        <button type="button" id="nextBtn" class="btn btn-primary" onclick="changeStep(1)">
+                                        <button type="button" id="nextBtn" class="btn btn-primary"
+                                                hx-post="/Identity/Account/Register?handler=ValidateStep"
+                                                hx-target="#stepContainer"
+                                                hx-include="#registerForm"
+                                                hx-vals='{"step": "1"}'
+                                                hx-swap="innerHTML">
                                             Next<i class="bi bi-arrow-right ms-2"></i>
                                         </button>
                                         <button type="submit" id="submitBtn" class="btn btn-success" style="display: none;">
@@ -412,29 +212,13 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script src="https://unpkg.com/htmx.org@1.9.6"></script>
 
     <script>
         let currentStep = 1;
         const totalSteps = 4;
 
-        function changeStep(direction) {
-            if (direction === 1 && currentStep < totalSteps) {
-                if (validateCurrentStep()) {
-                    currentStep++;
-                    showStep(currentStep);
-                }
-            } else if (direction === -1 && currentStep > 1) {
-                currentStep--;
-                showStep(currentStep);
-            }
-        }
-
-        function showStep(step) {
-            // Hide all steps
-            document.querySelectorAll('.form-step').forEach(s => s.classList.add('d-none'));
-            // Show current step
-            document.querySelector(`[data-step="${step}"]`).classList.remove('d-none');
-
+        function updateStepIndicator(step) {
             // Update step indicators
             document.querySelectorAll('.step').forEach(s => {
                 s.classList.remove('active');
@@ -449,28 +233,72 @@
             });
 
             // Update navigation buttons
-            document.getElementById('prevBtn').style.display = step === 1 ? 'none' : 'block';
-            document.getElementById('nextBtn').style.display = step === totalSteps ? 'none' : 'block';
-            document.getElementById('submitBtn').style.display = step === totalSteps ? 'block' : 'none';
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const submitBtn = document.getElementById('submitBtn');
+
+            prevBtn.style.display = step === 1 ? 'none' : 'block';
+            nextBtn.style.display = step === totalSteps ? 'none' : 'block';
+            submitBtn.style.display = step === totalSteps ? 'block' : 'none';
+
+            // Update HTMX attributes for navigation buttons
+            if (step > 1) {
+                prevBtn.setAttribute('hx-vals', `{"step": "${step - 1}"}`);
+            }
+            if (step < totalSteps) {
+                nextBtn.setAttribute('hx-vals', `{"step": "${step}"}`);
+                nextBtn.setAttribute('onclick', `updateStepIndicator(${step + 1})`);
+            }
+
+            currentStep = step;
         }
 
-        function validateCurrentStep() {
-            const currentStepElement = document.querySelector(`[data-step="${currentStep}"]`);
-            const requiredFields = currentStepElement.querySelectorAll('[required]');
-            let isValid = true;
+        // HTMX event listeners
+        document.addEventListener('htmx:beforeRequest', function(event) {
+            // Show loading state
+            const button = event.detail.elt;
+            if (button.id === 'nextBtn') {
+                button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Validating...';
+                button.disabled = true;
+            }
+        });
 
-            requiredFields.forEach(field => {
-                if (!field.value.trim()) {
-                    field.classList.add('is-invalid');
-                    isValid = false;
-                } else {
-                    field.classList.remove('is-invalid');
+        document.addEventListener('htmx:afterRequest', function(event) {
+            // Reset button state
+            const button = event.detail.elt;
+            if (button.id === 'nextBtn') {
+                button.innerHTML = 'Next<i class="bi bi-arrow-right ms-2"></i>';
+                button.disabled = false;
+            }
+
+            // Update step indicators and navigation based on which handler was called
+            if (event.detail.successful) {
+                const requestUrl = event.detail.requestConfig.path;
+
+                if (requestUrl.includes('ValidateStep')) {
+                    // If validation was successful and no validation errors, move to next step
+                    const responseHasErrors = event.target.querySelector('.text-danger') !== null;
+                    if (!responseHasErrors) {
+                        updateStepIndicator(currentStep + 1);
+                    }
+                } else if (requestUrl.includes('PreviousStep')) {
+                    // Move to previous step
+                    updateStepIndicator(currentStep - 1);
                 }
-            });
+            }
+        });
 
-            return isValid;
-        }
+        // Form submission with HTMX
+        document.addEventListener('htmx:configRequest', function(event) {
+            if (event.detail.path.includes('ValidateStep')) {
+                // Include current step in the request
+                event.detail.parameters.currentStep = currentStep;
+            } else if (event.detail.path.includes('PreviousStep')) {
+                event.detail.parameters.currentStep = currentStep;
+            }
+        });
 
+        // Utility functions for dynamic content
         function addCustomExpertise() {
             const container = document.getElementById('customExpertiseContainer');
             const newInput = document.createElement('div');
@@ -522,20 +350,5 @@
                 button.closest('.social-media-row').remove();
             }
         }
-
-        // Speaker type card selection
-        document.addEventListener('DOMContentLoaded', function() {
-            document.querySelectorAll('.speaker-type-card').forEach(card => {
-                card.addEventListener('click', function() {
-                    const radio = this.querySelector('input[type="radio"]');
-                    if (radio) {
-                        radio.checked = true;
-                        // Update card appearance
-                        document.querySelectorAll('.speaker-type-card').forEach(c => c.classList.remove('selected'));
-                        this.classList.add('selected');
-                    }
-                });
-            });
-        });
     </script>
 }

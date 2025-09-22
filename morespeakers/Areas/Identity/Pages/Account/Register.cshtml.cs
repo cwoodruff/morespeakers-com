@@ -157,7 +157,56 @@ namespace MoreSpeakers.Areas.Identity.Pages.Account
             ReturnUrl = returnUrl;
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
 
-            // Load available expertise and speaker types
+            await LoadFormDataAsync();
+        }
+
+        public async Task<IActionResult> OnPostAsync(string returnUrl = null)
+        {
+            return await OnPostSubmitAsync(returnUrl);
+        }
+
+        public async Task<IActionResult> OnPostValidateStepAsync(int step)
+        {
+            // Reload necessary data for the view
+            await LoadFormDataAsync();
+
+            // Only validate fields for the current step
+            var stepValid = ValidateStep(step);
+
+            if (!stepValid)
+            {
+                // Return the current step with validation errors
+                return Partial("_RegisterStep" + step, this);
+            }
+
+            // Move to next step
+            int nextStep = step + 1;
+            if (nextStep <= 4)
+            {
+                return Partial("_RegisterStep" + nextStep, this);
+            }
+
+            // If we're at the last step, return success
+            return new JsonResult(new { success = true, nextStep = nextStep });
+        }
+
+        public async Task<IActionResult> OnPostPreviousStepAsync(int step)
+        {
+            // Reload necessary data for the view
+            await LoadFormDataAsync();
+
+            // Return previous step without validation
+            int prevStep = step - 1;
+            if (prevStep >= 1)
+            {
+                return Partial("_RegisterStep" + prevStep, this);
+            }
+
+            return Partial("_RegisterStep1", this);
+        }
+
+        private async Task LoadFormDataAsync()
+        {
             AvailableExpertise = await _expertiseService.GetAllExpertiseAsync();
             SpeakerTypes = new List<SpeakerType>
             {
@@ -166,20 +215,65 @@ namespace MoreSpeakers.Areas.Identity.Pages.Account
             };
         }
 
-        public async Task<IActionResult> OnPostAsync(string returnUrl = null)
+        private bool ValidateStep(int step)
+        {
+            // Clear all model state errors first
+            ModelState.Clear();
+
+            switch (step)
+            {
+                case 1: // Account step
+                    if (string.IsNullOrWhiteSpace(Input.FirstName))
+                        ModelState.AddModelError("Input.FirstName", "First name is required.");
+                    if (string.IsNullOrWhiteSpace(Input.LastName))
+                        ModelState.AddModelError("Input.LastName", "Last name is required.");
+                    if (string.IsNullOrWhiteSpace(Input.Email))
+                        ModelState.AddModelError("Input.Email", "Email is required.");
+                    if (string.IsNullOrWhiteSpace(Input.PhoneNumber))
+                        ModelState.AddModelError("Input.PhoneNumber", "Phone number is required.");
+                    if (string.IsNullOrWhiteSpace(Input.Password))
+                        ModelState.AddModelError("Input.Password", "Password is required.");
+                    if (Input.Password != Input.ConfirmPassword)
+                        ModelState.AddModelError("Input.ConfirmPassword", "Passwords do not match.");
+                    break;
+                case 2: // Profile step
+                    if (Input.SpeakerTypeId <= 0)
+                        ModelState.AddModelError("Input.SpeakerTypeId", "Please select a speaker type.");
+                    if (string.IsNullOrWhiteSpace(Input.Bio))
+                        ModelState.AddModelError("Input.Bio", "Bio is required.");
+                    if (string.IsNullOrWhiteSpace(Input.Goals))
+                        ModelState.AddModelError("Input.Goals", "Goals are required.");
+                    break;
+                case 3: // Expertise step
+                    if ((Input.SelectedExpertiseIds?.Length ?? 0) == 0 && (Input.CustomExpertise?.Length ?? 0) == 0)
+                        ModelState.AddModelError("Input.SelectedExpertiseIds", "Please select at least one area of expertise.");
+                    break;
+                case 4: // Social step - optional, no validation needed
+                    break;
+            }
+
+            return ModelState.IsValid;
+        }
+
+        public async Task<IActionResult> OnPostSubmitAsync(string returnUrl = null)
         {
             returnUrl ??= Url.Content("~/");
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
 
             // Reload data in case of validation errors
-            AvailableExpertise = await _expertiseService.GetAllExpertiseAsync();
-            SpeakerTypes = new List<SpeakerType>
-            {
-                new SpeakerType { Id = 1, Name = "NewSpeaker", Description = "I'm new to speaking and looking for mentorship" },
-                new SpeakerType { Id = 2, Name = "ExperiencedSpeaker", Description = "I'm an experienced speaker willing to mentor others" }
-            };
+            await LoadFormDataAsync();
 
-            if (ModelState.IsValid)
+            // Validate all steps before final submission
+            bool allStepsValid = true;
+            for (int i = 1; i <= 4; i++)
+            {
+                if (!ValidateStep(i))
+                {
+                    allStepsValid = false;
+                }
+            }
+
+            if (allStepsValid)
             {
                 var user = CreateUser();
 

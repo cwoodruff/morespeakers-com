@@ -1,0 +1,56 @@
+@model MoreSpeakers.Areas.Identity.Pages.Account.RegisterModel
+
+<div class="form-step" data-step="3">
+    <h5 class="mb-4">Areas of Expertise</h5>
+    <p class="text-muted mb-4">Select the technologies, topics, and areas where you have experience or interest.</p>
+
+    <div class="mb-4">
+        <label class="form-label fw-medium">Select Your Expertise Areas</label>
+        <div class="expertise-grid">
+            @foreach (var expertise in Model.AvailableExpertise)
+            {
+                <div class="form-check expertise-item">
+                    <input class="form-check-input" type="checkbox" name="Input.SelectedExpertiseIds" value="@expertise.Id" id="expertise@(expertise.Id)" />
+                    <label class="form-check-label" for="expertise@(expertise.Id)">
+                        @expertise.Name
+                    </label>
+                </div>
+            }
+        </div>
+        <span asp-validation-for="Input.SelectedExpertiseIds" class="text-danger small"></span>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label fw-medium">Custom Expertise Areas</label>
+        <div id="customExpertiseContainer">
+            <div class="input-group mb-2 custom-expertise-input">
+                <input type="text" name="Input.CustomExpertise" class="form-control" placeholder="Enter a custom expertise area" />
+                <button type="button" class="btn btn-outline-primary" hx-post="/Identity/Account/Register?handler=AddCustomExpertise" hx-trigger="click" hx-target="#customExpertiseContainer" hx-swap="beforeend">
+                    <i class="bi bi-plus"></i>
+                </button>
+            </div>
+        </div>
+        <div class="form-text">
+            <small class="text-muted">Add expertise areas not listed above</small>
+        </div>
+    </div>
+</div>
+
+<script>
+function addCustomExpertise() {
+    const container = document.getElementById('customExpertiseContainer');
+    const newInput = document.createElement('div');
+    newInput.className = 'input-group mb-2 custom-expertise-input';
+    newInput.innerHTML = `
+        <input type="text" name="Input.CustomExpertise" class="form-control" placeholder="Enter a custom expertise area" />
+        <button type="button" class="btn btn-outline-danger" onclick="removeCustomExpertise(this)">
+            <i class="bi bi-trash"></i>
+        </button>
+    `;
+    container.appendChild(newInput);
+}
+
+function removeCustomExpertise(button) {
+    button.closest('.custom-expertise-input').remove();
+}
+</script>
