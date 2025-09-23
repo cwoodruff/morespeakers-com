@@ -225,10 +225,11 @@
     <script src="https://unpkg.com/hyperscript.org@0.9.12"></script>
 
     <script>
-        // Current step tracking
+        // Multi-step form logic is now handled by Hyperscript
+
+        // Step management with simplified JavaScript
         let currentStep = 1;
 
-        // Step indicator and navigation functions
         function updateStepIndicator(step) {
             document.querySelectorAll('.step').forEach(s => {
                 s.classList.remove('active');
@@ -252,11 +253,6 @@
             nextBtn.style.display = step === 4 ? 'none' : 'block';
             submitBtn.style.display = step === 4 ? 'block' : 'none';
 
-            // Ensure button text is correct
-            prevBtn.innerHTML = '<i class="bi bi-arrow-left me-2"></i>Previous';
-            nextBtn.innerHTML = 'Next<i class="bi bi-arrow-right ms-2"></i>';
-            submitBtn.innerHTML = '<i class="bi bi-person-plus me-2"></i>Create Account';
-
             if (step > 1) {
                 prevBtn.setAttribute('hx-vals', `{"step": "${step - 1}"}`);
             }
@@ -278,30 +274,27 @@
 
         document.addEventListener('htmx:afterRequest', function(event) {
             const button = event.detail.elt;
-            
+
             if (button.id === 'nextBtn') {
                 button.disabled = false;
                 button.innerHTML = 'Next<i class="bi bi-arrow-right ms-2"></i>';
-                
-                // Check if validation passed (no errors in response)
+
                 const hasErrors = event.target.querySelector('.text-danger, .alert-danger') !== null;
                 if (!hasErrors && event.detail.successful) {
-                    // Move to next step
                     const nextStep = currentStep + 1;
                     updateStepIndicator(nextStep);
                     updateNavigationButtons(nextStep);
                 }
             }
-            
+
             if (button.id === 'prevBtn' && event.detail.successful) {
-                // Move to previous step
                 const prevStep = currentStep - 1;
                 updateStepIndicator(prevStep);
                 updateNavigationButtons(prevStep);
             }
         });
 
-        // Initialize on page load
+        // Initialize navigation buttons on page load
         document.addEventListener('DOMContentLoaded', function() {
             updateNavigationButtons(1);
         });

@@ -4,7 +4,15 @@
     ViewData["Title"] = "Browse Speakers";
 }
 
-<div class="container">
+<div class="container"
+     _="on htmx:beforeRequest show #loading
+        on htmx:afterRequest hide #loading
+        on htmx:afterSwap
+            if event.detail.target.id.startsWith('mentorship-status-') then
+                if event.detail.xhr.responseText.includes('success') then
+                    put '<div class="alert alert-success alert-sm">Mentorship request sent!</div>' into event.detail.target
+                else if event.detail.xhr.responseText.includes('error') then
+                    put '<div class="alert alert-danger alert-sm">Unable to send request. Please try again.</div>' into event.detail.target">
     <div class="row">
         <div class="col-12">
             <h1 class="mb-4">
@@ -22,12 +30,13 @@
                 <div class="col-md-6 mb-3">
                     <label for="searchTerm" class="form-label">Search</label>
                     <div class="input-group">
-                        <input type="text" 
-                               id="searchTerm" 
-                               name="searchTerm" 
-                               value="@Model.SearchTerm" 
-                               class="form-control" 
-                               placeholder="Search by name, bio, or expertise...">
+                        <input type="text"
+                               id="searchTerm"
+                               name="searchTerm"
+                               value="@Model.SearchTerm"
+                               class="form-control"
+                               placeholder="Search by name, bio, or expertise..."
+                               _="on input debounced at 500ms trigger submit on closest form">
                         <button type="submit" class="btn btn-primary">
                             <i class="bi bi-search"></i>
                         </button>
@@ -35,7 +44,8 @@
                 </div>
                 <div class="col-md-3 mb-3">
                     <label for="speakerType" class="form-label">Speaker Type</label>
-                    <select id="speakerType" name="speakerType" class="form-select" onchange="this.form.submit()">
+                    <select id="speakerType" name="speakerType" class="form-select"
+                            _="on change trigger submit on closest form">
                         <option value="">All Speakers</option>
                         <option value="1" selected="@(Model.SpeakerTypeFilter == 1)">New Speakers</option>
                         <option value="2" selected="@(Model.SpeakerTypeFilter == 2)">Experienced Speakers</option>
@@ -43,7 +53,8 @@
                 </div>
                 <div class="col-md-3 mb-3">
                     <label for="expertiseFilter" class="form-label">Expertise Area</label>
-                    <select id="expertiseFilter" name="expertiseFilter" class="form-select" onchange="this.form.submit()">
+                    <select id="expertiseFilter" name="expertiseFilter" class="form-select"
+                            _="on change trigger submit on closest form">
                         <option value="">All Expertise</option>
                         @foreach (var expertise in Model.AllExpertise)
                         {
@@ -69,7 +80,8 @@
                         </div>
                         <div class="mb-2">
                             <label for="sortBy" class="form-label me-2">Sort by:</label>
-                            <select id="sortBy" name="sortBy" class="form-select d-inline-block w-auto" onchange="this.form.submit()">
+                            <select id="sortBy" name="sortBy" class="form-select d-inline-block w-auto"
+                                    _="on change trigger submit on closest form">
                                 <option value="name" selected="@(Model.SortBy == "name")">Name</option>
                                 <option value="newest" selected="@(Model.SortBy == "newest")">Newest First</option>
                                 <option value="expertise" selected="@(Model.SortBy == "expertise")">Most Expertise</option>
@@ -279,36 +291,5 @@
 }
 
 @section Scripts {
-    <script>
-        // Auto-submit search form on input with debounce
-        let searchTimeout;
-        document.getElementById('searchTerm').addEventListener('input', function() {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => {
-                htmx.trigger(this.form, 'submit');
-            }, 500);
-        });
-
-        // Handle HTMX events
-        document.body.addEventListener('htmx:beforeRequest', function(evt) {
-            document.getElementById('loading').style.display = 'block';
-        });
-
-        document.body.addEventListener('htmx:afterRequest', function(evt) {
-            document.getElementById('loading').style.display = 'none';
-        });
-
-        // Handle mentorship request responses
-        document.body.addEventListener('htmx:afterSwap', function(evt) {
-            if (evt.detail.target.id.startsWith('mentorship-status-')) {
-                // Show success/error messages
-                const response = evt.detail.xhr.responseText;
-                if (response.includes('success')) {
-                    evt.detail.target.innerHTML = '<div class="alert alert-success alert-sm">Mentorship request sent!</div>';
-                } else if (response.includes('error')) {
-                    evt.detail.target.innerHTML = '<div class="alert alert-danger alert-sm">Unable to send request. Please try again.</div>';
-                }
-            }
-        });
-    </script>
+    <script src="https://unpkg.com/hyperscript.org@0.9.12"></script>
 }

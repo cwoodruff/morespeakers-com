@@ -123,6 +123,85 @@ public class RegisterModel : PageModel
         AllExpertise = await _expertiseService.GetAllExpertiseAsync();
     }
 
+    public async Task<IActionResult> OnPostValidateEmailAsync()
+    {
+        var result = new { IsValid = true, Message = "" };
+        
+        if (string.IsNullOrWhiteSpace(Input.Email))
+        {
+            result = new { IsValid = false, Message = "Email is required." };
+        }
+        else if (!new EmailAddressAttribute().IsValid(Input.Email))
+        {
+            result = new { IsValid = false, Message = "Please enter a valid email address." };
+        }
+        else
+        {
+            // Check if email already exists
+            var existingUser = await _userManager.FindByEmailAsync(Input.Email);
+            if (existingUser != null)
+            {
+                result = new { IsValid = false, Message = "This email address is already registered." };
+            }
+        }
+        
+        return new JsonResult(result);
+    }
+
+    public async Task<IActionResult> OnPostValidatePasswordAsync()
+    {
+        var result = new { IsValid = true, Message = "" };
+        
+        if (string.IsNullOrWhiteSpace(Input.Password))
+        {
+            result = new { IsValid = false, Message = "Password is required." };
+        }
+        else if (Input.Password.Length < 6)
+        {
+            result = new { IsValid = false, Message = "Password must be at least 6 characters long." };
+        }
+        else if (Input.Password != Input.ConfirmPassword)
+        {
+            result = new { IsValid = false, Message = "Password and confirmation password do not match." };
+        }
+        
+        return new JsonResult(result);
+    }
+
+    public IActionResult OnPostValidateExpertiseAsync()
+    {
+        var result = new { IsValid = true, Message = "" };
+        
+        if (!Input.SelectedExpertiseIds.Any() && !Input.CustomExpertise.Any(ce => !string.IsNullOrWhiteSpace(ce)))
+        {
+            result = new { IsValid = false, Message = "Please select at least one area of expertise." };
+        }
+        
+        return new JsonResult(result);
+    }
+
+    public IActionResult OnPostValidateSocialMediaAsync()
+    {
+        var result = new { IsValid = true, Message = "" };
+        
+        var validSocialMediaCount = 0;
+        for (int i = 0; i < Input.SocialMediaPlatforms.Count; i++)
+        {
+            if (!string.IsNullOrWhiteSpace(Input.SocialMediaPlatforms[i]) && 
+                !string.IsNullOrWhiteSpace(Input.SocialMediaUrls[i]))
+            {
+                validSocialMediaCount++;
+            }
+        }
+
+        if (validSocialMediaCount == 0)
+        {
+            result = new { IsValid = false, Message = "At least one social media link is required." };
+        }
+        
+        return new JsonResult(result);
+    }
+
     public async Task<IActionResult> OnPostAsync(string? returnUrl = null)
     {
         returnUrl ??= Url.Content("~/");

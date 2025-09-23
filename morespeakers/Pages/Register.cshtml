@@ -66,9 +66,15 @@
                         </div>
 
                         <div class="form-floating mb-3">
-                            <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
+                            <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com"
+                                   hx-post="/Register?handler=ValidateEmail"
+                                   hx-trigger="blur"
+                                   hx-target="#email-validation"
+                                   hx-swap="innerHTML"
+                                   hx-include="[name='Input.Email']" />
                             <label asp-for="Input.Email">Email</label>
                             <span asp-validation-for="Input.Email" class="text-danger"></span>
+                            <div id="email-validation"></div>
                         </div>
 
                         <div class="form-floating mb-3">
@@ -80,19 +86,30 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-floating mb-3">
-                                    <input asp-for="Input.Password" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password" />
+                                    <input asp-for="Input.Password" class="form-control" autocomplete="new-password" aria-required="true" placeholder="password"
+                                           hx-post="/Register?handler=ValidatePassword"
+                                           hx-trigger="blur"
+                                           hx-target="#password-validation"
+                                           hx-swap="innerHTML"
+                                           hx-include="[name='Input.Password'], [name='Input.ConfirmPassword']" />
                                     <label asp-for="Input.Password">Password</label>
                                     <span asp-validation-for="Input.Password" class="text-danger"></span>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-floating mb-3">
-                                    <input asp-for="Input.ConfirmPassword" class="form-control" autocomplete="new-password" aria-required="true" placeholder="confirm password" />
+                                    <input asp-for="Input.ConfirmPassword" class="form-control" autocomplete="new-password" aria-required="true" placeholder="confirm password"
+                                           hx-post="/Register?handler=ValidatePassword"
+                                           hx-trigger="blur"
+                                           hx-target="#password-validation"
+                                           hx-swap="innerHTML"
+                                           hx-include="[name='Input.Password'], [name='Input.ConfirmPassword']" />
                                     <label asp-for="Input.ConfirmPassword">Confirm Password</label>
                                     <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
                                 </div>
                             </div>
                         </div>
+                        <div id="password-validation"></div>
 
                         <!-- Bio -->
                         <div class="mb-3">
@@ -122,7 +139,8 @@
                                     @foreach (var expertise in Model.AllExpertise)
                                     {
                                         <div class="col-6 col-md-4 col-lg-3 mb-2">
-                                            <label class="expertise-checkbox">
+                                            <label class="expertise-checkbox"
+                                                   onclick="toggleExpertise(this)">
                                                 <input type="checkbox" name="Input.SelectedExpertiseIds" value="@expertise.Id" class="d-none" />
                                                 <span class="expertise-tag selectable">@expertise.Name</span>
                                             </label>
@@ -130,7 +148,8 @@
                                     }
                                 </div>
                                 <div class="mt-3">
-                                    <button type="button" class="btn btn-outline-secondary btn-sm" id="addCustomExpertise">
+                                    <button type="button" class="btn btn-outline-secondary btn-sm" id="addCustomExpertise"
+onclick="addCustomExpertiseSimple()">
                                         <i class="bi bi-plus"></i> Add Custom Expertise
                                     </button>
                                 </div>
@@ -162,14 +181,17 @@
                                             <input type="url" name="Input.SocialMediaUrls[0]" class="form-control" placeholder="https://..." required />
                                         </div>
                                         <div class="col-md-1">
-                                            <button type="button" class="btn btn-outline-danger btn-sm remove-social" disabled>
+                                            <button type="button" class="btn btn-outline-danger btn-sm remove-social"
+                    _="on click if #{socialMediaContainer}.children.length > 1 then remove closest .social-media-entry"
+                                                    disabled>
                                                 <i class="bi bi-trash"></i>
                                             </button>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                            <button type="button" class="btn btn-outline-secondary btn-sm mt-2" id="addSocialMedia">
+                            <button type="button" class="btn btn-outline-secondary btn-sm mt-2" id="addSocialMedia"
+onclick="addSocialMediaSimple()">
                                 <i class="bi bi-plus"></i> Add Another Link
                             </button>
                             <div class="form-text">At least one social media link is required</div>
@@ -191,16 +213,17 @@
                         <!-- Headshot Upload -->
                         <div class="mb-4">
                             <label asp-for="Input.HeadshotFile" class="form-label">Profile Photo (Optional)</label>
-                            <div class="file-upload-area" id="headshotUpload">
+                            <div class="file-upload-area" id="headshotUpload" onclick="document.getElementById('headshotInput').click()">
                                 <i class="bi bi-cloud-upload display-4 text-muted mb-2"></i>
                                 <p class="mb-2">Click to upload or drag and drop</p>
                                 <p class="small text-muted">PNG, JPG, GIF up to 5MB</p>
-                                <input asp-for="Input.HeadshotFile" type="file" class="d-none" accept="image/*" />
+                                <input asp-for="Input.HeadshotFile" id="headshotInput" type="file" class="d-none" accept="image/*" onchange="handleFileUpload(this)" />
                             </div>
                             <span asp-validation-for="Input.HeadshotFile" class="text-danger"></span>
                         </div>
 
-                        <button id="registerSubmit" type="submit" class="btn btn-primary btn-lg w-100">
+                        <button id="registerSubmit" type="submit" class="btn btn-primary btn-lg w-100"
+                                _="on click if #registerForm.checkValidity() then add .disabled to me then put '<span class="spinner-border spinner-border-sm me-2"></span>Creating Account...' into me">
                             <i class="bi bi-person-plus me-2"></i>
                             Create Account
                         </button>
@@ -220,6 +243,7 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script src="https://unpkg.com/htmx.org@1.9.6"></script>
     <script src="https://unpkg.com/hyperscript.org@0.9.12"></script>
     <style>
         .speaker-type-card {
@@ -304,29 +328,75 @@
             });
         });
 
-        // Handle expertise selection
-        document.querySelectorAll('.expertise-checkbox').forEach(label => {
-            label.addEventListener('click', function(e) {
-                e.preventDefault();
-                const checkbox = this.querySelector('input[type="checkbox"]');
-                const tag = this.querySelector('.expertise-tag');
-                
-                checkbox.checked = !checkbox.checked;
-                tag.classList.toggle('selected', checkbox.checked);
-            });
+        // Expertise selection is now handled by Hyperscript
+
+        // Social media management is now handled by Hyperscript
+
+        // HTMX validation event handlers
+        document.addEventListener('htmx:responseError', function(evt) {
+            console.error('HTMX validation error:', evt.detail);
         });
 
-        // Social Media Management
-        let socialMediaCount = 1;
-        
-        document.getElementById('addSocialMedia').addEventListener('click', function() {
+        document.addEventListener('htmx:afterRequest', function(evt) {
+            if (evt.detail.xhr.responseText) {
+                try {
+                    const result = JSON.parse(evt.detail.xhr.responseText);
+                    if (!result.IsValid) {
+                        evt.target.style.borderColor = '#dc3545';
+                        const validationDiv = evt.target.parentElement.nextElementSibling;
+                        if (validationDiv) {
+                            validationDiv.innerHTML = `<small class="text-danger">${result.Message}</small>`;
+                        }
+                    } else {
+                        evt.target.style.borderColor = '#198754';
+                        const validationDiv = evt.target.parentElement.nextElementSibling;
+                        if (validationDiv) {
+                            validationDiv.innerHTML = '';
+                        }
+                    }
+                } catch (e) {
+                    // Not a validation response
+                }
+            }
+        });
+
+        // Custom expertise is now handled by Hyperscript
+
+        // Simplified form validation - leveraging HTML5 and server-side validation
+        document.getElementById('registerForm').addEventListener('submit', function(e) {
+            // Basic client-side validation using HTML5
+            if (!this.checkValidity()) {
+                e.preventDefault();
+                return false;
+            }
+        });
+
+        // Simplified JavaScript functions for complex interactions
+        function addCustomExpertiseSimple() {
+            const customName = prompt('Enter custom expertise area:');
+            if (customName && customName.trim()) {
+                const container = document.getElementById('availableExpertise');
+                const div = document.createElement('div');
+                div.className = 'col-6 col-md-4 col-lg-3 mb-2';
+                div.innerHTML = `
+                    <label class="expertise-checkbox" onclick="toggleExpertise(this)">
+                        <input type="checkbox" name="Input.CustomExpertise" value="${customName.trim()}" class="d-none" checked />
+                        <span class="expertise-tag selectable selected">${customName.trim()}</span>
+                    </label>
+                `;
+                container.appendChild(div);
+            }
+        }
+
+        function addSocialMediaSimple() {
             const container = document.getElementById('socialMediaContainer');
+            const index = container.children.length;
             const div = document.createElement('div');
             div.className = 'social-media-entry mb-2';
             div.innerHTML = `
                 <div class="row">
                     <div class="col-md-4">
-                        <select name="Input.SocialMediaPlatforms[${socialMediaCount}]" class="form-select">
+                        <select name="Input.SocialMediaPlatforms[${index}]" class="form-select" required>
                             <option value="">Select Platform</option>
                             <option value="LinkedIn">LinkedIn</option>
                             <option value="Twitter">Twitter/X</option>
@@ -339,229 +409,72 @@
                         </select>
                     </div>
                     <div class="col-md-7">
-                        <input type="url" name="Input.SocialMediaUrls[${socialMediaCount}]" class="form-control" placeholder="https://..." />
+                        <input type="url" name="Input.SocialMediaUrls[${index}]" class="form-control" placeholder="https://..." required />
                     </div>
                     <div class="col-md-1">
-                        <button type="button" class="btn btn-outline-danger btn-sm remove-social">
+                        <button type="button" class="btn btn-outline-danger btn-sm" onclick="removeSocialMedia(this)">
                             <i class="bi bi-trash"></i>
                         </button>
                     </div>
                 </div>
             `;
             container.appendChild(div);
-            socialMediaCount++;
-            
-            // Update remove button states
             updateRemoveButtons();
-        });
+        }
 
-        // Handle remove social media
-        document.addEventListener('click', function(e) {
-            if (e.target.closest('.remove-social')) {
-                e.target.closest('.social-media-entry').remove();
+        function removeSocialMedia(button) {
+            const container = document.getElementById('socialMediaContainer');
+            if (container.children.length > 1) {
+                button.closest('.social-media-entry').remove();
                 updateRemoveButtons();
             }
-        });
+        }
 
         function updateRemoveButtons() {
             const entries = document.querySelectorAll('.social-media-entry');
             entries.forEach((entry, index) => {
-                const removeBtn = entry.querySelector('.remove-social');
+                const removeBtn = entry.querySelector('.btn-outline-danger');
                 removeBtn.disabled = entries.length === 1;
             });
         }
 
-        function validateForm() {
-            let isValid = true;
-            const errors = [];
-
-            // Check speaker type
-            const speakerType = document.querySelector('input[name="Input.SpeakerTypeId"]:checked');
-            if (!speakerType) {
-                errors.push('Please select a speaker type');
-                isValid = false;
-            }
-
-            // Check required fields
-            const requiredFields = [
-                'Input.FirstName',
-                'Input.LastName', 
-                'Input.Email',
-                'Input.PhoneNumber',
-                'Input.Password',
-                'Input.ConfirmPassword',
-                'Input.Bio',
-                'Input.Goals'
-            ];
-
-            requiredFields.forEach(fieldName => {
-                const field = document.querySelector(`[name="${fieldName}"]`);
-                if (!field || !field.value.trim()) {
-                    errors.push(`${fieldName.replace('Input.', '')} is required`);
-                    isValid = false;
-                    if (field) field.classList.add('is-invalid');
-                } else {
-                    if (field) field.classList.remove('is-invalid');
-                }
-            });
-
-            // Check password match
-            const password = document.querySelector('[name="Input.Password"]');
-            const confirmPassword = document.querySelector('[name="Input.ConfirmPassword"]');
-            if (password && confirmPassword && password.value !== confirmPassword.value) {
-                errors.push('Passwords do not match');
-                confirmPassword.classList.add('is-invalid');
-                isValid = false;
-            }
-
-            // Check expertise
-            const expertise = document.querySelectorAll('input[name="Input.SelectedExpertiseIds"]:checked, input[name="Input.CustomExpertise"]:checked');
-            if (expertise.length === 0) {
-                errors.push('Please select at least one area of expertise');
-                isValid = false;
-            }
-
-            // Check social media
-            const socialPlatforms = document.querySelectorAll('[name^="Input.SocialMediaPlatforms"]');
-            const socialUrls = document.querySelectorAll('[name^="Input.SocialMediaUrls"]');
-            let hasSocialMedia = false;
-            
-            for (let i = 0; i < socialPlatforms.length; i++) {
-                if (socialPlatforms[i].value && socialUrls[i] && socialUrls[i].value) {
-                    hasSocialMedia = true;
-                    break;
-                }
-            }
-            
-            if (!hasSocialMedia) {
-                errors.push('Please provide at least one social media link');
-                isValid = false;
-            }
-
-            // Show errors if any
-            if (!isValid) {
-                alert('Please fix the following errors:\n\n' + errors.join('\n'));
-            }
-
-            return isValid;
+        function toggleExpertise(label) {
+            const checkbox = label.querySelector('input[type="checkbox"]');
+            const tag = label.querySelector('.expertise-tag');
+            checkbox.checked = !checkbox.checked;
+            tag.classList.toggle('selected', checkbox.checked);
         }
 
-        // Add custom expertise
-        document.getElementById('addCustomExpertise').addEventListener('click', function() {
-            const customName = prompt('Enter custom expertise area:');
-            if (customName && customName.trim()) {
-                const container = document.getElementById('availableExpertise');
-                const div = document.createElement('div');
-                div.className = 'col-6 col-md-4 col-lg-3 mb-2';
-                div.innerHTML = `
-                    <label class="expertise-checkbox">
-                        <input type="checkbox" name="Input.CustomExpertise" value="${customName.trim()}" class="d-none" checked />
-                        <span class="expertise-tag selectable selected">${customName.trim()}</span>
-                    </label>
-                `;
-                container.appendChild(div);
-                
-                // Add event listener to new item
-                div.querySelector('.expertise-checkbox').addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const checkbox = this.querySelector('input[type="checkbox"]');
-                    const tag = this.querySelector('.expertise-tag');
-                    
-                    checkbox.checked = !checkbox.checked;
-                    tag.classList.toggle('selected', checkbox.checked);
-                });
-            }
-        });
-
-        // Handle form submission
-        document.getElementById('registerSubmit').addEventListener('click', function(e) {
-            if (!validateForm()) {
-                e.preventDefault();
-                return false;
-            }
-            
-            // Show loading state
-            this.disabled = true;
-            this.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Creating Account...';
-        });
-
-        // File upload handling
-        const headshotUpload = document.getElementById('headshotUpload');
-        const headshotInput = headshotUpload.querySelector('input[type="file"]');
-
-        headshotUpload.addEventListener('click', () => headshotInput.click());
-
-        headshotUpload.addEventListener('dragover', function(e) {
-            e.preventDefault();
-            this.classList.add('dragover');
-        });
-
-        headshotUpload.addEventListener('dragleave', function(e) {
-            e.preventDefault();
-            this.classList.remove('dragover');
-        });
-
-        headshotUpload.addEventListener('drop', function(e) {
-            e.preventDefault();
-            this.classList.remove('dragover');
-            
-            const files = e.dataTransfer.files;
-            if (files.length > 0) {
-                headshotInput.files = files;
-                updateFileDisplay(files[0]);
-            }
-        });
-
-        headshotInput.addEventListener('change', function() {
-            if (this.files.length > 0) {
-                updateFileDisplay(this.files[0]);
-            }
-        });
-
-        function updateFileDisplay(file) {
-            const container = headshotUpload;
-            if (file.type.startsWith('image/')) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    container.innerHTML = `
-                        <img src="${e.target.result}" alt="Preview" style="max-width: 200px; max-height: 200px; border-radius: 8px;">
-                        <p class="mt-2 mb-0">${file.name}</p>
-                        <button type="button" class="btn btn-sm btn-outline-secondary mt-1" onclick="clearFileUpload()">
-                            <i class="bi bi-trash"></i> Remove
-                        </button>
-                    `;
-                };
-                reader.readAsDataURL(file);
-            } else {
-                container.innerHTML = `
-                    <i class="bi bi-file-earmark display-4 text-muted mb-2"></i>
-                    <p class="mb-0">${file.name}</p>
-                    <button type="button" class="btn btn-sm btn-outline-secondary mt-1" onclick="clearFileUpload()">
-                        <i class="bi bi-trash"></i> Remove
-                    </button>
-                `;
+        function handleFileUpload(input) {
+            if (input.files.length > 0) {
+                const file = input.files[0];
+                const container = document.getElementById('headshotUpload');
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        container.innerHTML = `
+                            <img src="${e.target.result}" alt="Preview" style="max-width: 200px; max-height: 200px; border-radius: 8px;">
+                            <p class="mt-2 mb-0">${file.name}</p>
+                            <button type="button" class="btn btn-sm btn-outline-secondary mt-1" onclick="clearFileUpload()">
+                                <i class="bi bi-trash"></i> Remove
+                            </button>
+                        `;
+                    };
+                    reader.readAsDataURL(file);
+                }
             }
         }
 
         function clearFileUpload() {
-            const headshotInput = document.querySelector('input[name="Input.HeadshotFile"]');
-            const headshotUpload = document.getElementById('headshotUpload');
-            headshotInput.value = '';
-            headshotUpload.innerHTML = `
+            const input = document.getElementById('headshotInput');
+            const container = document.getElementById('headshotUpload');
+            input.value = '';
+            container.innerHTML = `
                 <i class="bi bi-cloud-upload display-4 text-muted mb-2"></i>
                 <p class="mb-2">Click to upload or drag and drop</p>
                 <p class="small text-muted">PNG, JPG, GIF up to 5MB</p>
-                <input name="Input.HeadshotFile" type="file" class="d-none" accept="image/*" />
             `;
-            
-            // Re-attach event listeners
-            const newInput = headshotUpload.querySelector('input[type="file"]');
-            headshotUpload.addEventListener('click', () => newInput.click());
-            newInput.addEventListener('change', function() {
-                if (this.files.length > 0) {
-                    updateFileDisplay(this.files[0]);
-                }
-            });
+            container.onclick = () => document.getElementById('headshotInput').click();
         }
 
         // Initialize first speaker type if provided via query string
