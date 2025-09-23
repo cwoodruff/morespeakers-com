@@ -14,7 +14,12 @@
       "Bash(taskkill:*)",
       "Bash(wmic:*)",
       "Bash(dotnet clean:*)",
-      "Bash(dotnet build:*)"
+      "Bash(dotnet build:*)",
+      "mcp__jetbrains__search_in_files_by_text",
+      "mcp__jetbrains__get_file_text_by_path",
+      "mcp__jetbrains__replace_text_in_file",
+      "mcp__jetbrains__execute_terminal_command",
+      "Bash(sed:*)"
     ],
     "deny": [],
     "ask": []

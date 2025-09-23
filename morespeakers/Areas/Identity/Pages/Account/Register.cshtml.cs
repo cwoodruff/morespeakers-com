@@ -167,27 +167,65 @@ namespace MoreSpeakers.Areas.Identity.Pages.Account
 
         public async Task<IActionResult> OnPostValidateStepAsync(int step)
         {
+            // Validate step number
+            if (step < 1 || step > 4)
+            {
+                ModelState.AddModelError("", "Invalid step number.");
+                return BadRequest();
+            }
+
             // Reload necessary data for the view
             await LoadFormDataAsync();
 
-            // Only validate fields for the current step
-            var stepValid = ValidateStep(step);
+            // Validate current step
+            bool stepValid = ValidateStep(step);
 
             if (!stepValid)
             {
+                // Add visual indicators for better UX
+                ViewData["HasValidationErrors"] = true;
+                ViewData["ValidationMessage"] = GetValidationMessage(step);
+                
                 // Return the current step with validation errors
                 return Partial("_RegisterStep" + step, this);
             }
 
-            // Move to next step
+            // All validation passed - move to next step
             int nextStep = step + 1;
             if (nextStep <= 4)
             {
+                ViewData["HasValidationErrors"] = false;
+                ViewData["SuccessMessage"] = GetSuccessMessage(step);
                 return Partial("_RegisterStep" + nextStep, this);
             }
 
-            // If we're at the last step, return success
+            // If we're at the last step, indicate success
+            ViewData["HasValidationErrors"] = false;
+            ViewData["SuccessMessage"] = "All steps completed successfully!";
             return new JsonResult(new { success = true, nextStep = nextStep });
+        }
+
+        private string GetValidationMessage(int step)
+        {
+            return step switch
+            {
+                1 => "Please complete all required account information before proceeding.",
+                2 => "Please fill out your speaker profile completely.",
+                3 => "Please select at least one area of expertise.",
+                4 => "Please review your social media information.",
+                _ => "Please complete the required information."
+            };
+        }
+
+        private string GetSuccessMessage(int step)
+        {
+            return step switch
+            {
+                1 => "Account information saved successfully!",
+                2 => "Profile information saved successfully!",
+                3 => "Expertise areas saved successfully!",
+                _ => "Information saved successfully!"
+            };
         }
 
         public async Task<IActionResult> OnPostPreviousStepAsync(int step)

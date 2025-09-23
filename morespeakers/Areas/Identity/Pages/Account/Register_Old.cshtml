@@ -53,7 +53,7 @@
 
                         <div class="card shadow-sm border-0">
                             <div class="card-body p-4">
-                                <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post">
+                                <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post" data-validate>
                                     <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
 
                                     <!-- Progress Indicator -->
@@ -106,12 +106,19 @@
                                                 hx-target="#stepContainer"
                                                 hx-include="#registerForm"
                                                 hx-vals='{"step": "1"}'
-                                                hx-swap="innerHTML">
+                                                hx-swap="innerHTML"
+                                                hx-indicator="#loading-indicator"
+                                                _="on htmx:beforeRequest add .disabled to me then add .d-none to #nextBtn then remove .d-none from #loading-indicator
+                                                   on htmx:afterRequest remove .disabled from me then remove .d-none from #nextBtn then add .d-none to #loading-indicator">
                                             Next<i class="bi bi-arrow-right ms-2"></i>
                                         </button>
                                         <button type="submit" id="submitBtn" class="btn btn-success" style="display: none;">
                                             <i class="bi bi-person-plus me-2"></i>Create Account
                                         </button>
+                                        <div id="loading-indicator" class="d-none">
+                                            <div class="spinner-border spinner-border-sm text-primary me-2"></div>
+                                            Validating...
+                                        </div>
                                     </div>
                                 </form>
 
@@ -208,15 +215,6 @@
         border-color: var(--bs-primary);
         background-color: var(--bs-primary-bg-subtle);
     }
-
-    .is-invalid {
-        border-color: var(--bs-danger) !important;
-        box-shadow: 0 0 0 0.2rem rgba(var(--bs-danger-rgb), 0.25) !important;
-    }
-
-    .validation-error {
-        margin-top: 0.25rem;
-    }
 </style>
 
 @section Scripts {
@@ -225,11 +223,11 @@
     <script src="https://unpkg.com/hyperscript.org@0.9.12"></script>
 
     <script>
-        // Current step tracking
         let currentStep = 1;
+        const totalSteps = 4;
 
-        // Step indicator and navigation functions
         function updateStepIndicator(step) {
+            // Update step indicators
             document.querySelectorAll('.step').forEach(s => {
                 s.classList.remove('active');
                 const stepNum = parseInt(s.dataset.step);
@@ -241,69 +239,124 @@
                     s.classList.remove('completed');
                 }
             });
-        }
 
-        function updateNavigationButtons(step) {
+            // Update navigation buttons
             const prevBtn = document.getElementById('prevBtn');
             const nextBtn = document.getElementById('nextBtn');
             const submitBtn = document.getElementById('submitBtn');
 
             prevBtn.style.display = step === 1 ? 'none' : 'block';
-            nextBtn.style.display = step === 4 ? 'none' : 'block';
-            submitBtn.style.display = step === 4 ? 'block' : 'none';
+            nextBtn.style.display = step === totalSteps ? 'none' : 'block';
+            submitBtn.style.display = step === totalSteps ? 'block' : 'none';
 
-            // Ensure button text is correct
-            prevBtn.innerHTML = '<i class="bi bi-arrow-left me-2"></i>Previous';
-            nextBtn.innerHTML = 'Next<i class="bi bi-arrow-right ms-2"></i>';
-            submitBtn.innerHTML = '<i class="bi bi-person-plus me-2"></i>Create Account';
-
+            // Update HTMX attributes for navigation buttons
             if (step > 1) {
                 prevBtn.setAttribute('hx-vals', `{"step": "${step - 1}"}`);
             }
-            if (step < 4) {
+            if (step < totalSteps) {
                 nextBtn.setAttribute('hx-vals', `{"step": "${step}"}`);
+                nextBtn.setAttribute('onclick', `updateStepIndicator(${step + 1})`);
             }
 
             currentStep = step;
         }
 
-        // HTMX event handling
+        // HTMX event listeners
         document.addEventListener('htmx:beforeRequest', function(event) {
+            // Show loading state
             const button = event.detail.elt;
             if (button.id === 'nextBtn') {
-                button.disabled = true;
                 button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Validating...';
+                button.disabled = true;
             }
         });
 
         document.addEventListener('htmx:afterRequest', function(event) {
+            // Reset button state
             const button = event.detail.elt;
-            
             if (button.id === 'nextBtn') {
-                button.disabled = false;
                 button.innerHTML = 'Next<i class="bi bi-arrow-right ms-2"></i>';
-                
-                // Check if validation passed (no errors in response)
-                const hasErrors = event.target.querySelector('.text-danger, .alert-danger') !== null;
-                if (!hasErrors && event.detail.successful) {
-                    // Move to next step
-                    const nextStep = currentStep + 1;
-                    updateStepIndicator(nextStep);
-                    updateNavigationButtons(nextStep);
-                }
+                button.disabled = false;
             }
-            
-            if (button.id === 'prevBtn' && event.detail.successful) {
-                // Move to previous step
-                const prevStep = currentStep - 1;
-                updateStepIndicator(prevStep);
-                updateNavigationButtons(prevStep);
+
+            // Update step indicators and navigation based on which handler was called
+            if (event.detail.successful) {
+                const requestUrl = event.detail.requestConfig.path;
+
+                if (requestUrl.includes('ValidateStep')) {
+                    // If validation was successful and no validation errors, move to next step
+                    const responseHasErrors = event.target.querySelector('.text-danger') !== null;
+                    if (!responseHasErrors) {
+                        updateStepIndicator(currentStep + 1);
+                    }
+                } else if (requestUrl.includes('PreviousStep')) {
+                    // Move to previous step
+                    updateStepIndicator(currentStep - 1);
+                }
             }
         });
 
-        // Initialize on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            updateNavigationButtons(1);
+        // Form submission with HTMX
+        document.addEventListener('htmx:configRequest', function(event) {
+            if (event.detail.path.includes('ValidateStep')) {
+                // Include current step in the request
+                event.detail.parameters.currentStep = currentStep;
+            } else if (event.detail.path.includes('PreviousStep')) {
+                event.detail.parameters.currentStep = currentStep;
+            }
         });
+
+        // Utility functions for dynamic content
+        function addCustomExpertise() {
+            const container = document.getElementById('customExpertiseContainer');
+            const newInput = document.createElement('div');
+            newInput.className = 'input-group mb-2 custom-expertise-input';
+            newInput.innerHTML = `
+                <input type="text" name="Input.CustomExpertise" class="form-control" placeholder="Enter a custom expertise area" />
+                <button type="button" class="btn btn-outline-danger" onclick="removeCustomExpertise(this)">
+                    <i class="bi bi-trash"></i>
+                </button>
+            `;
+            container.appendChild(newInput);
+        }
+
+        function removeCustomExpertise(button) {
+            button.closest('.custom-expertise-input').remove();
+        }
+
+        function addSocialMediaRow() {
+            const container = document.getElementById('socialMediaContainer');
+            const newRow = document.createElement('div');
+            newRow.className = 'row mb-3 social-media-row';
+            newRow.innerHTML = `
+                <div class="col-md-4">
+                    <select name="Input.SocialMediaPlatforms" class="form-select">
+                        <option value="">Select Platform</option>
+                        <option value="LinkedIn">LinkedIn</option>
+                        <option value="Twitter">Twitter</option>
+                        <option value="GitHub">GitHub</option>
+                        <option value="YouTube">YouTube</option>
+                        <option value="Website">Personal Website</option>
+                        <option value="Blog">Blog</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <input type="url" name="Input.SocialMediaUrls" class="form-control" placeholder="https://..." />
+                </div>
+                <div class="col-md-2">
+                    <button type="button" class="btn btn-outline-danger w-100" onclick="removeSocialMediaRow(this)">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            `;
+            container.appendChild(newRow);
+        }
+
+        function removeSocialMediaRow(button) {
+            if (document.querySelectorAll('.social-media-row').length > 1) {
+                button.closest('.social-media-row').remove();
+            }
+        }
     </script>
 }

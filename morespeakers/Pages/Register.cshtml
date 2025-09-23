@@ -24,7 +24,7 @@
                             <label class="form-label">I want to join as:</label>
                             <div class="row">
                                 <div class="col-md-6">
-                                    <div class="card speaker-type-card" _="on click add .selected to me then remove .selected from .speaker-type-card then set the checked of #speakerType_1 to true">
+                                    <div class="card speaker-type-card" _="on click add .selected to me then remove .selected from other .speaker-type-card then set #speakerType_1.checked to true then trigger change on #speakerType_1">
                                         <div class="card-body text-center">
                                             <i class="bi bi-person display-4 text-primary mb-2"></i>
                                             <h6>New Speaker</h6>
@@ -34,7 +34,7 @@
                                     </div>
                                 </div>
                                 <div class="col-md-6">
-                                    <div class="card speaker-type-card" _="on click add .selected to me then remove .selected from .speaker-type-card then set the checked of #speakerType_2 to true">
+                                    <div class="card speaker-type-card" _="on click add .selected to me then remove .selected from other .speaker-type-card then set #speakerType_2.checked to true then trigger change on #speakerType_2">
                                         <div class="card-body text-center">
                                             <i class="bi bi-award display-4 text-success mb-2"></i>
                                             <h6>Experienced Speaker</h6>
@@ -220,6 +220,7 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script src="https://unpkg.com/hyperscript.org@0.9.12"></script>
     <style>
         .speaker-type-card {
             cursor: pointer;
@@ -248,6 +249,41 @@
         
         .social-media-entry:first-child .remove-social {
             display: none;
+        }
+        
+        .file-upload-area {
+            border: 2px dashed #dee2e6;
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .file-upload-area:hover, .file-upload-area.dragover {
+            border-color: var(--bs-primary);
+            background-color: rgba(13, 110, 253, 0.05);
+        }
+        
+        .expertise-tag {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            margin: 0.125rem;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 1rem;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+        }
+        
+        .expertise-tag.selected {
+            background-color: var(--bs-success);
+            color: white;
+            border-color: var(--bs-success);
+        }
+        
+        .expertise-tag:hover {
+            border-color: var(--bs-primary);
         }
     </style>
     
@@ -278,33 +314,6 @@
                 checkbox.checked = !checkbox.checked;
                 tag.classList.toggle('selected', checkbox.checked);
             });
-        });
-
-        // Add custom expertise
-        document.getElementById('addCustomExpertise').addEventListener('click', function() {
-            const customName = prompt('Enter custom expertise area:');
-            if (customName && customName.trim()) {
-                const container = document.getElementById('availableExpertise');
-                const div = document.createElement('div');
-                div.className = 'col-6 col-md-4 col-lg-3 mb-2';
-                div.innerHTML = `
-                    <label class="expertise-checkbox">
-                        <input type="checkbox" name="Input.CustomExpertise" value="${customName.trim()}" class="d-none" checked />
-                        <span class="expertise-tag selectable selected">${customName.trim()}</span>
-                    </label>
-                `;
-                container.appendChild(div);
-                
-                // Add event listener to new item
-                div.querySelector('.expertise-checkbox').addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const checkbox = this.querySelector('input[type="checkbox"]');
-                    const tag = this.querySelector('.expertise-tag');
-                    
-                    checkbox.checked = !checkbox.checked;
-                    tag.classList.toggle('selected', checkbox.checked);
-                });
-            }
         });
 
         // Social Media Management
@@ -361,6 +370,120 @@
                 removeBtn.disabled = entries.length === 1;
             });
         }
+
+        function validateForm() {
+            let isValid = true;
+            const errors = [];
+
+            // Check speaker type
+            const speakerType = document.querySelector('input[name="Input.SpeakerTypeId"]:checked');
+            if (!speakerType) {
+                errors.push('Please select a speaker type');
+                isValid = false;
+            }
+
+            // Check required fields
+            const requiredFields = [
+                'Input.FirstName',
+                'Input.LastName', 
+                'Input.Email',
+                'Input.PhoneNumber',
+                'Input.Password',
+                'Input.ConfirmPassword',
+                'Input.Bio',
+                'Input.Goals'
+            ];
+
+            requiredFields.forEach(fieldName => {
+                const field = document.querySelector(`[name="${fieldName}"]`);
+                if (!field || !field.value.trim()) {
+                    errors.push(`${fieldName.replace('Input.', '')} is required`);
+                    isValid = false;
+                    if (field) field.classList.add('is-invalid');
+                } else {
+                    if (field) field.classList.remove('is-invalid');
+                }
+            });
+
+            // Check password match
+            const password = document.querySelector('[name="Input.Password"]');
+            const confirmPassword = document.querySelector('[name="Input.ConfirmPassword"]');
+            if (password && confirmPassword && password.value !== confirmPassword.value) {
+                errors.push('Passwords do not match');
+                confirmPassword.classList.add('is-invalid');
+                isValid = false;
+            }
+
+            // Check expertise
+            const expertise = document.querySelectorAll('input[name="Input.SelectedExpertiseIds"]:checked, input[name="Input.CustomExpertise"]:checked');
+            if (expertise.length === 0) {
+                errors.push('Please select at least one area of expertise');
+                isValid = false;
+            }
+
+            // Check social media
+            const socialPlatforms = document.querySelectorAll('[name^="Input.SocialMediaPlatforms"]');
+            const socialUrls = document.querySelectorAll('[name^="Input.SocialMediaUrls"]');
+            let hasSocialMedia = false;
+            
+            for (let i = 0; i < socialPlatforms.length; i++) {
+                if (socialPlatforms[i].value && socialUrls[i] && socialUrls[i].value) {
+                    hasSocialMedia = true;
+                    break;
+                }
+            }
+            
+            if (!hasSocialMedia) {
+                errors.push('Please provide at least one social media link');
+                isValid = false;
+            }
+
+            // Show errors if any
+            if (!isValid) {
+                alert('Please fix the following errors:\n\n' + errors.join('\n'));
+            }
+
+            return isValid;
+        }
+
+        // Add custom expertise
+        document.getElementById('addCustomExpertise').addEventListener('click', function() {
+            const customName = prompt('Enter custom expertise area:');
+            if (customName && customName.trim()) {
+                const container = document.getElementById('availableExpertise');
+                const div = document.createElement('div');
+                div.className = 'col-6 col-md-4 col-lg-3 mb-2';
+                div.innerHTML = `
+                    <label class="expertise-checkbox">
+                        <input type="checkbox" name="Input.CustomExpertise" value="${customName.trim()}" class="d-none" checked />
+                        <span class="expertise-tag selectable selected">${customName.trim()}</span>
+                    </label>
+                `;
+                container.appendChild(div);
+                
+                // Add event listener to new item
+                div.querySelector('.expertise-checkbox').addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const checkbox = this.querySelector('input[type="checkbox"]');
+                    const tag = this.querySelector('.expertise-tag');
+                    
+                    checkbox.checked = !checkbox.checked;
+                    tag.classList.toggle('selected', checkbox.checked);
+                });
+            }
+        });
+
+        // Handle form submission
+        document.getElementById('registerSubmit').addEventListener('click', function(e) {
+            if (!validateForm()) {
+                e.preventDefault();
+                return false;
+            }
+            
+            // Show loading state
+            this.disabled = true;
+            this.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Creating Account...';
+        });
 
         // File upload handling
         const headshotUpload = document.getElementById('headshotUpload');
@@ -421,26 +544,41 @@
         }
 
         function clearFileUpload() {
+            const headshotInput = document.querySelector('input[name="Input.HeadshotFile"]');
+            const headshotUpload = document.getElementById('headshotUpload');
             headshotInput.value = '';
             headshotUpload.innerHTML = `
                 <i class="bi bi-cloud-upload display-4 text-muted mb-2"></i>
                 <p class="mb-2">Click to upload or drag and drop</p>
                 <p class="small text-muted">PNG, JPG, GIF up to 5MB</p>
-                <input asp-for="Input.HeadshotFile" type="file" class="d-none" accept="image/*" />
+                <input name="Input.HeadshotFile" type="file" class="d-none" accept="image/*" />
             `;
+            
+            // Re-attach event listeners
+            const newInput = headshotUpload.querySelector('input[type="file"]');
+            headshotUpload.addEventListener('click', () => newInput.click());
+            newInput.addEventListener('change', function() {
+                if (this.files.length > 0) {
+                    updateFileDisplay(this.files[0]);
+                }
+            });
         }
 
         // Initialize first speaker type if provided via query string
         const urlParams = new URLSearchParams(window.location.search);
         const speakerType = urlParams.get('speakerType');
         if (speakerType === 'NewSpeaker') {
-            document.getElementById('speakerType_1').checked = true;
-            document.querySelector('[_="on click add .selected to me then remove .selected from .speaker-type-card then set the checked of #speakerType_1 to true"]').classList.add('selected');
-            document.getElementById('speakerType_1').dispatchEvent(new Event('change'));
+            const radio1 = document.getElementById('speakerType_1');
+            const card1 = radio1.closest('.speaker-type-card');
+            radio1.checked = true;
+            card1.classList.add('selected');
+            radio1.dispatchEvent(new Event('change'));
         } else if (speakerType === 'ExperiencedSpeaker') {
-            document.getElementById('speakerType_2').checked = true;
-            document.querySelector('[_="on click add .selected to me then remove .selected from .speaker-type-card then set the checked of #speakerType_2 to true"]').classList.add('selected');
-            document.getElementById('speakerType_2').dispatchEvent(new Event('change'));
+            const radio2 = document.getElementById('speakerType_2');
+            const card2 = radio2.closest('.speaker-type-card');
+            radio2.checked = true;
+            card2.classList.add('selected');
+            radio2.dispatchEvent(new Event('change'));
         }
     </script>
 }
