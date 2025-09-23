@@ -8,11 +8,10 @@ namespace morespeakers.Pages;
 [IgnoreAntiforgeryToken]
 public class ErrorModel(ILogger<ErrorModel> logger) : PageModel
 {
+    private readonly ILogger<ErrorModel> _logger = logger;
     public string? RequestId { get; set; }
 
     public bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
-
-    private readonly ILogger<ErrorModel> _logger = logger;
 
     public void OnGet()
     {

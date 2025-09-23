@@ -1,6 +1,6 @@
 @{
     var field = ViewData["Field"] as string ?? "";
-    var pageModel = ViewData["PageModel"] as morespeakers.Pages.Account.IndexModel;
+    var pageModel = ViewData["PageModel"] as IndexModel;
     var fieldName = field.ToLower();
     var displayName = GetDisplayName(field);
     var value = GetFieldValue(pageModel, field);
@@ -71,6 +71,7 @@
 </div>
 
 @functions {
+
     private string GetDisplayName(string field)
     {
         return field switch
@@ -88,7 +89,7 @@
         };
     }
 
-    private string? GetFieldValue(morespeakers.Pages.Account.IndexModel? model, string field)
+    private string? GetFieldValue(IndexModel? model, string field)
     {
         if (model?.CurrentUser == null) return null;
 
@@ -106,4 +107,5 @@
             _ => null
         };
     }
+
 }

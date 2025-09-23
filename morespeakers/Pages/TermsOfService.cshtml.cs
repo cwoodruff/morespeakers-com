@@ -1,11 +1,10 @@
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace morespeakers.Pages
+namespace morespeakers.Pages;
+
+public class TermsOfServiceModel : PageModel
 {
-    public class TermsOfServiceModel : PageModel
+    public void OnGet()
     {
-        public void OnGet()
-        {
-        }
     }
 }

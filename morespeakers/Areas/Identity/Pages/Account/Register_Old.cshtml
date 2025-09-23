@@ -13,7 +13,8 @@
                     <i class="bi bi-megaphone-fill display-1"></i>
                 </div>
                 <h2 class="fw-bold mb-3">Start Your Speaking Journey</h2>
-                <p class="lead mb-4">Join thousands of speakers who are growing their careers through mentorship and community support.</p>
+                <p class="lead mb-4">Join thousands of speakers who are growing their careers through mentorship and
+                    community support.</p>
 
                 <div class="row text-center">
                     <div class="col-4">
@@ -53,8 +54,10 @@
 
                         <div class="card shadow-sm border-0">
                             <div class="card-body p-4">
-                                <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post" data-validate>
-                                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+                                <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post"
+                                      data-validate>
+                                    <div asp-validation-summary="ModelOnly" class="alert alert-danger"
+                                         role="alert"></div>
 
                                     <!-- Progress Indicator -->
                                     <div class="mb-4">
@@ -88,12 +91,13 @@
 
                                     <!-- Step Container -->
                                     <div id="stepContainer">
-                                        <partial name="_RegisterStep1" model="Model" />
+                                        <partial name="_RegisterStep1" model="Model"/>
                                     </div>
 
                                     <!-- Navigation Buttons -->
                                     <div class="d-flex justify-content-between mt-4" id="navigationButtons">
-                                        <button type="button" id="prevBtn" class="btn btn-outline-secondary" style="display: none;"
+                                        <button type="button" id="prevBtn" class="btn btn-outline-secondary"
+                                                style="display: none;"
                                                 hx-post="/Identity/Account/Register?handler=PreviousStep"
                                                 hx-target="#stepContainer"
                                                 hx-include="#registerForm"
@@ -112,7 +116,8 @@
                                                    on htmx:afterRequest remove .disabled from me then remove .d-none from #nextBtn then add .d-none to #loading-indicator">
                                             Next<i class="bi bi-arrow-right ms-2"></i>
                                         </button>
-                                        <button type="submit" id="submitBtn" class="btn btn-success" style="display: none;">
+                                        <button type="submit" id="submitBtn" class="btn btn-success"
+                                                style="display: none;">
                                             <i class="bi bi-person-plus me-2"></i>Create Account
                                         </button>
                                         <div id="loading-indicator" class="d-none">
@@ -134,7 +139,8 @@
 
                         <div class="text-center mt-4">
                             <p class="text-muted mb-0">Already have an account?</p>
-                            <a asp-page="./Login" asp-route-returnUrl="@Model.ReturnUrl" class="btn btn-outline-primary mt-2">
+                            <a asp-page="./Login" asp-route-returnUrl="@Model.ReturnUrl"
+                               class="btn btn-outline-primary mt-2">
                                 <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
                             </a>
                         </div>
@@ -197,7 +203,7 @@
 
     .expertise-item:hover {
         border-color: var(--bs-primary);
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
 
     .speaker-type-card {
@@ -208,7 +214,7 @@
     .speaker-type-card:hover {
         border-color: var(--bs-primary);
         transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     }
 
     .speaker-type-radio:checked + label .speaker-type-card {
@@ -218,7 +224,7 @@
 </style>
 
 @section Scripts {
-    <partial name="_ValidationScriptsPartial" />
+    <partial name="_ValidationScriptsPartial"/>
     <script src="https://unpkg.com/htmx.org@1.9.6"></script>
     <script src="https://unpkg.com/hyperscript.org@0.9.12"></script>
 
@@ -262,7 +268,7 @@
         }
 
         // HTMX event listeners
-        document.addEventListener('htmx:beforeRequest', function(event) {
+        document.addEventListener('htmx:beforeRequest', function (event) {
             // Show loading state
             const button = event.detail.elt;
             if (button.id === 'nextBtn') {
@@ -271,7 +277,7 @@
             }
         });
 
-        document.addEventListener('htmx:afterRequest', function(event) {
+        document.addEventListener('htmx:afterRequest', function (event) {
             // Reset button state
             const button = event.detail.elt;
             if (button.id === 'nextBtn') {
@@ -297,7 +303,7 @@
         });
 
         // Form submission with HTMX
-        document.addEventListener('htmx:configRequest', function(event) {
+        document.addEventListener('htmx:configRequest', function (event) {
             if (event.detail.path.includes('ValidateStep')) {
                 // Include current step in the request
                 event.detail.parameters.currentStep = currentStep;

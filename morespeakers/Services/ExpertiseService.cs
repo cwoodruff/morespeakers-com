@@ -23,8 +23,8 @@ public class ExpertiseService(ApplicationDbContext context) : IExpertiseService
     public async Task<IEnumerable<Expertise>> SearchExpertiseAsync(string searchTerm)
     {
         return await _context.Expertise
-            .Where(e => e.Name.Contains(searchTerm) || 
-                       (e.Description != null && e.Description.Contains(searchTerm)))
+            .Where(e => e.Name.Contains(searchTerm) ||
+                        (e.Description != null && e.Description.Contains(searchTerm)))
             .OrderBy(e => e.Name)
             .ToListAsync();
     }
@@ -61,6 +61,7 @@ public class ExpertiseService(ApplicationDbContext context) : IExpertiseService
                 await _context.SaveChangesAsync();
                 return true;
             }
+
             return false;
         }
         catch
@@ -80,6 +81,7 @@ public class ExpertiseService(ApplicationDbContext context) : IExpertiseService
                 await _context.SaveChangesAsync();
                 return true;
             }
+
             return false;
         }
         catch

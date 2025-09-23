@@ -1,6 +1,5 @@
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
-using morespeakers.Models;
 using morespeakers.Services;
 
 namespace MoreSpeakers.Tests.Services;

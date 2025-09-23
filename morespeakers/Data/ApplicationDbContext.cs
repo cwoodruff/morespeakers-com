@@ -22,7 +22,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         builder.Entity<User>(entity =>
         {
             entity.ToTable("AspNetUsers");
-            
+
             entity.Property(e => e.Id)
                 .HasDefaultValueSql("NEWID()");
 
@@ -213,9 +213,6 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         var entries = ChangeTracker.Entries<User>()
             .Where(e => e.State == EntityState.Modified);
 
-        foreach (var entry in entries)
-        {
-            entry.Entity.UpdatedDate = DateTime.UtcNow;
-        }
+        foreach (var entry in entries) entry.Entity.UpdatedDate = DateTime.UtcNow;
     }
 }

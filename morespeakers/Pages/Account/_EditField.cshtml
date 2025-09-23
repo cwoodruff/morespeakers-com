@@ -1,4 +1,4 @@
-@model morespeakers.Pages.Account.IndexModel
+@model IndexModel
 @{
     var field = ViewData["Field"] as string ?? "";
     var fieldName = field.ToLower();
@@ -16,12 +16,14 @@
 
             @if (field == "Bio")
             {
-                <textarea asp-for="Input.Bio" class="form-control" rows="4" placeholder="Enter your @displayName.ToLower()...">@value</textarea>
+                <textarea asp-for="Input.Bio" class="form-control" rows="4"
+                          placeholder="Enter your @displayName.ToLower()...">@value</textarea>
                 <span asp-validation-for="Input.Bio" class="text-danger small"></span>
             }
             else if (field == "Goals")
             {
-                <textarea asp-for="Input.Goals" class="form-control" rows="4" placeholder="Enter your @displayName.ToLower()...">@value</textarea>
+                <textarea asp-for="Input.Goals" class="form-control" rows="4"
+                          placeholder="Enter your @displayName.ToLower()...">@value</textarea>
                 <span asp-validation-for="Input.Goals" class="text-danger small"></span>
             }
             else if (field == "SpeakerTypeId")
@@ -34,32 +36,38 @@
             }
             else if (field == "Email")
             {
-                <input asp-for="Input.Email" type="email" class="form-control" value="@value" placeholder="Enter your email address" />
+                <input asp-for="Input.Email" type="email" class="form-control" value="@value"
+                       placeholder="Enter your email address"/>
                 <span asp-validation-for="Input.Email" class="text-danger small"></span>
             }
             else if (field == "PhoneNumber")
             {
-                <input asp-for="Input.PhoneNumber" type="tel" class="form-control" value="@value" placeholder="Enter your phone number" />
+                <input asp-for="Input.PhoneNumber" type="tel" class="form-control" value="@value"
+                       placeholder="Enter your phone number"/>
                 <span asp-validation-for="Input.PhoneNumber" class="text-danger small"></span>
             }
             else if (field == "SessionizeUrl")
             {
-                <input asp-for="Input.SessionizeUrl" type="url" class="form-control" value="@value" placeholder="https://..." />
+                <input asp-for="Input.SessionizeUrl" type="url" class="form-control" value="@value"
+                       placeholder="https://..."/>
                 <span asp-validation-for="Input.SessionizeUrl" class="text-danger small"></span>
             }
             else if (field == "HeadshotUrl")
             {
-                <input asp-for="Input.HeadshotUrl" type="url" class="form-control" value="@value" placeholder="https://..." />
+                <input asp-for="Input.HeadshotUrl" type="url" class="form-control" value="@value"
+                       placeholder="https://..."/>
                 <span asp-validation-for="Input.HeadshotUrl" class="text-danger small"></span>
             }
             else if (field == "FirstName")
             {
-                <input asp-for="Input.FirstName" type="text" class="form-control" value="@value" placeholder="Enter your @displayName.ToLower()" />
+                <input asp-for="Input.FirstName" type="text" class="form-control" value="@value"
+                       placeholder="Enter your @displayName.ToLower()"/>
                 <span asp-validation-for="Input.FirstName" class="text-danger small"></span>
             }
             else if (field == "LastName")
             {
-                <input asp-for="Input.LastName" type="text" class="form-control" value="@value" placeholder="Enter your @displayName.ToLower()" />
+                <input asp-for="Input.LastName" type="text" class="form-control" value="@value"
+                       placeholder="Enter your @displayName.ToLower()"/>
                 <span asp-validation-for="Input.LastName" class="text-danger small"></span>
             }
         </div>
@@ -80,6 +88,7 @@
 </div>
 
 @functions {
+
     private string GetDisplayName(string field)
     {
         return field switch
@@ -97,7 +106,7 @@
         };
     }
 
-    private string? GetFieldValue(morespeakers.Pages.Account.IndexModel model, string field)
+    private string? GetFieldValue(IndexModel model, string field)
     {
         return field switch
         {
@@ -113,4 +122,5 @@
             _ => null
         };
     }
+
 }

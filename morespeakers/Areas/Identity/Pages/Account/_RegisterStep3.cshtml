@@ -1,4 +1,4 @@
-@model MoreSpeakers.Areas.Identity.Pages.Account.RegisterModel
+@model RegisterModel
 
 <div class="form-step" data-step="3">
     @if (ViewData["HasValidationErrors"] as bool? == true)
@@ -22,7 +22,8 @@
             @foreach (var expertise in Model.AvailableExpertise)
             {
                 <div class="form-check expertise-item">
-                    <input class="form-check-input" type="checkbox" name="Input.SelectedExpertiseIds" value="@expertise.Id" id="expertise@(expertise.Id)" />
+                    <input class="form-check-input" type="checkbox" name="Input.SelectedExpertiseIds"
+                           value="@expertise.Id" id="expertise@(expertise.Id)"/>
                     <label class="form-check-label" for="expertise@(expertise.Id)">
                         @expertise.Name
                     </label>
@@ -36,16 +37,19 @@
         <label class="form-label fw-medium">Custom Expertise Areas</label>
         <div id="customExpertiseContainer">
             <div class="input-group mb-2 custom-expertise-input">
-                <input type="text" name="Input.CustomExpertise" class="form-control" placeholder="Enter a custom expertise area" />
+                <input type="text" name="Input.CustomExpertise" class="form-control"
+                       placeholder="Enter a custom expertise area"/>
                 <button type="button" class="btn btn-outline-primary"
                         _="on click 
                            make a <div.input-group.mb-2.custom-expertise-input/> called newInput
-                           put '<input type=\"text\" name=\"Input.CustomExpertise\" class=\"form-control\" placeholder=\"Enter a custom expertise area\" />
-                                <button type=\"button\" class=\"btn btn-outline-danger\" _=\"on click remove closest .custom-expertise-input\">
-                                    <i class=\"bi bi-trash\"></i>
-                                </button>' into newInput
-                           put newInput at end of #customExpertiseContainer"
-                    <i class="bi bi-plus"></i>
+                           put '<input type=\" text\
+                " name="\""Input.CustomExpertise\" class="\""form-control\" placeholder="\""Enter a custom expertise area\" />
+                <button type="\""button\" class="\""btn btn-outline-danger\
+                " _="\""on click remove closest .custom-expertise-input\">
+                <i class="\""bi bi-trash\"></i>
+                </button>' into newInput
+                put newInput at end of #customExpertiseContainer"
+                <i class="bi bi-plus"></i>
                 </button>
             </div>
         </div>
@@ -56,20 +60,20 @@
 </div>
 
 <script>
-function addCustomExpertise() {
-    const container = document.getElementById('customExpertiseContainer');
-    const newInput = document.createElement('div');
-    newInput.className = 'input-group mb-2 custom-expertise-input';
-    newInput.innerHTML = `
+    function addCustomExpertise() {
+        const container = document.getElementById('customExpertiseContainer');
+        const newInput = document.createElement('div');
+        newInput.className = 'input-group mb-2 custom-expertise-input';
+        newInput.innerHTML = `
         <input type="text" name="Input.CustomExpertise" class="form-control" placeholder="Enter a custom expertise area" />
         <button type="button" class="btn btn-outline-danger" onclick="removeCustomExpertise(this)">
             <i class="bi bi-trash"></i>
         </button>
     `;
-    container.appendChild(newInput);
-}
+        container.appendChild(newInput);
+    }
 
-function removeCustomExpertise(button) {
-    button.closest('.custom-expertise-input').remove();
-}
+    function removeCustomExpertise(button) {
+        button.closest('.custom-expertise-input').remove();
+    }
 </script>

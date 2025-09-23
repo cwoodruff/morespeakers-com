@@ -12,7 +12,7 @@ public static class TestDataBuilder
         .RuleFor(u => u.Email, (f, u) => f.Internet.Email(u.FirstName, u.LastName))
         .RuleFor(u => u.UserName, (f, u) => u.Email)
         .RuleFor(u => u.PhoneNumber, f => f.Phone.PhoneNumber())
-        .RuleFor(u => u.Bio, f => f.Lorem.Paragraph(3))
+        .RuleFor(u => u.Bio, f => f.Lorem.Paragraph())
         .RuleFor(u => u.Goals, f => f.Lorem.Paragraph(2))
         .RuleFor(u => u.SessionizeUrl, f => f.Internet.Url())
         .RuleFor(u => u.HeadshotUrl, f => f.Internet.Avatar())
@@ -44,8 +44,10 @@ public static class TestDataBuilder
         .RuleFor(m => m.MentorId, f => Guid.NewGuid())
         .RuleFor(m => m.Status, f => f.PickRandom("Pending", "Active", "Completed", "Cancelled"))
         .RuleFor(m => m.RequestDate, f => f.Date.Recent(60))
-        .RuleFor(m => m.AcceptedDate, (f, m) => m.Status != "Pending" ? f.Date.Between(m.RequestDate, DateTime.UtcNow) : null)
-        .RuleFor(m => m.CompletedDate, (f, m) => m.Status == "Completed" ? f.Date.Between(m.AcceptedDate ?? m.RequestDate, DateTime.UtcNow) : null)
+        .RuleFor(m => m.AcceptedDate,
+            (f, m) => m.Status != "Pending" ? f.Date.Between(m.RequestDate, DateTime.UtcNow) : null)
+        .RuleFor(m => m.CompletedDate,
+            (f, m) => m.Status == "Completed" ? f.Date.Between(m.AcceptedDate ?? m.RequestDate, DateTime.UtcNow) : null)
         .RuleFor(m => m.Notes, f => f.Lorem.Paragraph());
 
     public static User CreateUser(Action<User>? configure = null)
@@ -58,10 +60,7 @@ public static class TestDataBuilder
     public static List<User> CreateUsers(int count, Action<User>? configure = null)
     {
         var users = UserFaker.Generate(count);
-        if (configure != null)
-        {
-            users.ForEach(configure);
-        }
+        if (configure != null) users.ForEach(configure);
         return users;
     }
 
@@ -80,7 +79,8 @@ public static class TestDataBuilder
         return CreateUser(user =>
         {
             user.SpeakerTypeId = 2;
-            user.SpeakerType = new SpeakerType { Id = 2, Name = "ExperiencedSpeaker", Description = "Experienced speakers" };
+            user.SpeakerType = new SpeakerType
+                { Id = 2, Name = "ExperiencedSpeaker", Description = "Experienced speakers" };
             configure?.Invoke(user);
         });
     }
@@ -95,10 +95,7 @@ public static class TestDataBuilder
     public static List<Expertise> CreateExpertise(int count, Action<Expertise>? configure = null)
     {
         var expertise = ExpertiseFaker.Generate(count);
-        if (configure != null)
-        {
-            expertise.ForEach(configure);
-        }
+        if (configure != null) expertise.ForEach(configure);
         return expertise;
     }
 
@@ -119,10 +116,7 @@ public static class TestDataBuilder
     public static List<SocialMedia> CreateSocialMedia(int count, Action<SocialMedia>? configure = null)
     {
         var socialMedia = SocialMediaFaker.Generate(count);
-        if (configure != null)
-        {
-            socialMedia.ForEach(configure);
-        }
+        if (configure != null) socialMedia.ForEach(configure);
         return socialMedia;
     }
 
@@ -136,10 +130,7 @@ public static class TestDataBuilder
     public static List<Mentorship> CreateMentorships(int count, Action<Mentorship>? configure = null)
     {
         var mentorships = MentorshipFaker.Generate(count);
-        if (configure != null)
-        {
-            mentorships.ForEach(configure);
-        }
+        if (configure != null) mentorships.ForEach(configure);
         return mentorships;
     }
 

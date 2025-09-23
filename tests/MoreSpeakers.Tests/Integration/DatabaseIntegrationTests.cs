@@ -1,6 +1,5 @@
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
-using morespeakers.Data;
 using morespeakers.Models;
 
 namespace MoreSpeakers.Tests.Integration;
@@ -234,7 +233,7 @@ public class DatabaseIntegrationTests : TestBase
         var speakersWithExpertiseAndSocial = await Context.Users
             .Include(u => u.SpeakerType)
             .Include(u => u.UserExpertise)
-                .ThenInclude(ue => ue.Expertise)
+            .ThenInclude(ue => ue.Expertise)
             .Include(u => u.SocialMediaLinks)
             .Where(u => u.UserExpertise.Any(ue => ue.Expertise.Name.Contains("C#")))
             .ToListAsync();

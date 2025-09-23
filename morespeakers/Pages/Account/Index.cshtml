@@ -1,5 +1,5 @@
 @page
-@model morespeakers.Pages.Account.IndexModel
+@model IndexModel
 @{
     ViewData["Title"] = "My Account";
 }
@@ -11,7 +11,7 @@
                 <div class="me-3">
                     @if (!string.IsNullOrEmpty(Model.CurrentUser.HeadshotUrl))
                     {
-                        <img src="@Model.CurrentUser.HeadshotUrl" alt="Profile Photo" class="speaker-avatar" />
+                        <img src="@Model.CurrentUser.HeadshotUrl" alt="Profile Photo" class="speaker-avatar"/>
                     }
                     else
                     {
@@ -38,72 +38,99 @@
                         <!-- First Name -->
                         <div class="col-md-6">
                             <div id="firstname-container">
-                                @{ ViewData["Field"] = "FirstName"; ViewData["PageModel"] = Model; }
-                                <partial name="_DisplayField" />
+                                @{
+                                    ViewData["Field"] = "FirstName";
+                                    ViewData["PageModel"] = Model;
+                                }
+                                <partial name="_DisplayField"/>
                             </div>
                         </div>
 
                         <!-- Last Name -->
                         <div class="col-md-6">
                             <div id="lastname-container">
-                                @{ ViewData["Field"] = "LastName"; ViewData["PageModel"] = Model; }
-                                <partial name="_DisplayField" />
+                                @{
+                                    ViewData["Field"] = "LastName";
+                                    ViewData["PageModel"] = Model;
+                                }
+                                <partial name="_DisplayField"/>
                             </div>
                         </div>
 
                         <!-- Email -->
                         <div class="col-md-6">
                             <div id="email-container">
-                                @{ ViewData["Field"] = "Email"; ViewData["PageModel"] = Model; }
-                                <partial name="_DisplayField" />
+                                @{
+                                    ViewData["Field"] = "Email";
+                                    ViewData["PageModel"] = Model;
+                                }
+                                <partial name="_DisplayField"/>
                             </div>
                         </div>
 
                         <!-- Phone Number -->
                         <div class="col-md-6">
                             <div id="phonenumber-container">
-                                @{ ViewData["Field"] = "PhoneNumber"; ViewData["PageModel"] = Model; }
-                                <partial name="_DisplayField" />
+                                @{
+                                    ViewData["Field"] = "PhoneNumber";
+                                    ViewData["PageModel"] = Model;
+                                }
+                                <partial name="_DisplayField"/>
                             </div>
                         </div>
 
                         <!-- Speaker Type -->
                         <div class="col-md-6">
                             <div id="speakertypeid-container">
-                                @{ ViewData["Field"] = "SpeakerTypeId"; ViewData["PageModel"] = Model; }
-                                <partial name="_DisplayField" />
+                                @{
+                                    ViewData["Field"] = "SpeakerTypeId";
+                                    ViewData["PageModel"] = Model;
+                                }
+                                <partial name="_DisplayField"/>
                             </div>
                         </div>
 
                         <!-- Sessionize URL -->
                         <div class="col-md-6">
                             <div id="sessionizeurl-container">
-                                @{ ViewData["Field"] = "SessionizeUrl"; ViewData["PageModel"] = Model; }
-                                <partial name="_DisplayField" />
+                                @{
+                                    ViewData["Field"] = "SessionizeUrl";
+                                    ViewData["PageModel"] = Model;
+                                }
+                                <partial name="_DisplayField"/>
                             </div>
                         </div>
 
                         <!-- Headshot URL -->
                         <div class="col-12">
                             <div id="headshoturl-container">
-                                @{ ViewData["Field"] = "HeadshotUrl"; ViewData["PageModel"] = Model; }
-                                <partial name="_DisplayField" />
+                                @{
+                                    ViewData["Field"] = "HeadshotUrl";
+                                    ViewData["PageModel"] = Model;
+                                }
+                                <partial name="_DisplayField"/>
                             </div>
                         </div>
 
                         <!-- Bio -->
                         <div class="col-12">
                             <div id="bio-container">
-                                @{ ViewData["Field"] = "Bio"; ViewData["PageModel"] = Model; }
-                                <partial name="_DisplayField" />
+                                @{
+                                    ViewData["Field"] = "Bio";
+                                    ViewData["PageModel"] = Model;
+                                }
+                                <partial name="_DisplayField"/>
                             </div>
                         </div>
 
                         <!-- Goals -->
                         <div class="col-12">
                             <div id="goals-container">
-                                @{ ViewData["Field"] = "Goals"; ViewData["PageModel"] = Model; }
-                                <partial name="_DisplayField" />
+                                @{
+                                    ViewData["Field"] = "Goals";
+                                    ViewData["PageModel"] = Model;
+                                }
+                                <partial name="_DisplayField"/>
                             </div>
                         </div>
                     </div>
@@ -175,6 +202,7 @@
 </div>
 
 @functions {
+
     private string GetSocialIcon(string platform)
     {
         return platform.ToLower() switch
@@ -188,6 +216,7 @@
             _ => "bi-link-45deg"
         };
     }
+
 }
 
 @section Scripts {
@@ -195,7 +224,7 @@
 
     <script>
         // HTMX event listeners for better UX
-        document.addEventListener('htmx:beforeRequest', function(event) {
+        document.addEventListener('htmx:beforeRequest', function (event) {
             const button = event.detail.elt;
             if (button.classList.contains('edit-btn')) {
                 button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Loading...';
@@ -203,7 +232,7 @@
             }
         });
 
-        document.addEventListener('htmx:afterRequest', function(event) {
+        document.addEventListener('htmx:afterRequest', function (event) {
             // Re-enable buttons after request
             const buttons = document.querySelectorAll('.edit-btn[disabled]');
             buttons.forEach(btn => {
@@ -215,7 +244,7 @@
         });
 
         // Auto-focus on edit fields
-        document.addEventListener('htmx:afterSwap', function(event) {
+        document.addEventListener('htmx:afterSwap', function (event) {
             const input = event.target.querySelector('input, textarea');
             if (input) {
                 input.focus();

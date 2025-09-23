@@ -9,16 +9,13 @@ public class Mentorship
     public Guid NewSpeakerId { get; set; }
     public Guid MentorId { get; set; }
 
-    [Required]
-    [MaxLength(20)]
-    public string Status { get; set; } = "Pending";
+    [Required] [MaxLength(20)] public string Status { get; set; } = "Pending";
 
     public DateTime RequestDate { get; set; } = DateTime.UtcNow;
     public DateTime? AcceptedDate { get; set; }
     public DateTime? CompletedDate { get; set; }
 
-    [MaxLength(2000)]
-    public string? Notes { get; set; }
+    [MaxLength(2000)] public string? Notes { get; set; }
 
     // Navigation properties
     public User NewSpeaker { get; set; } = null!;

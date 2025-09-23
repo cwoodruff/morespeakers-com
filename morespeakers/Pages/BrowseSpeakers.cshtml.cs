@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using morespeakers.Models;
@@ -7,9 +8,9 @@ namespace morespeakers.Pages;
 
 public class BrowseSpeakersModel : PageModel
 {
-    private readonly ISpeakerService _speakerService;
-    private readonly IExpertiseService _expertiseService;
     private const int PageSize = 12;
+    private readonly IExpertiseService _expertiseService;
+    private readonly ISpeakerService _speakerService;
 
     public BrowseSpeakersModel(ISpeakerService speakerService, IExpertiseService expertiseService)
     {
@@ -20,20 +21,15 @@ public class BrowseSpeakersModel : PageModel
     public IEnumerable<User> Speakers { get; set; } = new List<User>();
     public IEnumerable<Expertise> AllExpertise { get; set; } = new List<Expertise>();
 
-    [BindProperty(SupportsGet = true)]
-    public string? SearchTerm { get; set; }
+    [BindProperty(SupportsGet = true)] public string? SearchTerm { get; set; }
 
-    [BindProperty(SupportsGet = true)]
-    public int? SpeakerTypeFilter { get; set; }
+    [BindProperty(SupportsGet = true)] public int? SpeakerTypeFilter { get; set; }
 
-    [BindProperty(SupportsGet = true)]
-    public int? ExpertiseFilter { get; set; }
+    [BindProperty(SupportsGet = true)] public int? ExpertiseFilter { get; set; }
 
-    [BindProperty(SupportsGet = true)]
-    public string SortBy { get; set; } = "name";
+    [BindProperty(SupportsGet = true)] public string SortBy { get; set; } = "name";
 
-    [BindProperty(SupportsGet = true)]
-    public int CurrentPage { get; set; } = 1;
+    [BindProperty(SupportsGet = true)] public int CurrentPage { get; set; } = 1;
 
     public int TotalCount { get; set; }
     public int TotalPages { get; set; }
@@ -52,7 +48,7 @@ public class BrowseSpeakersModel : PageModel
         }
         else if (SpeakerTypeFilter.HasValue)
         {
-            allSpeakers = SpeakerTypeFilter == 1 
+            allSpeakers = SpeakerTypeFilter == 1
                 ? await _speakerService.GetNewSpeakersAsync()
                 : await _speakerService.GetExperiencedSpeakersAsync();
         }
@@ -100,22 +96,17 @@ public class BrowseSpeakersModel : PageModel
     public async Task<IActionResult> OnPostRequestMentorshipAsync(Guid mentorId)
     {
         if (!User.Identity?.IsAuthenticated == true)
-        {
             return new JsonResult(new { error = "Please log in to request mentorship." });
-        }
 
         try
         {
             // Get current user ID (you'll need to implement this)
             var currentUserId = GetCurrentUserId();
-            if (currentUserId == Guid.Empty)
-            {
-                return new JsonResult(new { error = "Unable to identify current user." });
-            }
+            if (currentUserId == Guid.Empty) return new JsonResult(new { error = "Unable to identify current user." });
 
             // Here you would call your mentorship service
             // var success = await _mentorshipService.RequestMentorshipAsync(currentUserId, mentorId);
-            
+
             // For now, return success (implement actual logic)
             return new JsonResult(new { success = "Mentorship request sent successfully!" });
         }
@@ -128,11 +119,8 @@ public class BrowseSpeakersModel : PageModel
     private Guid GetCurrentUserId()
     {
         // Implement logic to get current user ID from claims
-        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
-        if (userIdClaim != null && Guid.TryParse(userIdClaim.Value, out var userId))
-        {
-            return userId;
-        }
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim != null && Guid.TryParse(userIdClaim.Value, out var userId)) return userId;
         return Guid.Empty;
     }
 }

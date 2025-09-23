@@ -12,7 +12,7 @@ public class SpeakerService(ApplicationDbContext context) : ISpeakerService
         return await context.Users
             .Include(u => u.SpeakerType)
             .Include(u => u.UserExpertise)
-                .ThenInclude(ue => ue.Expertise)
+            .ThenInclude(ue => ue.Expertise)
             .Include(u => u.SocialMediaLinks)
             .Where(u => u.SpeakerType.Name == "NewSpeaker")
             .OrderBy(u => u.FirstName)
@@ -24,7 +24,7 @@ public class SpeakerService(ApplicationDbContext context) : ISpeakerService
         return await context.Users
             .Include(u => u.SpeakerType)
             .Include(u => u.UserExpertise)
-                .ThenInclude(ue => ue.Expertise)
+            .ThenInclude(ue => ue.Expertise)
             .Include(u => u.SocialMediaLinks)
             .Where(u => u.SpeakerType.Name == "ExperiencedSpeaker")
             .OrderBy(u => u.FirstName)
@@ -36,7 +36,7 @@ public class SpeakerService(ApplicationDbContext context) : ISpeakerService
         return await context.Users
             .Include(u => u.SpeakerType)
             .Include(u => u.UserExpertise)
-                .ThenInclude(ue => ue.Expertise)
+            .ThenInclude(ue => ue.Expertise)
             .Include(u => u.SocialMediaLinks)
             .FirstOrDefaultAsync(u => u.Id == id);
     }
@@ -46,22 +46,17 @@ public class SpeakerService(ApplicationDbContext context) : ISpeakerService
         var query = context.Users
             .Include(u => u.SpeakerType)
             .Include(u => u.UserExpertise)
-                .ThenInclude(ue => ue.Expertise)
+            .ThenInclude(ue => ue.Expertise)
             .AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(searchTerm))
-        {
-            query = query.Where(u => 
+            query = query.Where(u =>
                 u.FirstName.Contains(searchTerm) ||
                 u.LastName.Contains(searchTerm) ||
                 u.Bio.Contains(searchTerm) ||
                 u.UserExpertise.Any(ue => ue.Expertise.Name.Contains(searchTerm)));
-        }
 
-        if (speakerTypeId.HasValue)
-        {
-            query = query.Where(u => u.SpeakerTypeId == speakerTypeId.Value);
-        }
+        if (speakerTypeId.HasValue) query = query.Where(u => u.SpeakerTypeId == speakerTypeId.Value);
 
         return await query.OrderBy(u => u.FirstName).ToListAsync();
     }
@@ -71,7 +66,7 @@ public class SpeakerService(ApplicationDbContext context) : ISpeakerService
         return await context.Users
             .Include(u => u.SpeakerType)
             .Include(u => u.UserExpertise)
-                .ThenInclude(ue => ue.Expertise)
+            .ThenInclude(ue => ue.Expertise)
             .Where(u => u.UserExpertise.Any(ue => ue.ExpertiseId == expertiseId))
             .OrderBy(u => u.FirstName)
             .ToListAsync();
@@ -123,6 +118,7 @@ public class SpeakerService(ApplicationDbContext context) : ISpeakerService
                 await context.SaveChangesAsync();
                 return true;
             }
+
             return false;
         }
         catch
@@ -157,13 +153,14 @@ public class SpeakerService(ApplicationDbContext context) : ISpeakerService
         {
             var userExpertise = await context.UserExpertise
                 .FirstOrDefaultAsync(ue => ue.UserId == userId && ue.ExpertiseId == expertiseId);
-            
+
             if (userExpertise != null)
             {
                 context.UserExpertise.Remove(userExpertise);
                 await context.SaveChangesAsync();
                 return true;
             }
+
             return false;
         }
         catch

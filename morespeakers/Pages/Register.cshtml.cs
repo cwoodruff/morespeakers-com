@@ -10,14 +10,14 @@ namespace morespeakers.Pages;
 
 public class RegisterModel : PageModel
 {
-    private readonly SignInManager<User> _signInManager;
-    private readonly UserManager<User> _userManager;
-    private readonly IUserStore<User> _userStore;
     private readonly IUserEmailStore<User> _emailStore;
-    private readonly ILogger<RegisterModel> _logger;
     private readonly IExpertiseService _expertiseService;
     private readonly IFileUploadService _fileUploadService;
+    private readonly ILogger<RegisterModel> _logger;
+    private readonly SignInManager<User> _signInManager;
     private readonly ISpeakerService _speakerService;
+    private readonly UserManager<User> _userManager;
+    private readonly IUserStore<User> _userStore;
 
     public RegisterModel(
         UserManager<User> userManager,
@@ -38,83 +38,13 @@ public class RegisterModel : PageModel
         _speakerService = speakerService;
     }
 
-    [BindProperty]
-    public InputModel Input { get; set; } = new();
+    [BindProperty] public InputModel Input { get; set; } = new();
 
     public string? ReturnUrl { get; set; }
 
     public IList<AuthenticationScheme> ExternalLogins { get; set; } = new List<AuthenticationScheme>();
 
     public IEnumerable<Expertise> AllExpertise { get; set; } = new List<Expertise>();
-
-    public class InputModel
-    {
-        [Required]
-        [Display(Name = "Speaker Type")]
-        public int SpeakerTypeId { get; set; }
-
-        [Required]
-        [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 2)]
-        [Display(Name = "First Name")]
-        public string FirstName { get; set; } = "";
-
-        [Required]
-        [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 2)]
-        [Display(Name = "Last Name")]
-        public string LastName { get; set; } = "";
-
-        [Required]
-        [EmailAddress]
-        [Display(Name = "Email")]
-        public string Email { get; set; } = "";
-
-        [Required]
-        [Phone]
-        [Display(Name = "Phone Number")]
-        public string PhoneNumber { get; set; } = "";
-
-        [Required]
-        [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
-        [DataType(DataType.Password)]
-        [Display(Name = "Password")]
-        public string Password { get; set; } = "";
-
-        [DataType(DataType.Password)]
-        [Display(Name = "Confirm password")]
-        [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
-        public string ConfirmPassword { get; set; } = "";
-
-        [Required]
-        [StringLength(6000, ErrorMessage = "The bio cannot exceed 6000 characters (approximately 1000 words).")]
-        [Display(Name = "Bio")]
-        public string Bio { get; set; } = "";
-
-        [Required]
-        [StringLength(2000, ErrorMessage = "The goals description cannot exceed 2000 characters.")]
-        [Display(Name = "Goals")]
-        public string Goals { get; set; } = "";
-
-        [Url]
-        [Display(Name = "Sessionize Profile URL")]
-        public string? SessionizeUrl { get; set; }
-
-        [Display(Name = "Profile Photo")]
-        public IFormFile? HeadshotFile { get; set; }
-
-        [Required]
-        [MinLength(1, ErrorMessage = "Please select at least one area of expertise.")]
-        public List<int> SelectedExpertiseIds { get; set; } = new();
-
-        public List<string> CustomExpertise { get; set; } = new();
-
-        [Required]
-        [MinLength(1, ErrorMessage = "Please provide at least one social media link.")]
-        public List<string> SocialMediaPlatforms { get; set; } = new();
-
-        [Required]
-        [MinLength(1, ErrorMessage = "Please provide at least one social media link.")]
-        public List<string> SocialMediaUrls { get; set; } = new();
-    }
 
     public async Task OnGetAsync(string? returnUrl = null)
     {
@@ -126,7 +56,7 @@ public class RegisterModel : PageModel
     public async Task<IActionResult> OnPostValidateEmailAsync()
     {
         var result = new { IsValid = true, Message = "" };
-        
+
         if (string.IsNullOrWhiteSpace(Input.Email))
         {
             result = new { IsValid = false, Message = "Email is required." };
@@ -140,65 +70,49 @@ public class RegisterModel : PageModel
             // Check if email already exists
             var existingUser = await _userManager.FindByEmailAsync(Input.Email);
             if (existingUser != null)
-            {
                 result = new { IsValid = false, Message = "This email address is already registered." };
-            }
         }
-        
+
         return new JsonResult(result);
     }
 
     public async Task<IActionResult> OnPostValidatePasswordAsync()
     {
         var result = new { IsValid = true, Message = "" };
-        
+
         if (string.IsNullOrWhiteSpace(Input.Password))
-        {
             result = new { IsValid = false, Message = "Password is required." };
-        }
         else if (Input.Password.Length < 6)
-        {
             result = new { IsValid = false, Message = "Password must be at least 6 characters long." };
-        }
         else if (Input.Password != Input.ConfirmPassword)
-        {
             result = new { IsValid = false, Message = "Password and confirmation password do not match." };
-        }
-        
+
         return new JsonResult(result);
     }
 
     public IActionResult OnPostValidateExpertiseAsync()
     {
         var result = new { IsValid = true, Message = "" };
-        
+
         if (!Input.SelectedExpertiseIds.Any() && !Input.CustomExpertise.Any(ce => !string.IsNullOrWhiteSpace(ce)))
-        {
             result = new { IsValid = false, Message = "Please select at least one area of expertise." };
-        }
-        
+
         return new JsonResult(result);
     }
 
     public IActionResult OnPostValidateSocialMediaAsync()
     {
         var result = new { IsValid = true, Message = "" };
-        
+
         var validSocialMediaCount = 0;
-        for (int i = 0; i < Input.SocialMediaPlatforms.Count; i++)
-        {
-            if (!string.IsNullOrWhiteSpace(Input.SocialMediaPlatforms[i]) && 
+        for (var i = 0; i < Input.SocialMediaPlatforms.Count; i++)
+            if (!string.IsNullOrWhiteSpace(Input.SocialMediaPlatforms[i]) &&
                 !string.IsNullOrWhiteSpace(Input.SocialMediaUrls[i]))
-            {
                 validSocialMediaCount++;
-            }
-        }
 
         if (validSocialMediaCount == 0)
-        {
             result = new { IsValid = false, Message = "At least one social media link is required." };
-        }
-        
+
         return new JsonResult(result);
     }
 
@@ -210,37 +124,25 @@ public class RegisterModel : PageModel
 
         // Validate social media inputs
         if (Input.SocialMediaPlatforms.Count != Input.SocialMediaUrls.Count)
-        {
             ModelState.AddModelError("", "Social media platforms and URLs count mismatch.");
-        }
 
         // Validate that at least one social media link is provided
         var validSocialMediaCount = 0;
-        for (int i = 0; i < Input.SocialMediaPlatforms.Count; i++)
-        {
-            if (!string.IsNullOrWhiteSpace(Input.SocialMediaPlatforms[i]) && 
+        for (var i = 0; i < Input.SocialMediaPlatforms.Count; i++)
+            if (!string.IsNullOrWhiteSpace(Input.SocialMediaPlatforms[i]) &&
                 !string.IsNullOrWhiteSpace(Input.SocialMediaUrls[i]))
-            {
                 validSocialMediaCount++;
-            }
-        }
 
-        if (validSocialMediaCount == 0)
-        {
-            ModelState.AddModelError("", "At least one social media link is required.");
-        }
+        if (validSocialMediaCount == 0) ModelState.AddModelError("", "At least one social media link is required.");
 
         // Validate expertise selection
         if (!Input.SelectedExpertiseIds.Any() && !Input.CustomExpertise.Any())
-        {
             ModelState.AddModelError("Input.SelectedExpertiseIds", "Please select at least one area of expertise.");
-        }
 
         // Validate file upload
         if (Input.HeadshotFile != null && !_fileUploadService.IsValidImageFile(Input.HeadshotFile))
-        {
-            ModelState.AddModelError("Input.HeadshotFile", "Please upload a valid image file (PNG, JPG, GIF) under 5MB.");
-        }
+            ModelState.AddModelError("Input.HeadshotFile",
+                "Please upload a valid image file (PNG, JPG, GIF) under 5MB.");
 
         if (ModelState.IsValid)
         {
@@ -248,7 +150,7 @@ public class RegisterModel : PageModel
 
             await _userStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
             await _emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
-            
+
             // Set additional properties
             user.FirstName = Input.FirstName;
             user.LastName = Input.LastName;
@@ -279,16 +181,15 @@ public class RegisterModel : PageModel
 
                     // Add expertise areas
                     foreach (var expertiseId in Input.SelectedExpertiseIds)
-                    {
                         await _speakerService.AddExpertiseToUserAsync(user.Id, expertiseId);
-                    }
 
                     // Add custom expertise areas
                     foreach (var customExpertise in Input.CustomExpertise.Where(ce => !string.IsNullOrWhiteSpace(ce)))
                     {
                         // Check if expertise already exists
                         var existingExpertise = (await _expertiseService.SearchExpertiseAsync(customExpertise.Trim()))
-                            .FirstOrDefault(e => e.Name.Equals(customExpertise.Trim(), StringComparison.OrdinalIgnoreCase));
+                            .FirstOrDefault(e =>
+                                e.Name.Equals(customExpertise.Trim(), StringComparison.OrdinalIgnoreCase));
 
                         if (existingExpertise != null)
                         {
@@ -299,24 +200,21 @@ public class RegisterModel : PageModel
                             // Create new expertise
                             if (await _expertiseService.CreateExpertiseAsync(customExpertise.Trim()))
                             {
-                                var newExpertise = (await _expertiseService.SearchExpertiseAsync(customExpertise.Trim())).First();
+                                var newExpertise =
+                                    (await _expertiseService.SearchExpertiseAsync(customExpertise.Trim())).First();
                                 await _speakerService.AddExpertiseToUserAsync(user.Id, newExpertise.Id);
                             }
                         }
                     }
 
                     // Add social media links
-                    for (int i = 0; i < Input.SocialMediaPlatforms.Count; i++)
-                    {
-                        if (!string.IsNullOrWhiteSpace(Input.SocialMediaPlatforms[i]) && 
+                    for (var i = 0; i < Input.SocialMediaPlatforms.Count; i++)
+                        if (!string.IsNullOrWhiteSpace(Input.SocialMediaPlatforms[i]) &&
                             !string.IsNullOrWhiteSpace(Input.SocialMediaUrls[i]))
-                        {
                             await _speakerService.AddSocialMediaLinkAsync(
-                                user.Id, 
-                                Input.SocialMediaPlatforms[i], 
+                                user.Id,
+                                Input.SocialMediaPlatforms[i],
                                 Input.SocialMediaUrls[i]);
-                        }
-                    }
 
                     // Add user to appropriate role
                     var roleName = Input.SpeakerTypeId == 1 ? "NewSpeaker" : "ExperiencedSpeaker";
@@ -324,11 +222,11 @@ public class RegisterModel : PageModel
 
                     var userId = await _userManager.GetUserIdAsync(user);
                     var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                    
+
                     // For now, auto-confirm email (you can implement email confirmation later)
                     await _userManager.ConfirmEmailAsync(user, code);
 
-                    await _signInManager.SignInAsync(user, isPersistent: false);
+                    await _signInManager.SignInAsync(user, false);
                     return LocalRedirect(returnUrl);
                 }
                 catch (Exception ex)
@@ -338,10 +236,7 @@ public class RegisterModel : PageModel
                 }
             }
 
-            foreach (var error in result.Errors)
-            {
-                ModelState.AddModelError(string.Empty, error.Description);
-            }
+            foreach (var error in result.Errors) ModelState.AddModelError(string.Empty, error.Description);
         }
 
         // If we got this far, something failed, redisplay form
@@ -357,17 +252,86 @@ public class RegisterModel : PageModel
         catch
         {
             throw new InvalidOperationException($"Can't create an instance of '{nameof(User)}'. " +
-                $"Ensure that '{nameof(User)}' is not an abstract class and has a parameterless constructor, or alternatively " +
-                $"override the register page in /Areas/Identity/Pages/Account/Register.cshtml");
+                                                $"Ensure that '{nameof(User)}' is not an abstract class and has a parameterless constructor, or alternatively " +
+                                                $"override the register page in /Areas/Identity/Pages/Account/Register.cshtml");
         }
     }
 
     private IUserEmailStore<User> GetEmailStore()
     {
         if (!_userManager.SupportsUserEmail)
-        {
             throw new NotSupportedException("The default UI requires a user store with email support.");
-        }
         return (IUserEmailStore<User>)_userStore;
+    }
+
+    public class InputModel
+    {
+        [Required]
+        [Display(Name = "Speaker Type")]
+        public int SpeakerTypeId { get; set; }
+
+        [Required]
+        [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.",
+            MinimumLength = 2)]
+        [Display(Name = "First Name")]
+        public string FirstName { get; set; } = "";
+
+        [Required]
+        [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.",
+            MinimumLength = 2)]
+        [Display(Name = "Last Name")]
+        public string LastName { get; set; } = "";
+
+        [Required]
+        [EmailAddress]
+        [Display(Name = "Email")]
+        public string Email { get; set; } = "";
+
+        [Required]
+        [Phone]
+        [Display(Name = "Phone Number")]
+        public string PhoneNumber { get; set; } = "";
+
+        [Required]
+        [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.",
+            MinimumLength = 6)]
+        [DataType(DataType.Password)]
+        [Display(Name = "Password")]
+        public string Password { get; set; } = "";
+
+        [DataType(DataType.Password)]
+        [Display(Name = "Confirm password")]
+        [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
+        public string ConfirmPassword { get; set; } = "";
+
+        [Required]
+        [StringLength(6000, ErrorMessage = "The bio cannot exceed 6000 characters (approximately 1000 words).")]
+        [Display(Name = "Bio")]
+        public string Bio { get; set; } = "";
+
+        [Required]
+        [StringLength(2000, ErrorMessage = "The goals description cannot exceed 2000 characters.")]
+        [Display(Name = "Goals")]
+        public string Goals { get; set; } = "";
+
+        [Url]
+        [Display(Name = "Sessionize Profile URL")]
+        public string? SessionizeUrl { get; set; }
+
+        [Display(Name = "Profile Photo")] public IFormFile? HeadshotFile { get; set; }
+
+        [Required]
+        [MinLength(1, ErrorMessage = "Please select at least one area of expertise.")]
+        public List<int> SelectedExpertiseIds { get; set; } = new();
+
+        public List<string> CustomExpertise { get; set; } = new();
+
+        [Required]
+        [MinLength(1, ErrorMessage = "Please provide at least one social media link.")]
+        public List<string> SocialMediaPlatforms { get; set; } = new();
+
+        [Required]
+        [MinLength(1, ErrorMessage = "Please provide at least one social media link.")]
+        public List<string> SocialMediaUrls { get; set; } = new();
     }
 }

@@ -1,4 +1,4 @@
-@model MoreSpeakers.Areas.Identity.Pages.Account.RegisterModel
+@model RegisterModel
 
 <div class="form-step" data-step="2">
     @if (ViewData["HasValidationErrors"] as bool? == true)
@@ -23,7 +23,8 @@
                 <div class="col-md-6 mb-3">
                     <div class="card speaker-type-card" style="cursor: pointer;">
                         <div class="card-body text-center">
-                            <input type="radio" asp-for="Input.SpeakerTypeId" value="@speakerType.Id" class="d-none speaker-type-radio" id="speakerType@(speakerType.Id)" />
+                            <input type="radio" asp-for="Input.SpeakerTypeId" value="@speakerType.Id"
+                                   class="d-none speaker-type-radio" id="speakerType@(speakerType.Id)"/>
                             <label for="speakerType@(speakerType.Id)" class="w-100 m-0" style="cursor: pointer;"
                                    _="on click add .selected to closest .speaker-type-card then remove .selected from other .speaker-type-card">
                                 <i class="bi @(speakerType.Id == 1 ? "bi-person-plus" : "bi-award") h3 text-primary mb-2 d-block"></i>
@@ -40,7 +41,8 @@
 
     <div class="mb-3">
         <label asp-for="Input.Bio" class="form-label fw-medium">Bio</label>
-        <textarea asp-for="Input.Bio" class="form-control" rows="4" placeholder="Tell us about yourself, your speaking experience, and what makes you passionate about sharing knowledge..."></textarea>
+        <textarea asp-for="Input.Bio" class="form-control" rows="4"
+                  placeholder="Tell us about yourself, your speaking experience, and what makes you passionate about sharing knowledge..."></textarea>
         <span asp-validation-for="Input.Bio" class="text-danger small"></span>
         <div class="form-text">
             <small class="text-muted">This will be displayed on your public profile.</small>
@@ -49,7 +51,8 @@
 
     <div class="mb-3">
         <label asp-for="Input.Goals" class="form-label fw-medium">Goals</label>
-        <textarea asp-for="Input.Goals" class="form-control" rows="3" placeholder="What are your speaking goals? What do you hope to achieve through mentorship?"></textarea>
+        <textarea asp-for="Input.Goals" class="form-control" rows="3"
+                  placeholder="What are your speaking goals? What do you hope to achieve through mentorship?"></textarea>
         <span asp-validation-for="Input.Goals" class="text-danger small"></span>
     </div>
 
@@ -60,7 +63,8 @@
                 <span class="input-group-text bg-light border-end-0">
                     <i class="bi bi-link text-muted"></i>
                 </span>
-                <input asp-for="Input.SessionizeUrl" class="form-control border-start-0" placeholder="https://sessionize.com/your-profile" />
+                <input asp-for="Input.SessionizeUrl" class="form-control border-start-0"
+                       placeholder="https://sessionize.com/your-profile"/>
             </div>
             <span asp-validation-for="Input.SessionizeUrl" class="text-danger small"></span>
             <div class="form-text">
@@ -74,7 +78,8 @@
                 <span class="input-group-text bg-light border-end-0">
                     <i class="bi bi-image text-muted"></i>
                 </span>
-                <input asp-for="Input.HeadshotUrl" class="form-control border-start-0" placeholder="https://example.com/your-photo.jpg" />
+                <input asp-for="Input.HeadshotUrl" class="form-control border-start-0"
+                       placeholder="https://example.com/your-photo.jpg"/>
             </div>
             <span asp-validation-for="Input.HeadshotUrl" class="text-danger small"></span>
             <div class="form-text">
@@ -85,16 +90,16 @@
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('.speaker-type-card').forEach(card => {
-        card.addEventListener('click', function() {
-            const radio = this.querySelector('input[type="radio"]');
-            if (radio) {
-                radio.checked = true;
-                document.querySelectorAll('.speaker-type-card').forEach(c => c.classList.remove('selected'));
-                this.classList.add('selected');
-            }
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.speaker-type-card').forEach(card => {
+            card.addEventListener('click', function () {
+                const radio = this.querySelector('input[type="radio"]');
+                if (radio) {
+                    radio.checked = true;
+                    document.querySelectorAll('.speaker-type-card').forEach(c => c.classList.remove('selected'));
+                    this.classList.add('selected');
+                }
+            });
         });
     });
-});
 </script>

@@ -6,12 +6,12 @@ namespace morespeakers.Pages;
 
 public class IndexModel : PageModel
 {
-    private readonly ISpeakerService _speakerService;
-    private readonly IMentorshipService _mentorshipService;
     private readonly IExpertiseService _expertiseService;
+    private readonly IMentorshipService _mentorshipService;
+    private readonly ISpeakerService _speakerService;
 
     public IndexModel(
-        ISpeakerService speakerService, 
+        ISpeakerService speakerService,
         IMentorshipService mentorshipService,
         IExpertiseService expertiseService)
     {

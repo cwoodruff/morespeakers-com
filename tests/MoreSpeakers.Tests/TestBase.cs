@@ -6,21 +6,26 @@ namespace MoreSpeakers.Tests;
 
 public abstract class TestBase : IDisposable
 {
+    private static readonly object _lock = new();
+    private static int _testCounter;
     protected readonly ApplicationDbContext Context;
-    private static readonly object _lock = new object();
-    private static int _testCounter = 0;
 
     protected TestBase()
     {
         var testId = Interlocked.Increment(ref _testCounter);
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-            .UseInMemoryDatabase(databaseName: $"TestDb_{testId}_{Guid.NewGuid()}")
+            .UseInMemoryDatabase($"TestDb_{testId}_{Guid.NewGuid()}")
             .EnableSensitiveDataLogging()
             .Options;
 
         Context = new ApplicationDbContext(options);
         Context.Database.EnsureCreated();
         SeedTestData();
+    }
+
+    public virtual void Dispose()
+    {
+        Context.Dispose();
     }
 
     protected virtual void SeedTestData()
@@ -81,18 +86,28 @@ public abstract class TestBase : IDisposable
 
         // Add Social Media
         Context.SocialMedia.AddRange(
-            new SocialMedia { UserId = newSpeakerId, Platform = "LinkedIn", Url = "https://linkedin.com/in/johndoe", CreatedDate = DateTime.UtcNow },
-            new SocialMedia { UserId = experiencedSpeakerId, Platform = "Twitter", Url = "https://twitter.com/janesmith", CreatedDate = DateTime.UtcNow }
+            new SocialMedia
+            {
+                UserId = newSpeakerId, Platform = "LinkedIn", Url = "https://linkedin.com/in/johndoe",
+                CreatedDate = DateTime.UtcNow
+            },
+            new SocialMedia
+            {
+                UserId = experiencedSpeakerId, Platform = "Twitter", Url = "https://twitter.com/janesmith",
+                CreatedDate = DateTime.UtcNow
+            }
         );
 
         Context.SaveChanges();
     }
 
-    protected User GetNewSpeaker() => Context.Users.First(u => u.SpeakerTypeId == 1);
-    protected User GetExperiencedSpeaker() => Context.Users.First(u => u.SpeakerTypeId == 2);
-
-    public virtual void Dispose()
+    protected User GetNewSpeaker()
     {
-        Context.Dispose();
+        return Context.Users.First(u => u.SpeakerTypeId == 1);
+    }
+
+    protected User GetExperiencedSpeaker()
+    {
+        return Context.Users.First(u => u.SpeakerTypeId == 2);
     }
 }

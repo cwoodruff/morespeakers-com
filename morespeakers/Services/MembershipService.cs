@@ -43,7 +43,8 @@ public class MentorshipService(ApplicationDbContext context) : IMentorshipServic
         {
             // Check if mentorship already exists
             var existing = await _context.Mentorships
-                .FirstOrDefaultAsync(m => m.NewSpeakerId == newSpeakerId && m.MentorId == mentorId && m.Status != "Cancelled");
+                .FirstOrDefaultAsync(m =>
+                    m.NewSpeakerId == newSpeakerId && m.MentorId == mentorId && m.Status != "Cancelled");
 
             if (existing != null)
                 return false;
@@ -78,6 +79,7 @@ public class MentorshipService(ApplicationDbContext context) : IMentorshipServic
                 await _context.SaveChangesAsync();
                 return true;
             }
+
             return false;
         }
         catch
@@ -96,14 +98,13 @@ public class MentorshipService(ApplicationDbContext context) : IMentorshipServic
                 mentorship.Status = "Completed";
                 mentorship.CompletedDate = DateTime.UtcNow;
                 if (!string.IsNullOrWhiteSpace(notes))
-                {
-                    mentorship.Notes = string.IsNullOrWhiteSpace(mentorship.Notes) 
-                        ? notes 
+                    mentorship.Notes = string.IsNullOrWhiteSpace(mentorship.Notes)
+                        ? notes
                         : $"{mentorship.Notes}\n\nCompletion Notes: {notes}";
-                }
                 await _context.SaveChangesAsync();
                 return true;
             }
+
             return false;
         }
         catch
@@ -121,14 +122,13 @@ public class MentorshipService(ApplicationDbContext context) : IMentorshipServic
             {
                 mentorship.Status = "Cancelled";
                 if (!string.IsNullOrWhiteSpace(reason))
-                {
-                    mentorship.Notes = string.IsNullOrWhiteSpace(mentorship.Notes) 
-                        ? $"Cancelled: {reason}" 
+                    mentorship.Notes = string.IsNullOrWhiteSpace(mentorship.Notes)
+                        ? $"Cancelled: {reason}"
                         : $"{mentorship.Notes}\n\nCancellation Reason: {reason}";
-                }
                 await _context.SaveChangesAsync();
                 return true;
             }
+
             return false;
         }
         catch
@@ -148,6 +148,7 @@ public class MentorshipService(ApplicationDbContext context) : IMentorshipServic
                 await _context.SaveChangesAsync();
                 return true;
             }
+
             return false;
         }
         catch

@@ -9,9 +9,9 @@ namespace MoreSpeakers.Tests.Pages;
 
 public class IndexPageTests
 {
-    private readonly Mock<ISpeakerService> _mockSpeakerService;
-    private readonly Mock<IMentorshipService> _mockMentorshipService;
     private readonly Mock<IExpertiseService> _mockExpertiseService;
+    private readonly Mock<IMentorshipService> _mockMentorshipService;
+    private readonly Mock<ISpeakerService> _mockSpeakerService;
     private readonly IndexModel _pageModel;
 
     public IndexPageTests()
@@ -63,11 +63,12 @@ public class IndexPageTests
         // Arrange
         var experiencedSpeakers = new List<User>
         {
-            CreateUser("John", "Doe", SpeakerTypeEnum.ExperiencedSpeaker, bio: "Experienced speaker", expertiseCount: 3),
-            CreateUser("Jane", "Smith", SpeakerTypeEnum.ExperiencedSpeaker, bio: "", expertiseCount: 2), // No bio - should be filtered out
-            CreateUser("Bob", "Johnson", SpeakerTypeEnum.ExperiencedSpeaker, bio: "Another speaker", expertiseCount: 5),
-            CreateUser("Alice", "Brown", SpeakerTypeEnum.ExperiencedSpeaker, bio: "Great speaker", expertiseCount: 0), // No expertise - should be filtered out
-            CreateUser("Charlie", "Wilson", SpeakerTypeEnum.ExperiencedSpeaker, bio: "Top speaker", expertiseCount: 4)
+            CreateUser("John", "Doe", SpeakerTypeEnum.ExperiencedSpeaker, "Experienced speaker", 3),
+            CreateUser("Jane", "Smith", SpeakerTypeEnum.ExperiencedSpeaker, "", 2), // No bio - should be filtered out
+            CreateUser("Bob", "Johnson", SpeakerTypeEnum.ExperiencedSpeaker, "Another speaker", 5),
+            CreateUser("Alice", "Brown", SpeakerTypeEnum.ExperiencedSpeaker, "Great speaker",
+                0), // No expertise - should be filtered out
+            CreateUser("Charlie", "Wilson", SpeakerTypeEnum.ExperiencedSpeaker, "Top speaker", 4)
         };
 
         _mockSpeakerService.Setup(s => s.GetNewSpeakersAsync())
@@ -93,8 +94,8 @@ public class IndexPageTests
         // Should be ordered by expertise count (descending)
         var featuredList = _pageModel.FeaturedSpeakers.ToList();
         featuredList[0].LastName.Should().Be("Johnson"); // 5 expertise
-        featuredList[1].LastName.Should().Be("Wilson");  // 4 expertise
-        featuredList[2].LastName.Should().Be("Doe");     // 3 expertise
+        featuredList[1].LastName.Should().Be("Wilson"); // 4 expertise
+        featuredList[2].LastName.Should().Be("Doe"); // 3 expertise
     }
 
     [Fact]
@@ -175,10 +176,7 @@ public class IndexPageTests
     private static List<User> CreateSampleUsers(int count, SpeakerTypeEnum speakerType)
     {
         var users = new List<User>();
-        for (int i = 0; i < count; i++)
-        {
-            users.Add(CreateUser($"User{i}", $"LastName{i}", speakerType));
-        }
+        for (var i = 0; i < count; i++) users.Add(CreateUser($"User{i}", $"LastName{i}", speakerType));
         return users;
     }
 
@@ -201,15 +199,13 @@ public class IndexPageTests
         };
 
         // Add expertise
-        for (int i = 0; i < expertiseCount; i++)
-        {
+        for (var i = 0; i < expertiseCount; i++)
             user.UserExpertise.Add(new UserExpertise
             {
                 UserId = user.Id,
                 ExpertiseId = i + 1,
                 Expertise = new Expertise { Id = i + 1, Name = $"Expertise{i + 1}" }
             });
-        }
 
         return user;
     }
@@ -217,8 +213,7 @@ public class IndexPageTests
     private static List<Mentorship> CreateSampleMentorships(int count)
     {
         var mentorships = new List<Mentorship>();
-        for (int i = 0; i < count; i++)
-        {
+        for (var i = 0; i < count; i++)
             mentorships.Add(new Mentorship
             {
                 Id = Guid.NewGuid(),
@@ -226,22 +221,19 @@ public class IndexPageTests
                 NewSpeakerId = Guid.NewGuid(),
                 MentorId = Guid.NewGuid()
             });
-        }
         return mentorships;
     }
 
     private static List<Expertise> CreateSampleExpertise(int count)
     {
         var expertise = new List<Expertise>();
-        for (int i = 0; i < count; i++)
-        {
+        for (var i = 0; i < count; i++)
             expertise.Add(new Expertise
             {
                 Id = i + 1,
                 Name = $"Technology{i + 1}",
                 Description = $"Description for Technology{i + 1}"
             });
-        }
         return expertise;
     }
 }

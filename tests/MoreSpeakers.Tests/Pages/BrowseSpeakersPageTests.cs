@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Text.Json;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -12,8 +13,8 @@ namespace MoreSpeakers.Tests.Pages;
 
 public class BrowseSpeakersPageTests
 {
-    private readonly Mock<ISpeakerService> _mockSpeakerService;
     private readonly Mock<IExpertiseService> _mockExpertiseService;
+    private readonly Mock<ISpeakerService> _mockSpeakerService;
     private readonly BrowseSpeakersModel _pageModel;
 
     public BrowseSpeakersPageTests()
@@ -184,10 +185,7 @@ public class BrowseSpeakersPageTests
         // Assert
         _pageModel.Speakers.Should().NotBeEmpty();
 
-        if (sortBy == "name")
-        {
-            _pageModel.Speakers.Should().BeInAscendingOrder(s => s.FirstName);
-        }
+        if (sortBy == "name") _pageModel.Speakers.Should().BeInAscendingOrder(s => s.FirstName);
         // Note: Other sorting tests would require more complex setup for in-memory testing
     }
 
@@ -267,7 +265,7 @@ public class BrowseSpeakersPageTests
         else
         {
             // Alternative check using anonymous type conversion
-            var json = System.Text.Json.JsonSerializer.Serialize(value);
+            var json = JsonSerializer.Serialize(value);
             json.Should().Contain("Please log in to request mentorship");
         }
     }
@@ -298,7 +296,7 @@ public class BrowseSpeakersPageTests
         else
         {
             // Alternative check using anonymous type conversion
-            var json = System.Text.Json.JsonSerializer.Serialize(value);
+            var json = JsonSerializer.Serialize(value);
             json.Should().Contain("Mentorship request sent successfully");
         }
     }
@@ -361,8 +359,7 @@ public class BrowseSpeakersPageTests
     private static List<User> CreateSampleUsers(int count)
     {
         var users = new List<User>();
-        for (int i = 0; i < count; i++)
-        {
+        for (var i = 0; i < count; i++)
             users.Add(new User
             {
                 Id = Guid.NewGuid(),
@@ -371,7 +368,6 @@ public class BrowseSpeakersPageTests
                 Bio = $"Bio for User{i}",
                 UserExpertise = new List<UserExpertise>()
             });
-        }
         return users;
     }
 
@@ -412,15 +408,13 @@ public class BrowseSpeakersPageTests
     private static List<Expertise> CreateSampleExpertise(int count)
     {
         var expertise = new List<Expertise>();
-        for (int i = 0; i < count; i++)
-        {
+        for (var i = 0; i < count; i++)
             expertise.Add(new Expertise
             {
                 Id = i + 1,
                 Name = $"Technology{i + 1}",
                 Description = $"Description for Technology{i + 1}"
             });
-        }
         return expertise;
     }
 }

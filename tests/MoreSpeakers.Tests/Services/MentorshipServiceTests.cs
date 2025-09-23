@@ -129,8 +129,8 @@ public class MentorshipServiceTests : TestBase
 
         var createdMentorship = await Context.Mentorships
             .FirstOrDefaultAsync(m => m.NewSpeakerId == newSpeaker.Id &&
-                                     m.MentorId == mentor.Id &&
-                                     m.Status == "Pending");
+                                      m.MentorId == mentor.Id &&
+                                      m.Status == "Pending");
 
         createdMentorship.Should().NotBeNull();
         createdMentorship!.Notes.Should().Be(notes);

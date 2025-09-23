@@ -2,8 +2,8 @@ namespace morespeakers.Services;
 
 public class FileUploadService(IWebHostEnvironment environment) : IFileUploadService
 {
-    private readonly string[] _allowedExtensions = { ".jpg", ".jpeg", ".png", ".gif" };
     private const long MaxFileSize = 5 * 1024 * 1024; // 5MB
+    private readonly string[] _allowedExtensions = { ".jpg", ".jpeg", ".png", ".gif" };
 
     public async Task<string?> UploadHeadshotAsync(IFormFile file, Guid userId)
     {
@@ -40,6 +40,7 @@ public class FileUploadService(IWebHostEnvironment environment) : IFileUploadSer
                 File.Delete(filePath);
                 return true;
             }
+
             return false;
         }
         catch
