@@ -1,0 +1,64 @@
+@page
+@model morespeakers.Pages.Profile.ViewModel
+@{
+    ViewData["Title"] = "Speaker Profile";
+}
+
+<div class="container py-4">
+    @if (Model.ProfileUser == null)
+    {
+        <div class="alert alert-warning">
+            <i class="bi bi-exclamation-triangle me-2"></i>Profile not found.
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            <div class="col-md-4 mb-3">
+                @if (!string.IsNullOrEmpty(Model.ProfileUser.HeadshotUrl))
+                {
+                    <img src="@Model.ProfileUser.HeadshotUrl" alt="@Model.ProfileUser.FullName" class="img-fluid rounded shadow-sm" />
+                }
+                else
+                {
+                    <div class="bg-light rounded d-flex align-items-center justify-content-center" style="height: 240px;">
+                        <i class="bi bi-person display-3 text-muted"></i>
+                    </div>
+                }
+            </div>
+            <div class="col-md-8">
+                <h2 class="mb-1">@Model.ProfileUser.FullName</h2>
+                <span class="badge @(Model.ProfileUser.IsNewSpeaker ? "bg-primary" : "bg-success") mb-3">
+                    @(Model.ProfileUser.IsNewSpeaker ? "New Speaker" : "Experienced Speaker")
+                </span>
+                <p class="text-muted">@Model.ProfileUser.Bio</p>
+
+                @if (Model.UserExpertise?.Any() == true)
+                {
+                    <h5 class="mt-4">Expertise</h5>
+                    <div class="mb-3">
+                        @foreach (var ue in Model.UserExpertise)
+                        {
+                            <span class="badge bg-secondary me-1 mb-1">@ue.Expertise.Name</span>
+                        }
+                    </div>
+                }
+
+                @if (Model.SocialMedia?.Any() == true)
+                {
+                    <h5 class="mt-4">Links</h5>
+                    <ul class="list-inline">
+                        @foreach (var link in Model.SocialMedia)
+                        {
+                            <li class="list-inline-item mb-2">
+                                <a href="@link.Url" target="_blank" class="btn btn-sm btn-outline-secondary">
+                                    <i class="bi bi-link-45deg me-1"></i>@link.Platform
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
+        </div>
+    }
+</div>

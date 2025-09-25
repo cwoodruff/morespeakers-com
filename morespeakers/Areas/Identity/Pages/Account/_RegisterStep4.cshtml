@@ -34,39 +34,12 @@
                 <input type="url" name="Input.SocialMediaUrls" class="form-control" placeholder="https://..."/>
             </div>
             <div class="col-md-2">
-                <button type="button" class="btn btn-outline-primary w-100"
-                        _="on click 
-                           make a <div.row.mb-3.social-media-row/> called newRow
-                           put '<div class=\" col-md-4\
-                ">
-                <select name="\""Input.SocialMediaPlatforms\" class="\""form-select\">
-                    <option value="\""\">Select Platform</option>
-                    <option value="\""LinkedIn\">LinkedIn</option>
-                    <option value="\""Twitter\">Twitter</option>
-                    <option value="\""GitHub\">GitHub</option>
-                    <option value="\""YouTube\">YouTube</option>
-                    <option value="\""Website\">Personal Website</option>
-                    <option value="\""Blog\">Blog</option>
-                    <option value="\""Other\">Other</option>
-                </select>
-            </div>
-            <div class="\""col-md-6\">
-                <input type="\""url\" name="\""Input.SocialMediaUrls\" class="\""form-control\" placeholder="\""https://...\"/>
-            </div>
-            <div class="\""col-md-2\">
-                <button type="\""button\" class="\""btn btn-outline-danger w-100\
-                " _="\""on click if (.social-media-row in #socialMediaContainer).length > 1 remove closest
-                .social-media-row\">
-                <i class="\""bi bi-trash\"></i>
+                <button type="button" class="btn btn-outline-primary w-100" onclick="addSocialMediaRow()">
+                    <i class="bi bi-plus"></i>
                 </button>
             </div>
-            ' into newRow
-            put newRow at end of #socialMediaContainer"
-            <i class="bi bi-plus"></i>
-            </button>
         </div>
     </div>
-</div>
 </div>
 
 <script>

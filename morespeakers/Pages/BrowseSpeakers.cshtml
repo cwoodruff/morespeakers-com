@@ -10,11 +10,9 @@
         on htmx:afterSwap
             if event.detail.target.id.startsWith('mentorship-status-') then
                 if event.detail.xhr.responseText.includes('success') then
-                    put '<div class=" alert alert-success
-     alert-sm">Mentorship request sent!</div>' into event.detail.target
-else if event.detail.xhr.responseText.includes('error') then
-put '
-<div class="alert alert-danger alert-sm">Unable to send request. Please try again.</div>' into event.detail.target">
+                    put '<div class=&quot;alert alert-success alert-sm&quot;>Mentorship request sent!</div>' into event.detail.target
+                else if event.detail.xhr.responseText.includes('error') then
+                    put '<div class=&quot;alert alert-danger alert-sm&quot;>Unable to send request. Please try again.</div>' into event.detail.target">
 <div class="row">
     <div class="col-12">
         <h1 class="mb-4">
@@ -184,8 +182,8 @@ put '
                                                 hx-post="/Mentorship/Request"
                                                 hx-vals='{"mentorId": "@speaker.Id"}'
                                                 hx-confirm="Request mentorship from @speaker.FullName?"
-                                                hx-target="#mentorship-status-@speaker.Id">
-                                            <i class="bi bi-person-plus"></i>
+                                                hx-target="#mentorship-status-@(speaker.Id)">
+                                            <i class="bi bi-person-plus me-1"></i>Request Mentor
                                         </button>
                                     }
                                 }
@@ -255,6 +253,8 @@ put '
             }
         </div>
     }
+</div>
+
 </div>
 
 @functions {

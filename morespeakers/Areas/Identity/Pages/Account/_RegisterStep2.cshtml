@@ -89,8 +89,27 @@
     </div>
 </div>
 
+<style>
+    /* Highlight the selected speaker type card */
+    .speaker-type-card.selected {
+        border-color: var(--bs-primary) !important;
+        background-color: var(--bs-primary-bg-subtle) !important;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+        transform: translateY(-2px);
+    }
+</style>
+
 <script>
     document.addEventListener('DOMContentLoaded', function () {
+        // Initialize selection based on any pre-checked radio (e.g., when returning to this step)
+        document.querySelectorAll('.speaker-type-card').forEach(card => {
+            const radio = card.querySelector('input[type="radio"]');
+            if (radio && radio.checked) {
+                card.classList.add('selected');
+            }
+        });
+
+        // Click behavior to set the radio and highlight the selected card
         document.querySelectorAll('.speaker-type-card').forEach(card => {
             card.addEventListener('click', function () {
                 const radio = this.querySelector('input[type="radio"]');
