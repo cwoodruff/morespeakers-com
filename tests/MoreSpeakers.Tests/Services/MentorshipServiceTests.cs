@@ -7,7 +7,7 @@ namespace MoreSpeakers.Tests.Services;
 
 public class MentorshipServiceTests : TestBase
 {
-    private readonly MentorshipService _mentorshipService;
+    private readonly IMentorshipService _mentorshipService;
 
     public MentorshipServiceTests()
     {

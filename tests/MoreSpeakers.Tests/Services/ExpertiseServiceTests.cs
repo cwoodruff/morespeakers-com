@@ -215,7 +215,7 @@ public class ExpertiseServiceTests : TestBase
 
         // Assert
         result.Should().NotBeEmpty();
-        result.Should().HaveCountLessOrEqualTo(3);
+        result.Count().Should().BeLessThanOrEqualTo(3);
 
         // C# should be most popular (assigned to 2 users)
         var popularExpertise = result.ToList();
@@ -230,6 +230,6 @@ public class ExpertiseServiceTests : TestBase
 
         // Assert
         result.Should().NotBeEmpty();
-        result.Should().HaveCountLessOrEqualTo(10);
+        result.Count().Should().BeLessThanOrEqualTo(10);
     }
 }
