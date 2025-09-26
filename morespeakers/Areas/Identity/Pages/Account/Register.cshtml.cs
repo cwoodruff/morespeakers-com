@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.EntityFrameworkCore;
 using morespeakers.Data;
 using morespeakers.Models;
 using morespeakers.Services;
@@ -164,6 +165,77 @@ public class RegisterModel : PageModel
         if (prevStep >= 1) return Partial("_RegisterStep" + prevStep, this);
 
         return Partial("_RegisterStep1", this);
+    }
+
+    public async Task<IActionResult> OnPostValidateEmailAsync(string email)
+    {
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            return new JsonResult(new { isValid = true, message = "" });
+        }
+
+        // Check if email is already in use
+        var existingUser = await _userManager.FindByEmailAsync(email);
+        if (existingUser != null)
+        {
+            return new JsonResult(new { isValid = false, message = "This email address is already in use." });
+        }
+
+        // Check if email format is valid
+        if (!new EmailAddressAttribute().IsValid(email))
+        {
+            return new JsonResult(new { isValid = false, message = "Please enter a valid email address." });
+        }
+
+        return new JsonResult(new { isValid = true, message = "" });
+    }
+
+    public async Task<IActionResult> OnPostValidateCustomExpertiseAsync(string expertiseName)
+    {
+        if (string.IsNullOrWhiteSpace(expertiseName))
+        {
+            return new JsonResult(new { isValid = true, message = "", suggestion = "" });
+        }
+
+        var trimmedName = expertiseName.Trim();
+
+        // Check if expertise already exists (case-insensitive)
+        var existingExpertise = await _context.Expertise
+            .Where(e => e.Name.ToLower() == trimmedName.ToLower())
+            .FirstOrDefaultAsync();
+
+        if (existingExpertise != null)
+        {
+            return new JsonResult(new 
+            { 
+                isValid = false, 
+                message = $"'{existingExpertise.Name}' already exists in our database.",
+                suggestion = $"Consider selecting '{existingExpertise.Name}' from the list above instead.",
+                existingId = existingExpertise.Id
+            });
+        }
+
+        // Check for similar expertise (fuzzy matching for suggestions)
+        var similarExpertise = await _context.Expertise
+            .Where(e => e.Name.ToLower().Contains(trimmedName.ToLower()) || 
+                       trimmedName.ToLower().Contains(e.Name.ToLower()))
+            .Take(3)
+            .Select(e => new { e.Id, e.Name })
+            .ToListAsync();
+
+        if (similarExpertise.Any())
+        {
+            var suggestions = string.Join(", ", similarExpertise.Select(s => s.Name));
+            return new JsonResult(new 
+            { 
+                isValid = true, 
+                message = "",
+                suggestion = $"Similar expertise found: {suggestions}. Consider selecting from existing options.",
+                similarItems = similarExpertise
+            });
+        }
+
+        return new JsonResult(new { isValid = true, message = "", suggestion = "" });
     }
 
     private async Task LoadFormDataAsync()

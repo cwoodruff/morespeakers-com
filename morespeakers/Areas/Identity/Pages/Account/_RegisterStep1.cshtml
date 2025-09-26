@@ -47,9 +47,22 @@
                 <i class="bi bi-envelope text-muted"></i>
             </span>
             <input asp-for="Input.Email" class="form-control border-start-0" autocomplete="username"
-                   placeholder="Enter your email"/>
+                   placeholder="Enter your email"
+                   hx-post="/Identity/Account/Register?handler=ValidateEmail"
+                   hx-trigger="blur, keyup changed delay:500ms"
+                   hx-target="#email-validation-message"
+                   hx-vals='js:{"email": event.target.value}'
+                   hx-indicator="#email-spinner"/>
         </div>
-        <span asp-validation-for="Input.Email" class="text-danger small"></span>
+        <div class="d-flex align-items-center">
+            <span asp-validation-for="Input.Email" class="text-danger small"></span>
+            <div id="email-spinner" class="htmx-indicator ms-2">
+                <div class="spinner-border spinner-border-sm text-primary" role="status">
+                    <span class="visually-hidden">Checking...</span>
+                </div>
+            </div>
+        </div>
+        <div id="email-validation-message" class="small mt-1"></div>
     </div>
 
     <div class="mb-3">
@@ -90,3 +103,25 @@
         </div>
     </div>
 </div>
+
+<script>
+document.body.addEventListener('htmx:afterRequest', function(evt) {
+    if (evt.detail.target.id === 'email-validation-message') {
+        const response = JSON.parse(evt.detail.xhr.responseText);
+        const messageDiv = document.getElementById('email-validation-message');
+        const emailInput = document.querySelector('input[name="Input.Email"]');
+        
+        if (response.isValid) {
+            messageDiv.innerHTML = response.message ? '<i class="bi bi-check-circle me-1"></i>' + response.message : '';
+            messageDiv.className = 'small mt-1 text-success';
+            emailInput.classList.remove('is-invalid');
+            emailInput.classList.add('is-valid');
+        } else {
+            messageDiv.innerHTML = '<i class="bi bi-exclamation-triangle me-1"></i>' + response.message;
+            messageDiv.className = 'small mt-1 text-danger';
+            emailInput.classList.remove('is-valid');
+            emailInput.classList.add('is-invalid');
+        }
+    }
+});
+</script>

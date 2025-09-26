@@ -388,6 +388,62 @@ h1, h2, h3, h4, h5, h6 {
     pointer-events: none;
 }
 
+.htmx-indicator {
+    opacity: 0;
+    transition: opacity 200ms ease-in;
+}
+
+.htmx-request .htmx-indicator {
+    opacity: 1;
+}
+
+.htmx-request.htmx-indicator {
+    opacity: 1;
+}
+
+/* Email validation specific styles */
+#email-validation-message.text-success {
+    color: var(--success-color) !important;
+}
+
+#email-validation-message.text-danger {
+    color: var(--danger-color) !important;
+}
+
+.input-validation-icon {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 5;
+}
+
+/* Custom expertise validation styles */
+.custom-expertise-input {
+    position: relative;
+}
+
+.custom-expertise-validation {
+    position: absolute;
+    right: 0;
+    top: 0;
+    z-index: 10;
+    pointer-events: none;
+}
+
+.custom-expertise-message.text-info {
+    color: var(--info-color) !important;
+}
+
+.custom-expertise-message.text-danger {
+    color: var(--danger-color) !important;
+}
+
+.form-control.is-warning {
+    border-color: var(--warning-color);
+    box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.25);
+}
+
 /* Responsive utilities */
 @media (max-width: 576px) {
     .hero {

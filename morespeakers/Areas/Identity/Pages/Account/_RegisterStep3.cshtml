@@ -36,13 +36,26 @@
     <div class="mb-3">
         <label class="form-label fw-medium">Custom Expertise Areas</label>
         <div id="customExpertiseContainer">
-            <div class="input-group mb-2 custom-expertise-input">
-                <input type="text" name="Input.CustomExpertise" class="form-control"
-                       placeholder="Enter a custom expertise area"/>
+            <div class="input-group mb-2 custom-expertise-input" data-expertise-index="0">
+                <input type="text" name="Input.CustomExpertise" class="form-control custom-expertise-field"
+                       placeholder="Enter a custom expertise area"
+                       hx-post="/Identity/Account/Register?handler=ValidateCustomExpertise"
+                       hx-trigger="blur, keyup changed delay:500ms"
+                       hx-target="next .custom-expertise-validation"
+                       hx-vals='js:{"expertiseName": event.target.value}'
+                       hx-indicator="next .custom-expertise-validation .htmx-indicator"/>
                 <button type="button" class="btn btn-outline-primary" onclick="addCustomExpertise()">
                     <i class="bi bi-plus"></i>
                 </button>
+                <div class="custom-expertise-validation position-relative">
+                    <div class="htmx-indicator position-absolute" style="top: 8px; right: 8px;">
+                        <div class="spinner-border spinner-border-sm text-primary" role="status">
+                            <span class="visually-hidden">Checking...</span>
+                        </div>
+                    </div>
+                </div>
             </div>
+            <div id="customExpertiseValidation0" class="custom-expertise-message small mt-1"></div>
         </div>
         <div class="form-text">
             <small class="text-muted">Add expertise areas not listed above</small>
@@ -69,20 +82,86 @@
 </div>
 
 <script>
+    let expertiseCounter = 1;
+
     function addCustomExpertise() {
         const container = document.getElementById('customExpertiseContainer');
-        const newInput = document.createElement('div');
-        newInput.className = 'input-group mb-2 custom-expertise-input';
-        newInput.innerHTML = `
-        <input type="text" name="Input.CustomExpertise" class="form-control" placeholder="Enter a custom expertise area" />
-        <button type="button" class="btn btn-outline-danger" onclick="removeCustomExpertise(this)">
-            <i class="bi bi-trash"></i>
-        </button>
-    `;
-        container.appendChild(newInput);
+        const newInputGroup = document.createElement('div');
+        newInputGroup.className = 'input-group mb-2 custom-expertise-input';
+        newInputGroup.setAttribute('data-expertise-index', expertiseCounter);
+        
+        newInputGroup.innerHTML = `
+            <input type="text" name="Input.CustomExpertise" class="form-control custom-expertise-field" 
+                   placeholder="Enter a custom expertise area"
+                   hx-post="/Identity/Account/Register?handler=ValidateCustomExpertise"
+                   hx-trigger="blur, keyup changed delay:500ms"
+                   hx-target="next .custom-expertise-validation"
+                   hx-vals='js:{"expertiseName": event.target.value}'
+                   hx-indicator="next .custom-expertise-validation .htmx-indicator" />
+            <button type="button" class="btn btn-outline-danger" onclick="removeCustomExpertise(this)">
+                <i class="bi bi-trash"></i>
+            </button>
+            <div class="custom-expertise-validation position-relative">
+                <div class="htmx-indicator position-absolute" style="top: 8px; right: 8px;">
+                    <div class="spinner-border spinner-border-sm text-primary" role="status">
+                        <span class="visually-hidden">Checking...</span>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        container.appendChild(newInputGroup);
+        
+        // Add validation message container
+        const validationDiv = document.createElement('div');
+        validationDiv.id = `customExpertiseValidation${expertiseCounter}`;
+        validationDiv.className = 'custom-expertise-message small mt-1';
+        container.appendChild(validationDiv);
+        
+        // Re-initialize HTMX for the new elements
+        htmx.process(newInputGroup);
+        
+        expertiseCounter++;
     }
 
     function removeCustomExpertise(button) {
-        button.closest('.custom-expertise-input').remove();
+        const inputGroup = button.closest('.custom-expertise-input');
+        const expertiseIndex = inputGroup.getAttribute('data-expertise-index');
+        const validationDiv = document.getElementById(`customExpertiseValidation${expertiseIndex}`);
+        
+        inputGroup.remove();
+        if (validationDiv) {
+            validationDiv.remove();
+        }
     }
+
+    // Handle HTMX response for custom expertise validation
+    document.body.addEventListener('htmx:afterRequest', function(evt) {
+        if (evt.detail.target && evt.detail.target.classList.contains('custom-expertise-validation')) {
+            const response = JSON.parse(evt.detail.xhr.responseText);
+            const inputGroup = evt.detail.target.closest('.custom-expertise-input');
+            const expertiseIndex = inputGroup.getAttribute('data-expertise-index');
+            const messageDiv = document.getElementById(`customExpertiseValidation${expertiseIndex}`);
+            const expertiseInput = inputGroup.querySelector('.custom-expertise-field');
+            
+            if (response.isValid) {
+                if (response.suggestion) {
+                    messageDiv.innerHTML = `<i class="bi bi-info-circle me-1"></i>${response.suggestion}`;
+                    messageDiv.className = 'custom-expertise-message small mt-1 text-info';
+                    expertiseInput.classList.remove('is-invalid');
+                    expertiseInput.classList.add('is-warning');
+                } else {
+                    messageDiv.innerHTML = '';
+                    messageDiv.className = 'custom-expertise-message small mt-1';
+                    expertiseInput.classList.remove('is-invalid', 'is-warning');
+                    expertiseInput.classList.add('is-valid');
+                }
+            } else {
+                messageDiv.innerHTML = `<i class="bi bi-exclamation-triangle me-1"></i>${response.message}<br><small>${response.suggestion}</small>`;
+                messageDiv.className = 'custom-expertise-message small mt-1 text-danger';
+                expertiseInput.classList.remove('is-valid', 'is-warning');
+                expertiseInput.classList.add('is-invalid');
+            }
+        }
+    });
 </script>
