@@ -815,12 +815,12 @@ main {
     font-weight: 600;
     padding: 0.75rem 2rem;
     border-radius: var(--border-radius);
-    transition: all 0.2s ease-in-out;
+    transition: all 0.3s ease-in-out;
     box-shadow: var(--box-shadow);
 }
 
 .form-step[data-step="5"] .btn:hover {
-    transform: translateY(-1px);
+    transform: translateY(-2px);
     box-shadow: var(--box-shadow-lg);
 }
 
@@ -853,6 +853,69 @@ main {
 @keyframes heart-beat {
     0%, 100% { transform: scale(1); }
     50% { transform: scale(1.1); }
+}
+
+/* Enhanced Step 5 animations and effects */
+.form-step[data-step="5"] .success-checkmark {
+    animation: success-zoom 0.6s ease-out;
+}
+
+@keyframes success-zoom {
+    0% { transform: scale(0); opacity: 0; }
+    50% { transform: scale(1.1); opacity: 0.8; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.form-step[data-step="5"] .hover-lift {
+    transition: all 0.3s ease-in-out;
+}
+
+.form-step[data-step="5"] .hover-lift:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 2rem rgba(0, 0, 0, 0.1);
+}
+
+.form-step[data-step="5"] .card {
+    border: 1px solid rgba(var(--primary-color), 0.1);
+}
+
+.form-step[data-step="5"] .card:hover {
+    border-color: var(--primary-color);
+}
+
+/* Step 5 gradient backgrounds */
+.form-step[data-step="5"] .bg-gradient-primary {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+}
+
+.form-step[data-step="5"] .bg-gradient-success {
+    background: linear-gradient(135deg, var(--success-color) 0%, #146c43 100%);
+}
+
+.form-step[data-step="5"] .bg-gradient-info {
+    background: linear-gradient(135deg, var(--info-color) 0%, #087990 100%);
+}
+
+/* Enhanced alert styling for step 5 */
+.form-step[data-step="5"] .alert {
+    border: none;
+    border-left: 4px solid;
+}
+
+.form-step[data-step="5"] .alert-info {
+    border-left-color: var(--info-color);
+    background: linear-gradient(135deg, rgba(13, 202, 240, 0.1) 0%, rgba(13, 202, 240, 0.05) 100%);
+}
+
+/* Animated pulse effect */
+.animate__pulse {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
 }
 
 /* Print styles */
