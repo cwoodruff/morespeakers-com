@@ -46,6 +46,11 @@
                     </li>
                 </ul>
                 <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="https://github.com/cwoodruff/morespeakers-com" target="_blank" title="View on GitHub">
+                            <i class="bi bi-github"></i>
+                        </a>
+                    </li>
                     @if (User.Identity?.IsAuthenticated == true)
                     {
                         <li class="nav-item dropdown">
@@ -115,6 +120,9 @@
                     <li class="mb-1"><a href="~/" class="text-decoration-none">Home</a></li>
                     <li class="mb-1"><a asp-page="/BrowseSpeakers" class="text-decoration-none">Browse Speakers</a></li>
                     <li class="mb-1"><a asp-page="/About" class="text-decoration-none">About</a></li>
+                    <li class="mb-1"><a href="https://github.com/cwoodruff/morespeakers-com" target="_blank" class="text-decoration-none">
+                        <i class="bi bi-github me-1"></i>GitHub Repo
+                    </a></li>
                     <li class="mb-1"><a asp-page="/Privacy" class="text-decoration-none">Privacy Policy</a></li>
                     <li class="mb-0"><a asp-page="/TermsOfService" class="text-decoration-none">Terms of Service</a>
                     </li>

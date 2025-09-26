@@ -34,41 +34,51 @@ public class BrowseSpeakersModel : PageModel
     public int TotalCount { get; set; }
     public int TotalPages { get; set; }
 
-    public async Task OnGetAsync()
+    public async Task<IActionResult> OnGetAsync()
+    {
+        await LoadSpeakersAsync();
+
+        // Check if this is an HTMX request for just the speakers container
+        if (Request.Headers.ContainsKey("HX-Request"))
+        {
+            return Partial("_SpeakersContainer", this);
+        }
+
+        return Page();
+    }
+
+    private async Task LoadSpeakersAsync()
     {
         // Load all expertise for filter dropdown
         AllExpertise = await _expertiseService.GetAllExpertiseAsync();
 
-        // Get filtered speakers
-        IEnumerable<User> allSpeakers;
+        // Start with all speakers
+        var newSpeakers = await _speakerService.GetNewSpeakersAsync();
+        var experiencedSpeakers = await _speakerService.GetExperiencedSpeakersAsync();
+        IEnumerable<User> allSpeakers = newSpeakers.Concat(experiencedSpeakers);
 
+        // Apply search filter
         if (!string.IsNullOrWhiteSpace(SearchTerm))
         {
-            allSpeakers = await _speakerService.SearchSpeakersAsync(SearchTerm, SpeakerTypeFilter);
-        }
-        else if (SpeakerTypeFilter.HasValue)
-        {
-            allSpeakers = SpeakerTypeFilter == 1
-                ? await _speakerService.GetNewSpeakersAsync()
-                : await _speakerService.GetExperiencedSpeakersAsync();
-        }
-        else if (ExpertiseFilter.HasValue)
-        {
-            allSpeakers = await _speakerService.GetSpeakersByExpertiseAsync(ExpertiseFilter.Value);
-        }
-        else
-        {
-            var newSpeakers = await _speakerService.GetNewSpeakersAsync();
-            var experiencedSpeakers = await _speakerService.GetExperiencedSpeakersAsync();
-            allSpeakers = newSpeakers.Concat(experiencedSpeakers);
+            var searchTermLower = SearchTerm.ToLower();
+            allSpeakers = allSpeakers.Where(s => 
+                s.FirstName.ToLower().Contains(searchTermLower) ||
+                s.LastName.ToLower().Contains(searchTermLower) ||
+                s.Bio.ToLower().Contains(searchTermLower) ||
+                s.UserExpertise.Any(ue => ue.Expertise.Name.ToLower().Contains(searchTermLower))
+            );
         }
 
-        // Apply expertise filter if specified and not already applied
-        if (ExpertiseFilter.HasValue && string.IsNullOrWhiteSpace(SearchTerm) && !SpeakerTypeFilter.HasValue)
+        // Apply speaker type filter
+        if (SpeakerTypeFilter.HasValue)
         {
-            // Already filtered by expertise above
+            allSpeakers = SpeakerTypeFilter == 1
+                ? allSpeakers.Where(s => s.SpeakerTypeId == 1)
+                : allSpeakers.Where(s => s.SpeakerTypeId == 2);
         }
-        else if (ExpertiseFilter.HasValue)
+
+        // Apply expertise filter
+        if (ExpertiseFilter.HasValue)
         {
             allSpeakers = allSpeakers.Where(s => s.UserExpertise.Any(ue => ue.ExpertiseId == ExpertiseFilter.Value));
         }
@@ -84,7 +94,7 @@ public class BrowseSpeakersModel : PageModel
         // Calculate pagination
         TotalCount = allSpeakers.Count();
         TotalPages = (int)Math.Ceiling(TotalCount / (double)PageSize);
-        CurrentPage = Math.Max(1, Math.Min(CurrentPage, TotalPages));
+        CurrentPage = Math.Max(1, Math.Min(CurrentPage, TotalPages == 0 ? 1 : TotalPages));
 
         // Apply pagination
         Speakers = allSpeakers
