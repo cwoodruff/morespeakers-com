@@ -90,7 +90,15 @@
     </div>
 </div>
 
-
+<!-- Persist Step 1 values across HTMX steps -->
+<div aria-hidden="true" style="display:none;visibility:hidden;">
+    <input type="hidden" asp-for="Input.FirstName" />
+    <input type="hidden" asp-for="Input.LastName" />
+    <input type="hidden" asp-for="Input.Email" />
+    <input type="hidden" asp-for="Input.PhoneNumber" />
+    <input type="hidden" asp-for="Input.Password" />
+    <input type="hidden" asp-for="Input.ConfirmPassword" />
+</div>
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {

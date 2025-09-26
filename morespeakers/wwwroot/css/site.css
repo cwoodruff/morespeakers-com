@@ -734,6 +734,71 @@ main {
     margin-top: 0.25rem;
 }
 
+/* Registration Step 5 - Confirmation Page Styles */
+.success-checkmark {
+    animation: checkmark-bounce 0.6s ease-in-out;
+}
+
+@keyframes checkmark-bounce {
+    0% { transform: scale(0); opacity: 0; }
+    50% { transform: scale(1.2); opacity: 0.8; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.form-step[data-step="5"] .card {
+    border: 1px solid rgba(var(--bs-success-rgb), 0.2);
+}
+
+.form-step[data-step="5"] .card-header {
+    background-color: rgba(var(--bs-success-rgb), 0.1);
+    border-bottom-color: rgba(var(--bs-success-rgb), 0.2);
+}
+
+/* Step 5 specific button styling */
+.form-step[data-step="5"] .btn {
+    font-weight: 600;
+    padding: 0.75rem 2rem;
+    border-radius: var(--border-radius);
+    transition: all 0.2s ease-in-out;
+    box-shadow: var(--box-shadow);
+}
+
+.form-step[data-step="5"] .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--box-shadow-lg);
+}
+
+.form-step[data-step="5"] .btn-primary {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+    border: none;
+}
+
+.form-step[data-step="5"] .btn-outline-primary:hover {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+}
+
+/* Success badge styling for step 5 */
+.form-step[data-step="5"] .badge {
+    font-size: 0.9rem;
+    padding: 0.5rem 1rem;
+}
+
+/* Expertise tags in step 5 */
+.form-step[data-step="5"] .expertise-tag {
+    font-size: 0.8rem;
+    padding: 0.3rem 0.6rem;
+}
+
+/* Heart icon animation */
+.form-step[data-step="5"] .text-danger {
+    animation: heart-beat 2s infinite;
+}
+
+@keyframes heart-beat {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
 /* Print styles */
 @media print {
     .navbar, .footer, .btn {

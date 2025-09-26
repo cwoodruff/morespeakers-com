@@ -71,6 +71,12 @@ public class RegisterModel : PageModel
 
     public IEnumerable<SpeakerType> SpeakerTypes { get; set; } = new List<SpeakerType>();
 
+    // Properties needed for step 5 confirmation
+    public IEnumerable<Expertise> AllExpertise { get; set; } = new List<Expertise>();
+
+    // Property to expose selected expertise IDs for step 5
+    public int[] ExpertiseIds => Input?.SelectedExpertiseIds ?? Array.Empty<int>();
+
 
     public async Task OnGetAsync(string returnUrl = null)
     {
@@ -88,7 +94,7 @@ public class RegisterModel : PageModel
     public async Task<IActionResult> OnPostValidateStepAsync(int step)
     {
         // Validate step number
-        if (step < 1 || step > 4)
+        if (step < 1 || step > 5)
         {
             ModelState.AddModelError("", "Invalid step number.");
             return BadRequest();
@@ -163,6 +169,7 @@ public class RegisterModel : PageModel
     private async Task LoadFormDataAsync()
     {
         AvailableExpertise = await _expertiseService.GetAllExpertiseAsync();
+        AllExpertise = AvailableExpertise; // Same data, different property name for step 5
         SpeakerTypes = new List<SpeakerType>
         {
             new() { Id = 1, Name = "NewSpeaker", Description = "I'm new to speaking and looking for mentorship" },
@@ -293,6 +300,9 @@ public class RegisterModel : PageModel
 
                 await _context.SaveChangesAsync();
 
+                // Send welcome email (mock implementation)
+                await SendWelcomeEmailAsync(user);
+
                 var userId = await _userManager.GetUserIdAsync(user);
                 var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
                 code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
@@ -305,11 +315,11 @@ public class RegisterModel : PageModel
                 await _emailSender.SendEmailAsync(Input.Email, "Confirm your email",
                     $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
 
-                if (_userManager.Options.SignIn.RequireConfirmedAccount)
-                    return RedirectToPage("RegisterConfirmation", new { email = Input.Email, returnUrl });
-
-                await _signInManager.SignInAsync(user, false);
-                return LocalRedirect(returnUrl);
+                // Load data needed for step 5 display
+                await LoadFormDataAsync();
+                
+                // Return step 5 (confirmation) instead of redirecting away
+                return Partial("_RegisterStep5", this);
             }
 
             foreach (var error in result.Errors) ModelState.AddModelError(string.Empty, error.Description);
@@ -338,6 +348,130 @@ public class RegisterModel : PageModel
         if (!_userManager.SupportsUserEmail)
             throw new NotSupportedException("The default UI requires a user store with email support.");
         return (IUserEmailStore<User>)_userStore;
+    }
+
+    /// <summary>
+    /// Sends a welcome email to the newly registered user (mock implementation)
+    /// </summary>
+    private async Task SendWelcomeEmailAsync(User user)
+    {
+        var speakerType = user.SpeakerTypeId == 1 ? "New Speaker" : "Experienced Speaker";
+        var emailSubject = "Welcome to MoreSpeakers.com - Your Speaking Journey Begins!";
+        
+        var emailBody = $@"
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <title>Welcome to MoreSpeakers.com</title>
+    <style>
+        body {{ font-family: 'Inter', Arial, sans-serif; line-height: 1.6; color: #333; }}
+        .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+        .header {{ background: linear-gradient(135deg, #fd7e14 0%, #e55d0e 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }}
+        .content {{ background: white; padding: 30px; border-radius: 0 0 8px 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }}
+        .badge {{ background: #fd7e14; color: white; padding: 8px 16px; border-radius: 20px; display: inline-block; font-size: 14px; font-weight: bold; }}
+        .next-steps {{ background: #f8f9fa; padding: 20px; border-radius: 6px; margin: 20px 0; }}
+        .step {{ display: flex; align-items: center; margin: 15px 0; }}
+        .step-number {{ background: #fd7e14; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px; font-weight: bold; }}
+        .btn {{ background: #fd7e14; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold; }}
+        .footer {{ text-align: center; margin-top: 30px; color: #666; font-size: 14px; }}
+    </style>
+</head>
+<body>
+    <div class='container'>
+        <div class='header'>
+            <h1>🎤 Welcome to MoreSpeakers.com!</h1>
+            <p>Your speaking journey starts here</p>
+        </div>
+        
+        <div class='content'>
+            <h2>Hello {user.FirstName}!</h2>
+            
+            <p>Congratulations on joining the MoreSpeakers.com community! We're thrilled to have you as a <span class='badge'>{speakerType}</span> in our growing network of passionate speakers.</p>
+            
+            <h3>Your Registration Details:</h3>
+            <ul>
+                <li><strong>Name:</strong> {user.FirstName} {user.LastName}</li>
+                <li><strong>Email:</strong> {user.Email}</li>
+                <li><strong>Speaker Type:</strong> {speakerType}</li>
+                <li><strong>Registration Date:</strong> {DateTime.UtcNow:MMMM dd, yyyy}</li>
+            </ul>
+            
+            <div class='next-steps'>
+                <h3>🚀 What's Next?</h3>
+                
+                <div class='step'>
+                    <div class='step-number'>1</div>
+                    <div>
+                        <strong>Complete Your Profile</strong><br>
+                        <small>Add more details, upload a headshot, and showcase your expertise to help others find and connect with you.</small>
+                    </div>
+                </div>
+                
+                <div class='step'>
+                    <div class='step-number'>2</div>
+                    <div>
+                        <strong>{(user.SpeakerTypeId == 1 ? "Find Mentors" : "Connect with New Speakers")}</strong><br>
+                        <small>{(user.SpeakerTypeId == 1 
+                            ? "Browse our community of experienced speakers and find mentors who can guide your speaking journey."
+                            : "Discover new speakers who could benefit from your experience and mentorship.")}</small>
+                    </div>
+                </div>
+                
+                <div class='step'>
+                    <div class='step-number'>3</div>
+                    <div>
+                        <strong>Join the Community</strong><br>
+                        <small>Participate in discussions, share your experiences, and connect with fellow speakers from around the world.</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div style='text-align: center; margin: 30px 0;'>
+                <a href='https://localhost:5001/Profile/Edit' class='btn'>Complete My Profile →</a>
+            </div>
+            
+            <h3>📧 Email Confirmation Required</h3>
+            <p>To activate your account and access all features, please check your email for a confirmation link. If you don't see it in your inbox, don't forget to check your spam folder.</p>
+            
+            <h3>🤝 Community Guidelines</h3>
+            <p>We're building a supportive and inclusive community. Please be respectful, helpful, and authentic in all your interactions.</p>
+            
+        </div>
+        
+        <div class='footer'>
+            <p>
+                <strong>MoreSpeakers.com</strong><br>
+                Connecting speakers, sharing knowledge, building community<br>
+                <a href='mailto:support@morespeakers.com'>support@morespeakers.com</a>
+            </p>
+            <p style='font-size: 12px; color: #999;'>
+                You received this email because you registered an account at MoreSpeakers.com.<br>
+                If you have any questions, please contact our support team.
+            </p>
+        </div>
+    </div>
+</body>
+</html>";
+
+        try
+        {
+            // Mock implementation - log the email instead of actually sending it
+            _logger.LogInformation("MOCK EMAIL SENT");
+            _logger.LogInformation("To: {Email}", user.Email);
+            _logger.LogInformation("Subject: {Subject}", emailSubject);
+            _logger.LogInformation("Body: {Body}", emailBody);
+            
+            // In a real implementation, you would use _emailSender.SendEmailAsync here:
+            // await _emailSender.SendEmailAsync(user.Email, emailSubject, emailBody);
+            
+            _logger.LogInformation("Welcome email successfully sent to {Email}", user.Email);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send welcome email to {Email}", user.Email);
+            // Don't throw - registration should still succeed even if email fails
+        }
     }
 
     public class InputModel

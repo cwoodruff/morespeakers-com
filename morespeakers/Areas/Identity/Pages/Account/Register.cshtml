@@ -47,7 +47,7 @@
             <div class="container">
                 <div class="row justify-content-center">
                     <div class="col-lg-8">
-                        <div class="text-center mb-4">
+                        <div class="text-center mb-4" id="pageHeader">
                             <h1 class="h3 fw-bold text-primary">Create Your Speaker Profile</h1>
                             <p class="text-muted">Tell us about yourself and join the community</p>
                         </div>
@@ -83,6 +83,12 @@
                                                 <div class="step" data-step="4">
                                                     <div class="step-circle">4</div>
                                                     <small>Social</small>
+                                                </div>
+                                            </div>
+                                            <div class="col">
+                                                <div class="step" data-step="5">
+                                                    <div class="step-circle">5</div>
+                                                    <small>Complete</small>
                                                 </div>
                                             </div>
                                         </div>
@@ -174,16 +180,39 @@
             const prevBtn = document.getElementById('prevBtn');
             const nextBtn = document.getElementById('nextBtn');
             const submitBtn = document.getElementById('submitBtn');
+            const navigationButtons = document.getElementById('navigationButtons');
+            const pageHeader = document.getElementById('pageHeader');
 
-            prevBtn.style.display = step === 1 ? 'none' : 'block';
-            nextBtn.style.display = step === 4 ? 'none' : 'block';
-            submitBtn.style.display = step === 4 ? 'block' : 'none';
+            // Hide navigation buttons on step 5 (confirmation)
+            if (step === 5) {
+                navigationButtons.style.display = 'none';
+                // Update header for confirmation page
+                if (pageHeader) {
+                    pageHeader.innerHTML = `
+                        <h1 class="h3 fw-bold text-success">Welcome to MoreSpeakers.com!</h1>
+                        <p class="text-muted">Your registration has been completed successfully</p>
+                    `;
+                }
+            } else {
+                navigationButtons.style.display = 'block';
+                // Reset header for other steps
+                if (pageHeader) {
+                    pageHeader.innerHTML = `
+                        <h1 class="h3 fw-bold text-primary">Create Your Speaker Profile</h1>
+                        <p class="text-muted">Tell us about yourself and join the community</p>
+                    `;
+                }
+                
+                prevBtn.style.display = step === 1 ? 'none' : 'block';
+                nextBtn.style.display = step === 4 ? 'none' : 'block';
+                submitBtn.style.display = step === 4 ? 'block' : 'none';
 
-            if (step > 1) {
-                prevBtn.setAttribute('hx-vals', `{"step": "${step - 1}"}`);
-            }
-            if (step < 4) {
-                nextBtn.setAttribute('hx-vals', `{"step": "${step}"}`);
+                if (step > 1) {
+                    prevBtn.setAttribute('hx-vals', `{"step": "${step - 1}"}`);
+                }
+                if (step < 4) {
+                    nextBtn.setAttribute('hx-vals', `{"step": "${step}"}`);
+                }
             }
 
             currentStep = step;
@@ -195,6 +224,10 @@
             if (button.id === 'nextBtn') {
                 button.disabled = true;
                 button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Validating...';
+            }
+            if (button.id === 'submitBtn') {
+                button.disabled = true;
+                button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Creating Account...';
             }
         });
 
@@ -210,6 +243,19 @@
                     const nextStep = currentStep + 1;
                     updateStepIndicator(nextStep);
                     updateNavigationButtons(nextStep);
+                }
+            }
+
+            if (button.id === 'submitBtn') {
+                button.disabled = false;
+                button.innerHTML = '<i class="bi bi-person-plus me-2"></i>Create Account';
+
+                // Check if we got step 5 (registration success)
+                const step5Content = event.target.querySelector('[data-step="5"]');
+                if (step5Content && event.detail.successful) {
+                    // Registration was successful, show step 5
+                    updateStepIndicator(5);
+                    updateNavigationButtons(5);
                 }
             }
 

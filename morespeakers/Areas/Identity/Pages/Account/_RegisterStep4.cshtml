@@ -42,6 +42,43 @@
     </div>
 </div>
 
+<!-- Persist Steps 1-3 values across HTMX steps for final submit -->
+<div aria-hidden="true" style="display:none;visibility:hidden;">
+    <!-- Step 1 fields -->
+    <input type="hidden" asp-for="Input.FirstName" />
+    <input type="hidden" asp-for="Input.LastName" />
+    <input type="hidden" asp-for="Input.Email" />
+    <input type="hidden" asp-for="Input.PhoneNumber" />
+    <input type="hidden" asp-for="Input.Password" />
+    <input type="hidden" asp-for="Input.ConfirmPassword" />
+
+    <!-- Step 2 fields -->
+    <input type="hidden" asp-for="Input.Bio" />
+    <input type="hidden" asp-for="Input.Goals" />
+    <input type="hidden" asp-for="Input.SessionizeUrl" />
+    <input type="hidden" asp-for="Input.HeadshotUrl" />
+    <input type="hidden" asp-for="Input.SpeakerTypeId" />
+
+    <!-- Step 3 fields (arrays need multiple hidden inputs) -->
+    @if (Model?.Input?.SelectedExpertiseIds != null)
+    {
+        foreach (var id in Model.Input.SelectedExpertiseIds)
+        {
+            <input type="hidden" name="Input.SelectedExpertiseIds" value="@id" />
+        }
+    }
+    @if (Model?.Input?.CustomExpertise != null)
+    {
+        foreach (var ce in Model.Input.CustomExpertise)
+        {
+            if (!string.IsNullOrWhiteSpace(ce))
+            {
+                <input type="hidden" name="Input.CustomExpertise" value="@ce" />
+            }
+        }
+    }
+</div>
+
 <script>
     function addSocialMediaRow() {
         const container = document.getElementById('socialMediaContainer');

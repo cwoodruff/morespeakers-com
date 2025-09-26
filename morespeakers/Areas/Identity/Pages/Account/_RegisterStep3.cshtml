@@ -50,6 +50,24 @@
     </div>
 </div>
 
+<!-- Persist Steps 1-2 values across HTMX steps -->
+<div aria-hidden="true" style="display:none;visibility:hidden;">
+    <!-- Step 1 fields -->
+    <input type="hidden" asp-for="Input.FirstName" />
+    <input type="hidden" asp-for="Input.LastName" />
+    <input type="hidden" asp-for="Input.Email" />
+    <input type="hidden" asp-for="Input.PhoneNumber" />
+    <input type="hidden" asp-for="Input.Password" />
+    <input type="hidden" asp-for="Input.ConfirmPassword" />
+
+    <!-- Step 2 fields -->
+    <input type="hidden" asp-for="Input.Bio" />
+    <input type="hidden" asp-for="Input.Goals" />
+    <input type="hidden" asp-for="Input.SessionizeUrl" />
+    <input type="hidden" asp-for="Input.HeadshotUrl" />
+    <input type="hidden" asp-for="Input.SpeakerTypeId" />
+</div>
+
 <script>
     function addCustomExpertise() {
         const container = document.getElementById('customExpertiseContainer');

@@ -1,0 +1,173 @@
+@model RegisterModel
+
+<div class="form-step" data-step="5">
+    <div class="text-center">
+        <!-- Success Icon -->
+        <div class="mb-4">
+            <div class="success-checkmark mx-auto">
+                <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
+            </div>
+        </div>
+
+        <!-- Success Message -->
+        <h5 class="text-success fw-bold mb-1">Registration Successful!</h5>
+        <p class="lead text-muted mb-4">Welcome to MoreSpeakers.com, <strong class="text-primary">@Model.Input.FirstName</strong>!</p>
+    </div>
+
+    <!-- Registration Summary -->
+    <div class="mb-4">
+        <h6 class="fw-medium mb-3">
+            <i class="bi bi-person-check me-2 text-primary"></i>
+            Registration Summary
+        </h6>
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="bg-light rounded p-3">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-person text-primary me-2"></i>
+                        <div>
+                            <small class="text-muted d-block">Full Name</small>
+                            <span class="fw-medium">@Model.Input.FirstName @Model.Input.LastName</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="bg-light rounded p-3">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-envelope text-primary me-2"></i>
+                        <div>
+                            <small class="text-muted d-block">Email</small>
+                            <span class="fw-medium">@Model.Input.Email</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="bg-light rounded p-3">
+                    <div class="d-flex align-items-center">
+                        <i class="bi @(Model.Input.SpeakerTypeId == 1 ? "bi-person-plus" : "bi-award") text-primary me-2"></i>
+                        <div>
+                            <small class="text-muted d-block">Speaker Type</small>
+                            <span class="badge @(Model.Input.SpeakerTypeId == 1 ? "bg-primary" : "bg-success")">
+                                @(Model.Input.SpeakerTypeId == 1 ? "New Speaker" : "Experienced Speaker")
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="bg-light rounded p-3">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-telephone text-primary me-2"></i>
+                        <div>
+                            <small class="text-muted d-block">Phone</small>
+                            <span class="fw-medium">@Model.Input.PhoneNumber</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @if (Model.Input.SelectedExpertiseIds?.Any() == true && Model.AllExpertise?.Any() == true)
+        {
+            <div class="mt-3">
+                <small class="text-muted d-block mb-2">Areas of Expertise</small>
+                <div class="d-flex flex-wrap gap-1">
+                    @foreach (var expertiseId in Model.Input.SelectedExpertiseIds)
+                    {
+                        var expertise = Model.AllExpertise.FirstOrDefault(e => e.Id == expertiseId);
+                        if (expertise != null)
+                        {
+                            <span class="expertise-tag">@expertise.Name</span>
+                        }
+                    }
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Email Notification -->
+    <div class="mb-4">
+        <div class="bg-info bg-opacity-10 border border-info border-opacity-25 rounded p-3">
+            <div class="d-flex align-items-start">
+                <div class="me-3">
+                    <i class="bi bi-envelope-check text-info" style="font-size: 2rem;"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <h6 class="mb-1 text-info fw-bold">Check Your Email</h6>
+                    <p class="mb-1 small">
+                        We've sent a welcome email to <strong>@Model.Input.Email</strong> with your account details and next steps.
+                    </p>
+                    <small class="text-muted">
+                        <i class="bi bi-info-circle me-1"></i>
+                        If you don't see it in your inbox, please check your spam folder.
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Next Steps -->
+    <div class="mb-4">
+        <h6 class="fw-medium mb-3">
+            <i class="bi bi-list-check me-2 text-primary"></i>
+            What's Next?
+        </h6>
+        <div class="row g-3">
+            <div class="col-md-4">
+                <div class="text-center bg-light rounded p-3 h-100">
+                    <div class="mb-3">
+                        <span class="badge bg-primary rounded-pill fs-6 p-2">1</span>
+                    </div>
+                    <h6 class="mb-2">Complete Profile</h6>
+                    <p class="small text-muted mb-0">Add more details to help others find and connect with you.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="text-center bg-light rounded p-3 h-100">
+                    <div class="mb-3">
+                        <span class="badge bg-primary rounded-pill fs-6 p-2">2</span>
+                    </div>
+                    <h6 class="mb-2">
+                        @(Model.Input.SpeakerTypeId == 1 ? "Find Mentors" : "Connect with New Speakers")
+                    </h6>
+                    <p class="small text-muted mb-0">
+                        @(Model.Input.SpeakerTypeId == 1 
+                            ? "Browse experienced speakers and find mentors."
+                            : "Discover new speakers who need mentorship.")
+                    </p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="text-center bg-light rounded p-3 h-100">
+                    <div class="mb-3">
+                        <span class="badge bg-primary rounded-pill fs-6 p-2">3</span>
+                    </div>
+                    <h6 class="mb-2">Join Community</h6>
+                    <p class="small text-muted mb-0">Connect with fellow speakers and share experiences.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="text-center">
+        <div class="d-grid d-sm-flex gap-2 justify-content-sm-center">
+            <a href="@Url.Page("/Profile/Edit")" class="btn btn-primary">
+                <i class="bi bi-pencil me-2"></i>Complete My Profile
+            </a>
+            <a href="@Url.Page("/BrowseSpeakers")" class="btn btn-outline-primary">
+                <i class="bi bi-people me-2"></i>Browse Community
+            </a>
+        </div>
+
+        <!-- Footer Message -->
+        <div class="mt-4">
+            <p class="text-muted small">
+                <i class="bi bi-heart-fill text-danger me-1"></i>
+                Thank you for joining MoreSpeakers.com! We're excited to have you in our community.
+            </p>
+        </div>
+    </div>
+</div>
