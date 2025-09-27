@@ -64,57 +64,7 @@
     </div>
 </div>
 
-<script>
-    let expertiseCounter = 1;
 
-    function addCustomExpertise() {
-        const container = document.getElementById('customExpertiseContainer');
-        const newInputGroup = document.createElement('div');
-        newInputGroup.className = 'input-group mb-2 custom-expertise-input';
-        newInputGroup.setAttribute('data-expertise-index', expertiseCounter);
-        
-        newInputGroup.innerHTML = `
-            <input type="text" name="Input.CustomExpertise" class="form-control custom-expertise-field" 
-                   placeholder="Enter a custom expertise area"
-                   hx-post="/Identity/Account/Register?handler=ValidateCustomExpertise"
-                   hx-trigger="blur, keyup changed delay:500ms"
-                   hx-target="next .custom-expertise-validation"
-                   hx-include="this"
-                   hx-indicator="next .custom-expertise-validation .htmx-indicator" />
-            <button type="button" class="btn btn-outline-danger" onclick="removeCustomExpertise(this)">
-                <i class="bi bi-trash"></i>
-            </button>
-            <div class="custom-expertise-validation position-relative">
-                <div class="htmx-indicator position-absolute" style="top: 8px; right: 8px;">
-                    <div class="spinner-border spinner-border-sm text-primary" role="status">
-                        <span class="visually-hidden">Checking...</span>
-                    </div>
-                </div>
-            </div>
-        `;
-        
-        container.appendChild(newInputGroup);
-        
-        const validationDiv = document.createElement('div');
-        validationDiv.id = `customExpertiseValidation${expertiseCounter}`;
-        validationDiv.className = 'custom-expertise-message small mt-1';
-        container.appendChild(validationDiv);
-        
-        htmx.process(newInputGroup);
-        expertiseCounter++;
-    }
-
-    function removeCustomExpertise(button) {
-        const inputGroup = button.closest('.custom-expertise-input');
-        const expertiseIndex = inputGroup.getAttribute('data-expertise-index');
-        const validationDiv = document.getElementById(`customExpertiseValidation${expertiseIndex}`);
-        
-        inputGroup.remove();
-        if (validationDiv) {
-            validationDiv.remove();
-        }
-    }
-</script>
 
 <!-- Persist Steps 1-2 values across HTMX steps -->
 <div aria-hidden="true" style="display:none;visibility:hidden;">

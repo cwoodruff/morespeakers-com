@@ -62,19 +62,7 @@
                 </div>
             </div>
         </div>
-        <div id="email-validation-message" class="small mt-1" 
-             _="on htmx:afterRequest from closest <input/> 
-                if detail.xhr.status is 200 
-                then get JSON from detail.xhr.responseText 
-                then if its.isValid 
-                     then set my innerHTML to (its.message ? '<i class=\"bi bi-check-circle me-1\"></i>' + its.message : '') 
-                     then set my className to 'small mt-1 text-success'
-                     then remove .is-invalid from previous <input/>
-                     then add .is-valid to previous <input/>
-                     else set my innerHTML to '<i class=\"bi bi-exclamation-triangle me-1\"></i>' + its.message
-                     then set my className to 'small mt-1 text-danger' 
-                     then remove .is-valid from previous <input/>
-                     then add .is-invalid to previous <input/>"></div>
+        <div id="email-validation-message" class="small mt-1"></div>
     </div>
 
     <div class="mb-3">

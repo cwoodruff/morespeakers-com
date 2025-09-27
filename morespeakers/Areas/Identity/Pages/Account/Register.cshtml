@@ -54,80 +54,7 @@
 
                         <div class="card shadow-sm border-0">
                             <div class="card-body p-4" id="registrationContainer">
-                                <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post">
-                                    <div asp-validation-summary="ModelOnly" class="alert alert-danger"
-                                         role="alert"></div>
-
-                                    <!-- Progress Indicator -->
-                                    <div class="mb-4">
-                                        <div class="row text-center" id="stepIndicator">
-                                            <div class="col">
-                                                <div class="step active" data-step="1">
-                                                    <div class="step-circle">1</div>
-                                                    <small>Account</small>
-                                                </div>
-                                            </div>
-                                            <div class="col">
-                                                <div class="step" data-step="2">
-                                                    <div class="step-circle">2</div>
-                                                    <small>Profile</small>
-                                                </div>
-                                            </div>
-                                            <div class="col">
-                                                <div class="step" data-step="3">
-                                                    <div class="step-circle">3</div>
-                                                    <small>Expertise</small>
-                                                </div>
-                                            </div>
-                                            <div class="col">
-                                                <div class="step" data-step="4">
-                                                    <div class="step-circle">4</div>
-                                                    <small>Social</small>
-                                                </div>
-                                            </div>
-                                            <div class="col">
-                                                <div class="step" data-step="5">
-                                                    <div class="step-circle">5</div>
-                                                    <small>Complete</small>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <!-- Step Container -->
-                                    <div id="stepContainer">
-                                        <partial name="_RegisterStep1" model="Model"/>
-                                    </div>
-
-                                    <!-- Navigation Buttons -->
-                                    <div class="d-flex justify-content-between mt-4" id="navigationButtons">
-                                        <button type="button" id="prevBtn" class="btn btn-outline-secondary"
-                                                style="display: none;"
-                                                hx-post="/Identity/Account/Register?handler=PreviousStep"
-                                                hx-target="#registrationContainer"
-                                                hx-include="#registerForm"
-                                                hx-vals='{"step": "2"}'
-                                                hx-swap="innerHTML">
-                                            <i class="bi bi-arrow-left me-2"></i>Previous
-                                        </button>
-                                        <button type="button" id="nextBtn" class="btn btn-primary"
-                                                hx-post="/Identity/Account/Register?handler=ValidateStep"
-                                                hx-target="#registrationContainer"
-                                                hx-include="#registerForm"
-                                                hx-vals='{"step": "1"}'
-                                                hx-swap="innerHTML">
-                                            Next<i class="bi bi-arrow-right ms-2"></i>
-                                        </button>
-                                        <button type="submit" id="submitBtn" class="btn btn-success"
-                                                style="display: none;"
-                                                hx-post="/Identity/Account/Register?handler=Submit"
-                                                hx-target="#registrationContainer"
-                                                hx-include="#registerForm"
-                                                hx-swap="innerHTML">
-                                            <i class="bi bi-person-plus me-2"></i>Create Account
-                                        </button>
-                                    </div>
-                                </form>
+                                <partial name="_RegistrationContainer" model="Model"/>
 
                                 <div class="text-center mt-4">
                                     <small class="text-muted">
@@ -157,37 +84,6 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial"/>
-    <script src="https://unpkg.com/htmx.org@1.9.6"></script>
-    <script src="https://unpkg.com/hyperscript.org@0.9.12"></script>
 
-    <script>
-        // Minimal loading state handling - server will manage step state
-        document.addEventListener('htmx:beforeRequest', function (event) {
-            const button = event.detail.elt;
-            const originalContent = button.innerHTML;
-            button.setAttribute('data-original-content', originalContent);
-            
-            if (button.id === 'nextBtn') {
-                button.disabled = true;
-                button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Validating...';
-            } else if (button.id === 'submitBtn') {
-                button.disabled = true;
-                button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Creating Account...';
-            } else if (button.id === 'prevBtn') {
-                button.disabled = true;
-                button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Loading...';
-            }
-        });
 
-        document.addEventListener('htmx:afterRequest', function (event) {
-            const button = event.detail.elt;
-            const originalContent = button.getAttribute('data-original-content');
-            
-            if (originalContent) {
-                button.disabled = false;
-                button.innerHTML = originalContent;
-                button.removeAttribute('data-original-content');
-            }
-        });
-    </script>
 }

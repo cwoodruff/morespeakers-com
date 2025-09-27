@@ -220,38 +220,4 @@
 }
 
 @section Scripts {
-    <script src="https://unpkg.com/htmx.org@1.9.6"></script>
-
-    <script>
-        // HTMX event listeners for better UX
-        document.addEventListener('htmx:beforeRequest', function (event) {
-            const button = event.detail.elt;
-            if (button.classList.contains('edit-btn')) {
-                button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Loading...';
-                button.disabled = true;
-            }
-        });
-
-        document.addEventListener('htmx:afterRequest', function (event) {
-            // Re-enable buttons after request
-            const buttons = document.querySelectorAll('.edit-btn[disabled]');
-            buttons.forEach(btn => {
-                btn.disabled = false;
-                if (btn.textContent.includes('Loading')) {
-                    btn.innerHTML = '<i class="bi bi-pencil me-1"></i>Edit';
-                }
-            });
-        });
-
-        // Auto-focus on edit fields
-        document.addEventListener('htmx:afterSwap', function (event) {
-            const input = event.target.querySelector('input, textarea');
-            if (input) {
-                input.focus();
-                if (input.type === 'text' || input.type === 'email') {
-                    input.select();
-                }
-            }
-        });
-    </script>
 }
