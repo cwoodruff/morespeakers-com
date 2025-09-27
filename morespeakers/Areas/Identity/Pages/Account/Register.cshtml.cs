@@ -1,6 +1,3 @@
-// Licensed to the .NET Foundation under one or more agreements.
-// The .NET Foundation licenses this file to you under the MIT license.
-
 #nullable disable
 
 using System.ComponentModel.DataAnnotations;
@@ -78,11 +75,26 @@ public class RegisterModel : PageModel
     // Property to expose selected expertise IDs for step 5
     public int[] ExpertiseIds => Input?.SelectedExpertiseIds ?? Array.Empty<int>();
 
+    // Properties required by _RegistrationContainer.cshtml
+    public int CurrentStep { get; set; } = 1;
+    public bool HasValidationErrors { get; set; } = false;
+    public string ValidationMessage { get; set; } = string.Empty;
+    public string SuccessMessage { get; set; } = string.Empty;
+
 
     public async Task OnGetAsync(string returnUrl = null)
     {
         ReturnUrl = returnUrl;
         ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
+
+        // Initialize Input model if not already initialized
+        Input ??= new InputModel();
+
+        // Initialize registration state
+        CurrentStep = 1;
+        HasValidationErrors = false;
+        ValidationMessage = string.Empty;
+        SuccessMessage = string.Empty;
 
         await LoadFormDataAsync();
     }
@@ -110,9 +122,10 @@ public class RegisterModel : PageModel
         if (!stepValid)
         {
             // Add visual indicators for better UX
-            ViewData["HasValidationErrors"] = true;
-            ViewData["ValidationMessage"] = GetValidationMessage(step);
-            ViewData["CurrentStep"] = step;
+            HasValidationErrors = true;
+            ValidationMessage = GetValidationMessage(step);
+            CurrentStep = step;
+            SuccessMessage = string.Empty;
 
             // Return the complete registration container with current step and validation errors
             return Partial("_RegistrationContainer", this);
@@ -122,18 +135,20 @@ public class RegisterModel : PageModel
         var nextStep = step + 1;
         if (nextStep <= 4)
         {
-            ViewData["HasValidationErrors"] = false;
-            ViewData["SuccessMessage"] = GetSuccessMessage(step);
-            ViewData["CurrentStep"] = nextStep;
+            HasValidationErrors = false;
+            SuccessMessage = GetSuccessMessage(step);
+            CurrentStep = nextStep;
+            ValidationMessage = string.Empty;
             
             // Return complete registration container with next step
             return Partial("_RegistrationContainer", this);
         }
 
         // If we're at the last step, indicate success
-        ViewData["HasValidationErrors"] = false;
-        ViewData["SuccessMessage"] = "All steps completed successfully!";
-        ViewData["CurrentStep"] = nextStep;
+        HasValidationErrors = false;
+        SuccessMessage = "All steps completed successfully!";
+        CurrentStep = nextStep;
+        ValidationMessage = string.Empty;
         return Partial("_RegistrationContainer", this);
     }
 
@@ -169,8 +184,10 @@ public class RegisterModel : PageModel
         var prevStep = step - 1;
         if (prevStep < 1) prevStep = 1;
         
-        ViewData["CurrentStep"] = prevStep;
-        ViewData["HasValidationErrors"] = false;
+        CurrentStep = prevStep;
+        HasValidationErrors = false;
+        ValidationMessage = string.Empty;
+        SuccessMessage = string.Empty;
         
         return Partial("_RegistrationContainer", this);
     }
@@ -398,8 +415,10 @@ public class RegisterModel : PageModel
                 // Load data needed for step 5 display
                 await LoadFormDataAsync();
                 
-                ViewData["CurrentStep"] = 5;
-                ViewData["HasValidationErrors"] = false;
+                CurrentStep = 5;
+                HasValidationErrors = false;
+                ValidationMessage = string.Empty;
+                SuccessMessage = "Registration completed successfully!";
                 
                 // Return step 5 (confirmation) instead of redirecting away
                 return Partial("_RegistrationContainer", this);
@@ -408,7 +427,11 @@ public class RegisterModel : PageModel
             foreach (var error in result.Errors) ModelState.AddModelError(string.Empty, error.Description);
         }
 
-        // If we got this far, something failed, redisplay form
+        // If we got this far, something failed, redisplay form with current state
+        await LoadFormDataAsync();
+        CurrentStep = 1; // Reset to first step on major failure
+        HasValidationErrors = true;
+        ValidationMessage = "Registration failed. Please check the errors and try again.";
         return Page();
     }
 

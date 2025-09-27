@@ -1,9 +1,9 @@
 @model RegisterModel
 @{
-    var currentStep = ViewData["CurrentStep"] as int? ?? 1;
-    var hasValidationErrors = ViewData["HasValidationErrors"] as bool? ?? false;
-    var successMessage = ViewData["SuccessMessage"] as string;
-    var validationMessage = ViewData["ValidationMessage"] as string;
+    var currentStep = Model.CurrentStep;
+    var hasValidationErrors = Model.HasValidationErrors;
+    var successMessage = Model.SuccessMessage;
+    var validationMessage = Model.ValidationMessage;
 }
 
 <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post">
