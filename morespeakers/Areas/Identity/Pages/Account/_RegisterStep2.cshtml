@@ -22,7 +22,11 @@
             {
                 <div class="col-md-6 mb-3">
                     <div class="card speaker-type-card @(Model.Input.SpeakerTypeId == speakerType.Id ? "selected" : "")" 
-                         style="cursor: pointer; transition: all 0.2s ease-in-out;">
+                         style="cursor: pointer; transition: all 0.2s ease-in-out;"
+                         _="on click 
+                            remove .selected from .speaker-type-card 
+                            add .selected to me 
+                            set #speakerType@(speakerType.Id).checked to true">
                         <div class="card-body text-center">
                             <input type="radio" asp-for="Input.SpeakerTypeId" value="@speakerType.Id"
                                    class="d-none speaker-type-radio" id="speakerType@(speakerType.Id)"
@@ -100,97 +104,3 @@
     <input type="hidden" asp-for="Input.ConfirmPassword" />
 </div>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        console.log('Speaker type selection script loaded');
-        
-        // Update selection state
-        function updateSelection(selectedCard) {
-            console.log('Updating selection for card:', selectedCard);
-            
-            // Remove selected class from all cards
-            document.querySelectorAll('.speaker-type-card').forEach(card => {
-                card.classList.remove('selected');
-                console.log('Removed selected class from card');
-            });
-            
-            // Add selected class to the clicked card
-            selectedCard.classList.add('selected');
-            console.log('Added selected class to selected card');
-            
-            // Check the corresponding radio button
-            const radio = selectedCard.querySelector('input[type="radio"]');
-            if (radio) {
-                radio.checked = true;
-                console.log('Checked radio button:', radio.value);
-                
-                // Trigger change event for any form validation or other listeners
-                radio.dispatchEvent(new Event('change', { bubbles: true }));
-            }
-        }
-
-        // Initialize selection based on any pre-checked radio
-        function initializeSelection() {
-            console.log('Initializing selection');
-            document.querySelectorAll('.speaker-type-card').forEach(card => {
-                const radio = card.querySelector('input[type="radio"]');
-                if (radio && radio.checked) {
-                    card.classList.add('selected');
-                    console.log('Found pre-selected card and added selected class');
-                }
-            });
-        }
-
-        // Initialize on page load
-        initializeSelection();
-
-        // Add event listeners to cards
-        document.querySelectorAll('.speaker-type-card').forEach((card, index) => {
-            console.log('Adding listeners to card', index);
-            
-            // Handle card clicks
-            card.addEventListener('click', function (e) {
-                console.log('Card clicked:', this);
-                e.preventDefault();
-                e.stopPropagation();
-                updateSelection(this);
-            });
-
-            // Handle mousedown for immediate feedback
-            card.addEventListener('mousedown', function (e) {
-                console.log('Card mousedown:', this);
-                e.preventDefault();
-                updateSelection(this);
-            });
-            
-            // Handle label clicks
-            const label = card.querySelector('label');
-            if (label) {
-                label.addEventListener('click', function (e) {
-                    console.log('Label clicked');
-                    e.preventDefault();
-                    e.stopPropagation();
-                    updateSelection(card);
-                });
-            }
-
-            // Handle radio button changes (for keyboard navigation)
-            const radio = card.querySelector('input[type="radio"]');
-            if (radio) {
-                radio.addEventListener('change', function (e) {
-                    console.log('Radio changed:', this.checked);
-                    if (this.checked) {
-                        updateSelection(card);
-                    }
-                });
-            }
-        });
-
-        // Debug: Log current state periodically
-        setInterval(() => {
-            const selectedCards = document.querySelectorAll('.speaker-type-card.selected');
-            const checkedRadios = document.querySelectorAll('.speaker-type-radio:checked');
-            console.log('Selected cards:', selectedCards.length, 'Checked radios:', checkedRadios.length);
-        }, 2000);
-    });
-</script>

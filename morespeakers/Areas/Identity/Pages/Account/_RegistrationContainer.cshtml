@@ -1,0 +1,108 @@
+@model RegisterModel
+@{
+    var currentStep = ViewData["CurrentStep"] as int? ?? 1;
+    var hasValidationErrors = ViewData["HasValidationErrors"] as bool? ?? false;
+    var successMessage = ViewData["SuccessMessage"] as string;
+    var validationMessage = ViewData["ValidationMessage"] as string;
+}
+
+<form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post">
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+    <!-- Progress Indicator -->
+    <div class="mb-4">
+        <div class="row text-center" id="stepIndicator">
+            @for (int i = 1; i <= 5; i++)
+            {
+                <div class="col">
+                    <div class="step @(i < currentStep ? "completed" : i == currentStep ? "active" : "")" data-step="@i">
+                        <div class="step-circle">@i</div>
+                        <small>@(i switch { 1 => "Account", 2 => "Profile", 3 => "Expertise", 4 => "Social", 5 => "Complete", _ => "" })</small>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Step Container -->
+    <div id="stepContainer">
+        @if (currentStep == 1)
+        {
+            <partial name="_RegisterStep1" model="Model"/>
+        }
+        else if (currentStep == 2)
+        {
+            <partial name="_RegisterStep2" model="Model"/>
+        }
+        else if (currentStep == 3)
+        {
+            <partial name="_RegisterStep3" model="Model"/>
+        }
+        else if (currentStep == 4)
+        {
+            <partial name="_RegisterStep4" model="Model"/>
+        }
+        else if (currentStep == 5)
+        {
+            <partial name="_RegisterStep5" model="Model"/>
+        }
+    </div>
+
+    <!-- Navigation Buttons -->
+    @if (currentStep < 5)
+    {
+        <div class="d-flex justify-content-between mt-4" id="navigationButtons">
+            <button type="button" id="prevBtn" class="btn btn-outline-secondary"
+                    style="display: @(currentStep == 1 ? "none" : "block");"
+                    hx-post="/Identity/Account/Register?handler=PreviousStep"
+                    hx-target="#registrationContainer"
+                    hx-include="#registerForm"
+                    hx-vals='{"step": "@currentStep"}'
+                    hx-swap="innerHTML">
+                <i class="bi bi-arrow-left me-2"></i>Previous
+            </button>
+            
+            @if (currentStep < 4)
+            {
+                <button type="button" id="nextBtn" class="btn btn-primary"
+                        hx-post="/Identity/Account/Register?handler=ValidateStep"
+                        hx-target="#registrationContainer"
+                        hx-include="#registerForm"
+                        hx-vals='{"step": "@currentStep"}'
+                        hx-swap="innerHTML">
+                    Next<i class="bi bi-arrow-right ms-2"></i>
+                </button>
+            }
+            else
+            {
+                <button type="button" id="submitBtn" class="btn btn-success"
+                        hx-post="/Identity/Account/Register?handler=Submit"
+                        hx-target="#registrationContainer"
+                        hx-include="#registerForm"
+                        hx-swap="innerHTML">
+                    <i class="bi bi-person-plus me-2"></i>Create Account
+                </button>
+            }
+        </div>
+    }
+</form>
+
+@if (currentStep == 5)
+{
+    <script>
+        // Update page header for step 5
+        document.addEventListener('DOMContentLoaded', function() {
+            const pageHeader = document.getElementById('pageHeader');
+            if (pageHeader) {
+                pageHeader.innerHTML = `
+                    <h1 class="h3 fw-bold text-success">Welcome to MoreSpeakers.com!</h1>
+                    <p class="text-muted">Your registration has been completed successfully</p>
+                `;
+            }
+        });
+    </script>
+}
+else
+{
+    <script _="on load if #pageHeader exists then set #pageHeader's innerHTML to '<h1 class=\"h3 fw-bold text-primary\">Create Your Speaker Profile</h1><p class=\"text-muted\">Tell us about yourself and join the community</p>'"></script>
+}

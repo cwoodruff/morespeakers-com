@@ -51,7 +51,7 @@
                    hx-post="/Identity/Account/Register?handler=ValidateEmail"
                    hx-trigger="blur, keyup changed delay:500ms"
                    hx-target="#email-validation-message"
-                   hx-vals='js:{"email": event.target.value}'
+                   hx-include="this"
                    hx-indicator="#email-spinner"/>
         </div>
         <div class="d-flex align-items-center">
@@ -62,7 +62,19 @@
                 </div>
             </div>
         </div>
-        <div id="email-validation-message" class="small mt-1"></div>
+        <div id="email-validation-message" class="small mt-1" 
+             _="on htmx:afterRequest from closest <input/> 
+                if detail.xhr.status is 200 
+                then get JSON from detail.xhr.responseText 
+                then if its.isValid 
+                     then set my innerHTML to (its.message ? '<i class=\"bi bi-check-circle me-1\"></i>' + its.message : '') 
+                     then set my className to 'small mt-1 text-success'
+                     then remove .is-invalid from previous <input/>
+                     then add .is-valid to previous <input/>
+                     else set my innerHTML to '<i class=\"bi bi-exclamation-triangle me-1\"></i>' + its.message
+                     then set my className to 'small mt-1 text-danger' 
+                     then remove .is-valid from previous <input/>
+                     then add .is-invalid to previous <input/>"></div>
     </div>
 
     <div class="mb-3">
@@ -103,25 +115,3 @@
         </div>
     </div>
 </div>
-
-<script>
-document.body.addEventListener('htmx:afterRequest', function(evt) {
-    if (evt.detail.target.id === 'email-validation-message') {
-        const response = JSON.parse(evt.detail.xhr.responseText);
-        const messageDiv = document.getElementById('email-validation-message');
-        const emailInput = document.querySelector('input[name="Input.Email"]');
-        
-        if (response.isValid) {
-            messageDiv.innerHTML = response.message ? '<i class="bi bi-check-circle me-1"></i>' + response.message : '';
-            messageDiv.className = 'small mt-1 text-success';
-            emailInput.classList.remove('is-invalid');
-            emailInput.classList.add('is-valid');
-        } else {
-            messageDiv.innerHTML = '<i class="bi bi-exclamation-triangle me-1"></i>' + response.message;
-            messageDiv.className = 'small mt-1 text-danger';
-            emailInput.classList.remove('is-valid');
-            emailInput.classList.add('is-invalid');
-        }
-    }
-});
-</script>

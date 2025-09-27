@@ -53,7 +53,7 @@
                         </div>
 
                         <div class="card shadow-sm border-0">
-                            <div class="card-body p-4">
+                            <div class="card-body p-4" id="registrationContainer">
                                 <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post">
                                     <div asp-validation-summary="ModelOnly" class="alert alert-danger"
                                          role="alert"></div>
@@ -104,7 +104,7 @@
                                         <button type="button" id="prevBtn" class="btn btn-outline-secondary"
                                                 style="display: none;"
                                                 hx-post="/Identity/Account/Register?handler=PreviousStep"
-                                                hx-target="#stepContainer"
+                                                hx-target="#registrationContainer"
                                                 hx-include="#registerForm"
                                                 hx-vals='{"step": "2"}'
                                                 hx-swap="innerHTML">
@@ -112,14 +112,18 @@
                                         </button>
                                         <button type="button" id="nextBtn" class="btn btn-primary"
                                                 hx-post="/Identity/Account/Register?handler=ValidateStep"
-                                                hx-target="#stepContainer"
+                                                hx-target="#registrationContainer"
                                                 hx-include="#registerForm"
                                                 hx-vals='{"step": "1"}'
                                                 hx-swap="innerHTML">
                                             Next<i class="bi bi-arrow-right ms-2"></i>
                                         </button>
                                         <button type="submit" id="submitBtn" class="btn btn-success"
-                                                style="display: none;">
+                                                style="display: none;"
+                                                hx-post="/Identity/Account/Register?handler=Submit"
+                                                hx-target="#registrationContainer"
+                                                hx-include="#registerForm"
+                                                hx-swap="innerHTML">
                                             <i class="bi bi-person-plus me-2"></i>Create Account
                                         </button>
                                     </div>
@@ -157,118 +161,33 @@
     <script src="https://unpkg.com/hyperscript.org@0.9.12"></script>
 
     <script>
-        // Multi-step form logic is now handled by Hyperscript
-
-        // Step management with simplified JavaScript
-        let currentStep = 1;
-
-        function updateStepIndicator(step) {
-            document.querySelectorAll('.step').forEach(s => {
-                s.classList.remove('active');
-                const stepNum = parseInt(s.dataset.step);
-                if (stepNum < step) {
-                    s.classList.add('completed');
-                } else if (stepNum === step) {
-                    s.classList.add('active');
-                } else {
-                    s.classList.remove('completed');
-                }
-            });
-        }
-
-        function updateNavigationButtons(step) {
-            const prevBtn = document.getElementById('prevBtn');
-            const nextBtn = document.getElementById('nextBtn');
-            const submitBtn = document.getElementById('submitBtn');
-            const navigationButtons = document.getElementById('navigationButtons');
-            const pageHeader = document.getElementById('pageHeader');
-
-            // Hide navigation buttons on step 5 (confirmation)
-            if (step === 5) {
-                navigationButtons.style.display = 'none';
-                // Update header for confirmation page
-                if (pageHeader) {
-                    pageHeader.innerHTML = `
-                        <h1 class="h3 fw-bold text-success">Welcome to MoreSpeakers.com!</h1>
-                        <p class="text-muted">Your registration has been completed successfully</p>
-                    `;
-                }
-            } else {
-                navigationButtons.style.display = 'block';
-                // Reset header for other steps
-                if (pageHeader) {
-                    pageHeader.innerHTML = `
-                        <h1 class="h3 fw-bold text-primary">Create Your Speaker Profile</h1>
-                        <p class="text-muted">Tell us about yourself and join the community</p>
-                    `;
-                }
-                
-                prevBtn.style.display = step === 1 ? 'none' : 'block';
-                nextBtn.style.display = step === 4 ? 'none' : 'block';
-                submitBtn.style.display = step === 4 ? 'block' : 'none';
-
-                if (step > 1) {
-                    prevBtn.setAttribute('hx-vals', `{"step": "${step - 1}"}`);
-                }
-                if (step < 4) {
-                    nextBtn.setAttribute('hx-vals', `{"step": "${step}"}`);
-                }
-            }
-
-            currentStep = step;
-        }
-
-        // HTMX event handling
+        // Minimal loading state handling - server will manage step state
         document.addEventListener('htmx:beforeRequest', function (event) {
             const button = event.detail.elt;
+            const originalContent = button.innerHTML;
+            button.setAttribute('data-original-content', originalContent);
+            
             if (button.id === 'nextBtn') {
                 button.disabled = true;
                 button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Validating...';
-            }
-            if (button.id === 'submitBtn') {
+            } else if (button.id === 'submitBtn') {
                 button.disabled = true;
                 button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Creating Account...';
+            } else if (button.id === 'prevBtn') {
+                button.disabled = true;
+                button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Loading...';
             }
         });
 
         document.addEventListener('htmx:afterRequest', function (event) {
             const button = event.detail.elt;
-
-            if (button.id === 'nextBtn') {
+            const originalContent = button.getAttribute('data-original-content');
+            
+            if (originalContent) {
                 button.disabled = false;
-                button.innerHTML = 'Next<i class="bi bi-arrow-right ms-2"></i>';
-
-                const hasErrors = event.target.querySelector('.text-danger, .alert-danger') !== null;
-                if (!hasErrors && event.detail.successful) {
-                    const nextStep = currentStep + 1;
-                    updateStepIndicator(nextStep);
-                    updateNavigationButtons(nextStep);
-                }
+                button.innerHTML = originalContent;
+                button.removeAttribute('data-original-content');
             }
-
-            if (button.id === 'submitBtn') {
-                button.disabled = false;
-                button.innerHTML = '<i class="bi bi-person-plus me-2"></i>Create Account';
-
-                // Check if we got step 5 (registration success)
-                const step5Content = event.target.querySelector('[data-step="5"]');
-                if (step5Content && event.detail.successful) {
-                    // Registration was successful, show step 5
-                    updateStepIndicator(5);
-                    updateNavigationButtons(5);
-                }
-            }
-
-            if (button.id === 'prevBtn' && event.detail.successful) {
-                const prevStep = currentStep - 1;
-                updateStepIndicator(prevStep);
-                updateNavigationButtons(prevStep);
-            }
-        });
-
-        // Initialize navigation buttons on page load
-        document.addEventListener('DOMContentLoaded', function () {
-            updateNavigationButtons(1);
         });
     </script>
 }

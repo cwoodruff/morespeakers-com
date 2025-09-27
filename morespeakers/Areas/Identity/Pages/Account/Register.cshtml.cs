@@ -112,9 +112,10 @@ public class RegisterModel : PageModel
             // Add visual indicators for better UX
             ViewData["HasValidationErrors"] = true;
             ViewData["ValidationMessage"] = GetValidationMessage(step);
+            ViewData["CurrentStep"] = step;
 
-            // Return the current step with validation errors
-            return Partial("_RegisterStep" + step, this);
+            // Return the complete registration container with current step and validation errors
+            return Partial("_RegistrationContainer", this);
         }
 
         // All validation passed - move to next step
@@ -123,13 +124,17 @@ public class RegisterModel : PageModel
         {
             ViewData["HasValidationErrors"] = false;
             ViewData["SuccessMessage"] = GetSuccessMessage(step);
-            return Partial("_RegisterStep" + nextStep, this);
+            ViewData["CurrentStep"] = nextStep;
+            
+            // Return complete registration container with next step
+            return Partial("_RegistrationContainer", this);
         }
 
         // If we're at the last step, indicate success
         ViewData["HasValidationErrors"] = false;
         ViewData["SuccessMessage"] = "All steps completed successfully!";
-        return new JsonResult(new { success = true, nextStep });
+        ViewData["CurrentStep"] = nextStep;
+        return Partial("_RegistrationContainer", this);
     }
 
     private string GetValidationMessage(int step)
@@ -162,9 +167,12 @@ public class RegisterModel : PageModel
 
         // Return previous step without validation
         var prevStep = step - 1;
-        if (prevStep >= 1) return Partial("_RegisterStep" + prevStep, this);
-
-        return Partial("_RegisterStep1", this);
+        if (prevStep < 1) prevStep = 1;
+        
+        ViewData["CurrentStep"] = prevStep;
+        ViewData["HasValidationErrors"] = false;
+        
+        return Partial("_RegistrationContainer", this);
     }
 
     public async Task<IActionResult> OnPostValidateEmailAsync(string email)
@@ -390,8 +398,11 @@ public class RegisterModel : PageModel
                 // Load data needed for step 5 display
                 await LoadFormDataAsync();
                 
+                ViewData["CurrentStep"] = 5;
+                ViewData["HasValidationErrors"] = false;
+                
                 // Return step 5 (confirmation) instead of redirecting away
-                return Partial("_RegisterStep5", this);
+                return Partial("_RegistrationContainer", this);
             }
 
             foreach (var error in result.Errors) ModelState.AddModelError(string.Empty, error.Description);
