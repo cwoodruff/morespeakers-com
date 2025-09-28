@@ -30,7 +30,7 @@ public class ViewModel(ApplicationDbContext context) : PageModel
 
         if (ProfileUser == null)
         {
-            return Page(); // Will render the "Profile not found" message
+            return NotFound();
         }
 
         UserExpertise = await _context.UserExpertise
