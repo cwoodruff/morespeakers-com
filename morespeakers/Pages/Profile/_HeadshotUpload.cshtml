@@ -1,0 +1,97 @@
+@model morespeakers.Pages.Profile.EditModel
+
+@if (Model.HasValidationErrors && !string.IsNullOrEmpty(Model.ValidationMessage))
+{
+    <div class="alert alert-danger mb-3">
+        <i class="bi bi-exclamation-triangle me-2"></i>@Model.ValidationMessage
+    </div>
+}
+@if (!Model.HasValidationErrors && !string.IsNullOrEmpty(Model.SuccessMessage))
+{
+    <div class="alert alert-success mb-3">
+        <i class="bi bi-check-circle me-2"></i>@Model.SuccessMessage
+    </div>
+}
+
+<div class="text-center mb-4">
+    <!-- Current Headshot Display -->
+    <div class="mb-3">
+        @if (!string.IsNullOrEmpty(Model.ProfileUser.HeadshotUrl))
+        {
+            <img src="@Model.ProfileUser.HeadshotUrl" 
+                 alt="Current headshot" 
+                 class="rounded-circle border shadow-sm" 
+                 style="width: 120px; height: 120px; object-fit: cover;" 
+                 id="currentHeadshot" />
+        }
+        else
+        {
+            <div class="rounded-circle border shadow-sm bg-light d-flex align-items-center justify-content-center" 
+                 style="width: 120px; height: 120px; margin: 0 auto;" 
+                 id="currentHeadshot">
+                <i class="bi bi-person display-4 text-muted"></i>
+            </div>
+        }
+    </div>
+
+    <!-- Upload Form -->
+    <form hx-post="/Profile/Edit?handler=UploadHeadshot" 
+          hx-target="#headshotContainer" 
+          hx-swap="innerHTML" 
+          hx-indicator="#headshotSpinner"
+          enctype="multipart/form-data"
+          class="mb-3">
+        
+        <div class="mb-3">
+            <input type="file" 
+                   name="Input.HeadshotFile" 
+                   id="headshotFile" 
+                   class="form-control" 
+                   accept="image/*"
+                   onchange="previewImage(this)" />
+            <div class="form-text">
+                Upload a professional headshot (JPG, PNG, or GIF, max 5MB)
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-center align-items-center gap-2">
+            <div id="headshotSpinner" class="htmx-indicator">
+                <div class="spinner-border spinner-border-sm me-2" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                Uploading...
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm">
+                <i class="bi bi-upload me-2"></i>Upload Headshot
+            </button>
+        </div>
+    </form>
+
+    <!-- Manual URL Input Alternative -->
+    <div class="mt-3">
+        <small class="text-muted">
+            Or provide a URL to your headshot:
+        </small>
+        <div class="mt-2">
+            <input asp-for="Input.HeadshotUrl" 
+                   class="form-control form-control-sm" 
+                   placeholder="https://example.com/your-photo.jpg" />
+            <div class="form-text">Direct link to your professional headshot image</div>
+        </div>
+    </div>
+</div>
+
+<script>
+function previewImage(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const currentHeadshot = document.getElementById('currentHeadshot');
+            if (currentHeadshot) {
+                currentHeadshot.innerHTML = `<img src="${e.target.result}" alt="Preview" class="rounded-circle" style="width: 120px; height: 120px; object-fit: cover;" />`;
+            }
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+</script>

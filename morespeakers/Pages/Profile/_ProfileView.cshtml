@@ -1,0 +1,173 @@
+@model morespeakers.Pages.Profile.IndexModel
+
+<!-- Profile Header Card -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row align-items-center">
+            <div class="col-md-3 text-center mb-3 mb-md-0">
+                @if (!string.IsNullOrEmpty(Model.ProfileUser.HeadshotUrl))
+                {
+                    <img src="@Model.ProfileUser.HeadshotUrl" 
+                         alt="@Model.ProfileUser.FullName" 
+                         class="rounded-circle border shadow-sm" 
+                         style="width: 150px; height: 150px; object-fit: cover;" />
+                }
+                else
+                {
+                    <div class="rounded-circle border shadow-sm bg-light d-flex align-items-center justify-content-center" 
+                         style="width: 150px; height: 150px;">
+                        <i class="bi bi-person display-4 text-muted"></i>
+                    </div>
+                }
+            </div>
+            <div class="col-md-9">
+                <div class="d-flex align-items-start justify-content-between flex-wrap">
+                    <div class="flex-grow-1">
+                        <h2 class="mb-2">@Model.ProfileUser.FullName</h2>
+                        <div class="mb-3">
+                            <span class="badge @(Model.ProfileUser.IsNewSpeaker ? "bg-primary" : "bg-success") fs-6 px-3 py-2">
+                                <i class="bi @(Model.ProfileUser.IsNewSpeaker ? "bi-person-plus" : "bi-award") me-2"></i>
+                                @(Model.ProfileUser.IsNewSpeaker ? "New Speaker" : "Experienced Speaker")
+                            </span>
+                        </div>
+                        <div class="row text-muted small mb-3">
+                            <div class="col-md-6">
+                                <i class="bi bi-envelope me-2"></i>@Model.ProfileUser.Email
+                            </div>
+                            @if (!string.IsNullOrEmpty(Model.ProfileUser.PhoneNumber))
+                            {
+                                <div class="col-md-6">
+                                    <i class="bi bi-telephone me-2"></i>@Model.ProfileUser.PhoneNumber
+                                </div>
+                            }
+                        </div>
+                        @if (!string.IsNullOrEmpty(Model.ProfileUser.Bio))
+                        {
+                            <p class="text-muted mb-0">@Model.ProfileUser.Bio</p>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Goals Section -->
+@if (!string.IsNullOrEmpty(Model.ProfileUser.Goals))
+{
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="bi bi-target me-2"></i>Goals & Objectives
+            </h5>
+        </div>
+        <div class="card-body">
+            <p class="mb-0">@Model.ProfileUser.Goals</p>
+        </div>
+    </div>
+}
+
+<!-- Expertise and Links Row -->
+<div class="row">
+    @if (Model.UserExpertise?.Any() == true)
+    {
+        <div class="col-md-@(Model.SocialMedia?.Any() == true ? "6" : "12") mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-gear-fill me-2"></i>
+                        Expertise Areas
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex flex-wrap gap-2">
+                        @foreach (var ue in Model.UserExpertise)
+                        {
+                            <span class="badge bg-secondary px-3 py-2">@ue.Expertise.Name</span>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (Model.SocialMedia?.Any() == true)
+    {
+        <div class="col-md-@(Model.UserExpertise?.Any() == true ? "6" : "12") mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-link-45deg me-2"></i>
+                        Social Links
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex flex-column gap-2">
+                        @foreach (var link in Model.SocialMedia)
+                        {
+                            <a href="@link.Url" target="_blank" class="btn btn-outline-primary btn-sm text-start">
+                                <i class="bi bi-box-arrow-up-right me-2"></i>
+                                @link.Platform
+                            </a>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Additional Information -->
+<div class="row">
+    @if (!string.IsNullOrEmpty(Model.ProfileUser.SessionizeUrl))
+    {
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-calendar3 me-2"></i>Sessionize Profile
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <a href="@Model.ProfileUser.SessionizeUrl" target="_blank" class="btn btn-outline-primary">
+                        <i class="bi bi-box-arrow-up-right me-2"></i>View Sessionize Profile
+                    </a>
+                </div>
+            </div>
+        </div>
+    }
+    
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="bi bi-info-circle me-2"></i>Account Info
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="small text-muted">
+                    <div class="mb-2">
+                        <strong>Member since:</strong> @Model.ProfileUser.CreatedDate.ToString("MMMM dd, yyyy")
+                    </div>
+                    <div>
+                        <strong>Last updated:</strong> @Model.ProfileUser.UpdatedDate.ToString("MMMM dd, yyyy")
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (Model.UserExpertise?.Any() != true && Model.SocialMedia?.Any() != true)
+{
+    <div class="card">
+        <div class="card-body text-center py-5">
+            <i class="bi bi-info-circle display-4 text-muted mb-3"></i>
+            <h5 class="text-muted">Complete Your Profile</h5>
+            <p class="text-muted mb-3">Add expertise areas and social links to help others connect with you.</p>
+            <a href="/Profile/Edit" class="btn btn-primary">
+                <i class="bi bi-pencil me-2"></i>Edit Profile
+            </a>
+        </div>
+    </div>
+}
