@@ -74,8 +74,8 @@ builder.Services.AddSession(options =>
 
 var app = builder.Build();
 
-// Map Aspire default endpoints
-app.MapDefaultEndpoints();
+// Map health checks endpoint at /health for readiness probes
+app.MapHealthChecks("/health");
 
 // Configure the HTTP request pipeline
 if (!app.Environment.IsDevelopment())
