@@ -119,6 +119,25 @@ public class RegisterModel : PageModel
         // Validate current step
         var stepValid = ValidateStep(step);
 
+        // Additional async validations for step 1 (e.g., email uniqueness)
+        if (step == 1 && stepValid)
+        {
+            if (!string.IsNullOrWhiteSpace(Input?.Email))
+            {
+                var existingUser = await _userManager.FindByEmailAsync(Input.Email);
+                if (existingUser != null)
+                {
+                    ModelState.AddModelError("Input.Email", "This email address is already in use.");
+                    ModelState.AddModelError("", "This email address is already in use.");
+                    HasValidationErrors = true;
+                    ValidationMessage = GetValidationMessage(step);
+                    CurrentStep = step;
+                    SuccessMessage = string.Empty;
+                    return Partial("_RegistrationContainer", this);
+                }
+            }
+        }
+
         if (!stepValid)
         {
             // Add visual indicators for better UX
@@ -286,17 +305,63 @@ public class RegisterModel : PageModel
         {
             case 1: // Account step
                 if (string.IsNullOrWhiteSpace(Input.FirstName))
+                {
                     ModelState.AddModelError("Input.FirstName", "First name is required.");
+                }
                 if (string.IsNullOrWhiteSpace(Input.LastName))
+                {
                     ModelState.AddModelError("Input.LastName", "Last name is required.");
+                }
+                // Email required and format validation
                 if (string.IsNullOrWhiteSpace(Input.Email))
+                {
                     ModelState.AddModelError("Input.Email", "Email is required.");
+                    ModelState.AddModelError("", "Email is required.");
+                }
+                else
+                {
+                    var emailAttr = new EmailAddressAttribute();
+                    if (!emailAttr.IsValid(Input.Email))
+                    {
+                        ModelState.AddModelError("Input.Email", "Please enter a valid email address.");
+                        ModelState.AddModelError("", "Please enter a valid email address.");
+                    }
+                }
+                // Phone required and basic format validation (numbers, spaces, dashes, parentheses, leading +)
                 if (string.IsNullOrWhiteSpace(Input.PhoneNumber))
+                {
                     ModelState.AddModelError("Input.PhoneNumber", "Phone number is required.");
+                    ModelState.AddModelError("", "Phone number is required.");
+                }
+                else
+                {
+                    // Allow formats like +1 (555) 123-4567 or 555-123-4567 etc.
+                    var phone = Input.PhoneNumber?.Trim();
+                    // Reject if contains letters
+                    if (phone.Any(char.IsLetter))
+                    {
+                        ModelState.AddModelError("Input.PhoneNumber", "Please enter a valid phone number.");
+                        ModelState.AddModelError("", "Please enter a valid phone number.");
+                    }
+                    else
+                    {
+                        // Ensure at least 10 digits present
+                        var digitCount = phone.Count(char.IsDigit);
+                        if (digitCount < 10)
+                        {
+                            ModelState.AddModelError("Input.PhoneNumber", "Phone number must contain at least 10 digits.");
+                            ModelState.AddModelError("", "Phone number must contain at least 10 digits.");
+                        }
+                    }
+                }
                 if (string.IsNullOrWhiteSpace(Input.Password))
+                {
                     ModelState.AddModelError("Input.Password", "Password is required.");
+                }
                 if (Input.Password != Input.ConfirmPassword)
+                {
                     ModelState.AddModelError("Input.ConfirmPassword", "Passwords do not match.");
+                }
                 break;
             case 2: // Profile step
                 if (Input.SpeakerTypeId <= 0)
