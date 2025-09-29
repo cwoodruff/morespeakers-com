@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="theme-color" content="#fd7e14"/>
     <title>@ViewData["Title"] - MoreSpeakers.com</title>
     <link rel="icon" type="image/png" sizes="32x32" href="~/images/favicon-32x32.png">
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css"/>
@@ -47,6 +48,30 @@
                     </li>
                 </ul>
                 <ul class="navbar-nav">
+                    <!-- Theme Toggle -->
+                    <li class="nav-item">
+                        <div class="theme-toggle">
+                            <button class="theme-toggle-btn" id="themeToggle" type="button" title="Change theme">
+                                <i class="bi bi-circle-half" id="themeIcon"></i>
+                                <span id="themeText">System</span>
+                                <i class="bi bi-chevron-down"></i>
+                            </button>
+                            <div class="theme-dropdown" id="themeDropdown">
+                                <button class="theme-option" data-theme="light">
+                                    <i class="bi bi-sun-fill theme-icon"></i>
+                                    Light
+                                </button>
+                                <button class="theme-option" data-theme="dark">
+                                    <i class="bi bi-moon-fill theme-icon"></i>
+                                    Dark
+                                </button>
+                                <button class="theme-option active" data-theme="system">
+                                    <i class="bi bi-circle-half theme-icon"></i>
+                                    System
+                                </button>
+                            </div>
+                        </div>
+                    </li>
                     <li class="nav-item">
                         <a class="nav-link" href="https://github.com/cwoodruff/morespeakers-com" target="_blank" title="View on GitHub">
                             <i class="bi bi-github"></i>
@@ -149,7 +174,7 @@
 
 <!-- Version Display -->
 <div class="position-fixed bottom-0 end-0 p-2" style="z-index: 1000;">
-    <small class="text-muted opacity-50" style="font-size: 0.7rem;">v0.0.1</small>
+    <small class="text-muted opacity-50" style="font-size: 0.7rem;">v0.0.42</small>
 </div>
 
 <script src="~/lib/jquery/dist/jquery.min.js"></script>

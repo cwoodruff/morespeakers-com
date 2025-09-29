@@ -3,6 +3,7 @@
 
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
+    initializeThemeToggle();
     initializeTooltips();
     initializeFileUploads();
     initializeFormValidation();
@@ -626,6 +627,159 @@ function initializeAccountPage() {
     });
 }
 
+// Theme Management System
+function initializeThemeToggle() {
+    const themeToggle = document.getElementById('themeToggle');
+    const themeDropdown = document.getElementById('themeDropdown');
+    const themeIcon = document.getElementById('themeIcon');
+    const themeText = document.getElementById('themeText');
+    const themeOptions = document.querySelectorAll('.theme-option');
+
+    if (!themeToggle) return;
+
+    // Load saved theme or default to system
+    const savedTheme = getCookie('theme') || 'system';
+    applyTheme(savedTheme);
+    updateThemeUI(savedTheme);
+
+    // Toggle dropdown
+    themeToggle.addEventListener('click', function(e) {
+        e.stopPropagation();
+        themeDropdown.classList.toggle('show');
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!themeToggle.contains(e.target)) {
+            themeDropdown.classList.remove('show');
+        }
+    });
+
+    // Handle theme selection
+    themeOptions.forEach(option => {
+        option.addEventListener('click', function() {
+            const selectedTheme = this.getAttribute('data-theme');
+            applyTheme(selectedTheme);
+            updateThemeUI(selectedTheme);
+            setCookie('theme', selectedTheme, 365);
+            themeDropdown.classList.remove('show');
+        });
+    });
+
+    // Listen for system theme changes
+    if (window.matchMedia) {
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        mediaQuery.addEventListener('change', function() {
+            const currentTheme = getCookie('theme') || 'system';
+            if (currentTheme === 'system') {
+                applyTheme('system');
+            }
+        });
+    }
+}
+
+function applyTheme(theme) {
+    const html = document.documentElement;
+    
+    // Remove existing theme classes
+    html.removeAttribute('data-theme');
+    
+    if (theme === 'dark') {
+        html.setAttribute('data-theme', 'dark');
+    } else if (theme === 'light') {
+        html.setAttribute('data-theme', 'light');
+    } else {
+        // System theme - let CSS media queries handle it
+        // Remove data-theme attribute to allow system preference
+    }
+    
+    // Update meta theme-color for mobile browsers
+    updateMetaThemeColor(theme);
+}
+
+function updateThemeUI(theme) {
+    const themeIcon = document.getElementById('themeIcon');
+    const themeText = document.getElementById('themeText');
+    const themeOptions = document.querySelectorAll('.theme-option');
+
+    if (!themeIcon || !themeText) return;
+
+    // Update button display
+    switch (theme) {
+        case 'light':
+            themeIcon.className = 'bi bi-sun-fill';
+            themeText.textContent = 'Light';
+            break;
+        case 'dark':
+            themeIcon.className = 'bi bi-moon-fill';
+            themeText.textContent = 'Dark';
+            break;
+        default:
+            themeIcon.className = 'bi bi-circle-half';
+            themeText.textContent = 'System';
+    }
+
+    // Update active option
+    themeOptions.forEach(option => {
+        option.classList.remove('active');
+        if (option.getAttribute('data-theme') === theme) {
+            option.classList.add('active');
+        }
+    });
+}
+
+function updateMetaThemeColor(theme) {
+    let themeColor = '#fd7e14'; // Default primary color
+    
+    if (theme === 'dark' || (theme === 'system' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        themeColor = '#0d1117'; // Dark theme background
+    }
+    
+    // Update or create meta theme-color tag
+    let metaThemeColor = document.querySelector('meta[name="theme-color"]');
+    if (!metaThemeColor) {
+        metaThemeColor = document.createElement('meta');
+        metaThemeColor.name = 'theme-color';
+        document.head.appendChild(metaThemeColor);
+    }
+    metaThemeColor.content = themeColor;
+}
+
+// Cookie utility functions
+function setCookie(name, value, days) {
+    const expires = new Date();
+    expires.setTime(expires.getTime() + (days * 24 * 60 * 60 * 1000));
+    document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;SameSite=Lax`;
+}
+
+function getCookie(name) {
+    const nameEQ = name + "=";
+    const ca = document.cookie.split(';');
+    for (let i = 0; i < ca.length; i++) {
+        let c = ca[i];
+        while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+        if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+    }
+    return null;
+}
+
+function deleteCookie(name) {
+    document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 UTC;path=/;`;
+}
+
+// Apply theme immediately to prevent flash
+(function() {
+    const savedTheme = getCookie('theme') || 'system';
+    const html = document.documentElement;
+    
+    if (savedTheme === 'dark') {
+        html.setAttribute('data-theme', 'dark');
+    } else if (savedTheme === 'light') {
+        html.setAttribute('data-theme', 'light');
+    }
+    // For system theme, let CSS media queries handle it
+})();
+
 // Export functions for global use
 window.MoreSpeakers = {
     showAlert,
@@ -638,5 +792,9 @@ window.MoreSpeakers = {
     removeCustomExpertise,
     addSocialMediaRow,
     removeSocialMediaRow,
-    updatePageHeader
+    updatePageHeader,
+    applyTheme,
+    setCookie,
+    getCookie,
+    deleteCookie
 };
