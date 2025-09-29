@@ -987,6 +987,40 @@ h1, h2, h3, h4, h5, h6 {
     /* Footer */
     .footer { color: var(--text-muted); }
     .footer h6 { color: var(--text-color); }
+    
+    /* Theme dropdown options in dark mode */
+    .theme-option {
+        color: var(--text-color);
+    }
+    
+    .theme-option[data-theme="light"] {
+        color: #e1e6eb; /* Always dark text for Light option in dark mode */
+    }
+    
+    .theme-option[data-theme="dark"] {
+        color: #e6edf3; /* Always light text for Dark option in dark mode */
+    }
+    
+    .theme-option[data-theme="system"] {
+        color: var(--text-color); /* Use theme color for System option */
+    }
+}
+
+/* Light mode theme dropdown options */
+[data-theme="light"] .theme-option {
+    color: var(--text-color);
+}
+
+[data-theme="light"] .theme-option[data-theme="light"] {
+    color: #212529; /* Always dark text for Light option in light mode */
+}
+
+[data-theme="light"] .theme-option[data-theme="dark"] {
+    color: #495057; /* Darker gray for Dark option in light mode for contrast */
+}
+
+[data-theme="light"] .theme-option[data-theme="system"] {
+    color: var(--text-color); /* Use theme color for System option */
 }
 
 [data-theme="dark"] .footer p {
