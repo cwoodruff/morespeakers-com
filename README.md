@@ -39,10 +39,10 @@ MoreSpeakers.com is a mentorship platform designed to help aspiring speakers in 
 ## Quick Start
 
 ### Prerequisites
-- .NET 8.0 SDK
-- Visual Studio 2022 or VS Code
+- .NET 9.0 SDK
+- Visual Studio 2022, JetBrains Rider or VS Code
 - Docker Desktop (for .NET Aspire)
-- SQL Server LocalDB or SQL Server Express
+- Azure SQL, SQL Server Full,  LocalDB or SQL Server Express
 
 ### Installation
 
