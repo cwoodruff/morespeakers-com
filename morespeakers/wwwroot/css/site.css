@@ -637,6 +637,36 @@ h1, h2, h3, h4, h5, h6 {
     color: white;
 }
 
+/* Ensure proper contrast for theme options in all modes */
+.theme-option[data-theme="light"] {
+    color: #212529; /* Always dark text for light theme option */
+}
+
+.theme-option[data-theme="dark"] {
+    color: #e6edf3; /* Always light text for dark theme option */
+}
+
+.theme-option[data-theme="system"] {
+    color: var(--text-color); /* Use current theme color for system option */
+}
+
+/* Override hover colors to maintain readability */
+.theme-option[data-theme="light"]:hover {
+    background-color: var(--bg-secondary);
+    color: #212529; /* Keep dark text on hover */
+}
+
+.theme-option[data-theme="dark"]:hover {
+    background-color: var(--bg-secondary);
+    color: #e6edf3; /* Keep light text on hover */
+}
+
+/* Active state overrides for better visibility */
+.theme-option.active {
+    background-color: var(--primary-color) !important;
+    color: white !important;
+}
+
 .theme-icon {
     width: 16px;
     height: 16px;
