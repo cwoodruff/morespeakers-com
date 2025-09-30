@@ -39,8 +39,26 @@
                     </li>
                     @if (User.Identity?.IsAuthenticated == true)
                     {
-                        <li class="nav-item">
-                            <a class="nav-link" asp-area="" asp-page="/Mentorship/Index">My Mentorships</a>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-people me-1"></i>Mentorship
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="/BrowseSpeakers">
+                                        <i class="bi bi-search me-2"></i>Find Mentors
+                                    </a></li>
+                                <li><a class="dropdown-item" href="/Mentorship/Requests">
+                                        <i class="bi bi-inbox me-2"></i>My Requests
+                                        <div id="nav-notification-badge" 
+                                             hx-get="/Mentorship/NotificationCount"
+                                             hx-trigger="every 60s"
+                                             hx-swap="innerHTML"
+                                             class="d-inline"></div>
+                                    </a></li>
+                                <li><a class="dropdown-item" href="/Mentorship/Active">
+                                        <i class="bi bi-chat-dots me-2"></i>Active Mentorships
+                                    </a></li>
+                            </ul>
                         </li>
                     }
                     <li class="nav-item">
@@ -131,7 +149,7 @@
 <main role="main">
     @RenderBody()
 </main>
-
+ƒ
 <footer class="footer text-muted">
     <div class="container">
         <div class="row gy-2">

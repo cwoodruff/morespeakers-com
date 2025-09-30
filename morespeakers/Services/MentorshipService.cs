@@ -4,36 +4,40 @@ using morespeakers.Models;
 
 namespace morespeakers.Services;
 
-// Mentorship Service Implementation
-public class MentorshipService(ApplicationDbContext context) : IMentorshipService
+public class MentorshipService : IMentorshipService
 {
-    private readonly ApplicationDbContext _context = context;
+    private readonly ApplicationDbContext _context;
+
+    public MentorshipService(ApplicationDbContext context)
+    {
+        _context = context;
+    }
 
     public async Task<IEnumerable<Mentorship>> GetMentorshipsForMentorAsync(Guid mentorId)
     {
         return await _context.Mentorships
-            .Include(m => m.NewSpeaker)
             .Include(m => m.Mentor)
+            .Include(m => m.Mentee)
             .Where(m => m.MentorId == mentorId)
-            .OrderByDescending(m => m.RequestDate)
+            .OrderByDescending(m => m.RequestedAt)
             .ToListAsync();
     }
 
     public async Task<IEnumerable<Mentorship>> GetMentorshipsForNewSpeakerAsync(Guid newSpeakerId)
     {
         return await _context.Mentorships
-            .Include(m => m.NewSpeaker)
             .Include(m => m.Mentor)
-            .Where(m => m.NewSpeakerId == newSpeakerId)
-            .OrderByDescending(m => m.RequestDate)
+            .Include(m => m.Mentee)
+            .Where(m => m.MenteeId == newSpeakerId)
+            .OrderByDescending(m => m.RequestedAt)
             .ToListAsync();
     }
 
     public async Task<Mentorship?> GetMentorshipByIdAsync(Guid id)
     {
         return await _context.Mentorships
-            .Include(m => m.NewSpeaker)
             .Include(m => m.Mentor)
+            .Include(m => m.Mentee)
             .FirstOrDefaultAsync(m => m.Id == id);
     }
 
@@ -41,20 +45,25 @@ public class MentorshipService(ApplicationDbContext context) : IMentorshipServic
     {
         try
         {
-            // Check if mentorship already exists
-            var existing = await _context.Mentorships
-                .FirstOrDefaultAsync(m =>
-                    m.NewSpeakerId == newSpeakerId && m.MentorId == mentorId && m.Status != "Cancelled");
+            // Check if there's already a pending or active mentorship between these users
+            var existingMentorship = await _context.Mentorships
+                .FirstOrDefaultAsync(m => 
+                    m.MenteeId == newSpeakerId && 
+                    m.MentorId == mentorId && 
+                    (m.Status == MentorshipStatus.Pending || m.Status == MentorshipStatus.Active));
 
-            if (existing != null)
+            if (existingMentorship != null)
                 return false;
 
             var mentorship = new Mentorship
             {
-                NewSpeakerId = newSpeakerId,
+                Id = Guid.NewGuid(),
                 MentorId = mentorId,
-                Status = "Pending",
-                Notes = notes
+                MenteeId = newSpeakerId,
+                Status = MentorshipStatus.Pending,
+                RequestedAt = DateTime.UtcNow,
+                RequestMessage = notes,
+                Type = MentorshipType.NewToExperienced
             };
 
             _context.Mentorships.Add(mentorship);
@@ -72,15 +81,15 @@ public class MentorshipService(ApplicationDbContext context) : IMentorshipServic
         try
         {
             var mentorship = await _context.Mentorships.FindAsync(mentorshipId);
-            if (mentorship != null && mentorship.Status == "Pending")
-            {
-                mentorship.Status = "Active";
-                mentorship.AcceptedDate = DateTime.UtcNow;
-                await _context.SaveChangesAsync();
-                return true;
-            }
+            if (mentorship == null || mentorship.Status != MentorshipStatus.Pending)
+                return false;
 
-            return false;
+            mentorship.Status = MentorshipStatus.Active;
+            mentorship.StartedAt = DateTime.UtcNow;
+            mentorship.ResponsedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+            return true;
         }
         catch
         {
@@ -93,19 +102,16 @@ public class MentorshipService(ApplicationDbContext context) : IMentorshipServic
         try
         {
             var mentorship = await _context.Mentorships.FindAsync(mentorshipId);
-            if (mentorship != null && mentorship.Status == "Active")
-            {
-                mentorship.Status = "Completed";
-                mentorship.CompletedDate = DateTime.UtcNow;
-                if (!string.IsNullOrWhiteSpace(notes))
-                    mentorship.Notes = string.IsNullOrWhiteSpace(mentorship.Notes)
-                        ? notes
-                        : $"{mentorship.Notes}\n\nCompletion Notes: {notes}";
-                await _context.SaveChangesAsync();
-                return true;
-            }
+            if (mentorship == null || mentorship.Status != MentorshipStatus.Active)
+                return false;
 
-            return false;
+            mentorship.Status = MentorshipStatus.Completed;
+            mentorship.CompletedAt = DateTime.UtcNow;
+            if (!string.IsNullOrEmpty(notes))
+                mentorship.Notes = notes;
+
+            await _context.SaveChangesAsync();
+            return true;
         }
         catch
         {
@@ -118,18 +124,15 @@ public class MentorshipService(ApplicationDbContext context) : IMentorshipServic
         try
         {
             var mentorship = await _context.Mentorships.FindAsync(mentorshipId);
-            if (mentorship != null && (mentorship.Status == "Pending" || mentorship.Status == "Active"))
-            {
-                mentorship.Status = "Cancelled";
-                if (!string.IsNullOrWhiteSpace(reason))
-                    mentorship.Notes = string.IsNullOrWhiteSpace(mentorship.Notes)
-                        ? $"Cancelled: {reason}"
-                        : $"{mentorship.Notes}\n\nCancellation Reason: {reason}";
-                await _context.SaveChangesAsync();
-                return true;
-            }
+            if (mentorship == null)
+                return false;
 
-            return false;
+            mentorship.Status = MentorshipStatus.Cancelled;
+            if (!string.IsNullOrEmpty(reason))
+                mentorship.Notes = reason;
+
+            await _context.SaveChangesAsync();
+            return true;
         }
         catch
         {
@@ -142,14 +145,12 @@ public class MentorshipService(ApplicationDbContext context) : IMentorshipServic
         try
         {
             var mentorship = await _context.Mentorships.FindAsync(mentorshipId);
-            if (mentorship != null)
-            {
-                mentorship.Notes = notes;
-                await _context.SaveChangesAsync();
-                return true;
-            }
+            if (mentorship == null)
+                return false;
 
-            return false;
+            mentorship.Notes = notes;
+            await _context.SaveChangesAsync();
+            return true;
         }
         catch
         {
@@ -160,20 +161,20 @@ public class MentorshipService(ApplicationDbContext context) : IMentorshipServic
     public async Task<IEnumerable<Mentorship>> GetPendingMentorshipsAsync()
     {
         return await _context.Mentorships
-            .Include(m => m.NewSpeaker)
             .Include(m => m.Mentor)
-            .Where(m => m.Status == "Pending")
-            .OrderBy(m => m.RequestDate)
+            .Include(m => m.Mentee)
+            .Where(m => m.Status == MentorshipStatus.Pending)
+            .OrderByDescending(m => m.RequestedAt)
             .ToListAsync();
     }
 
     public async Task<IEnumerable<Mentorship>> GetActiveMentorshipsAsync()
     {
         return await _context.Mentorships
-            .Include(m => m.NewSpeaker)
             .Include(m => m.Mentor)
-            .Where(m => m.Status == "Active")
-            .OrderBy(m => m.AcceptedDate)
+            .Include(m => m.Mentee)
+            .Where(m => m.Status == MentorshipStatus.Active)
+            .OrderByDescending(m => m.StartedAt)
             .ToListAsync();
     }
 }

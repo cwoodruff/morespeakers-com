@@ -13,6 +13,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<UserExpertise> UserExpertise { get; set; }
     public DbSet<SocialMedia> SocialMedia { get; set; }
     public DbSet<Mentorship> Mentorships { get; set; }
+    public DbSet<MentorshipExpertise> MentorshipExpertise { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -47,9 +48,9 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
                 .HasForeignKey(m => m.MentorId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            entity.HasMany(e => e.MentorshipsAsNewSpeaker)
-                .WithOne(m => m.NewSpeaker)
-                .HasForeignKey(m => m.NewSpeakerId)
+            entity.HasMany(e => e.MentorshipsAsMentee)
+                .WithOne(m => m.Mentee)
+                .HasForeignKey(m => m.MenteeId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
@@ -109,24 +110,41 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
             entity.Property(e => e.Id)
                 .HasDefaultValueSql("NEWID()");
 
-            entity.Property(e => e.RequestDate)
+            entity.Property(e => e.RequestedAt)
                 .HasDefaultValueSql("GETUTCDATE()");
 
             entity.Property(e => e.Status)
-                .HasDefaultValue("Pending");
+                .HasConversion<string>()
+                .HasDefaultValue(MentorshipStatus.Pending);
 
-            entity.HasIndex(e => e.NewSpeakerId);
+            entity.Property(e => e.Type)
+                .HasConversion<string>()
+                .HasDefaultValue(MentorshipType.NewToExperienced);
+
+            entity.HasIndex(e => e.MenteeId);
             entity.HasIndex(e => e.MentorId);
             entity.HasIndex(e => e.Status);
-            entity.HasIndex(e => new { e.Status, e.RequestDate });
-
-            entity.ToTable(t => t.HasCheckConstraint(
-                "CHK_Mentorships_Status",
-                "[Status] IN ('Pending', 'Active', 'Completed', 'Cancelled')"));
+            entity.HasIndex(e => new { e.Status, e.RequestedAt });
 
             entity.ToTable(t => t.HasCheckConstraint(
                 "CHK_Mentorships_DifferentUsers",
-                "[NewSpeakerId] != [MentorId]"));
+                "[MenteeId] != [MentorId]"));
+        });
+
+        // Configure MentorshipExpertise many-to-many relationship
+        builder.Entity<MentorshipExpertise>(entity =>
+        {
+            entity.HasKey(e => new { e.MentorshipId, e.ExpertiseId });
+
+            entity.HasOne(e => e.Mentorship)
+                .WithMany(m => m.FocusAreas)
+                .HasForeignKey(e => e.MentorshipId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.Expertise)
+                .WithMany()
+                .HasForeignKey(e => e.ExpertiseId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         // Seed initial data

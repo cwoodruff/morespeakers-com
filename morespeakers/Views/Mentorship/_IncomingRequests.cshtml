@@ -1,0 +1,105 @@
+@model List<Mentorship>
+
+@if (!Model.Any())
+{
+    <div class="text-center py-4">
+        <i class="bi bi-inbox display-4 text-muted"></i>
+        <h6 class="mt-3">No incoming requests</h6>
+        <p class="text-muted">You don't have any pending mentorship requests.</p>
+    </div>
+}
+else
+{
+    @foreach (var request in Model)
+    {
+        <div class="request-card card mb-3">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="d-flex align-items-center">
+                        <div class="me-3">
+                            @if (!string.IsNullOrEmpty(request.Mentee.HeadshotUrl))
+                            {
+                                <img src="@request.Mentee.HeadshotUrl" class="mentor-avatar" alt="@request.Mentee.FullName">
+                            }
+                            else
+                            {
+                                <div class="mentor-avatar mentor-avatar-placeholder">
+                                    <i class="bi bi-person-fill"></i>
+                                </div>
+                            }
+                        </div>
+                        <div>
+                            <h6 class="mb-1">@request.Mentee.FullName</h6>
+                            <small class="text-muted">@request.Mentee.SpeakerType.Name</small>
+                            <div class="mt-1">
+                                @if (request.Type == MentorshipType.NewToExperienced)
+                                {
+                                    <span class="badge bg-primary">New Speaker Mentorship</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-info">Peer Mentorship</span>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    <small class="text-muted">@request.RequestedAt.ToString("MMM dd, yyyy")</small>
+                </div>
+
+                <div class="mb-3">
+                    <strong class="small">Message:</strong>
+                    <p class="mb-0">@request.RequestMessage</p>
+                </div>
+
+                @if (request.FocusAreas.Any())
+                {
+                    <div class="mb-3">
+                        <strong class="small">Requested focus areas:</strong>
+                        <div class="mt-1">
+                            @foreach (var focus in request.FocusAreas)
+                            {
+                                <span class="expertise-tag expertise-tag-sm">@focus.Expertise.Name</span>
+                            }
+                        </div>
+                    </div>
+                }
+
+                @if (!string.IsNullOrEmpty(request.PreferredFrequency))
+                {
+                    <div class="mb-3">
+                        <strong class="small">Preferred frequency:</strong>
+                        <span class="small text-muted">@request.PreferredFrequency.Replace("-", " ").ToTitleCase()</span>
+                    </div>
+                }
+
+                <!-- Response Form -->
+                <div class="border-top pt-3">
+                    <form hx-post="/Mentorship/RespondToRequest/@request.Id"
+                          hx-target="closest .request-card"
+                          hx-swap="outerHTML"
+                          hx-indicator="#respond-loading-@request.Id">
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-medium">Your response (optional):</label>
+                            <textarea class="form-control form-control-sm" name="responseMessage" 
+                                      placeholder="Add a personal message..." rows="2"></textarea>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" name="accept" value="true" class="btn btn-success btn-sm">
+                                <span id="respond-loading-@request.Id" class="htmx-indicator spinner-border spinner-border-sm me-1"></span>
+                                <i class="bi bi-check-lg me-1"></i>Accept
+                            </button>
+                            <button type="submit" name="accept" value="false" class="btn btn-outline-danger btn-sm">
+                                <i class="bi bi-x-lg me-1"></i>Decline
+                            </button>
+                            <a href="/Profile/View/@request.Mentee.Id" class="btn btn-outline-secondary btn-sm ms-auto">
+                                <i class="bi bi-person me-1"></i>View Profile
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    }
+}

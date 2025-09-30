@@ -1,0 +1,186 @@
+@model BrowseMentorsViewModel
+@{
+    ViewData["Title"] = "Find a Mentor";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- Filter Panel -->
+        <div class="col-lg-3 mb-4">
+            <div class="mentorship-filters card sticky-top" style="top: 1rem;">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-funnel me-2"></i>Find Your Mentor
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- Type Selection -->
+                    <div class="mb-4">
+                        <label class="form-label fw-medium">Mentorship Type</label>
+                        <div class="btn-group w-100" role="group">
+                            <input type="radio" name="mentorshipType" value="NewToExperienced"
+                                   class="btn-check" id="type-new"
+                                   @(Model.MentorshipType == MentorshipType.NewToExperienced ? "checked" : "")
+                                   hx-get="/Mentorship/SearchMentors"
+                                   hx-target="#mentor-results"
+                                   hx-include="[name='expertise']:checked,[name='availability']:checked"
+                                   hx-indicator="#search-loading">
+                            <label class="btn btn-outline-primary" for="type-new">
+                                <i class="bi bi-person-plus me-2"></i>
+                                <div class="d-flex flex-column">
+                                    <span class="fw-bold">Find Mentor</span>
+                                    <small class="text-muted">Get guidance from experienced speakers</small>
+                                </div>
+                            </label>
+
+                            <input type="radio" name="mentorshipType" value="ExperiencedToExperienced"
+                                   class="btn-check" id="type-peer"
+                                   @(Model.MentorshipType == MentorshipType.ExperiencedToExperienced ? "checked" : "")
+                                   hx-get="/Mentorship/SearchMentors"
+                                   hx-target="#mentor-results"
+                                   hx-include="[name='expertise']:checked,[name='availability']:checked"
+                                   hx-indicator="#search-loading">
+                            <label class="btn btn-outline-primary" for="type-peer">
+                                <i class="bi bi-people me-2"></i>
+                                <div class="d-flex flex-column">
+                                    <span class="fw-bold">Find Peer</span>
+                                    <small class="text-muted">Connect with fellow experienced speakers</small>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Expertise Filter -->
+                    <div class="mb-4">
+                        <label class="form-label fw-medium">Expertise Areas</label>
+                        <div class="expertise-filter-grid">
+                            @foreach (var expertise in Model.AvailableExpertise.Take(20))
+                            {
+                                <div
+                                    class="expertise-filter-item @(Model.SelectedExpertise.Contains(expertise.Name) ? "selected" : "")">
+                                    <input class="form-check-input d-none" type="checkbox"
+                                           name="expertise" value="@expertise.Name"
+                                           id="exp-@expertise.Id"
+                                           @(Model.SelectedExpertise.Contains(expertise.Name) ? "checked" : "")
+                                           hx-get="/Mentorship/SearchMentors"
+                                           hx-target="#mentor-results"
+                                           hx-include="[name='mentorshipType']:checked,[name='availability']:checked,[name='expertise']:checked"
+                                           hx-trigger="change"
+                                           hx-indicator="#search-loading">
+                                    <label class="w-100" for="exp-@expertise.Id">@expertise.Name</label>
+                                </div>
+                            }
+                        </div>
+                        @if (Model.AvailableExpertise.Count > 20)
+                        {
+                            <button class="btn btn-sm btn-outline-secondary mt-2 w-100" type="button"
+                                    data-bs-toggle="collapse" data-bs-target="#moreExpertise">
+                                Show More (+@(Model.AvailableExpertise.Count - 20))
+                            </button>
+                            <div class="collapse mt-2" id="moreExpertise">
+                                <div class="expertise-filter-grid">
+                                    @foreach (var expertise in Model.AvailableExpertise.Skip(20))
+                                    {
+                                        <div
+                                            class="expertise-filter-item @(Model.SelectedExpertise.Contains(expertise.Name) ? "selected" : "")">
+                                            <input class="form-check-input d-none" type="checkbox"
+                                                   name="expertise" value="@expertise.Name"
+                                                   id="exp-@expertise.Id"
+                                                   @(Model.SelectedExpertise.Contains(expertise.Name) ? "checked" : "")
+                                                   hx-get="/Mentorship/SearchMentors"
+                                                   hx-target="#mentor-results"
+                                                   hx-include="[name='mentorshipType']:checked,[name='availability']:checked,[name='expertise']:checked"
+                                                   hx-trigger="change"
+                                                   hx-indicator="#search-loading">
+                                            <label class="w-100" for="exp-@expertise.Id">@expertise.Name</label>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Availability Filter -->
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox"
+                                   name="availability" value="true"
+                                   id="availability-immediate"
+                                   @(Model.AvailableNow == true ? "checked" : "")
+                                   hx-get="/Mentorship/SearchMentors"
+                                   hx-target="#mentor-results"
+                                   hx-include="[name='mentorshipType']:checked,[name='expertise']:checked"
+                                   hx-trigger="change"
+                                   hx-indicator="#search-loading">
+                            <label class="form-check-label" for="availability-immediate">
+                                <i class="bi bi-clock me-1"></i>Available for immediate mentorship
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Search Loading Indicator -->
+                    <div id="search-loading" class="htmx-indicator text-center">
+                        <div class="spinner-border spinner-border-sm text-primary" role="status">
+                            <span class="visually-hidden">Searching...</span>
+                        </div>
+                        <small class="d-block text-muted mt-1">Searching mentors...</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Panel -->
+        <div class="col-lg-9">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h2>Available Mentors</h2>
+                    <p class="text-muted mb-0">Connect with experienced speakers who can guide your journey</p>
+                </div>
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-outline-secondary" id="view-grid">
+                        <i class="bi bi-grid-3x3-gap"></i>
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary" id="view-list">
+                        <i class="bi bi-list"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div id="mentor-results">
+                @await Html.PartialAsync("_MentorResults", Model)
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Container -->
+<div id="modal-container"></div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Handle expertise filter visual feedback
+        document.addEventListener('change', function (e) {
+            if (e.target.name === 'expertise') {
+                const container = e.target.closest('.expertise-filter-item');
+                if (e.target.checked) {
+                    container.classList.add('selected');
+                } else {
+                    container.classList.remove('selected');
+                }
+            }
+        });
+
+        // Handle view toggle
+        document.getElementById('view-grid')?.addEventListener('click', function () {
+            document.getElementById('mentor-results').classList.remove('list-view');
+            this.classList.add('active');
+            document.getElementById('view-list').classList.remove('active');
+        });
+
+        document.getElementById('view-list')?.addEventListener('click', function () {
+            document.getElementById('mentor-results').classList.add('list-view');
+            this.classList.add('active');
+            document.getElementById('view-grid').classList.remove('active');
+        });
+    });
+</script>

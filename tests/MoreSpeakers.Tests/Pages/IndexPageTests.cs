@@ -217,8 +217,8 @@ public class IndexPageTests
             mentorships.Add(new Mentorship
             {
                 Id = Guid.NewGuid(),
-                Status = "Active",
-                NewSpeakerId = Guid.NewGuid(),
+                Status = MentorshipStatus.Active,
+                MenteeId = Guid.NewGuid(),
                 MentorId = Guid.NewGuid()
             });
         return mentorships;

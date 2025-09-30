@@ -344,7 +344,7 @@ public class UserTests
         user.SocialMediaLinks.Should().NotBeNull().And.BeEmpty();
         user.UserExpertise.Should().NotBeNull().And.BeEmpty();
         user.MentorshipsAsMentor.Should().NotBeNull().And.BeEmpty();
-        user.MentorshipsAsNewSpeaker.Should().NotBeNull().And.BeEmpty();
+        user.MentorshipsAsMentee.Should().NotBeNull().And.BeEmpty();
         user.CreatedDate.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromMinutes(1));
         user.UpdatedDate.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromMinutes(1));
     }

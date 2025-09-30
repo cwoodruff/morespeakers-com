@@ -6,39 +6,31 @@ public class Mentorship
 {
     public Guid Id { get; set; } = Guid.NewGuid();
 
-    public Guid NewSpeakerId { get; set; }
     public Guid MentorId { get; set; }
+    public Guid MenteeId { get; set; }
 
-    [Required] [MaxLength(20)] public string Status { get; set; } = "Pending";
+    public MentorshipStatus Status { get; set; } = MentorshipStatus.Pending;
+    public MentorshipType Type { get; set; } = MentorshipType.NewToExperienced;
 
-    public DateTime RequestDate { get; set; } = DateTime.UtcNow;
-    public DateTime? AcceptedDate { get; set; }
-    public DateTime? CompletedDate { get; set; }
+    public DateTime RequestedAt { get; set; } = DateTime.UtcNow;
+    public DateTime? ResponsedAt { get; set; }
+    public DateTime? StartedAt { get; set; }
+    public DateTime? CompletedAt { get; set; }
 
+    [MaxLength(2000)] public string? RequestMessage { get; set; }
+    [MaxLength(2000)] public string? ResponseMessage { get; set; }
     [MaxLength(2000)] public string? Notes { get; set; }
+    [MaxLength(100)] public string? PreferredFrequency { get; set; }
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
     // Navigation properties
-    public User NewSpeaker { get; set; } = null!;
     public User Mentor { get; set; } = null!;
+    public User Mentee { get; set; } = null!;
+    public ICollection<MentorshipExpertise> FocusAreas { get; set; } = new List<MentorshipExpertise>();
 
     // Computed properties
-    public bool IsPending => Status == "Pending";
-    public bool IsActive => Status == "Active";
-    public bool IsCompleted => Status == "Completed";
-    public bool IsCancelled => Status == "Cancelled";
-}
-
-// Enums for strongly typed values
-public enum MentorshipStatus
-{
-    Pending,
-    Active,
-    Completed,
-    Cancelled
-}
-
-public enum SpeakerTypeEnum
-{
-    NewSpeaker = 1,
-    ExperiencedSpeaker = 2
+    public bool IsPending => Status == MentorshipStatus.Pending;
+    public bool IsActive => Status == MentorshipStatus.Active;
+    public bool IsCompleted => Status == MentorshipStatus.Completed;
+    public bool IsCancelled => Status == MentorshipStatus.Cancelled;
 }

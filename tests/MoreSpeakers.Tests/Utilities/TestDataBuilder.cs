@@ -40,14 +40,14 @@ public static class TestDataBuilder
 
     private static readonly Faker<Mentorship> MentorshipFaker = new Faker<Mentorship>()
         .RuleFor(m => m.Id, f => Guid.NewGuid())
-        .RuleFor(m => m.NewSpeakerId, f => Guid.NewGuid())
+        .RuleFor(m => m.MenteeId, f => Guid.NewGuid())
         .RuleFor(m => m.MentorId, f => Guid.NewGuid())
-        .RuleFor(m => m.Status, f => f.PickRandom("Pending", "Active", "Completed", "Cancelled"))
-        .RuleFor(m => m.RequestDate, f => f.Date.Recent(60))
-        .RuleFor(m => m.AcceptedDate,
-            (f, m) => m.Status != "Pending" ? f.Date.Between(m.RequestDate, DateTime.UtcNow) : null)
-        .RuleFor(m => m.CompletedDate,
-            (f, m) => m.Status == "Completed" ? f.Date.Between(m.AcceptedDate ?? m.RequestDate, DateTime.UtcNow) : null)
+        .RuleFor(m => m.Status, f => f.PickRandom<MentorshipStatus>())
+        .RuleFor(m => m.RequestedAt, f => f.Date.Recent(60))
+        .RuleFor(m => m.ResponsedAt,
+            (f, m) => m.Status != MentorshipStatus.Pending ? f.Date.Between(m.RequestedAt, DateTime.UtcNow) : null)
+        .RuleFor(m => m.CompletedAt,
+            (f, m) => m.Status == MentorshipStatus.Completed ? f.Date.Between(m.ResponsedAt ?? m.RequestedAt, DateTime.UtcNow) : null)
         .RuleFor(m => m.Notes, f => f.Lorem.Paragraph());
 
     public static User CreateUser(Action<User>? configure = null)
@@ -166,39 +166,39 @@ public static class TestDataBuilder
         return user;
     }
 
-    public static Mentorship CreatePendingMentorship(Guid? newSpeakerId = null, Guid? mentorId = null)
+    public static Mentorship CreatePendingMentorship(Guid? menteeId = null, Guid? mentorId = null)
     {
         return CreateMentorship(m =>
         {
-            m.NewSpeakerId = newSpeakerId ?? Guid.NewGuid();
+            m.MenteeId = menteeId ?? Guid.NewGuid();
             m.MentorId = mentorId ?? Guid.NewGuid();
-            m.Status = "Pending";
-            m.AcceptedDate = null;
-            m.CompletedDate = null;
+            m.Status = MentorshipStatus.Pending;
+            m.ResponsedAt = null;
+            m.CompletedAt = null;
         });
     }
 
-    public static Mentorship CreateActiveMentorship(Guid? newSpeakerId = null, Guid? mentorId = null)
+    public static Mentorship CreateActiveMentorship(Guid? menteeId = null, Guid? mentorId = null)
     {
         return CreateMentorship(m =>
         {
-            m.NewSpeakerId = newSpeakerId ?? Guid.NewGuid();
+            m.MenteeId = menteeId ?? Guid.NewGuid();
             m.MentorId = mentorId ?? Guid.NewGuid();
-            m.Status = "Active";
-            m.AcceptedDate = DateTime.UtcNow.AddDays(-10);
-            m.CompletedDate = null;
+            m.Status = MentorshipStatus.Active;
+            m.ResponsedAt = DateTime.UtcNow.AddDays(-10);
+            m.CompletedAt = null;
         });
     }
 
-    public static Mentorship CreateCompletedMentorship(Guid? newSpeakerId = null, Guid? mentorId = null)
+    public static Mentorship CreateCompletedMentorship(Guid? menteeId = null, Guid? mentorId = null)
     {
         return CreateMentorship(m =>
         {
-            m.NewSpeakerId = newSpeakerId ?? Guid.NewGuid();
+            m.MenteeId = menteeId ?? Guid.NewGuid();
             m.MentorId = mentorId ?? Guid.NewGuid();
-            m.Status = "Completed";
-            m.AcceptedDate = DateTime.UtcNow.AddDays(-30);
-            m.CompletedDate = DateTime.UtcNow.AddDays(-5);
+            m.Status = MentorshipStatus.Completed;
+            m.ResponsedAt = DateTime.UtcNow.AddDays(-30);
+            m.CompletedAt = DateTime.UtcNow.AddDays(-5);
         });
     }
 }

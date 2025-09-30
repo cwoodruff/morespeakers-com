@@ -1,0 +1,165 @@
+@model MentorshipRequestViewModel
+
+<div class="modal fade show" style="display: block;" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-chat-dots me-2"></i>Request Mentorship
+                </h5>
+                <button type="button" class="btn-close" 
+                        hx-get="/Mentorship/CloseModal" 
+                        hx-target="#modal-container"
+                        hx-swap="innerHTML"></button>
+            </div>
+            
+            <form hx-post="/Mentorship/SendRequest/@Model.Mentor.Id"
+                  hx-target="#modal-container"
+                  hx-swap="innerHTML"
+                  hx-indicator="#request-loading">
+                  
+                <div class="modal-body">
+                    <!-- Mentor Summary -->
+                    <div class="mentor-summary card bg-light mb-4">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center">
+                                <div class="me-3">
+                                    @if (!string.IsNullOrEmpty(Model.Mentor.HeadshotUrl))
+                                    {
+                                        <img src="@Model.Mentor.HeadshotUrl" class="mentor-avatar" alt="@Model.Mentor.FullName">
+                                    }
+                                    else
+                                    {
+                                        <div class="mentor-avatar mentor-avatar-placeholder">
+                                            <i class="bi bi-person-fill"></i>
+                                        </div>
+                                    }
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">@Model.Mentor.FullName</h6>
+                                    <p class="text-muted small mb-1">@Model.Mentor.SpeakerType.Name</p>
+                                    @if (!string.IsNullOrEmpty(Model.Mentor.MentorshipFocus))
+                                    {
+                                        <p class="small mb-0"><strong>Focus:</strong> @Model.Mentor.MentorshipFocus</p>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Focus Areas Selection -->
+                    @if (Model.SharedExpertise.Any())
+                    {
+                        <div class="mb-4">
+                            <label class="form-label fw-medium">
+                                <i class="bi bi-bullseye me-2"></i>Focus Areas 
+                                <small class="text-muted">(Select up to 3 areas you'd like to focus on)</small>
+                            </label>
+                            <div class="expertise-selection">
+                                @foreach (var expertise in Model.SharedExpertise)
+                                {
+                                    <div class="form-check expertise-check">
+                                        <input class="form-check-input" type="checkbox" 
+                                               name="SelectedExpertiseIds" value="@expertise.Id" 
+                                               id="focus-@expertise.Id">
+                                        <label class="form-check-label" for="focus-@expertise.Id">
+                                            <span class="expertise-tag">
+                                                <i class="bi bi-star-fill me-1"></i>@expertise.Name
+                                            </span>
+                                        </label>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                    
+                    <!-- Request Message -->
+                    <div class="mb-4">
+                        <label class="form-label fw-medium" for="requestMessage">
+                            <i class="bi bi-chat-text me-2"></i>Your Message
+                        </label>
+                        <textarea class="form-control" name="RequestMessage" id="requestMessage"
+                                  placeholder="Tell @Model.Mentor.FirstName why you'd like their mentorship and what you hope to achieve..." 
+                                  required rows="4"></textarea>
+                        <div class="form-text">
+                            Introduce yourself and explain your goals. Be specific about what you're looking for in a mentorship.
+                        </div>
+                    </div>
+                    
+                    <!-- Preferred Meeting Frequency -->
+                    <div class="mb-4">
+                        <label class="form-label fw-medium" for="frequency">
+                            <i class="bi bi-calendar-week me-2"></i>Preferred Meeting Frequency
+                        </label>
+                        <select class="form-select" name="PreferredFrequency" id="frequency">
+                            <option value="weekly">Weekly - Regular check-ins and guidance</option>
+                            <option value="biweekly" selected>Bi-weekly - Structured progress sessions</option>
+                            <option value="monthly">Monthly - Milestone reviews and direction</option>
+                            <option value="as-needed">As needed - Flexible based on projects</option>
+                        </select>
+                    </div>
+
+                    <!-- Mentorship Type Info -->
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle me-2"></i>
+                        <strong>@(Model.MentorshipType == MentorshipType.NewToExperienced ? "New Speaker Mentorship" : "Peer Mentorship")</strong><br>
+                        @if (Model.MentorshipType == MentorshipType.NewToExperienced)
+                        {
+                            <small>You're requesting guidance as a new speaker. Your mentor will help you develop speaking skills, find opportunities, and grow your confidence.</small>
+                        }
+                        else
+                        {
+                            <small>You're requesting peer mentorship with a fellow experienced speaker. This is great for sharing experiences, collaboration, and mutual growth.</small>
+                        }
+                    </div>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary"
+                            hx-get="/Mentorship/CloseModal" 
+                            hx-target="#modal-container"
+                            hx-swap="innerHTML">
+                        Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <span id="request-loading" class="htmx-indicator spinner-border spinner-border-sm me-2"></span>
+                        <i class="bi bi-send me-2"></i>Send Request
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal backdrop -->
+<div class="modal-backdrop fade show"></div>
+
+<script>
+    // Limit expertise selection to 3
+    document.addEventListener('change', function(e) {
+        if (e.target.name === 'SelectedExpertiseIds') {
+            const checkboxes = document.querySelectorAll('input[name="SelectedExpertiseIds"]');
+            const checked = document.querySelectorAll('input[name="SelectedExpertiseIds"]:checked');
+            
+            if (checked.length >= 3) {
+                checkboxes.forEach(cb => {
+                    if (!cb.checked) cb.disabled = true;
+                });
+            } else {
+                checkboxes.forEach(cb => cb.disabled = false);
+            }
+        }
+    });
+
+    // Close modal on backdrop click
+    document.querySelector('.modal-backdrop')?.addEventListener('click', function() {
+        htmx.ajax('GET', '/Mentorship/CloseModal', {target: '#modal-container', swap: 'innerHTML'});
+    });
+
+    // Close modal on escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            htmx.ajax('GET', '/Mentorship/CloseModal', {target: '#modal-container', swap: 'innerHTML'});
+        }
+    });
+</script>

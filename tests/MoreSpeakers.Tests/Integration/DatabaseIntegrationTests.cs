@@ -69,9 +69,9 @@ public class DatabaseIntegrationTests : TestBase
 
         var mentorship = new Mentorship
         {
-            NewSpeakerId = newSpeaker.Id,
+            MenteeId = newSpeaker.Id,
             MentorId = mentor.Id,
-            Status = "Pending",
+            Status = MentorshipStatus.Pending,
             Notes = "Test mentorship"
         };
 
@@ -80,13 +80,13 @@ public class DatabaseIntegrationTests : TestBase
 
         // Act
         var mentorshipWithUsers = await Context.Mentorships
-            .Include(m => m.NewSpeaker)
+            .Include(m => m.Mentee)
             .Include(m => m.Mentor)
             .FirstAsync(m => m.Id == mentorship.Id);
 
         // Assert
-        mentorshipWithUsers.NewSpeaker.Should().NotBeNull();
-        mentorshipWithUsers.NewSpeaker.Id.Should().Be(newSpeaker.Id);
+        mentorshipWithUsers.Mentee.Should().NotBeNull();
+        mentorshipWithUsers.Mentee.Id.Should().Be(newSpeaker.Id);
         mentorshipWithUsers.Mentor.Should().NotBeNull();
         mentorshipWithUsers.Mentor.Id.Should().Be(mentor.Id);
     }
@@ -255,9 +255,9 @@ public class DatabaseIntegrationTests : TestBase
 
         var invalidMentorship = new Mentorship
         {
-            NewSpeakerId = newSpeaker.Id,
-            MentorId = newSpeaker.Id, // Same as NewSpeakerId - should violate check constraint
-            Status = "Pending"
+            MenteeId = newSpeaker.Id,
+            MentorId = newSpeaker.Id, // Same as MenteeId - should violate check constraint
+            Status = MentorshipStatus.Pending
         };
 
         Context.Mentorships.Add(invalidMentorship);
@@ -267,38 +267,36 @@ public class DatabaseIntegrationTests : TestBase
 
         // Assert - Verify the record exists (demonstrating why the constraint is needed)
         var addedMentorship = await Context.Mentorships
-            .FirstOrDefaultAsync(m => m.NewSpeakerId == m.MentorId);
+            .FirstOrDefaultAsync(m => m.MenteeId == m.MentorId);
         addedMentorship.Should().NotBeNull();
     }
 
-    [Theory]
-    [InlineData("InvalidStatus")]
-    [InlineData("PENDING")]
-    [InlineData("pending")]
-    public async Task Database_MentorshipStatusConstraint_ShouldBeEnforced(string invalidStatus)
+    [Fact]
+    public async Task Database_MentorshipStatusEnum_ShouldBeEnforced()
     {
-        // Note: In-memory database doesn't enforce check constraints for status values
-        // This test documents the expected constraint behavior
+        // Enums are type-safe, so invalid values cannot be assigned at compile time
+        // This test verifies the enum is being used correctly
 
         // Arrange
         var newSpeaker = GetNewSpeaker();
         var mentor = GetExperiencedSpeaker();
 
-        var invalidMentorship = new Mentorship
+        var mentorship = new Mentorship
         {
-            NewSpeakerId = newSpeaker.Id,
+            MenteeId = newSpeaker.Id,
             MentorId = mentor.Id,
-            Status = invalidStatus // Invalid status
+            Status = MentorshipStatus.Pending // Type-safe enum value
         };
 
-        Context.Mentorships.Add(invalidMentorship);
+        Context.Mentorships.Add(mentorship);
 
-        // Act - In-memory allows any status, but SQL Server would enforce the constraint
+        // Act
         await Context.SaveChangesAsync();
 
-        // Assert - Verify the invalid status was saved (showing why constraint is needed)
+        // Assert
         var savedMentorship = await Context.Mentorships
-            .FirstOrDefaultAsync(m => m.Status == invalidStatus);
+            .FirstOrDefaultAsync(m => m.MenteeId == newSpeaker.Id);
         savedMentorship.Should().NotBeNull();
+        savedMentorship!.Status.Should().Be(MentorshipStatus.Pending);
     }
 }

@@ -23,6 +23,11 @@ public class User : IdentityUser<Guid>
 
     [Required] [MaxLength(2000)] public string Goals { get; set; } = string.Empty;
 
+    // Mentorship preferences
+    public bool IsAvailableForMentoring { get; set; } = true;
+    public int MaxMentees { get; set; } = 2;
+    [MaxLength(1000)] public string? MentorshipFocus { get; set; } // What they want to help with
+    
     public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedDate { get; set; } = DateTime.UtcNow;
 
@@ -31,7 +36,7 @@ public class User : IdentityUser<Guid>
     public ICollection<SocialMedia> SocialMediaLinks { get; set; } = new List<SocialMedia>();
     public ICollection<UserExpertise> UserExpertise { get; set; } = new List<UserExpertise>();
     public ICollection<Mentorship> MentorshipsAsMentor { get; set; } = new List<Mentorship>();
-    public ICollection<Mentorship> MentorshipsAsNewSpeaker { get; set; } = new List<Mentorship>();
+    public ICollection<Mentorship> MentorshipsAsMentee { get; set; } = new List<Mentorship>();
 
     // Computed properties
     public string FullName => $"{FirstName} {LastName}";

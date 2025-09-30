@@ -26,20 +26,20 @@ public class MentorshipServiceTests : TestBase
             new Mentorship
             {
                 Id = Guid.NewGuid(),
-                NewSpeakerId = newSpeaker.Id,
+                MenteeId = newSpeaker.Id,
                 MentorId = experiencedSpeaker.Id,
-                Status = "Pending",
-                RequestDate = DateTime.UtcNow.AddDays(-5),
+                Status = MentorshipStatus.Pending,
+                RequestedAt = DateTime.UtcNow.AddDays(-5),
                 Notes = "Looking for guidance on public speaking"
             },
             new Mentorship
             {
                 Id = Guid.NewGuid(),
-                NewSpeakerId = newSpeaker.Id,
+                MenteeId = newSpeaker.Id,
                 MentorId = experiencedSpeaker.Id,
-                Status = "Active",
-                RequestDate = DateTime.UtcNow.AddDays(-10),
-                AcceptedDate = DateTime.UtcNow.AddDays(-8),
+                Status = MentorshipStatus.Active,
+                RequestedAt = DateTime.UtcNow.AddDays(-10),
+                ResponsedAt = DateTime.UtcNow.AddDays(-8),
                 Notes = "Working on first conference talk"
             }
         };
@@ -60,7 +60,7 @@ public class MentorshipServiceTests : TestBase
         // Assert
         result.Should().NotBeEmpty();
         result.Should().OnlyContain(m => m.MentorId == mentor.Id);
-        result.Should().BeInDescendingOrder(m => m.RequestDate);
+        result.Should().BeInDescendingOrder(m => m.RequestedAt);
     }
 
     [Fact]
@@ -74,8 +74,8 @@ public class MentorshipServiceTests : TestBase
 
         // Assert
         result.Should().NotBeEmpty();
-        result.Should().OnlyContain(m => m.NewSpeakerId == newSpeaker.Id);
-        result.Should().BeInDescendingOrder(m => m.RequestDate);
+        result.Should().OnlyContain(m => m.MenteeId == newSpeaker.Id);
+        result.Should().BeInDescendingOrder(m => m.RequestedAt);
     }
 
     [Fact]
@@ -90,7 +90,7 @@ public class MentorshipServiceTests : TestBase
         // Assert
         result.Should().NotBeNull();
         result!.Id.Should().Be(existingMentorship.Id);
-        result.NewSpeaker.Should().NotBeNull();
+        result.Mentee.Should().NotBeNull();
         result.Mentor.Should().NotBeNull();
     }
 
@@ -117,7 +117,7 @@ public class MentorshipServiceTests : TestBase
 
         // First, remove existing mentorships to test fresh request
         var existingMentorships = Context.Mentorships
-            .Where(m => m.NewSpeakerId == newSpeaker.Id && m.MentorId == mentor.Id);
+            .Where(m => m.MenteeId == newSpeaker.Id && m.MentorId == mentor.Id);
         Context.Mentorships.RemoveRange(existingMentorships);
         await Context.SaveChangesAsync();
 
@@ -128,9 +128,9 @@ public class MentorshipServiceTests : TestBase
         result.Should().BeTrue();
 
         var createdMentorship = await Context.Mentorships
-            .FirstOrDefaultAsync(m => m.NewSpeakerId == newSpeaker.Id &&
+            .FirstOrDefaultAsync(m => m.MenteeId == newSpeaker.Id &&
                                       m.MentorId == mentor.Id &&
-                                      m.Status == "Pending");
+                                      m.Status == MentorshipStatus.Pending);
 
         createdMentorship.Should().NotBeNull();
         createdMentorship!.Notes.Should().Be(notes);
@@ -155,7 +155,7 @@ public class MentorshipServiceTests : TestBase
     {
         // Arrange
         var pendingMentorship = await Context.Mentorships
-            .FirstAsync(m => m.Status == "Pending");
+            .FirstAsync(m => m.Status == MentorshipStatus.Pending);
 
         // Act
         var result = await _mentorshipService.AcceptMentorshipAsync(pendingMentorship.Id);
@@ -164,9 +164,9 @@ public class MentorshipServiceTests : TestBase
         result.Should().BeTrue();
 
         var updatedMentorship = await Context.Mentorships.FindAsync(pendingMentorship.Id);
-        updatedMentorship!.Status.Should().Be("Active");
-        updatedMentorship.AcceptedDate.Should().NotBeNull();
-        updatedMentorship.AcceptedDate.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromMinutes(1));
+        updatedMentorship!.Status.Should().Be(MentorshipStatus.Active);
+        updatedMentorship.ResponsedAt.Should().NotBeNull();
+        updatedMentorship.ResponsedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromMinutes(1));
     }
 
     [Fact]
@@ -174,7 +174,7 @@ public class MentorshipServiceTests : TestBase
     {
         // Arrange
         var activeMentorship = await Context.Mentorships
-            .FirstAsync(m => m.Status == "Active");
+            .FirstAsync(m => m.Status == MentorshipStatus.Active);
 
         // Act
         var result = await _mentorshipService.AcceptMentorshipAsync(activeMentorship.Id);
@@ -201,7 +201,7 @@ public class MentorshipServiceTests : TestBase
     {
         // Arrange
         var activeMentorship = await Context.Mentorships
-            .FirstAsync(m => m.Status == "Active");
+            .FirstAsync(m => m.Status == MentorshipStatus.Active);
         var completionNotes = "Successfully completed mentorship program";
 
         // Act
@@ -211,8 +211,8 @@ public class MentorshipServiceTests : TestBase
         result.Should().BeTrue();
 
         var updatedMentorship = await Context.Mentorships.FindAsync(activeMentorship.Id);
-        updatedMentorship!.Status.Should().Be("Completed");
-        updatedMentorship.CompletedDate.Should().NotBeNull();
+        updatedMentorship!.Status.Should().Be(MentorshipStatus.Completed);
+        updatedMentorship.CompletedAt.Should().NotBeNull();
         updatedMentorship.Notes.Should().Contain(completionNotes);
     }
 
@@ -221,7 +221,7 @@ public class MentorshipServiceTests : TestBase
     {
         // Arrange
         var pendingMentorship = await Context.Mentorships
-            .FirstAsync(m => m.Status == "Pending");
+            .FirstAsync(m => m.Status == MentorshipStatus.Pending);
 
         // Act
         var result = await _mentorshipService.CompleteMentorshipAsync(pendingMentorship.Id);
@@ -235,7 +235,7 @@ public class MentorshipServiceTests : TestBase
     {
         // Arrange
         var mentorship = await Context.Mentorships
-            .FirstAsync(m => m.Status == "Pending");
+            .FirstAsync(m => m.Status == MentorshipStatus.Pending);
         var cancellationReason = "Schedule conflicts";
 
         // Act
@@ -245,7 +245,7 @@ public class MentorshipServiceTests : TestBase
         result.Should().BeTrue();
 
         var updatedMentorship = await Context.Mentorships.FindAsync(mentorship.Id);
-        updatedMentorship!.Status.Should().Be("Cancelled");
+        updatedMentorship!.Status.Should().Be(MentorshipStatus.Cancelled);
         updatedMentorship.Notes.Should().Contain(cancellationReason);
     }
 
@@ -288,8 +288,8 @@ public class MentorshipServiceTests : TestBase
 
         // Assert
         result.Should().NotBeEmpty();
-        result.Should().OnlyContain(m => m.Status == "Pending");
-        result.Should().BeInAscendingOrder(m => m.RequestDate);
+        result.Should().OnlyContain(m => m.Status == MentorshipStatus.Pending);
+        result.Should().BeInAscendingOrder(m => m.RequestedAt);
     }
 
     [Fact]
@@ -300,7 +300,7 @@ public class MentorshipServiceTests : TestBase
 
         // Assert
         result.Should().NotBeEmpty();
-        result.Should().OnlyContain(m => m.Status == "Active");
-        result.Should().BeInAscendingOrder(m => m.AcceptedDate);
+        result.Should().OnlyContain(m => m.Status == MentorshipStatus.Active);
+        result.Should().BeInAscendingOrder(m => m.ResponsedAt);
     }
 }

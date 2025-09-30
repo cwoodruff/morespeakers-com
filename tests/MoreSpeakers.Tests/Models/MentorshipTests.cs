@@ -14,20 +14,20 @@ public class MentorshipTests
 
         // Assert
         mentorship.Id.Should().NotBe(Guid.Empty);
-        mentorship.Status.Should().Be("Pending");
-        mentorship.RequestDate.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromMinutes(1));
-        mentorship.AcceptedDate.Should().BeNull();
-        mentorship.CompletedDate.Should().BeNull();
+        mentorship.Status.Should().Be(MentorshipStatus.Pending);
+        mentorship.RequestedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromMinutes(1));
+        mentorship.ResponsedAt.Should().BeNull();
+        mentorship.CompletedAt.Should().BeNull();
         mentorship.Notes.Should().BeNull();
     }
 
     [Theory]
-    [InlineData("Pending", true, false, false, false)]
-    [InlineData("Active", false, true, false, false)]
-    [InlineData("Completed", false, false, true, false)]
-    [InlineData("Cancelled", false, false, false, true)]
+    [InlineData(MentorshipStatus.Pending, true, false, false, false)]
+    [InlineData(MentorshipStatus.Active, false, true, false, false)]
+    [InlineData(MentorshipStatus.Completed, false, false, true, false)]
+    [InlineData(MentorshipStatus.Cancelled, false, false, false, true)]
     public void Mentorship_StatusProperties_ShouldReturnCorrectValues(
-        string status, bool isPending, bool isActive, bool isCompleted, bool isCancelled)
+        MentorshipStatus status, bool isPending, bool isActive, bool isCompleted, bool isCancelled)
     {
         // Arrange
         var mentorship = new Mentorship { Status = status };
@@ -39,43 +39,7 @@ public class MentorshipTests
         mentorship.IsCancelled.Should().Be(isCancelled);
     }
 
-    [Theory]
-    [InlineData("")]
-    [InlineData(null)]
-    public void Mentorship_Status_ShouldFailValidationWhenEmpty(string status)
-    {
-        // Arrange
-        var mentorship = new Mentorship
-        {
-            Status = status,
-            NewSpeakerId = Guid.NewGuid(),
-            MentorId = Guid.NewGuid()
-        };
 
-        // Act
-        var validationResults = ValidateModel(mentorship);
-
-        // Assert
-        validationResults.Should().Contain(vr => vr.MemberNames.Contains("Status"));
-    }
-
-    [Fact]
-    public void Mentorship_Status_ShouldFailValidationWhenTooLong()
-    {
-        // Arrange
-        var mentorship = new Mentorship
-        {
-            Status = new string('A', 21), // Exceeds MaxLength of 20
-            NewSpeakerId = Guid.NewGuid(),
-            MentorId = Guid.NewGuid()
-        };
-
-        // Act
-        var validationResults = ValidateModel(mentorship);
-
-        // Assert
-        validationResults.Should().Contain(vr => vr.MemberNames.Contains("Status"));
-    }
 
     [Fact]
     public void Mentorship_Notes_ShouldFailValidationWhenTooLong()
@@ -83,8 +47,8 @@ public class MentorshipTests
         // Arrange
         var mentorship = new Mentorship
         {
-            Status = "Pending",
-            NewSpeakerId = Guid.NewGuid(),
+            Status = MentorshipStatus.Pending,
+            MenteeId = Guid.NewGuid(),
             MentorId = Guid.NewGuid(),
             Notes = new string('A', 2001) // Exceeds MaxLength of 2000
         };
@@ -105,8 +69,8 @@ public class MentorshipTests
         // Arrange
         var mentorship = new Mentorship
         {
-            Status = "Pending",
-            NewSpeakerId = Guid.NewGuid(),
+            Status = MentorshipStatus.Pending,
+            MenteeId = Guid.NewGuid(),
             MentorId = Guid.NewGuid(),
             Notes = notes
         };
@@ -119,17 +83,17 @@ public class MentorshipTests
     }
 
     [Theory]
-    [InlineData("Pending")]
-    [InlineData("Active")]
-    [InlineData("Completed")]
-    [InlineData("Cancelled")]
-    public void Mentorship_ValidStatuses_ShouldPassValidation(string status)
+    [InlineData(MentorshipStatus.Pending)]
+    [InlineData(MentorshipStatus.Active)]
+    [InlineData(MentorshipStatus.Completed)]
+    [InlineData(MentorshipStatus.Cancelled)]
+    public void Mentorship_ValidStatuses_ShouldPassValidation(MentorshipStatus status)
     {
         // Arrange
         var mentorship = new Mentorship
         {
             Status = status,
-            NewSpeakerId = Guid.NewGuid(),
+            MenteeId = Guid.NewGuid(),
             MentorId = Guid.NewGuid()
         };
 
@@ -141,17 +105,17 @@ public class MentorshipTests
     }
 
     [Fact]
-    public void Mentorship_NewSpeakerId_ShouldNotBeEmpty()
+    public void Mentorship_MenteeId_ShouldNotBeEmpty()
     {
         // Arrange
         var mentorship = new Mentorship
         {
-            NewSpeakerId = Guid.Empty,
+            MenteeId = Guid.Empty,
             MentorId = Guid.NewGuid()
         };
 
         // Act & Assert
-        mentorship.NewSpeakerId.Should().Be(Guid.Empty);
+        mentorship.MenteeId.Should().Be(Guid.Empty);
         // Note: Guid validation would typically be handled at the database level or service level
     }
 
@@ -161,7 +125,7 @@ public class MentorshipTests
         // Arrange
         var mentorship = new Mentorship
         {
-            NewSpeakerId = Guid.NewGuid(),
+            MenteeId = Guid.NewGuid(),
             MentorId = Guid.Empty
         };
 
@@ -171,7 +135,7 @@ public class MentorshipTests
     }
 
     [Fact]
-    public void Mentorship_RequestDate_ShouldBeSetOnCreation()
+    public void Mentorship_RequestedAt_ShouldBeSetOnCreation()
     {
         // Arrange
         var beforeCreation = DateTime.UtcNow;
@@ -181,7 +145,7 @@ public class MentorshipTests
         var afterCreation = DateTime.UtcNow;
 
         // Assert
-        mentorship.RequestDate.Should().BeAfter(beforeCreation.AddSeconds(-1))
+        mentorship.RequestedAt.Should().BeAfter(beforeCreation.AddSeconds(-1))
             .And.BeBefore(afterCreation.AddSeconds(1));
     }
 
@@ -190,9 +154,11 @@ public class MentorshipTests
     {
         // Act & Assert
         ((int)MentorshipStatus.Pending).Should().Be(0);
-        ((int)MentorshipStatus.Active).Should().Be(1);
-        ((int)MentorshipStatus.Completed).Should().Be(2);
-        ((int)MentorshipStatus.Cancelled).Should().Be(3);
+        ((int)MentorshipStatus.Accepted).Should().Be(1);
+        ((int)MentorshipStatus.Declined).Should().Be(2);
+        ((int)MentorshipStatus.Active).Should().Be(3);
+        ((int)MentorshipStatus.Completed).Should().Be(4);
+        ((int)MentorshipStatus.Cancelled).Should().Be(5);
     }
 
     [Fact]

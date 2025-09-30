@@ -1,0 +1,225 @@
+@model List<Mentorship>
+@{
+    ViewData["Title"] = "Active Mentorships";
+}
+
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2>Active Mentorships</h2>
+            <p class="text-muted mb-0">Your ongoing mentorship relationships</p>
+        </div>
+        <div class="btn-group" role="group">
+            <a href="/Mentorship/Browse" class="btn btn-outline-primary">
+                <i class="bi bi-search me-2"></i>Find More Mentors
+            </a>
+            <a href="/Mentorship/Requests" class="btn btn-outline-secondary">
+                <i class="bi bi-inbox me-2"></i>View Requests
+            </a>
+        </div>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="text-center py-5">
+            <i class="bi bi-people display-1 text-muted"></i>
+            <h4 class="mt-3">No active mentorships</h4>
+            <p class="text-muted mb-4">You don't have any active mentorship relationships yet.</p>
+            <div class="d-flex gap-2 justify-content-center">
+                <a href="/Mentorship/Browse" class="btn btn-primary">
+                    <i class="bi bi-search me-2"></i>Find a Mentor
+                </a>
+                <a href="/Mentorship/Requests" class="btn btn-outline-secondary">
+                    <i class="bi bi-inbox me-2"></i>Check Requests
+                </a>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            @{
+                var currentUser = ViewContext.HttpContext.User;
+                var userId = currentUser.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            }
+            
+            @foreach (var mentorship in Model)
+            {
+                var isUserMentor = mentorship.MentorId.ToString() == userId;
+                var otherPerson = isUserMentor ? mentorship.Mentee : mentorship.Mentor;
+                var role = isUserMentor ? "Mentor" : "Mentee";
+                var otherRole = isUserMentor ? "Mentee" : "Mentor";
+
+                <div class="col-lg-6 mb-4">
+                    <div class="mentorship-card card h-100">
+                        <div class="card-header">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="d-flex align-items-center">
+                                    <span class="badge bg-success me-2">
+                                        <i class="bi bi-people-fill me-1"></i>Active
+                                    </span>
+                                    <span class="badge bg-primary">
+                                        @(mentorship.Type == MentorshipType.NewToExperienced ? "New → Experienced" : "Peer Mentorship")
+                                    </span>
+                                </div>
+                                <small class="text-muted">
+                                    Since @mentorship.StartedAt?.ToString("MMM yyyy")
+                                </small>
+                            </div>
+                        </div>
+                        
+                        <div class="card-body">
+                            <!-- Other Person Info -->
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="me-3">
+                                    @if (!string.IsNullOrEmpty(otherPerson.HeadshotUrl))
+                                    {
+                                        <img src="@otherPerson.HeadshotUrl" class="mentor-avatar" alt="@otherPerson.FullName">
+                                    }
+                                    else
+                                    {
+                                        <div class="mentor-avatar mentor-avatar-placeholder">
+                                            <i class="bi bi-person-fill"></i>
+                                        </div>
+                                    }
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">@otherPerson.FullName</h6>
+                                    <small class="text-muted">Your @otherRole • @otherPerson.SpeakerType.Name</small>
+                                </div>
+                            </div>
+
+                            <!-- Focus Areas -->
+                            @if (mentorship.FocusAreas.Any())
+                            {
+                                <div class="mb-3">
+                                    <strong class="small text-muted">Focus Areas:</strong>
+                                    <div class="mt-1">
+                                        @foreach (var focus in mentorship.FocusAreas)
+                                        {
+                                            <span class="expertise-tag expertise-tag-sm">@focus.Expertise.Name</span>
+                                        }
+                                    </div>
+                                </div>
+                            }
+
+                            <!-- Meeting Frequency -->
+                            @if (!string.IsNullOrEmpty(mentorship.PreferredFrequency))
+                            {
+                                <div class="mb-3">
+                                    <small class="text-muted">
+                                        <i class="bi bi-calendar-week me-1"></i>
+                                        <strong>Meeting frequency:</strong> @mentorship.PreferredFrequency.Replace("-", " ").ToTitleCase()
+                                    </small>
+                                </div>
+                            }
+
+                            <!-- Original Request Message -->
+                            @if (!string.IsNullOrEmpty(mentorship.RequestMessage))
+                            {
+                                <div class="mb-3">
+                                    <strong class="small text-muted">Original request:</strong>
+                                    <p class="small mb-0">
+                                        @(mentorship.RequestMessage.Length > 100 ? 
+                                          mentorship.RequestMessage.Substring(0, 100) + "..." : 
+                                          mentorship.RequestMessage)
+                                    </p>
+                                </div>
+                            }
+
+                            <!-- Notes Section -->
+                            @if (!string.IsNullOrEmpty(mentorship.Notes))
+                            {
+                                <div class="mb-3">
+                                    <strong class="small text-muted">Notes:</strong>
+                                    <p class="small mb-0">@mentorship.Notes</p>
+                                </div>
+                            }
+                        </div>
+
+                        <div class="card-footer bg-transparent">
+                            <div class="d-flex gap-2">
+                                <a href="/Profile/View/@otherPerson.Id" class="btn btn-outline-primary btn-sm">
+                                    <i class="bi bi-person me-1"></i>View Profile
+                                </a>
+                                
+                                @if (otherPerson.SocialMediaLinks.Any(s => s.Platform.ToLower() == "email"))
+                                {
+                                    <a href="mailto:@otherPerson.Email" class="btn btn-outline-secondary btn-sm">
+                                        <i class="bi bi-envelope me-1"></i>Email
+                                    </a>
+                                }
+
+                                <div class="dropdown ms-auto">
+                                    <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" 
+                                            data-bs-toggle="dropdown">
+                                        <i class="bi bi-three-dots"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li>
+                                            <a class="dropdown-item" href="#" 
+                                               hx-get="/Mentorship/AddNotes/@mentorship.Id"
+                                               hx-target="#modal-container">
+                                                <i class="bi bi-journal-text me-2"></i>Add Notes
+                                            </a>
+                                        </li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <a class="dropdown-item text-success" href="#"
+                                               hx-post="/Mentorship/CompleteMentorship/@mentorship.Id"
+                                               hx-confirm="Are you sure you want to mark this mentorship as completed?"
+                                               hx-target="closest .mentorship-card"
+                                               hx-swap="outerHTML">
+                                                <i class="bi bi-check-circle me-2"></i>Mark Complete
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item text-danger" href="#"
+                                               hx-post="/Mentorship/CancelMentorship/@mentorship.Id"
+                                               hx-confirm="Are you sure you want to cancel this mentorship?"
+                                               hx-target="closest .mentorship-card"
+                                               hx-swap="outerHTML">
+                                                <i class="bi bi-x-circle me-2"></i>Cancel
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Summary Stats -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-md-3">
+                                <h4 class="text-primary mb-1">@Model.Count</h4>
+                                <small class="text-muted">Active Mentorships</small>
+                            </div>
+                            <div class="col-md-3">
+                                <h4 class="text-success mb-1">@Model.Count(m => m.MentorId.ToString() == userId)</h4>
+                                <small class="text-muted">As Mentor</small>
+                            </div>
+                            <div class="col-md-3">
+                                <h4 class="text-info mb-1">@Model.Count(m => m.MenteeId.ToString() == userId)</h4>
+                                <small class="text-muted">As Mentee</small>
+                            </div>
+                            <div class="col-md-3">
+                                <h4 class="text-warning mb-1">@Model.Average(m => (DateTime.UtcNow - (m.StartedAt ?? DateTime.UtcNow)).Days).ToString("F0")</h4>
+                                <small class="text-muted">Avg. Days Active</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Modal Container -->
+<div id="modal-container"></div>
