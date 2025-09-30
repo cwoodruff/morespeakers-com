@@ -1,4 +1,5 @@
-@model MentorshipRequestsViewModel
+@page
+@model morespeakers.Pages.Mentorship.RequestsModel
 @{
     ViewData["Title"] = "Mentorship Requests";
 }
@@ -39,7 +40,7 @@
                 </div>
                 <div class="card-body">
                     <div id="incoming-requests">
-                        @await Html.PartialAsync("_IncomingRequests", Model.IncomingRequests)
+                        @await Html.PartialAsync("~/Views/Mentorship/_IncomingRequests.cshtml", Model.IncomingRequests)
                     </div>
                 </div>
             </div>

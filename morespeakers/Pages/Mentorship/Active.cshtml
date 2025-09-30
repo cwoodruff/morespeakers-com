@@ -1,4 +1,5 @@
-@model List<Mentorship>
+@page
+@model morespeakers.Pages.Mentorship.ActiveModel
 @{
     ViewData["Title"] = "Active Mentorships";
 }
@@ -19,7 +20,7 @@
         </div>
     </div>
 
-    @if (!Model.Any())
+    @if (!Model.ActiveMentorships.Any())
     {
         <div class="text-center py-5">
             <i class="bi bi-people display-1 text-muted"></i>
@@ -38,14 +39,9 @@
     else
     {
         <div class="row">
-            @{
-                var currentUser = ViewContext.HttpContext.User;
-                var userId = currentUser.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            }
-            
-            @foreach (var mentorship in Model)
+            @foreach (var mentorship in Model.ActiveMentorships)
             {
-                var isUserMentor = mentorship.MentorId.ToString() == userId;
+                var isUserMentor = mentorship.MentorId == Model.CurrentUserId;
                 var otherPerson = isUserMentor ? mentorship.Mentee : mentorship.Mentor;
                 var role = isUserMentor ? "Mentor" : "Mentee";
                 var otherRole = isUserMentor ? "Mentee" : "Mentor";
@@ -109,7 +105,7 @@
                                 <div class="mb-3">
                                     <small class="text-muted">
                                         <i class="bi bi-calendar-week me-1"></i>
-                                        <strong>Meeting frequency:</strong> @mentorship.PreferredFrequency.Replace("-", " ").ToTitleCase()
+                                        <strong>Meeting frequency:</strong> @mentorship.PreferredFrequency.Replace("-", " ")
                                     </small>
                                 </div>
                             }
@@ -143,12 +139,9 @@
                                     <i class="bi bi-person me-1"></i>View Profile
                                 </a>
                                 
-                                @if (otherPerson.SocialMediaLinks.Any(s => s.Platform.ToLower() == "email"))
-                                {
-                                    <a href="mailto:@otherPerson.Email" class="btn btn-outline-secondary btn-sm">
-                                        <i class="bi bi-envelope me-1"></i>Email
-                                    </a>
-                                }
+                                <a href="mailto:@otherPerson.Email" class="btn btn-outline-secondary btn-sm">
+                                    <i class="bi bi-envelope me-1"></i>Email
+                                </a>
 
                                 <div class="dropdown ms-auto">
                                     <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" 
@@ -156,13 +149,6 @@
                                         <i class="bi bi-three-dots"></i>
                                     </button>
                                     <ul class="dropdown-menu dropdown-menu-end">
-                                        <li>
-                                            <a class="dropdown-item" href="#" 
-                                               hx-get="/Mentorship/AddNotes/@mentorship.Id"
-                                               hx-target="#modal-container">
-                                                <i class="bi bi-journal-text me-2"></i>Add Notes
-                                            </a>
-                                        </li>
                                         <li><hr class="dropdown-divider"></li>
                                         <li>
                                             <a class="dropdown-item text-success" href="#"
@@ -198,19 +184,19 @@
                     <div class="card-body">
                         <div class="row text-center">
                             <div class="col-md-3">
-                                <h4 class="text-primary mb-1">@Model.Count</h4>
+                                <h4 class="text-primary mb-1">@Model.ActiveMentorships.Count</h4>
                                 <small class="text-muted">Active Mentorships</small>
                             </div>
                             <div class="col-md-3">
-                                <h4 class="text-success mb-1">@Model.Count(m => m.MentorId.ToString() == userId)</h4>
+                                <h4 class="text-success mb-1">@Model.ActiveMentorships.Count(m => m.MentorId == Model.CurrentUserId)</h4>
                                 <small class="text-muted">As Mentor</small>
                             </div>
                             <div class="col-md-3">
-                                <h4 class="text-info mb-1">@Model.Count(m => m.MenteeId.ToString() == userId)</h4>
+                                <h4 class="text-info mb-1">@Model.ActiveMentorships.Count(m => m.MenteeId == Model.CurrentUserId)</h4>
                                 <small class="text-muted">As Mentee</small>
                             </div>
                             <div class="col-md-3">
-                                <h4 class="text-warning mb-1">@Model.Average(m => (DateTime.UtcNow - (m.StartedAt ?? DateTime.UtcNow)).Days).ToString("F0")</h4>
+                                <h4 class="text-warning mb-1">@Model.ActiveMentorships.Average(m => (DateTime.UtcNow - (m.StartedAt ?? DateTime.UtcNow)).Days).ToString("F0")</h4>
                                 <small class="text-muted">Avg. Days Active</small>
                             </div>
                         </div>

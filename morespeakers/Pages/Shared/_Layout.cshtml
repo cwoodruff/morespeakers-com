@@ -44,10 +44,10 @@
                                 <i class="bi bi-people me-1"></i>Mentorship
                             </a>
                             <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="/BrowseSpeakers">
+                                <li><a class="dropdown-item" asp-page="/Mentorship/Browse">
                                         <i class="bi bi-search me-2"></i>Find Mentors
                                     </a></li>
-                                <li><a class="dropdown-item" href="/Mentorship/Requests">
+                                <li><a class="dropdown-item" asp-page="/Mentorship/Requests">
                                         <i class="bi bi-inbox me-2"></i>My Requests
                                         <div id="nav-notification-badge" 
                                              hx-get="/Mentorship/NotificationCount"
@@ -55,7 +55,7 @@
                                              hx-swap="innerHTML"
                                              class="d-inline"></div>
                                     </a></li>
-                                <li><a class="dropdown-item" href="/Mentorship/Active">
+                                <li><a class="dropdown-item" asp-page="/Mentorship/Active">
                                         <i class="bi bi-chat-dots me-2"></i>Active Mentorships
                                     </a></li>
                             </ul>
