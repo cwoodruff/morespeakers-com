@@ -30,7 +30,7 @@ public class ActiveModel : PageModel
 
         CurrentUserId = currentUser.Id;
 
-        ActiveMentorships = await _context.Mentorships
+        ActiveMentorships = await _context.Mentorship
             .Include(m => m.Mentor)
             .ThenInclude(m => m.SpeakerType)
             .Include(m => m.Mentee)

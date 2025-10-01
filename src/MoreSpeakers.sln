@@ -11,20 +11,22 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ExtraStuff", "ExtraStuff", "{F237316C-4113-4191-9EF7-EFA8065ED236}"
 	ProjectSection(SolutionItems) = preProject
 		..\.github\workflows\deploy-to-azure.yml = ..\.github\workflows\deploy-to-azure.yml
-		..\.gitignore = ..\.gitignore		
+		..\.gitignore = ..\.gitignore
 		..\claude.md = ..\claude.md
 		..\next-steps.md = ..\next-steps.md
 		install-libman.ps1 = install-libman.ps1
 		libman-restore.ps1 = libman-restore.ps1
 		..\README.md = ..\README.md
+		..\azure.yaml = ..\azure.yaml
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SQLServer", "SQLServer", "{6385B702-FE45-4AEF-93CC-E724BEC47B0D}"
 	ProjectSection(SolutionItems) = preProject
 		..\scripts\database\create-database.sql = ..\scripts\database\create-database.sql
-		..\scripts\database\table-create.sql = ..\scripts\database\table-create.sql
-		..\scripts\database\data-create.sql = ..\scripts\database\data-create.sql
-		..\scripts\database\truncate-data.sql = ..\scripts\database\truncate-data.sql
+		..\scripts\database\create-functions.sql = ..\scripts\database\create-functions.sql
+		..\scripts\database\create-tables.sql = ..\scripts\database\create-tables.sql
+		..\scripts\database\create-views.sql = ..\scripts\database\create-views.sql
+		..\scripts\database\seed-data.sql = ..\scripts\database\seed-data.sql
 	EndProjectSection
 EndProject
 Global

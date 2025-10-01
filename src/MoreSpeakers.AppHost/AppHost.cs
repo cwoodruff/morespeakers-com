@@ -3,18 +3,29 @@ using Projects;
 var builder = DistributedApplication.CreateBuilder(args);
 
 // Add SQL Server database
-var sqldb = builder.AddConnectionString("sqldb");
+var sql = builder.AddSqlServer("sqldb")
+    .WithLifetime(ContainerLifetime.Persistent);
+
+var path = builder.AppHostDirectory;
+var sqlText = string.Concat(
+    File.ReadAllText(Path.Combine(path, @"..\..\scripts\database\create-database.sql")), 
+    " ",
+    File.ReadAllText(Path.Combine(path, @"..\..\scripts\database\create-tables.sql")),
+    " ",
+    File.ReadAllText(Path.Combine(path, @"..\..\scripts\database\create-views.sql")),
+    " ",
+    File.ReadAllText(Path.Combine(path, @"..\..\scripts\database\create-functions.sql")),
+    " ",
+    File.ReadAllText(Path.Combine(path, @"..\..\scripts\database\seed-data.sql")));
+
+var db = sql.AddDatabase("MoreSpeakers")
+    .WithCreationScript(sqlText);
 
 // Add the main web application
-var webApp = builder.AddProject<MoreSpeakers_Web>("web")
-    .WaitFor(sqldb)
+builder.AddProject<MoreSpeakers_Web>("web")
+    .WaitFor(db)
+    .WithEnvironment("ConnectionStrings__sqldb", db)
     .WithExternalHttpEndpoints()
     .WithHttpHealthCheck("/health");
-
-// Add Redis cache for session management (optional)
-var redis = builder.AddRedis("cache")
-    .WithDataVolume();
-
-webApp.WithReference(redis);
 
 builder.Build().Run();

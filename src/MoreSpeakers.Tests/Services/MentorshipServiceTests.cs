@@ -44,7 +44,7 @@ public class MentorshipServiceTests : TestBase
             }
         };
 
-        Context.Mentorships.AddRange(mentorships);
+        Context.Mentorship.AddRange(mentorships);
         Context.SaveChanges();
     }
 
@@ -82,7 +82,7 @@ public class MentorshipServiceTests : TestBase
     public async Task GetMentorshipByIdAsync_WithValidId_ShouldReturnMentorship()
     {
         // Arrange
-        var existingMentorship = await Context.Mentorships.FirstAsync();
+        var existingMentorship = await Context.Mentorship.FirstAsync();
 
         // Act
         var result = await _mentorshipService.GetMentorshipByIdAsync(existingMentorship.Id);
@@ -116,9 +116,9 @@ public class MentorshipServiceTests : TestBase
         var notes = "Need help with presentation skills";
 
         // First, remove existing mentorships to test fresh request
-        var existingMentorships = Context.Mentorships
+        var existingMentorships = Context.Mentorship
             .Where(m => m.MenteeId == newSpeaker.Id && m.MentorId == mentor.Id);
-        Context.Mentorships.RemoveRange(existingMentorships);
+        Context.Mentorship.RemoveRange(existingMentorships);
         await Context.SaveChangesAsync();
 
         // Act
@@ -127,7 +127,7 @@ public class MentorshipServiceTests : TestBase
         // Assert
         result.Should().BeTrue();
 
-        var createdMentorship = await Context.Mentorships
+        var createdMentorship = await Context.Mentorship
             .FirstOrDefaultAsync(m => m.MenteeId == newSpeaker.Id &&
                                       m.MentorId == mentor.Id &&
                                       m.Status == MentorshipStatus.Pending);
@@ -154,7 +154,7 @@ public class MentorshipServiceTests : TestBase
     public async Task AcceptMentorshipAsync_WithPendingMentorship_ShouldReturnTrue()
     {
         // Arrange
-        var pendingMentorship = await Context.Mentorships
+        var pendingMentorship = await Context.Mentorship
             .FirstAsync(m => m.Status == MentorshipStatus.Pending);
 
         // Act
@@ -163,7 +163,7 @@ public class MentorshipServiceTests : TestBase
         // Assert
         result.Should().BeTrue();
 
-        var updatedMentorship = await Context.Mentorships.FindAsync(pendingMentorship.Id);
+        var updatedMentorship = await Context.Mentorship.FindAsync(pendingMentorship.Id);
         updatedMentorship!.Status.Should().Be(MentorshipStatus.Active);
         updatedMentorship.ResponsedAt.Should().NotBeNull();
         updatedMentorship.ResponsedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromMinutes(1));
@@ -173,7 +173,7 @@ public class MentorshipServiceTests : TestBase
     public async Task AcceptMentorshipAsync_WithNonPendingMentorship_ShouldReturnFalse()
     {
         // Arrange
-        var activeMentorship = await Context.Mentorships
+        var activeMentorship = await Context.Mentorship
             .FirstAsync(m => m.Status == MentorshipStatus.Active);
 
         // Act
@@ -200,7 +200,7 @@ public class MentorshipServiceTests : TestBase
     public async Task CompleteMentorshipAsync_WithActiveMentorship_ShouldReturnTrue()
     {
         // Arrange
-        var activeMentorship = await Context.Mentorships
+        var activeMentorship = await Context.Mentorship
             .FirstAsync(m => m.Status == MentorshipStatus.Active);
         var completionNotes = "Successfully completed mentorship program";
 
@@ -210,7 +210,7 @@ public class MentorshipServiceTests : TestBase
         // Assert
         result.Should().BeTrue();
 
-        var updatedMentorship = await Context.Mentorships.FindAsync(activeMentorship.Id);
+        var updatedMentorship = await Context.Mentorship.FindAsync(activeMentorship.Id);
         updatedMentorship!.Status.Should().Be(MentorshipStatus.Completed);
         updatedMentorship.CompletedAt.Should().NotBeNull();
         updatedMentorship.Notes.Should().Contain(completionNotes);
@@ -220,7 +220,7 @@ public class MentorshipServiceTests : TestBase
     public async Task CompleteMentorshipAsync_WithNonActiveMentorship_ShouldReturnFalse()
     {
         // Arrange
-        var pendingMentorship = await Context.Mentorships
+        var pendingMentorship = await Context.Mentorship
             .FirstAsync(m => m.Status == MentorshipStatus.Pending);
 
         // Act
@@ -234,7 +234,7 @@ public class MentorshipServiceTests : TestBase
     public async Task CancelMentorshipAsync_WithValidMentorship_ShouldReturnTrue()
     {
         // Arrange
-        var mentorship = await Context.Mentorships
+        var mentorship = await Context.Mentorship
             .FirstAsync(m => m.Status == MentorshipStatus.Pending);
         var cancellationReason = "Schedule conflicts";
 
@@ -244,7 +244,7 @@ public class MentorshipServiceTests : TestBase
         // Assert
         result.Should().BeTrue();
 
-        var updatedMentorship = await Context.Mentorships.FindAsync(mentorship.Id);
+        var updatedMentorship = await Context.Mentorship.FindAsync(mentorship.Id);
         updatedMentorship!.Status.Should().Be(MentorshipStatus.Cancelled);
         updatedMentorship.Notes.Should().Contain(cancellationReason);
     }
@@ -253,7 +253,7 @@ public class MentorshipServiceTests : TestBase
     public async Task UpdateMentorshipNotesAsync_WithValidId_ShouldReturnTrue()
     {
         // Arrange
-        var mentorship = await Context.Mentorships.FirstAsync();
+        var mentorship = await Context.Mentorship.FirstAsync();
         var newNotes = "Updated mentorship notes with progress details";
 
         // Act
@@ -262,7 +262,7 @@ public class MentorshipServiceTests : TestBase
         // Assert
         result.Should().BeTrue();
 
-        var updatedMentorship = await Context.Mentorships.FindAsync(mentorship.Id);
+        var updatedMentorship = await Context.Mentorship.FindAsync(mentorship.Id);
         updatedMentorship!.Notes.Should().Be(newNotes);
     }
 

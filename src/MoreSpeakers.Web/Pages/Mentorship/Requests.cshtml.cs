@@ -36,7 +36,7 @@ public class RequestsModel : PageModel
 
     private async Task<List<Models.Mentorship>> GetIncomingRequests(Guid userId)
     {
-        return await _context.Mentorships
+        return await _context.Mentorship
             .Include(m => m.Mentee)
             .Include(m => m.FocusAreas)
             .ThenInclude(fa => fa.Expertise)
@@ -47,7 +47,7 @@ public class RequestsModel : PageModel
 
     private async Task<List<Models.Mentorship>> GetOutgoingRequests(Guid userId)
     {
-        return await _context.Mentorships
+        return await _context.Mentorship
             .Include(m => m.Mentor)
             .ThenInclude(m => m.SpeakerType)
             .Include(m => m.FocusAreas)

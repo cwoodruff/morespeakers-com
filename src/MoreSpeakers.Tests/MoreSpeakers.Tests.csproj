@@ -6,7 +6,6 @@
         <Nullable>enable</Nullable>
         <IsPackable>false</IsPackable>
         <IsTestProject>true</IsTestProject>
-        <RootNamespace>MoreSpeakers</RootNamespace>
         <AssemblyName>MoreSpeakers.Tests</AssemblyName>
         <Company>Woodruff Solutions, LLC</Company>
         <Authors>Chris Woodruff, Joseph Guadagno</Authors>

@@ -1,278 +1,36 @@
-create table AspNetRoles
-(
-    Id               uniqueidentifier default newid() not null
-        primary key,
-    Name             nvarchar(256),
-    NormalizedName   nvarchar(256),
-    ConcurrencyStamp nvarchar(max)
-)
-go
+CREATE DATABASE MoreSpeakers
+    ON
+    ( NAME = JJGNet_Data,
+        FILENAME = '/var/opt/mssql/data/morespeakers.mdf',
+        SIZE = 10,
+        MAXSIZE = 50,
+        FILEGROWTH = 5 )
+    LOG ON
+    ( NAME = JJGNet_Log,
+        FILENAME = '/var/opt/mssql/data/morespeakers.ldf',
+        SIZE = 5MB,
+        MAXSIZE = 25MB,
+        FILEGROWTH = 5MB ) ;
+GO
 
-create table AspNetRoleClaims
-(
-    Id         int identity
-        primary key,
-    RoleId     uniqueidentifier not null
-        constraint FK_AspNetRoleClaims_AspNetRoles_RoleId
-            references AspNetRoles
-            on delete cascade,
-    ClaimType  nvarchar(max),
-    ClaimValue nvarchar(max)
-)
-go
+--- Replace <REPLACE_ME> with a real password
+USE master
+CREATE Login jguadagno
+    WITH Password='5cEZpbhz&p5i&DaA2*N68Nn4sJINd2-localonly'
+GO
 
-create table Expertise
-(
-    Id          int identity
-        primary key,
-    Name        nvarchar(100)                  not null
-        unique,
-    Description nvarchar(500),
-    CreatedDate datetime2 default getutcdate() not null,
-    IsActive    bit       default 1            not null
-)
-go
+CREATE Login cwoodruff
+    WITH Password='5cEZpbhz&p5i&DaA2*N68Nn4sJINd2-localonly'
+GO
 
-create table SpeakerTypes
-(
-    Id          int identity
-        primary key,
-    Name        nvarchar(50)                   not null
-        unique,
-    Description nvarchar(200)                  not null,
-    CreatedDate datetime2 default getutcdate() not null
-)
-go
+USE MoreSpeakers
+CREATE USER jguadagno FOR LOGIN jguadagno;
 
-create table AspNetUsers
-(
-    Id                      uniqueidentifier default newid()      not null
-        primary key,
-    UserName                nvarchar(256),
-    NormalizedUserName      nvarchar(256),
-    Email                   nvarchar(256),
-    NormalizedEmail         nvarchar(256),
-    EmailConfirmed          bit              default 0            not null,
-    PasswordHash            nvarchar(max),
-    SecurityStamp           nvarchar(max),
-    ConcurrencyStamp        nvarchar(max),
-    PhoneNumber             nvarchar(max)
-        constraint CHK_Users_Phone_Format
-            check ([PhoneNumber] IS NULL OR
-                   len([PhoneNumber]) >= 10 AND len([PhoneNumber]) <= 20 AND [PhoneNumber] like '%[0-9]%'),
-    PhoneNumberConfirmed    bit              default 0            not null,
-    TwoFactorEnabled        bit              default 0            not null,
-    LockoutEnd              datetimeoffset,
-    LockoutEnabled          bit              default 0            not null,
-    AccessFailedCount       int              default 0            not null,
-    FirstName               nvarchar(100)                         not null
-        constraint CHK_Users_FirstName_Length
-            check (len([FirstName]) >= 2 AND len([FirstName]) <= 100),
-    LastName                nvarchar(100)                         not null
-        constraint CHK_Users_LastName_Length
-            check (len([LastName]) >= 2 AND len([LastName]) <= 100),
-    Bio                     nvarchar(max)                         not null
-        constraint CHK_Users_Bio_Length
-            check (len([Bio]) <= 6000),
-    SessionizeUrl           nvarchar(500)
-        constraint CHK_Users_SessionizeUrl_Format
-            check ([SessionizeUrl] IS NULL OR [SessionizeUrl] like 'http%://%' OR [SessionizeUrl] like 'https%://%'),
-    HeadshotUrl             nvarchar(500),
-    SpeakerTypeId           int                                   not null
-        constraint FK_AspNetUsers_SpeakerTypes
-            references SpeakerTypes,
-    Goals                   nvarchar(max)                         not null
-        constraint CHK_Users_Goals_Length
-            check (len([Goals]) <= 2000),
-    CreatedDate             datetime2        default getutcdate() not null,
-    UpdatedDate             datetime2        default getutcdate() not null,
-    IsActive                bit              default 1            not null,
-    IsAvailableForMentoring bit              default 1            not null,
-    MaxMentees              int              default 2            not null,
-    MentorshipFocus         nvarchar(1000)
-)
-go
+ALTER ROLE db_datareader ADD MEMBER jguadagno;
+ALTER ROLE db_datawriter ADD MEMBER jguadagno;
+      
+CREATE USER cwoodruff FOR LOGIN cwoodruff;
 
-create table AspNetUserClaims
-(
-    Id         int identity
-        primary key,
-    UserId     uniqueidentifier not null
-        constraint FK_AspNetUserClaims_AspNetUsers_UserId
-            references AspNetUsers
-            on delete cascade,
-    ClaimType  nvarchar(max),
-    ClaimValue nvarchar(max)
-)
-go
-
-create table AspNetUserLogins
-(
-    LoginProvider       nvarchar(450)    not null,
-    ProviderKey         nvarchar(450)    not null,
-    ProviderDisplayName nvarchar(max),
-    UserId              uniqueidentifier not null
-        constraint FK_AspNetUserLogins_AspNetUsers_UserId
-            references AspNetUsers
-            on delete cascade,
-    primary key (LoginProvider, ProviderKey)
-)
-go
-
-create table AspNetUserRoles
-(
-    UserId uniqueidentifier not null
-        constraint FK_AspNetUserRoles_AspNetUsers_UserId
-            references AspNetUsers
-            on delete cascade,
-    RoleId uniqueidentifier not null
-        constraint FK_AspNetUserRoles_AspNetRoles_RoleId
-            references AspNetRoles
-            on delete cascade,
-    primary key (UserId, RoleId)
-)
-go
-
-create table AspNetUserTokens
-(
-    UserId        uniqueidentifier not null
-        constraint FK_AspNetUserTokens_AspNetUsers_UserId
-            references AspNetUsers
-            on delete cascade,
-    LoginProvider nvarchar(450)    not null,
-    Name          nvarchar(450)    not null,
-    Value         nvarchar(max),
-    primary key (UserId, LoginProvider, Name)
-)
-go
-
-create table Mentorships
-(
-    Id                 uniqueidentifier default newid()            not null
-        constraint PK_Mentorships
-            primary key,
-    MentorId           uniqueidentifier                            not null
-        constraint FK_Mentorships_AspNetUsers_MentorId
-            references AspNetUsers,
-    MenteeId           uniqueidentifier                            not null
-        constraint FK_Mentorships_AspNetUsers_MenteeId
-            references AspNetUsers,
-    Type               nvarchar(50)     default 'NewToExperienced' not null
-        constraint CHK_Mentorships_Type
-            check ([Type] = 'ExperiencedToExperienced' OR [Type] = 'NewToExperienced'),
-    Status             nvarchar(20)     default 'Pending'          not null
-        constraint CHK_Mentorships_Status
-            check ([Status] = 'Cancelled' OR [Status] = 'Declined' OR [Status] = 'Completed' OR [Status] = 'Active' OR
-                   [Status] = 'Pending'),
-    RequestMessage     nvarchar(1000)   default ''                 not null,
-    ResponseMessage    nvarchar(1000),
-    PreferredFrequency nvarchar(50),
-    RequestedAt        datetime2        default getutcdate()       not null,
-    ResponsedAt        datetime2,
-    StartedAt          datetime2,
-    CompletedAt        datetime2,
-    CreatedAt          datetime2        default getutcdate()       not null,
-    UpdatedAt          datetime2        default getutcdate()       not null,
-    Notes              nvarchar(2000),
-    NewSpeakerId       as [MenteeId] not null,
-    RequestDate        as [RequestedAt] not null,
-    AcceptedDate       as [StartedAt],
-    constraint CHK_Mentorships_DifferentUsers
-        check ([MenteeId] <> [MentorId])
-)
-go
-
-create table MentorshipExpertise
-(
-    MentorshipId uniqueidentifier not null
-        constraint FK_MentorshipExpertise_Mentorships_MentorshipId
-            references Mentorships
-            on delete cascade,
-    ExpertiseId  int              not null
-        constraint FK_MentorshipExpertise_Expertise_ExpertiseId
-            references Expertise
-            on delete cascade,
-    constraint PK_MentorshipExpertise
-        primary key (MentorshipId, ExpertiseId)
-)
-go
-
-create index IX_MentorshipExpertise_ExpertiseId
-    on MentorshipExpertise (ExpertiseId)
-go
-
-create index IX_Mentorships_MentorId
-    on Mentorships (MentorId)
-go
-
-create index IX_Mentorships_MenteeId
-    on Mentorships (MenteeId)
-go
-
-create index IX_Mentorships_Status
-    on Mentorships (Status)
-go
-
-create index IX_Mentorships_Type
-    on Mentorships (Type)
-go
-
-create index IX_Mentorships_Status_RequestedAt
-    on Mentorships (Status, RequestedAt)
-go
-
-create index IX_Mentorships_MentorId_Status
-    on Mentorships (MentorId, Status)
-go
-
-create index IX_Mentorships_MenteeId_Status
-    on Mentorships (MenteeId, Status)
-go
-
-CREATE TRIGGER TR_Mentorships_UpdatedAt
-  ON Mentorships
-  AFTER UPDATE
-  AS
-  BEGIN
-      SET NOCOUNT ON;
-
-      UPDATE Mentorships
-      SET UpdatedAt = GETUTCDATE()
-      FROM Mentorships m
-      INNER JOIN inserted i ON m.Id = i.Id;
-  END;
-go
-
-create table SocialMedia
-(
-    Id          int identity
-        primary key,
-    UserId      uniqueidentifier               not null
-        constraint FK_SocialMedia_Users
-            references AspNetUsers
-            on delete cascade,
-    Platform    nvarchar(50)                   not null,
-    Url         nvarchar(500)                  not null
-        constraint CHK_SocialMedia_Url_Format
-            check ([Url] like 'http%://%' OR [Url] like 'https%://%'),
-    CreatedDate datetime2 default getutcdate() not null,
-    IsActive    bit       default 1            not null
-)
-go
-
-create table UserExpertise
-(
-    UserId      uniqueidentifier               not null
-        constraint FK_UserExpertise_Users
-            references AspNetUsers
-            on delete cascade,
-    ExpertiseId int                            not null
-        constraint FK_UserExpertise_Expertise
-            references Expertise
-            on delete cascade,
-    CreatedDate datetime2 default getutcdate() not null,
-    primary key (UserId, ExpertiseId)
-)
-go
-
-
+ALTER ROLE db_datareader ADD MEMBER cwoodruff;
+ALTER ROLE db_datawriter ADD MEMBER cwoodruff;      
+GO

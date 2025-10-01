@@ -119,7 +119,7 @@ public class MentorshipController : Controller
         if (mentor == null) return NotFound();
 
         // Check if request already exists
-        var existingRequest = await _context.Mentorships
+        var existingRequest = await _context.Mentorship
             .FirstOrDefaultAsync(m => m.MentorId == mentorId && 
                                     m.MenteeId == currentUser.Id && 
                                     m.Status == MentorshipStatus.Pending);
@@ -141,7 +141,7 @@ public class MentorshipController : Controller
             Status = MentorshipStatus.Pending
         };
 
-        _context.Mentorships.Add(mentorship);
+        _context.Mentorship.Add(mentorship);
         await _context.SaveChangesAsync();
 
         // Add focus areas
@@ -181,7 +181,7 @@ public class MentorshipController : Controller
         var currentUser = await _userManager.GetUserAsync(User);
         if (currentUser == null) return Unauthorized();
 
-        var mentorship = await _context.Mentorships
+        var mentorship = await _context.Mentorship
             .Include(m => m.Mentee)
             .Include(m => m.FocusAreas)
             .ThenInclude(fa => fa.Expertise)
@@ -215,7 +215,7 @@ public class MentorshipController : Controller
         var currentUser = await _userManager.GetUserAsync(User);
         if (currentUser == null) return Unauthorized();
 
-        var activeMentorships = await _context.Mentorships
+        var activeMentorships = await _context.Mentorship
             .Include(m => m.Mentor)
             .Include(m => m.Mentee)
             .Include(m => m.FocusAreas)
@@ -240,7 +240,7 @@ public class MentorshipController : Controller
         var currentUser = await _userManager.GetUserAsync(User);
         if (currentUser == null) return Json(new { count = 0 });
 
-        var pendingCount = await _context.Mentorships
+        var pendingCount = await _context.Mentorship
             .CountAsync(m => m.MentorId == currentUser.Id && m.Status == MentorshipStatus.Pending);
 
         if (pendingCount > 0)
@@ -267,7 +267,7 @@ public class MentorshipController : Controller
         var currentUser = await _userManager.GetUserAsync(User);
         if (currentUser == null) return Unauthorized();
 
-        var mentorship = await _context.Mentorships
+        var mentorship = await _context.Mentorship
             .FirstOrDefaultAsync(m => m.Id == requestId && m.MenteeId == currentUser.Id);
 
         if (mentorship == null) return NotFound();
@@ -285,7 +285,7 @@ public class MentorshipController : Controller
         var currentUser = await _userManager.GetUserAsync(User);
         if (currentUser == null) return Unauthorized();
 
-        var mentorship = await _context.Mentorships
+        var mentorship = await _context.Mentorship
             .FirstOrDefaultAsync(m => m.Id == mentorshipId && 
                                (m.MentorId == currentUser.Id || m.MenteeId == currentUser.Id));
 
@@ -305,7 +305,7 @@ public class MentorshipController : Controller
         var currentUser = await _userManager.GetUserAsync(User);
         if (currentUser == null) return Unauthorized();
 
-        var mentorship = await _context.Mentorships
+        var mentorship = await _context.Mentorship
             .FirstOrDefaultAsync(m => m.Id == mentorshipId && 
                                (m.MentorId == currentUser.Id || m.MenteeId == currentUser.Id));
 
@@ -360,7 +360,7 @@ public class MentorshipController : Controller
 
     private async Task<List<Mentorship>> GetIncomingRequests(Guid userId)
     {
-        return await _context.Mentorships
+        return await _context.Mentorship
             .Include(m => m.Mentee)
             .Include(m => m.FocusAreas)
             .ThenInclude(fa => fa.Expertise)
@@ -371,7 +371,7 @@ public class MentorshipController : Controller
 
     private async Task<List<Mentorship>> GetOutgoingRequests(Guid userId)
     {
-        return await _context.Mentorships
+        return await _context.Mentorship
             .Include(m => m.Mentor)
             .Include(m => m.FocusAreas)
             .ThenInclude(fa => fa.Expertise)

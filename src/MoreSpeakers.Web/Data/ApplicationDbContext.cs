@@ -8,11 +8,11 @@ namespace morespeakers.Data;
 public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
     : IdentityDbContext<User, IdentityRole<Guid>, Guid>(options)
 {
-    public DbSet<SpeakerType> SpeakerTypes { get; set; }
+    public DbSet<SpeakerType> SpeakerType { get; set; }
     public DbSet<Expertise> Expertise { get; set; }
     public DbSet<UserExpertise> UserExpertise { get; set; }
     public DbSet<SocialMedia> SocialMedia { get; set; }
-    public DbSet<Mentorship> Mentorships { get; set; }
+    public DbSet<Mentorship> Mentorship { get; set; }
     public DbSet<MentorshipExpertise> MentorshipExpertise { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
@@ -57,6 +57,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         // Configure SpeakerType entity
         builder.Entity<SpeakerType>(entity =>
         {
+            entity.ToTable("SpeakerTypes");
             entity.HasIndex(e => e.Name)
                 .IsUnique();
 
@@ -67,6 +68,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         // Configure Expertise entity
         builder.Entity<Expertise>(entity =>
         {
+            entity.ToTable("Expertises");
             entity.HasIndex(e => e.Name)
                 .IsUnique();
 
@@ -77,6 +79,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         // Configure UserExpertise many-to-many relationship
         builder.Entity<UserExpertise>(entity =>
         {
+            entity.ToTable("UserExpertises");
             entity.HasKey(e => new { e.UserId, e.ExpertiseId });
 
             entity.HasOne(e => e.User)
@@ -93,6 +96,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         // Configure SocialMedia entity
         builder.Entity<SocialMedia>(entity =>
         {
+            entity.ToTable("SocialMedias");
             entity.Property(e => e.CreatedDate)
                 .HasDefaultValueSql("GETUTCDATE()");
 
@@ -107,6 +111,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         // Configure Mentorship entity
         builder.Entity<Mentorship>(entity =>
         {
+            entity.ToTable("Mentorships");
             entity.Property(e => e.Id)
                 .HasDefaultValueSql("NEWID()");
 
@@ -134,6 +139,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         // Configure MentorshipExpertise many-to-many relationship
         builder.Entity<MentorshipExpertise>(entity =>
         {
+            entity.ToTable("MentorshipExpertises");
             entity.HasKey(e => new { e.MentorshipId, e.ExpertiseId });
 
             entity.HasOne(e => e.Mentorship)

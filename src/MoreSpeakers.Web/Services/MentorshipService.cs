@@ -15,7 +15,7 @@ public class MentorshipService : IMentorshipService
 
     public async Task<IEnumerable<Mentorship>> GetMentorshipsForMentorAsync(Guid mentorId)
     {
-        return await _context.Mentorships
+        return await _context.Mentorship
             .Include(m => m.Mentor)
             .Include(m => m.Mentee)
             .Where(m => m.MentorId == mentorId)
@@ -25,7 +25,7 @@ public class MentorshipService : IMentorshipService
 
     public async Task<IEnumerable<Mentorship>> GetMentorshipsForNewSpeakerAsync(Guid newSpeakerId)
     {
-        return await _context.Mentorships
+        return await _context.Mentorship
             .Include(m => m.Mentor)
             .Include(m => m.Mentee)
             .Where(m => m.MenteeId == newSpeakerId)
@@ -35,7 +35,7 @@ public class MentorshipService : IMentorshipService
 
     public async Task<Mentorship?> GetMentorshipByIdAsync(Guid id)
     {
-        return await _context.Mentorships
+        return await _context.Mentorship
             .Include(m => m.Mentor)
             .Include(m => m.Mentee)
             .FirstOrDefaultAsync(m => m.Id == id);
@@ -46,7 +46,7 @@ public class MentorshipService : IMentorshipService
         try
         {
             // Check if there's already a pending or active mentorship between these users
-            var existingMentorship = await _context.Mentorships
+            var existingMentorship = await _context.Mentorship
                 .FirstOrDefaultAsync(m => 
                     m.MenteeId == newSpeakerId && 
                     m.MentorId == mentorId && 
@@ -66,7 +66,7 @@ public class MentorshipService : IMentorshipService
                 Type = MentorshipType.NewToExperienced
             };
 
-            _context.Mentorships.Add(mentorship);
+            _context.Mentorship.Add(mentorship);
             await _context.SaveChangesAsync();
             return true;
         }
@@ -80,7 +80,7 @@ public class MentorshipService : IMentorshipService
     {
         try
         {
-            var mentorship = await _context.Mentorships.FindAsync(mentorshipId);
+            var mentorship = await _context.Mentorship.FindAsync(mentorshipId);
             if (mentorship == null || mentorship.Status != MentorshipStatus.Pending)
                 return false;
 
@@ -101,7 +101,7 @@ public class MentorshipService : IMentorshipService
     {
         try
         {
-            var mentorship = await _context.Mentorships.FindAsync(mentorshipId);
+            var mentorship = await _context.Mentorship.FindAsync(mentorshipId);
             if (mentorship == null || mentorship.Status != MentorshipStatus.Active)
                 return false;
 
@@ -123,7 +123,7 @@ public class MentorshipService : IMentorshipService
     {
         try
         {
-            var mentorship = await _context.Mentorships.FindAsync(mentorshipId);
+            var mentorship = await _context.Mentorship.FindAsync(mentorshipId);
             if (mentorship == null)
                 return false;
 
@@ -144,7 +144,7 @@ public class MentorshipService : IMentorshipService
     {
         try
         {
-            var mentorship = await _context.Mentorships.FindAsync(mentorshipId);
+            var mentorship = await _context.Mentorship.FindAsync(mentorshipId);
             if (mentorship == null)
                 return false;
 
@@ -160,7 +160,7 @@ public class MentorshipService : IMentorshipService
 
     public async Task<IEnumerable<Mentorship>> GetPendingMentorshipsAsync()
     {
-        return await _context.Mentorships
+        return await _context.Mentorship
             .Include(m => m.Mentor)
             .Include(m => m.Mentee)
             .Where(m => m.Status == MentorshipStatus.Pending)
@@ -170,7 +170,7 @@ public class MentorshipService : IMentorshipService
 
     public async Task<IEnumerable<Mentorship>> GetActiveMentorshipsAsync()
     {
-        return await _context.Mentorships
+        return await _context.Mentorship
             .Include(m => m.Mentor)
             .Include(m => m.Mentee)
             .Where(m => m.Status == MentorshipStatus.Active)

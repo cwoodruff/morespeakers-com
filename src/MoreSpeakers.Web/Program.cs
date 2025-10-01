@@ -11,9 +11,6 @@ builder.AddServiceDefaults();
 // Add database context
 builder.AddSqlServerDbContext<ApplicationDbContext>("sqldb");
 
-// Add Redis cache for session management
-builder.AddRedisDistributedCache("cache");
-
 // Add Identity services
 builder.Services.AddDefaultIdentity<User>(options =>
     {

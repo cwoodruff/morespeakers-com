@@ -10,7 +10,7 @@ public class DatabaseIntegrationTests : TestBase
     public async Task Database_SeedData_ShouldBeLoadedCorrectly()
     {
         // Act
-        var speakerTypes = await Context.SpeakerTypes.ToListAsync();
+        var speakerTypes = await Context.SpeakerType.ToListAsync();
         var expertise = await Context.Expertise.ToListAsync();
         var users = await Context.Users.ToListAsync();
 
@@ -75,11 +75,11 @@ public class DatabaseIntegrationTests : TestBase
             Notes = "Test mentorship"
         };
 
-        Context.Mentorships.Add(mentorship);
+        Context.Mentorship.Add(mentorship);
         await Context.SaveChangesAsync();
 
         // Act
-        var mentorshipWithUsers = await Context.Mentorships
+        var mentorshipWithUsers = await Context.Mentorship
             .Include(m => m.Mentee)
             .Include(m => m.Mentor)
             .FirstAsync(m => m.Id == mentorship.Id);
@@ -260,13 +260,13 @@ public class DatabaseIntegrationTests : TestBase
             Status = MentorshipStatus.Pending
         };
 
-        Context.Mentorships.Add(invalidMentorship);
+        Context.Mentorship.Add(invalidMentorship);
 
         // Act - In-memory allows this, but SQL Server would prevent it
         await Context.SaveChangesAsync();
 
         // Assert - Verify the record exists (demonstrating why the constraint is needed)
-        var addedMentorship = await Context.Mentorships
+        var addedMentorship = await Context.Mentorship
             .FirstOrDefaultAsync(m => m.MenteeId == m.MentorId);
         addedMentorship.Should().NotBeNull();
     }
@@ -288,13 +288,13 @@ public class DatabaseIntegrationTests : TestBase
             Status = MentorshipStatus.Pending // Type-safe enum value
         };
 
-        Context.Mentorships.Add(mentorship);
+        Context.Mentorship.Add(mentorship);
 
         // Act
         await Context.SaveChangesAsync();
 
         // Assert
-        var savedMentorship = await Context.Mentorships
+        var savedMentorship = await Context.Mentorship
             .FirstOrDefaultAsync(m => m.MenteeId == newSpeaker.Id);
         savedMentorship.Should().NotBeNull();
         savedMentorship!.Status.Should().Be(MentorshipStatus.Pending);
