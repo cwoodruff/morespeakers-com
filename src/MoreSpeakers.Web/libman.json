@@ -1,35 +1,35 @@
 {
   "version": "1.0",
   "defaultProvider": "jsdelivr",
-  "defaultDestination": "wwwroot/libs",
+  "defaultDestination": "wwwroot/lib",
   "libraries": [
     {
       "library": "jquery@3.7.1",
-      "destination": "wwwroot/libs/jquery"
+      "destination": "wwwroot/lib/jquery"
     },
     {
       "library": "bootstrap@5.3.8",
-      "destination": "wwwroot/libs/bootstrap"
+      "destination": "wwwroot/lib/bootstrap"
     },
     {
       "library": "bootstrap-icons@1.13.1",
-      "destination": "wwwroot/libs/bootstrap-icons"
+      "destination": "wwwroot/lib/bootstrap-icons"
     },
     {
       "library": "jquery-validation@1.21.0",
-      "destination": "wwwroot/libs/jquery-validation"
+      "destination": "wwwroot/lib/jquery-validation"
     },
     {
       "library": "jquery-validation-unobtrusive@4.0.0",
-      "destination": "wwwroot/libs/jquery-validation-unobtrusive"
+      "destination": "wwwroot/lib/jquery-validation-unobtrusive"
     },
     {
       "library": "jquery-validation-unobtrusive-bootstrap@2.2.0",
-      "destination": "wwwroot/libs/jquery-validation-unobtrusive-bootstrap"
+      "destination": "wwwroot/lib/jquery-validation-unobtrusive-bootstrap"
     },
     {
       "library": "@fortawesome/fontawesome-free@7.0.1",
-      "destination": "wwwroot/libs/fontawesome-free"
+      "destination": "wwwroot/lib/fontawesome-free"
     }
   ]
 }
