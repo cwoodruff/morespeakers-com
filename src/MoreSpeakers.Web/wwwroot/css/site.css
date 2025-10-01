@@ -573,7 +573,6 @@ h1, h2, h3, h4, h5, h6 {
     color: rgba(255, 255, 255, 0.8);
     padding: 0.5rem;
     border-radius: var(--border-radius);
-    transition: var(--transition);
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -613,7 +612,6 @@ h1, h2, h3, h4, h5, h6 {
     padding: 0.5rem 1rem;
     color: var(--text-color);
     text-decoration: none;
-    transition: var(--transition);
     cursor: pointer;
     border: none;
     background: none;
@@ -624,100 +622,11 @@ h1, h2, h3, h4, h5, h6 {
 
 .theme-option:hover {
     background-color: var(--bg-secondary);
-    color: var(--text-color);
 }
 
 .theme-option.active {
     background-color: var(--primary-color);
     color: white;
-}
-
-/* Enhanced theme option UX with better contrast and transitions */
-.theme-option {
-    position: relative;
-    opacity: 0.85;
-    transition: all 0.2s ease-in-out;
-}
-
-.theme-option:not(.active):not(:hover) {
-    opacity: 0.7;
-}
-
-.theme-option:hover {
-    opacity: 1;
-    background-color: var(--bg-secondary);
-    transform: translateX(2px);
-}
-
-.theme-option.active {
-    background-color: var(--primary-color) !important;
-    color: white !important;
-    opacity: 1;
-    font-weight: 500;
-}
-
-/* Theme-specific styling for better visual distinction */
-.theme-option[data-theme="light"] {
-    border-left: 3px solid transparent;
-    color: var(--text-color); /* Ensure Light is always visible */
-}
-
-.theme-option[data-theme="dark"] {
-    border-left: 3px solid transparent;
-    color: var(--text-color); /* Ensure Dark is always visible */
-}
-
-.theme-option[data-theme="system"] {
-    border-left: 3px solid transparent;
-    color: var(--text-color); /* Ensure System is always visible */
-}
-
-/* Add visual indicators for each theme */
-.theme-option[data-theme="light"]:not(.active) {
-    border-left-color: #ffc107;
-}
-
-.theme-option[data-theme="dark"]:not(.active) {
-    border-left-color: #6f42c1;
-}
-
-.theme-option[data-theme="system"]:not(.active) {
-    border-left-color: #20c997;
-}
-
-/* Improved hover states with theme-specific backgrounds */
-.theme-option[data-theme="light"]:hover:not(.active) {
-    background: linear-gradient(90deg, rgba(255, 193, 7, 0.1) 0%, var(--bg-secondary) 100%);
-    border-left-color: #ffc107;
-}
-
-.theme-option[data-theme="dark"]:hover:not(.active) {
-    background: linear-gradient(90deg, rgba(111, 66, 193, 0.1) 0%, var(--bg-secondary) 100%);
-    border-left-color: #6f42c1;
-}
-
-.theme-option[data-theme="system"]:hover:not(.active) {
-    background: linear-gradient(90deg, rgba(32, 201, 151, 0.1) 0%, var(--bg-secondary) 100%);
-    border-left-color: #20c997;
-}
-
-/* Enhanced focus states for accessibility */
-.theme-option:focus {
-    outline: 2px solid var(--primary-color);
-    outline-offset: -2px;
-}
-
-/* Smooth icon animations */
-.theme-option .theme-icon {
-    transition: transform 0.2s ease-in-out;
-}
-
-.theme-option:hover .theme-icon {
-    transform: scale(1.1);
-}
-
-.theme-option.active .theme-icon {
-    transform: scale(1.15);
 }
 
 .theme-icon {
@@ -1652,19 +1561,19 @@ main {
 
 /* Status badges */
 .status-available {
-    background: linear-gradient(135deg, var(--success-color) 0%, #146c43 100%);
+    background-color: var(--success-color);
     color: white;
     border: none;
 }
 
 .status-busy {
-    background: linear-gradient(135deg, var(--warning-color) 0%, #f57c00 100%);
+    background-color: var(--warning-color);
     color: white;
     border: none;
 }
 
 .status-unavailable {
-    background: linear-gradient(135deg, var(--secondary-color) 0%, #495057 100%);
+    background-color: var(--secondary-color);
     color: white;
     border: none;
 }
@@ -1891,5 +1800,257 @@ main {
         break-inside: avoid;
         box-shadow: none;
         border: 1px solid #000;
+    }
+}
+
+/* Mentorship Connection Modal Styles */
+.modal-container {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1050;
+    backdrop-filter: blur(4px);
+    animation: fadeIn 0.2s ease-in-out;
+}
+
+[data-theme="dark"] .modal-container {
+    background: rgba(0, 0, 0, 0.75);
+}
+
+.modal-content {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow-lg);
+    max-width: 600px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: slideUp 0.3s ease-out;
+}
+
+.modal-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-title {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.modal-footer {
+    padding: 1rem 1.5rem;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}
+
+/* Mentor Avatar Styles */
+.mentor-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--border-color);
+}
+
+.mentor-avatar-placeholder {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: var(--text-muted);
+}
+
+/* Expertise Selection Grid */
+.expertise-selection-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 0.75rem;
+    padding: 1rem;
+    background: var(--bg-secondary);
+    border-radius: var(--border-radius);
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.expertise-selection-grid .form-check {
+    margin: 0;
+}
+
+.expertise-selection-grid .form-check-label {
+    font-size: 0.875rem;
+    cursor: pointer;
+    user-select: none;
+}
+
+/* Request Card Styles */
+.request-card {
+    transition: all 0.2s ease-in-out;
+    border-left: 4px solid transparent;
+}
+
+.request-card:hover {
+    border-left-color: var(--primary-color);
+}
+
+.request-card .badge {
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.35rem 0.65rem;
+}
+
+/* Request Status Badges */
+.request-status {
+    font-size: 0.875rem;
+    padding: 0.5rem 1rem;
+    border-radius: var(--border-radius);
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.request-pending {
+    background: var(--warning-color);
+    color: #000;
+}
+
+.request-active {
+    background: var(--success-color);
+    color: #fff;
+}
+
+.request-declined {
+    background: var(--danger-color);
+    color: #fff;
+}
+
+/* HTMX Indicator Styles */
+.htmx-indicator {
+    display: none;
+}
+
+.htmx-request .htmx-indicator {
+    display: inline-block;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.fade-in {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Form Enhancements */
+textarea.form-control {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.form-text {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.25rem;
+    font-size: 0.875rem;
+}
+
+/* Alert Enhancements */
+.alert {
+    border-radius: var(--border-radius);
+    border: none;
+    box-shadow: var(--box-shadow);
+}
+
+.alert a.alert-link {
+    font-weight: 600;
+    text-decoration: underline;
+}
+
+/* Dark Mode Adjustments for Forms */
+[data-theme="dark"] .form-control,
+[data-theme="dark"] .form-select {
+    background-color: var(--input-bg);
+    border-color: var(--border-color);
+    color: var(--text-color);
+}
+
+[data-theme="dark"] .form-control:focus,
+[data-theme="dark"] .form-select:focus {
+    background-color: var(--input-bg);
+    border-color: var(--primary-color);
+    color: var(--text-color);
+}
+
+[data-theme="dark"] .form-check-input {
+    background-color: var(--input-bg);
+    border-color: var(--border-color);
+}
+
+[data-theme="dark"] .form-check-input:checked {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+[data-theme="dark"] .btn-close {
+    filter: invert(1);
+}
+
+/* Mobile Responsive Adjustments */
+@media (max-width: 768px) {
+    .modal-content {
+        width: 95%;
+        max-height: 95vh;
+    }
+
+    .expertise-selection-grid {
+        grid-template-columns: 1fr;
+        max-height: 200px;
+    }
+
+    .request-card .d-flex.gap-2 {
+        flex-direction: column;
+    }
+
+    .request-card .btn {
+        width: 100%;
     }
 }

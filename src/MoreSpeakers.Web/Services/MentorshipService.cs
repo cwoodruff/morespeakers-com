@@ -177,4 +177,149 @@ public class MentorshipService : IMentorshipService
             .OrderByDescending(m => m.StartedAt)
             .ToListAsync();
     }
+
+    public async Task<Mentorship?> RequestMentorshipWithDetailsAsync(Guid requesterId, Guid targetId,
+        MentorshipType type, string? requestMessage, List<int>? focusAreaIds, string? preferredFrequency)
+    {
+        try
+        {
+            // Check if there's already a pending or active mentorship between these users
+            var existingMentorship = await _context.Mentorship
+                .FirstOrDefaultAsync(m =>
+                    ((m.MenteeId == requesterId && m.MentorId == targetId) ||
+                     (m.MenteeId == targetId && m.MentorId == requesterId)) &&
+                    (m.Status == MentorshipStatus.Pending || m.Status == MentorshipStatus.Active));
+
+            if (existingMentorship != null)
+                return null;
+
+            var mentorship = new Mentorship
+            {
+                Id = Guid.NewGuid(),
+                MentorId = targetId,
+                MenteeId = requesterId,
+                Status = MentorshipStatus.Pending,
+                Type = type,
+                RequestedAt = DateTime.UtcNow,
+                RequestMessage = requestMessage,
+                PreferredFrequency = preferredFrequency
+            };
+
+            _context.Mentorship.Add(mentorship);
+            await _context.SaveChangesAsync();
+
+            // Add focus areas if provided
+            if (focusAreaIds != null && focusAreaIds.Any())
+            {
+                foreach (var expertiseId in focusAreaIds)
+                {
+                    _context.Set<MentorshipExpertise>().Add(new MentorshipExpertise
+                    {
+                        MentorshipId = mentorship.Id,
+                        ExpertiseId = expertiseId
+                    });
+                }
+                await _context.SaveChangesAsync();
+            }
+
+            // Reload with navigation properties
+            return await _context.Mentorship
+                .Include(m => m.Mentor)
+                .Include(m => m.Mentee)
+                .Include(m => m.FocusAreas)
+                    .ThenInclude(fa => fa.Expertise)
+                .FirstOrDefaultAsync(m => m.Id == mentorship.Id);
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    public async Task<bool> DeclineMentorshipAsync(Guid mentorshipId, string? declineReason)
+    {
+        try
+        {
+            var mentorship = await _context.Mentorship.FindAsync(mentorshipId);
+            if (mentorship == null || mentorship.Status != MentorshipStatus.Pending)
+                return false;
+
+            mentorship.Status = MentorshipStatus.Declined;
+            mentorship.ResponsedAt = DateTime.UtcNow;
+            mentorship.ResponseMessage = declineReason;
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    public async Task<(int incoming, int outgoing)> GetPendingCountsAsync(Guid userId)
+    {
+        var incoming = await _context.Mentorship
+            .CountAsync(m => m.MentorId == userId && m.Status == MentorshipStatus.Pending);
+
+        var outgoing = await _context.Mentorship
+            .CountAsync(m => m.MenteeId == userId && m.Status == MentorshipStatus.Pending);
+
+        return (incoming, outgoing);
+    }
+
+    public async Task<IEnumerable<Mentorship>> GetMentorshipsForUserAsync(Guid userId, MentorshipStatus? status = null)
+    {
+        var query = _context.Mentorship
+            .Include(m => m.Mentor)
+            .Include(m => m.Mentee)
+            .Include(m => m.FocusAreas)
+                .ThenInclude(fa => fa.Expertise)
+            .Where(m => m.MentorId == userId || m.MenteeId == userId);
+
+        if (status.HasValue)
+        {
+            query = query.Where(m => m.Status == status.Value);
+        }
+
+        return await query
+            .OrderByDescending(m => m.RequestedAt)
+            .ToListAsync();
+    }
+
+    public async Task<bool> CanRequestMentorshipAsync(Guid requesterId, Guid targetId)
+    {
+        // Check if there's already a pending or active mentorship
+        var existingMentorship = await _context.Mentorship
+            .AnyAsync(m =>
+                ((m.MenteeId == requesterId && m.MentorId == targetId) ||
+                 (m.MenteeId == targetId && m.MentorId == requesterId)) &&
+                (m.Status == MentorshipStatus.Pending || m.Status == MentorshipStatus.Active));
+
+        return !existingMentorship;
+    }
+
+    public async Task<IEnumerable<Mentorship>> GetIncomingRequestsAsync(Guid userId)
+    {
+        return await _context.Mentorship
+            .Include(m => m.Mentor)
+            .Include(m => m.Mentee)
+            .Include(m => m.FocusAreas)
+                .ThenInclude(fa => fa.Expertise)
+            .Where(m => m.MentorId == userId && m.Status == MentorshipStatus.Pending)
+            .OrderByDescending(m => m.RequestedAt)
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<Mentorship>> GetOutgoingRequestsAsync(Guid userId)
+    {
+        return await _context.Mentorship
+            .Include(m => m.Mentor)
+            .Include(m => m.Mentee)
+            .Include(m => m.FocusAreas)
+                .ThenInclude(fa => fa.Expertise)
+            .Where(m => m.MenteeId == userId && m.Status == MentorshipStatus.Pending)
+            .OrderByDescending(m => m.RequestedAt)
+            .ToListAsync();
+    }
 }

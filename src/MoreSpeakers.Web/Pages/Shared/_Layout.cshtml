@@ -56,11 +56,11 @@
                                     </a></li>
                                 <li><a class="dropdown-item" asp-page="/Mentorship/Requests">
                                         <i class="bi bi-inbox me-2"></i>My Requests
-                                        <div id="nav-notification-badge" 
-                                             hx-get="/Mentorship/NotificationCount"
-                                             hx-trigger="every 60s"
+                                        <span id="nav-notification-badge"
+                                             hx-get="/Mentorship/Requests?handler=NotificationCount"
+                                             hx-trigger="load, every 60s"
                                              hx-swap="innerHTML"
-                                             class="d-inline"></div>
+                                             class="d-inline"></span>
                                     </a></li>
                                 <li><a class="dropdown-item" asp-page="/Mentorship/Active">
                                         <i class="bi bi-chat-dots me-2"></i>Active Mentorships

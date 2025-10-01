@@ -1,0 +1,60 @@
+@model morespeakers.Models.ViewModels.DeclineMentorshipViewModel
+
+<div class="modal-container" onclick="this.remove()">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <form hx-post="/Mentorship/Requests?handler=Decline"
+              hx-target="#request-@Model.Mentorship.Id"
+              hx-swap="outerHTML">
+
+            <input type="hidden" name="mentorshipId" value="@Model.Mentorship.Id"/>
+
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-x-circle me-2"></i>Decline Request
+                </h5>
+                <button type="button" class="btn-close" onclick="document.getElementById('modal-container').innerHTML = ''" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body">
+                <p>Are you sure you want to decline this @(Model.Mentorship.Type == MentorshipType.NewToExperienced ? "mentorship" : "connection") request from <strong>@Model.Mentorship.Mentee.FullName</strong>?</p>
+
+                <div class="mb-3">
+                    <label class="form-label fw-medium">Reason <span class="text-muted">(optional, will be shared with @Model.Mentorship.Mentee.FirstName)</span></label>
+                    <textarea name="declineReason" class="form-control" rows="3"
+                              maxlength="500"
+                              placeholder="I'm currently at capacity, but feel free to reach out in a few months..."
+                              id="decline-reason-textarea"></textarea>
+                    <div class="form-text">
+                        <span id="decline-char-count">0</span>/500 characters
+                    </div>
+                </div>
+
+                <div class="alert alert-warning mb-0">
+                    <i class="bi bi-info-circle me-2"></i>
+                    <small>This action cannot be undone. @Model.Mentorship.Mentee.FirstName will be notified of your decision.</small>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary"
+                        onclick="document.getElementById('modal-container').innerHTML = ''">
+                    Cancel
+                </button>
+                <button type="submit" class="btn btn-danger">
+                    <i class="bi bi-x-circle me-1"></i>Decline Request
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Character counter for decline reason
+    const declineTextarea = document.getElementById('decline-reason-textarea');
+    const declineCharCount = document.getElementById('decline-char-count');
+    if (declineTextarea && declineCharCount) {
+        declineTextarea.addEventListener('input', function () {
+            declineCharCount.textContent = this.value.length;
+        });
+    }
+</script>

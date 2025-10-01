@@ -15,4 +15,14 @@ public interface IMentorshipService
     Task<bool> UpdateMentorshipNotesAsync(Guid mentorshipId, string notes);
     Task<IEnumerable<Mentorship>> GetPendingMentorshipsAsync();
     Task<IEnumerable<Mentorship>> GetActiveMentorshipsAsync();
+
+    // Enhanced methods for full connection flow
+    Task<Mentorship?> RequestMentorshipWithDetailsAsync(Guid requesterId, Guid targetId, MentorshipType type,
+        string? requestMessage, List<int>? focusAreaIds, string? preferredFrequency);
+    Task<bool> DeclineMentorshipAsync(Guid mentorshipId, string? declineReason);
+    Task<(int incoming, int outgoing)> GetPendingCountsAsync(Guid userId);
+    Task<IEnumerable<Mentorship>> GetMentorshipsForUserAsync(Guid userId, MentorshipStatus? status = null);
+    Task<bool> CanRequestMentorshipAsync(Guid requesterId, Guid targetId);
+    Task<IEnumerable<Mentorship>> GetIncomingRequestsAsync(Guid userId);
+    Task<IEnumerable<Mentorship>> GetOutgoingRequestsAsync(Guid userId);
 }
