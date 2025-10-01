@@ -1,22 +1,25 @@
+using System.Runtime.InteropServices;
 using Projects;
 
 var builder = DistributedApplication.CreateBuilder(args);
 
 // Add SQL Server database
 var sql = builder.AddSqlServer("sqldb")
+    .WithImageTag("2022-latest")
     .WithLifetime(ContainerLifetime.Persistent);
 
 var path = builder.AppHostDirectory;
+
 var sqlText = string.Concat(
-    File.ReadAllText(Path.Combine(path, @"..\..\scripts\database\create-database.sql")), 
+    File.ReadAllText(Path.Combine(path, @"../../scripts/database/create-database.sql")),
     " ",
-    File.ReadAllText(Path.Combine(path, @"..\..\scripts\database\create-tables.sql")),
+    File.ReadAllText(Path.Combine(path, @"../../scripts/database/create-tables.sql")),
     " ",
-    File.ReadAllText(Path.Combine(path, @"..\..\scripts\database\create-views.sql")),
+    File.ReadAllText(Path.Combine(path, @"../../scripts/database/create-views.sql")),
     " ",
-    File.ReadAllText(Path.Combine(path, @"..\..\scripts\database\create-functions.sql")),
+    File.ReadAllText(Path.Combine(path, @"../../scripts/database/create-functions.sql")),
     " ",
-    File.ReadAllText(Path.Combine(path, @"..\..\scripts\database\seed-data.sql")));
+    File.ReadAllText(Path.Combine(path, @"../../scripts/database/seed-data.sql")));
 
 var db = sql.AddDatabase("MoreSpeakers")
     .WithCreationScript(sqlText);
