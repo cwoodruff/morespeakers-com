@@ -23,6 +23,7 @@ ConfigureLogging(builder.Configuration, builder.Services, fullyQualifiedLogFile,
 
 // Add database context
 builder.AddSqlServerDbContext<ApplicationDbContext>("sqldb");
+builder.EnrichSqlServerDbContext<ApplicationDbContext>();
 
 // Add Identity services
 builder.Services.AddDefaultIdentity<User>(options =>
