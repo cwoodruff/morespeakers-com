@@ -27,6 +27,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SQLServer", "SQLServer", "{
 		..\scripts\database\create-tables.sql = ..\scripts\database\create-tables.sql
 		..\scripts\database\create-views.sql = ..\scripts\database\create-views.sql
 		..\scripts\database\seed-data.sql = ..\scripts\database\seed-data.sql
+		..\scripts\database\delete-user.sql = ..\scripts\database\delete-user.sql
 	EndProjectSection
 EndProject
 Global
