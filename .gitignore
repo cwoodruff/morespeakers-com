@@ -717,6 +717,7 @@ funct
 **/.vscode
 shutdown.ps1
 startup.ps1
+logs/
 **/logs
 *.private.env.json
 *.config.json
