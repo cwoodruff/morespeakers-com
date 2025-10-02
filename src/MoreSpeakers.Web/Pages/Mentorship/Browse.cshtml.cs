@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using morespeakers.Data;
 using morespeakers.Models;
 using morespeakers.Models.ViewModels;
+using morespeakers.Services;
 
 namespace morespeakers.Pages.Mentorship;
 
@@ -14,11 +15,13 @@ public class BrowseModel : PageModel
 {
     private readonly ApplicationDbContext _context;
     private readonly UserManager<User> _userManager;
+    private readonly IMentorshipService _mentorshipService;
 
-    public BrowseModel(ApplicationDbContext context, UserManager<User> userManager)
+    public BrowseModel(ApplicationDbContext context, UserManager<User> userManager, IMentorshipService mentorshipService)
     {
         _context = context;
         _userManager = userManager;
+        _mentorshipService = mentorshipService;
     }
 
     public BrowseMentorsViewModel ViewModel { get; set; } = null!;
@@ -53,6 +56,89 @@ public class BrowseModel : PageModel
         await LoadMentors(ViewModel);
 
         return Page();
+    }
+
+    public async Task<IActionResult> OnGetRequestModalAsync(Guid mentorId, MentorshipType type)
+    {
+        var currentUser = await _userManager.GetUserAsync(User);
+        if (currentUser == null) return Unauthorized();
+
+        var targetUser = await _context.Users
+            .Include(u => u.SpeakerType)
+            .Include(u => u.UserExpertise)
+                .ThenInclude(ue => ue.Expertise)
+            .FirstOrDefaultAsync(u => u.Id == mentorId);
+
+        if (targetUser == null) return NotFound();
+
+        // Get expertise areas for the target user
+        var expertise = targetUser.UserExpertise
+            .Select(ue => ue.Expertise)
+            .OrderBy(e => e.Name)
+            .ToList();
+
+        var viewModel = new RequestMentorshipViewModel
+        {
+            TargetUser = targetUser,
+            CurrentUser = currentUser,
+            Type = type,
+            AvailableExpertise = expertise
+        };
+
+        return Partial("_RequestModal", viewModel);
+    }
+
+    public async Task<IActionResult> OnGetSearchMentorsAsync(
+        MentorshipType mentorshipType = MentorshipType.NewToExperienced,
+        List<string>? expertise = null,
+        bool? availability = null)
+    {
+        var currentUser = await _userManager.GetUserAsync(User);
+        if (currentUser == null) return Unauthorized();
+
+        // Update model properties
+        MentorshipType = mentorshipType;
+        SelectedExpertise = expertise ?? new List<string>();
+        AvailableNow = availability;
+        AvailableExpertise = await _context.Expertise.OrderBy(e => e.Name).ToListAsync();
+
+        var viewModel = new BrowseMentorsViewModel
+        {
+            CurrentUser = currentUser,
+            MentorshipType = mentorshipType,
+            SelectedExpertise = SelectedExpertise,
+            AvailableNow = availability,
+            AvailableExpertise = AvailableExpertise
+        };
+
+        // Load mentors based on filters
+        await LoadMentors(viewModel);
+
+        return Partial("~/Views/Mentorship/_MentorResults.cshtml", viewModel);
+    }
+
+    public async Task<IActionResult> OnPostSubmitRequestAsync(Guid targetId, MentorshipType type,
+        string? requestMessage, List<int>? focusAreaIds, string? preferredFrequency)
+    {
+        var currentUser = await _userManager.GetUserAsync(User);
+        if (currentUser == null) return Unauthorized();
+
+        // Check if can request
+        var canRequest = await _mentorshipService.CanRequestMentorshipAsync(currentUser.Id, targetId);
+        if (!canRequest)
+        {
+            return Content("<div class='alert alert-warning'>You already have a pending or active connection with this person.</div>");
+        }
+
+        var mentorship = await _mentorshipService.RequestMentorshipWithDetailsAsync(
+            currentUser.Id, targetId, type, requestMessage, focusAreaIds, preferredFrequency);
+
+        if (mentorship == null)
+        {
+            return Content("<div class='alert alert-danger'>Failed to send request. Please try again.</div>");
+        }
+
+        return Partial("_RequestSuccess", mentorship);
     }
 
     private async Task LoadMentors(BrowseMentorsViewModel model)

@@ -1,0 +1,100 @@
+@model morespeakers.Models.Mentorship
+
+<div class="request-card card mb-3 fade-in" id="request-@Model.Id">
+    <div class="card-body">
+        <!-- Header: User Info -->
+        <div class="d-flex justify-content-between align-items-start mb-3">
+            <div class="d-flex align-items-center">
+                @if (!string.IsNullOrEmpty(Model.Mentee.HeadshotUrl))
+                {
+                    <img src="@Model.Mentee.HeadshotUrl" class="mentor-avatar me-3" alt="@Model.Mentee.FullName"/>
+                }
+                else
+                {
+                    <div class="mentor-avatar mentor-avatar-placeholder me-3">
+                        <i class="bi bi-person-fill"></i>
+                    </div>
+                }
+                <div>
+                    <h6 class="mb-0">@Model.Mentee.FullName</h6>
+                    <small class="text-muted">@Model.Mentee.SpeakerType.Name</small>
+                </div>
+            </div>
+            <span class="badge bg-warning">
+                <i class="bi bi-clock me-1"></i>Pending
+            </span>
+        </div>
+
+        <!-- Request Type -->
+        @if (Model.Type == MentorshipType.ExperiencedToExperienced)
+        {
+            <div class="mb-3">
+                <span class="badge bg-info">
+                    <i class="bi bi-people me-1"></i>Peer Connection Request
+                </span>
+            </div>
+        }
+
+        <!-- Request Details -->
+        @if (!string.IsNullOrEmpty(Model.RequestMessage))
+        {
+            <div class="mb-3">
+                <strong class="d-block mb-2">Message:</strong>
+                <p class="mb-0 text-muted">@Model.RequestMessage</p>
+            </div>
+        }
+
+        @if (Model.FocusAreas.Any())
+        {
+            <div class="mb-3">
+                <strong class="d-block mb-2">Focus Areas:</strong>
+                <div class="d-flex flex-wrap gap-1">
+                    @foreach (var area in Model.FocusAreas)
+                    {
+                        <span class="badge bg-secondary">@area.Expertise.Name</span>
+                    }
+                </div>
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(Model.PreferredFrequency))
+        {
+            <div class="mb-3">
+                <strong>Preferred Frequency:</strong>
+                <span class="text-muted">@Model.PreferredFrequency</span>
+            </div>
+        }
+
+        <!-- Metadata -->
+        <div class="mb-3">
+            <small class="text-muted">
+                <i class="bi bi-calendar me-1"></i>
+                Requested @Model.RequestedAt.ToString("MMM dd, yyyy 'at' h:mm tt")
+            </small>
+        </div>
+
+        <!-- Actions -->
+        <div class="d-flex justify-content-end gap-2 flex-wrap">
+            <a href="/Profile/View?userId=@Model.MenteeId"
+               class="btn btn-sm btn-outline-secondary"
+               target="_blank">
+                <i class="bi bi-person me-1"></i>View Profile
+            </a>
+
+            <button class="btn btn-sm btn-outline-danger"
+                    hx-get="/Mentorship/Requests?handler=DeclineModal&mentorshipId=@Model.Id"
+                    hx-target="#modal-container"
+                    hx-swap="innerHTML">
+                <i class="bi bi-x-circle me-1"></i>Decline
+            </button>
+
+            <button class="btn btn-sm btn-success"
+                    hx-post="/Mentorship/Requests?handler=Accept&mentorshipId=@Model.Id"
+                    hx-target="#request-@Model.Id"
+                    hx-swap="outerHTML swap:1s"
+                    hx-confirm="Accept @(Model.Type == MentorshipType.NewToExperienced ? "mentorship" : "connection") request from @Model.Mentee.FullName?">
+                <i class="bi bi-check-circle me-1"></i>Accept
+            </button>
+        </div>
+    </div>
+</div>

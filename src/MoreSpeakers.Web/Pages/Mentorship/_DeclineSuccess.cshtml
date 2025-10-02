@@ -1,0 +1,18 @@
+@model morespeakers.Models.Mentorship
+
+<div class="alert alert-info alert-dismissible fade show fade-in" role="alert">
+    <i class="bi bi-info-circle-fill me-2"></i>
+    Request from @Model.Mentee.FullName has been declined.
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+
+<script>
+    // Auto-dismiss after 5 seconds
+    setTimeout(function () {
+        const alert = document.querySelector('.alert-info');
+        if (alert) {
+            const bsAlert = new bootstrap.Alert(alert);
+            bsAlert.close();
+        }
+    }, 5000);
+</script>

@@ -71,7 +71,7 @@
                     @if (User.Identity?.IsAuthenticated == true)
                     {
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="bi bi-people me-1"></i>Mentorship
                             </a>
                             <ul class="dropdown-menu">
@@ -80,11 +80,11 @@
                                     </a></li>
                                 <li><a class="dropdown-item" asp-page="/Mentorship/Requests">
                                         <i class="bi bi-inbox me-2"></i>My Requests
-                                        <div id="nav-notification-badge" 
-                                             hx-get="/Mentorship/NotificationCount"
-                                             hx-trigger="every 60s"
+                                        <span id="nav-notification-badge"
+                                             hx-get="/Mentorship/Requests?handler=NotificationCount"
+                                             hx-trigger="load, every 60s"
                                              hx-swap="innerHTML"
-                                             class="d-inline"></div>
+                                             class="d-inline"></span>
                                     </a></li>
                                 <li><a class="dropdown-item" asp-page="/Mentorship/Active">
                                         <i class="bi bi-chat-dots me-2"></i>Active Mentorships
@@ -196,7 +196,7 @@
                     <li class="mb-1"><a asp-page="/BrowseSpeakers" class="text-decoration-none">Browse Speakers</a></li>
                     <li class="mb-1"><a asp-page="/About" class="text-decoration-none">About</a></li>
                     <li class="mb-1"><a href="https://github.com/cwoodruff/morespeakers-com" target="_blank" class="text-decoration-none">
-                        <i class="bi bi-github me-1"></i>GitHub Repo
+                        GitHub Repo
                     </a></li>
                     <li class="mb-1"><a asp-page="/Privacy" class="text-decoration-none">Privacy Policy</a></li>
                     <li class="mb-0"><a asp-page="/TermsOfService" class="text-decoration-none">Terms of Service</a>

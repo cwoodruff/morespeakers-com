@@ -106,10 +106,11 @@ else
                             @if (mentor.IsAvailableForMentoring && mentor.MentorshipsAsMentor.Count(m => m.IsActive) < mentor.MaxMentees)
                             {
                                 <button class="btn btn-primary"
-                                        hx-get="/Mentorship/RequestModal/@mentor.Id"
+                                        hx-get="/Mentorship/Browse?handler=RequestModal&mentorId=@mentor.Id&type=@Model.MentorshipType"
                                         hx-target="#modal-container"
-                                        hx-trigger="click">
-                                    <i class="bi bi-chat-dots me-2"></i>Request Mentorship
+                                        hx-swap="innerHTML">
+                                    <i class="bi bi-@(Model.MentorshipType == MentorshipType.NewToExperienced ? "chat-dots" : "people") me-2"></i>
+                                    @(Model.MentorshipType == MentorshipType.NewToExperienced ? "Request Mentorship" : "Connect as Peer")
                                 </button>
                             }
                             else
@@ -118,8 +119,8 @@ else
                                     <i class="bi bi-clock me-2"></i>Currently Unavailable
                                 </button>
                             }
-                            
-                            <a href="/Profile/View/@mentor.Id" class="btn btn-outline-primary btn-sm">
+
+                            <a href="/Profile/View?userId=@mentor.Id" class="btn btn-outline-primary btn-sm" target="_blank">
                                 <i class="bi bi-person me-2"></i>View Profile
                             </a>
                         </div>

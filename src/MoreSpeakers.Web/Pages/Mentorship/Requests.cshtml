@@ -39,8 +39,11 @@
                     }
                 </div>
                 <div class="card-body">
-                    <div id="incoming-requests">
-                        @await Html.PartialAsync("~/Views/Mentorship/_IncomingRequests.cshtml", Model.IncomingRequests)
+                    <div id="incoming-requests"
+                         hx-get="/Mentorship/Requests?handler=PollIncoming"
+                         hx-trigger="every 30s"
+                         hx-swap="innerHTML">
+                        @await Html.PartialAsync("_IncomingRequests", Model.IncomingRequests)
                     </div>
                 </div>
             </div>

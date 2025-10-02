@@ -1,0 +1,19 @@
+@model morespeakers.Models.Mentorship
+
+<div class="alert alert-success alert-dismissible fade show fade-in" role="alert">
+    <i class="bi bi-check-circle-fill me-2"></i>
+    <strong>Request Accepted!</strong> You're now connected with @Model.Mentee.FullName.
+    <a href="/Mentorship/Active" class="alert-link ms-2">View active @(Model.Type == MentorshipType.NewToExperienced ? "mentorships" : "connections")</a>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+
+<script>
+    // Auto-dismiss after 5 seconds
+    setTimeout(function () {
+        const alert = document.querySelector('.alert-success');
+        if (alert) {
+            const bsAlert = new bootstrap.Alert(alert);
+            bsAlert.close();
+        }
+    }, 5000);
+</script>
