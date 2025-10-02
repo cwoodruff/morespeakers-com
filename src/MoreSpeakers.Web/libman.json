@@ -30,6 +30,14 @@
     {
       "library": "@fortawesome/fontawesome-free@7.0.1",
       "destination": "wwwroot/lib/fontawesome-free"
+    },
+    {
+      "library": "htmx.org@2.0.7",
+      "destination": "wwwroot/lib/htmx-org"
+    },
+    {
+      "library": "hyperscript.org@0.9.14",
+      "destination": "wwwroot/lib/hyperscript-org"
     }
   ]
 }
