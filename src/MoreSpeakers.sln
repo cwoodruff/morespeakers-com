@@ -20,6 +20,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ExtraStuff", "ExtraStuff", 
 		..\docs\database_overview.md = ..\docs\database_overview.md
 		..\docs\deployment_guide.md = ..\docs\deployment_guide.md
 		..\.github\workflows\main_web-more-speakers.yml = ..\.github\workflows\main_web-more-speakers.yml
+		..\docs\Custom-Icon-Design-Flatastic-11-Megaphone.512.png = ..\docs\Custom-Icon-Design-Flatastic-11-Megaphone.512.png
+		..\docs\icon-readme.md = ..\docs\icon-readme.md
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SQLServer", "SQLServer", "{6385B702-FE45-4AEF-93CC-E724BEC47B0D}"
