@@ -22,7 +22,7 @@
                             <input type="radio" name="mentorshipType" value="NewToExperienced"
                                    class="btn-check" id="type-new"
                                    @(Model.MentorshipType == MentorshipType.NewToExperienced ? "checked" : "")
-                                   hx-get="/Mentorship/SearchMentors"
+                                   hx-get="/Mentorship/Browse?handler=SearchMentors"
                                    hx-target="#mentor-results"
                                    hx-include="[name='expertise']:checked,[name='availability']:checked"
                                    hx-indicator="#search-loading">
@@ -37,7 +37,7 @@
                             <input type="radio" name="mentorshipType" value="ExperiencedToExperienced"
                                    class="btn-check" id="type-peer"
                                    @(Model.MentorshipType == MentorshipType.ExperiencedToExperienced ? "checked" : "")
-                                   hx-get="/Mentorship/SearchMentors"
+                                   hx-get="/Mentorship/Browse?handler=SearchMentors"
                                    hx-target="#mentor-results"
                                    hx-include="[name='expertise']:checked,[name='availability']:checked"
                                    hx-indicator="#search-loading">
@@ -63,7 +63,7 @@
                                            name="expertise" value="@expertise.Name"
                                            id="exp-@expertise.Id"
                                            @(Model.SelectedExpertise.Contains(expertise.Name) ? "checked" : "")
-                                           hx-get="/Mentorship/SearchMentors"
+                                           hx-get="/Mentorship/Browse?handler=SearchMentors"
                                            hx-target="#mentor-results"
                                            hx-include="[name='mentorshipType']:checked,[name='availability']:checked,[name='expertise']:checked"
                                            hx-trigger="change"
@@ -88,7 +88,7 @@
                                                    name="expertise" value="@expertise.Name"
                                                    id="exp-@expertise.Id"
                                                    @(Model.SelectedExpertise.Contains(expertise.Name) ? "checked" : "")
-                                                   hx-get="/Mentorship/SearchMentors"
+                                                   hx-get="/Mentorship/Browse?handler=SearchMentors"
                                                    hx-target="#mentor-results"
                                                    hx-include="[name='mentorshipType']:checked,[name='availability']:checked,[name='expertise']:checked"
                                                    hx-trigger="change"
@@ -108,7 +108,7 @@
                                    name="availability" value="true"
                                    id="availability-immediate"
                                    @(Model.AvailableNow == true ? "checked" : "")
-                                   hx-get="/Mentorship/SearchMentors"
+                                   hx-get="/Mentorship/Browse?handler=SearchMentors"
                                    hx-target="#mentor-results"
                                    hx-include="[name='mentorshipType']:checked,[name='expertise']:checked"
                                    hx-trigger="change"

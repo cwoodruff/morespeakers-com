@@ -410,23 +410,18 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* Statistics cards */
-.stat-container {
-    display: flex;
-    gap: 1.5rem;
-    margin-bottom: 2rem;
-}
-
 .stat-card {
-    flex: 1;
     background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
     color: white;
     padding: 2rem;
     border-radius: var(--border-radius);
     text-align: center;
+    height: 100%;
 }
 
 .stat-number {
-    font-size: 2rem;
+    font-size: 2.5rem;
+    font-weight: 700;
     line-height: 1;
     margin-bottom: 0.5rem;
 }
@@ -434,6 +429,21 @@ h1, h2, h3, h4, h5, h6 {
 .stat-label {
     font-size: 1.125rem;
     opacity: 0.9;
+}
+
+/* Responsive adjustments for statistics */
+@media (max-width: 767px) {
+    .stat-card {
+        padding: 1.5rem;
+    }
+
+    .stat-number {
+        font-size: 2rem;
+    }
+
+    .stat-label {
+        font-size: 1rem;
+    }
 }
 
 /* Search and filters */

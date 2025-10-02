@@ -88,6 +88,35 @@ public class BrowseModel : PageModel
         return Partial("_RequestModal", viewModel);
     }
 
+    public async Task<IActionResult> OnGetSearchMentorsAsync(
+        MentorshipType mentorshipType = MentorshipType.NewToExperienced,
+        List<string>? expertise = null,
+        bool? availability = null)
+    {
+        var currentUser = await _userManager.GetUserAsync(User);
+        if (currentUser == null) return Unauthorized();
+
+        // Update model properties
+        MentorshipType = mentorshipType;
+        SelectedExpertise = expertise ?? new List<string>();
+        AvailableNow = availability;
+        AvailableExpertise = await _context.Expertise.OrderBy(e => e.Name).ToListAsync();
+
+        var viewModel = new BrowseMentorsViewModel
+        {
+            CurrentUser = currentUser,
+            MentorshipType = mentorshipType,
+            SelectedExpertise = SelectedExpertise,
+            AvailableNow = availability,
+            AvailableExpertise = AvailableExpertise
+        };
+
+        // Load mentors based on filters
+        await LoadMentors(viewModel);
+
+        return Partial("~/Views/Mentorship/_MentorResults.cshtml", viewModel);
+    }
+
     public async Task<IActionResult> OnPostSubmitRequestAsync(Guid targetId, MentorshipType type,
         string? requestMessage, List<int>? focusAreaIds, string? preferredFrequency)
     {
