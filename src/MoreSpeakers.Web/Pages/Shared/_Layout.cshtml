@@ -20,8 +20,15 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/htmx.org@1.9.6"></script>
-    <script src="https://unpkg.com/hyperscript.org@0.9.11"></script>
+    
+    <environment include="Production">
+        <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.7/dist/htmx.min.js" integrity="sha256-YCMa5rqds4JesVomESLV9VkhxNU7Zr9jfcGLTuJ8efk=" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/hyperscript.org@0.9.14/dist/hdb.min.js" integrity="sha256-eqsD5t9zqxRfgY93GIt7yy5ckoxF/aiU5MRHMiAFnq4=" crossorigin="anonymous"></script>
+    </environment>
+    <environment exclude="Production">
+        <script src="lib/htmx-org/dist/htmx.js"></script>
+        <script src="lib/hyperscript-org/dist/_hyperscript.js"></script>
+    </environment>    
 </head>
 <body>
 <header>
