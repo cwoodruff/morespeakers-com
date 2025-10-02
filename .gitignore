@@ -728,3 +728,4 @@ startup.ps1
 ### Custom Secrets ###
 **/*secret*.md
 **/*secret*.txt
+*.txt
