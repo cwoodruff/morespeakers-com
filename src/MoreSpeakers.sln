@@ -10,14 +10,16 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoreSpeakers.Tests", "MoreS
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ExtraStuff", "ExtraStuff", "{F237316C-4113-4191-9EF7-EFA8065ED236}"
 	ProjectSection(SolutionItems) = preProject
-		..\.github\workflows\deploy-to-azure.yml = ..\.github\workflows\deploy-to-azure.yml
 		..\.gitignore = ..\.gitignore
 		..\claude.md = ..\claude.md
 		..\next-steps.md = ..\next-steps.md
 		install-libman.ps1 = install-libman.ps1
 		libman-restore.ps1 = libman-restore.ps1
 		..\README.md = ..\README.md
-		..\azure.yaml = ..\azure.yaml
+		..\docs\architecture.md = ..\docs\architecture.md
+		..\docs\database_overview.md = ..\docs\database_overview.md
+		..\docs\deployment_guide.md = ..\docs\deployment_guide.md
+		..\.github\workflows\main_web-more-speakers.yml = ..\.github\workflows\main_web-more-speakers.yml
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SQLServer", "SQLServer", "{6385B702-FE45-4AEF-93CC-E724BEC47B0D}"
