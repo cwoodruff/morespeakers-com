@@ -1,10 +1,9 @@
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights.WindowsServer;
 using Microsoft.AspNetCore.Identity;
-using morespeakers.Data;
-using morespeakers.Models;
-using morespeakers.Services;
-using NuGet.Configuration;
+using MoreSpeakers.Web.Data;
+using MoreSpeakers.Web.Models;
+using MoreSpeakers.Web.Services;
 using Serilog;
 using Serilog.Exceptions;
 

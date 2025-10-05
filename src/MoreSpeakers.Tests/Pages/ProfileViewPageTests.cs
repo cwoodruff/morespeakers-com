@@ -2,8 +2,8 @@ using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using morespeakers.Models;
-using morespeakers.Pages.Profile;
+using MoreSpeakers.Web.Models;
+using MoreSpeakers.Web.Pages.Profile;
 
 namespace MoreSpeakers.Tests.Pages;
 

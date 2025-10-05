@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace morespeakers.Data.Migrations
+namespace MoreSpeakers.Data.Migrations
 {
     public partial class CreateIdentitySchema : Migration
     {

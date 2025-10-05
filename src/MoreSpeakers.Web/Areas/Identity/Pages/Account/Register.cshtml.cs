@@ -10,11 +10,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
-using morespeakers.Data;
-using morespeakers.Models;
-using morespeakers.Services;
+using MoreSpeakers.Web.Data;
+using MoreSpeakers.Web.Models;
+using MoreSpeakers.Web.Services;
 
-namespace MoreSpeakers.Areas.Identity.Pages.Account;
+namespace MoreSpeakers.Web.Areas.Identity.Pages.Account;
+
 
 public class RegisterModel : PageModel
 {

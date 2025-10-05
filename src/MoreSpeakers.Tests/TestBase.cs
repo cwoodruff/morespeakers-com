@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
-using morespeakers.Data;
-using morespeakers.Models;
+using MoreSpeakers.Web.Data;
+using MoreSpeakers.Web.Models;
 
 namespace MoreSpeakers.Tests;
 

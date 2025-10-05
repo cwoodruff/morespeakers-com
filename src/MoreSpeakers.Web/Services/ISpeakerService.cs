@@ -1,6 +1,8 @@
-using morespeakers.Models;
+using MoreSpeakers.Web.Data;
+using MoreSpeakers.Web.Models;
 
-namespace morespeakers.Services;
+namespace MoreSpeakers.Web.Services;
+
 
 // Speaker Service Interface
 public interface ISpeakerService

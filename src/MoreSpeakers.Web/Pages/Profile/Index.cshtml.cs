@@ -3,10 +3,10 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using morespeakers.Data;
-using morespeakers.Models;
+using MoreSpeakers.Web.Data;
+using MoreSpeakers.Web.Models;
 
-namespace morespeakers.Pages.Profile;
+namespace MoreSpeakers.Web.Pages.Profile;
 
 [Authorize]
 public class IndexModel(ApplicationDbContext context, UserManager<User> userManager) : PageModel

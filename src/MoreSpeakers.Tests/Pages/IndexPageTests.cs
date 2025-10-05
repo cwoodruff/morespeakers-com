@@ -1,9 +1,9 @@
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Moq;
-using morespeakers.Models;
-using morespeakers.Pages;
-using morespeakers.Services;
+using MoreSpeakers.Web.Models;
+using MoreSpeakers.Web.Pages;
+using MoreSpeakers.Web.Services;
 
 namespace MoreSpeakers.Tests.Pages;
 

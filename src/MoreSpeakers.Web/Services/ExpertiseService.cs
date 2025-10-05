@@ -1,8 +1,8 @@
 using Microsoft.EntityFrameworkCore;
-using morespeakers.Data;
-using morespeakers.Models;
+using MoreSpeakers.Web.Data;
+using MoreSpeakers.Web.Models;
 
-namespace morespeakers.Services;
+namespace MoreSpeakers.Web.Services;
 
 public class ExpertiseService(ApplicationDbContext context) : IExpertiseService
 {

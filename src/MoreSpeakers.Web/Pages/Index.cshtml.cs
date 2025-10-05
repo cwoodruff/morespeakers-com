@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using morespeakers.Models;
-using morespeakers.Services;
+using MoreSpeakers.Web.Models;
+using MoreSpeakers.Web.Services;
 
-namespace morespeakers.Pages;
+namespace MoreSpeakers.Web.Pages;
 
 public class IndexModel : PageModel
 {

@@ -1,4 +1,4 @@
-namespace morespeakers.Models;
+namespace MoreSpeakers.Web.Models;
 
 public class UserExpertise
 {

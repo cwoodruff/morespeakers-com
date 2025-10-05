@@ -2,7 +2,7 @@ using FluentAssertions;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Moq;
-using morespeakers.Services;
+using MoreSpeakers.Web.Services;
 
 namespace MoreSpeakers.Tests.Services;
 

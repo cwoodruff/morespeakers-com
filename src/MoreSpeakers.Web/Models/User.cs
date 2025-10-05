@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Identity;
 
-namespace morespeakers.Models;
+namespace MoreSpeakers.Web.Models;
 
 public class User : IdentityUser<Guid>
 {

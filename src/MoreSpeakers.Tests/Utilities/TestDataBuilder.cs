@@ -1,5 +1,5 @@
 using Bogus;
-using morespeakers.Models;
+using MoreSpeakers.Web.Models;
 
 namespace MoreSpeakers.Tests.Utilities;
 
