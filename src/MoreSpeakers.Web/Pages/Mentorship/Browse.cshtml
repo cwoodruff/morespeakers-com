@@ -2,6 +2,7 @@
 @model morespeakers.Pages.Mentorship.BrowseModel
 @{
     ViewData["Title"] = "Find a Mentor";
+    var clearAllStyle = Model.SelectedExpertise.Any() ? "" : "display: none;";
 }
 
 <div class="container-fluid">
@@ -53,7 +54,19 @@
 
                     <!-- Expertise Filter -->
                     <div class="mb-4">
-                        <label class="form-label fw-medium">Expertise Areas</label>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <label class="form-label fw-medium mb-0">Expertise Areas</label>
+                            @if (!Model.SelectedExpertise.Any())
+                            {
+                                <style>#clearAllBtn{display:none;}</style>
+                            }
+                            <button type="button"
+                                    id="clearAllBtn"
+                                    class="btn btn-sm btn-link text-danger p-0"
+                                    onclick="(function(btn){ const checks=document.querySelectorAll('input[name=expertise]:checked'); checks.forEach(cb=>{ cb.checked=false; const item=cb.closest('.expertise-filter-item'); if(item){ item.classList.remove('selected'); }}); btn.style.display='none'; const mt=document.querySelector('input[name=mentorshipType]:checked'); if(mt){ htmx.trigger(mt,'change'); } })(this)">
+                                <i class="bi bi-x-circle me-1"></i>Clear All
+                            </button>
+                        </div>
                         <div class="expertise-filter-grid">
                             @foreach (var expertise in Model.AvailableExpertise.Take(20))
                             {
@@ -67,7 +80,8 @@
                                            hx-target="#mentor-results"
                                            hx-include="[name='mentorshipType']:checked,[name='availability']:checked,[name='expertise']:checked"
                                            hx-trigger="change"
-                                           hx-indicator="#search-loading">
+                                           hx-indicator="#search-loading"
+                                           onchange="(function(inp){ const item=inp.closest('.expertise-filter-item'); if(inp.checked){ if(item){ item.classList.add('selected'); } } else { if(item){ item.classList.remove('selected'); } } if(document.querySelectorAll('input[name=expertise]:checked').length>0){ document.getElementById('clearAllBtn').style.display=''; } else { document.getElementById('clearAllBtn').style.display='none'; } })(this)">
                                     <label class="w-100" for="exp-@expertise.Id">@expertise.Name</label>
                                 </div>
                             }
@@ -92,7 +106,8 @@
                                                    hx-target="#mentor-results"
                                                    hx-include="[name='mentorshipType']:checked,[name='availability']:checked,[name='expertise']:checked"
                                                    hx-trigger="change"
-                                                   hx-indicator="#search-loading">
+                                                   hx-indicator="#search-loading"
+                                                   onchange="(function(inp){ const item=inp.closest('.expertise-filter-item'); if(inp.checked){ if(item){ item.classList.add('selected'); } } else { if(item){ item.classList.remove('selected'); } } if(document.querySelectorAll('input[name=expertise]:checked').length>0){ document.getElementById('clearAllBtn').style.display=''; } else { document.getElementById('clearAllBtn').style.display='none'; } })(this)">
                                             <label class="w-100" for="exp-@expertise.Id">@expertise.Name</label>
                                         </div>
                                     }
@@ -159,18 +174,6 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        // Handle expertise filter visual feedback
-        document.addEventListener('change', function (e) {
-            if (e.target.name === 'expertise') {
-                const container = e.target.closest('.expertise-filter-item');
-                if (e.target.checked) {
-                    container.classList.add('selected');
-                } else {
-                    container.classList.remove('selected');
-                }
-            }
-        });
-
         // Handle view toggle
         document.getElementById('view-grid')?.addEventListener('click', function () {
             document.getElementById('mentor-results').classList.remove('list-view');
