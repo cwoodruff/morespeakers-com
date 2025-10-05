@@ -1,6 +1,4 @@
-using morespeakers.Models;
-
-namespace morespeakers.Models.ViewModels;
+namespace MoreSpeakers.Web.Models.ViewModels;
 
 public class MentorshipRequestsViewModel
 {

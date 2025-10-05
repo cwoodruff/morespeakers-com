@@ -2,12 +2,12 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using morespeakers.Data;
-using morespeakers.Models;
-using morespeakers.Models.ViewModels;
-using morespeakers.Services;
+using MoreSpeakers.Web.Data;
+using MoreSpeakers.Web.Models;
+using MoreSpeakers.Web.Services;
+using MoreSpeakers.Web.Models.ViewModels;
 
-namespace morespeakers.Controllers;
+namespace MoreSpeakers.Web.Controllers;
 
 [Authorize]
 [Route("Mentorship")]

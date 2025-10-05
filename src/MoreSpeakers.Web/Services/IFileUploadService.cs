@@ -1,4 +1,8 @@
-namespace morespeakers.Services;
+using MoreSpeakers.Web.Data;
+using MoreSpeakers.Web.Models;
+
+namespace MoreSpeakers.Web.Services;
+
 
 // File Upload Service Interface
 public interface IFileUploadService

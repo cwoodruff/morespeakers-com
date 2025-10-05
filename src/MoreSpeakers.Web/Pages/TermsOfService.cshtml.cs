@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace morespeakers.Pages;
+namespace MoreSpeakers.Web.Pages;
 
 public class TermsOfServiceModel : PageModel
 {

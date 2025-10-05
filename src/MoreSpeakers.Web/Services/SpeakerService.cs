@@ -1,8 +1,9 @@
 using Microsoft.EntityFrameworkCore;
-using morespeakers.Data;
-using morespeakers.Models;
+using MoreSpeakers.Web.Data;
+using MoreSpeakers.Web.Models;
 
-namespace morespeakers.Services;
+namespace MoreSpeakers.Web.Services;
+
 
 // Speaker Service Implementation
 public class SpeakerService(ApplicationDbContext context) : ISpeakerService

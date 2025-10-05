@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using morespeakers.Data;
-using morespeakers.Models;
+using MoreSpeakers.Web.Data;
+using MoreSpeakers.Web.Models;
 
-namespace morespeakers.Pages.Profile;
+namespace MoreSpeakers.Web.Pages.Profile;
 
 public class ViewModel(ApplicationDbContext context) : PageModel
 {

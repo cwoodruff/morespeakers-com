@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace morespeakers.Models;
+namespace MoreSpeakers.Web.Models;
 
 public class SocialMedia
 {

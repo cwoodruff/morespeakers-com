@@ -8,9 +8,9 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using morespeakers.Models;
+using MoreSpeakers.Web.Models;
 
-namespace MoreSpeakers.Areas.Identity.Pages.Account;
+namespace MoreSpeakers.Web.Areas.Identity.Pages.Account;
 
 public class LoginModel : PageModel
 {

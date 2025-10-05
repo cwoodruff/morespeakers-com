@@ -4,11 +4,11 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using morespeakers.Data;
-using morespeakers.Models;
-using morespeakers.Services;
+using MoreSpeakers.Web.Data;
+using MoreSpeakers.Web.Models;
+using MoreSpeakers.Web.Services;
 
-namespace morespeakers.Pages.Profile;
+namespace MoreSpeakers.Web.Pages.Profile;
 
 [Authorize]
 public class EditModel(

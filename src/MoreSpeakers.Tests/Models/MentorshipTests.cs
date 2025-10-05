@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using FluentAssertions;
-using morespeakers.Models;
+using MoreSpeakers.Web.Models;
 
 namespace MoreSpeakers.Tests.Models;
 
