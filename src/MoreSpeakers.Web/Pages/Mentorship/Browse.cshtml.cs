@@ -159,7 +159,7 @@ public class BrowseModel : PageModel
             query = query.Where(u => u.SpeakerTypeId == 2); // Both can mentor each other, but for now experienced only
         }
 
-        // Filter by expertise
+        // Filter by expertise - users must have ALL selected expertise areas
         if (model.SelectedExpertise.Any())
         {
             var expertiseIds = await _context.Expertise
@@ -167,7 +167,11 @@ public class BrowseModel : PageModel
                 .Select(e => e.Id)
                 .ToListAsync();
 
-            query = query.Where(u => u.UserExpertise.Any(ue => expertiseIds.Contains(ue.ExpertiseId)));
+            // User must have all selected expertise areas
+            foreach (var expertiseId in expertiseIds)
+            {
+                query = query.Where(u => u.UserExpertise.Any(ue => ue.ExpertiseId == expertiseId));
+            }
         }
 
         // Filter by availability
