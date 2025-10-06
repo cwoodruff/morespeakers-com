@@ -7,6 +7,12 @@ using MoreSpeakers.Domain.Constants;
 using MoreSpeakers.Domain.Models.Messages;
 using MoreSpeakers.Functions.Interfaces;
 
+namespace MoreSpeakers.Functions;
+
+/// <summary>
+/// Handles the email delivery reports
+/// </summary>
+/// <remarks>This is required from Azure Communication Services email in order to get and maintain a high sender rating</remarks>
 public class ProcessEmailDeliveryReports
 {
     private readonly ISettings _settings;

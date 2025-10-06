@@ -8,6 +8,11 @@ using MoreSpeakers.Domain.Constants;
 using MoreSpeakers.Domain.Models.Messages;
 using MoreSpeakers.Functions.Interfaces;
 
+namespace MoreSpeakers.Functions;
+
+/// <summary>
+/// Sends emails
+/// </summary>
 public class SendEmail
 {
     private readonly TelemetryClient _telemetryClient;
