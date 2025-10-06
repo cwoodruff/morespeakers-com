@@ -1,5 +1,3 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace MoreSpeakers.Web.Models;
 
 public class MentorshipExpertise

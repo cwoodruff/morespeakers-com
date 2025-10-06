@@ -1,4 +1,3 @@
-using MoreSpeakers.Web.Data;
 using MoreSpeakers.Web.Models;
 
 namespace MoreSpeakers.Web.Services;
