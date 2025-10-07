@@ -1,7 +1,16 @@
-using System.Runtime.InteropServices;
 using Projects;
 
 var builder = DistributedApplication.CreateBuilder(args);
+
+// Add Azure Storage
+var storage = builder.AddAzureStorage("AzureStorage");
+
+var logTable = storage.AddTables("AzureStorageTables");
+var queues = storage.AddQueues("AzureStorageQueues");
+storage.RunAsEmulator(azurite =>
+{
+    azurite.WithLifetime(ContainerLifetime.Persistent);
+});
 
 // Add SQL Server database
 var sql = builder.AddSqlServer("sqldb")
@@ -27,6 +36,9 @@ var db = sql.AddDatabase("MoreSpeakers")
 // Add the main web application
 builder.AddProject<MoreSpeakers_Web>("web")
     .WaitFor(db)
+    .WaitFor(logTable)
+    .WaitFor(queues)
+    .WithEnvironment("StorageConnectionString", logTable)
     .WithEnvironment("ConnectionStrings__sqldb", db)
     .WithExternalHttpEndpoints()
     .WithHttpHealthCheck("/health");

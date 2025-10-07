@@ -20,6 +20,9 @@ builder.Services.AddApplicationInsightsTelemetry();
 var fullyQualifiedLogFile = Path.Combine(builder.Environment.ContentRootPath, "logs\\logs.txt");
 ConfigureLogging(builder.Configuration, builder.Services, fullyQualifiedLogFile, "Web");
 
+// Add storage
+
+
 // Add database context
 builder.AddSqlServerDbContext<ApplicationDbContext>("sqldb");
 builder.EnrichSqlServerDbContext<ApplicationDbContext>();
