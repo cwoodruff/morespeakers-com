@@ -38,7 +38,7 @@ builder.AddProject<MoreSpeakers_Web>("web")
     .WaitFor(db)
     .WaitFor(logTable)
     .WaitFor(queues)
-    .WithEnvironment("StorageConnectionString", logTable)
+    .WithEnvironment("Settings__AzureStorageConnectionString", queues)
     .WithEnvironment("ConnectionStrings__sqldb", db)
     .WithExternalHttpEndpoints()
     .WithHttpHealthCheck("/health");

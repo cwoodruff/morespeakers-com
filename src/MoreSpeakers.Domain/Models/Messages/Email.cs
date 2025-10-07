@@ -9,34 +9,34 @@
 		/// <summary>
 		/// The recipient of the email
 		/// </summary>
-		public string ToMailAddress { get; set; }
+		public required string ToMailAddress { get; set; }
 		/// <summary>
 		/// The display name of the recipient
 		/// </summary>
-		public string ToDisplayName { get; set; }
+		public required string ToDisplayName { get; set; }
 		/// <summary>
 		/// Who the email was from
 		/// </summary>
-		public string FromMailAddress { get; set; }
+		public required string FromMailAddress { get; set; }
 		/// <summary>
 		/// The display name of the person receiving the email
 		/// </summary>
-		public string FromDisplayName { get; set; }
+		public required string FromDisplayName { get; set; }
         /// <summary>
         /// The reply to Address
         /// </summary>
-        public string ReplyToMailAddress { get; set; }
+        public required string ReplyToMailAddress { get; set; }
 	    /// <summary>
 	    /// The display name of the person reply to person
 	    /// </summary>
-	    public string ReplyToDisplayName { get; set; }
+	    public required string ReplyToDisplayName { get; set; }
         /// <summary>
         /// The subject of the email
         /// </summary>
-        public string Subject { get; set; }
+        public required string Subject { get; set; }
 		/// <summary>
 		/// The body of the email
 		/// </summary>
-		public string Body { get; set; }
+		public required string Body { get; set; }
 	}
 }

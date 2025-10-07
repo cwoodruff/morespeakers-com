@@ -38,6 +38,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Morespeakers.Functions", "M
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoreSpeakers.Domain", "MoreSpeakers.Domain\MoreSpeakers.Domain.csproj", "{F199AA32-6627-426E-B9C2-710FE5C6F43E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoreSpeakers.Managers", "MoreSpeakers.Managers\MoreSpeakers.Managers.csproj", "{C3DF31E7-C67C-44C7-B629-4FB470E9F5CE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -68,5 +70,9 @@ Global
 		{F199AA32-6627-426E-B9C2-710FE5C6F43E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F199AA32-6627-426E-B9C2-710FE5C6F43E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F199AA32-6627-426E-B9C2-710FE5C6F43E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C3DF31E7-C67C-44C7-B629-4FB470E9F5CE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C3DF31E7-C67C-44C7-B629-4FB470E9F5CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C3DF31E7-C67C-44C7-B629-4FB470E9F5CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C3DF31E7-C67C-44C7-B629-4FB470E9F5CE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
