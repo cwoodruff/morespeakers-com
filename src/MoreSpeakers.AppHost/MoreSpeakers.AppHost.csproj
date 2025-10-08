@@ -45,9 +45,9 @@
         <DocumentationFile>bin\Release\MoreSpeakers.Web.xml</DocumentationFile>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="Aspire.Hosting.AppHost" Version="9.5.0" />
-        <PackageReference Include="Aspire.Hosting.SqlServer" Version="9.5.0" />
-        <PackageReference Include="Aspire.Microsoft.EntityFrameworkCore.SqlServer" Version="9.5.0" />
+        <PackageReference Include="Aspire.Hosting.AppHost" Version="9.5.1" />
+        <PackageReference Include="Aspire.Hosting.SqlServer" Version="9.5.1" />
+        <PackageReference Include="Aspire.Microsoft.EntityFrameworkCore.SqlServer" Version="9.5.1" />
     </ItemGroup>
 
     <ItemGroup>
