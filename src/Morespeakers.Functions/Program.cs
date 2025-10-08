@@ -24,7 +24,7 @@ var settings = new Settings
     BouncedEmailStatuses = string.Empty 
 };
 
-// TODO: Settings are not being loaded from localsettings.json, only secrets
+// TODO: Settings are not being loaded from local.settings.json, only secrets
 builder.Configuration.Bind("Settings", settings);
 builder.Services.AddSingleton<ISettings>(settings);
 
