@@ -31,7 +31,7 @@ public class SendEmail
     {
         // Note: For this to work with Azure Communication Services, the emailMessage.FromMailAddress 
         // must be a valid email address that is registered in the Azure Communication Services portal.
-        // Currently, only 'DoNotReply@desertcodecamp.com' is registered.
+        // Currently, only 'DoNotReply@morespeakers.com' is registered.
         
         _logger.LogDebug("SendEmail: Processing message for Subject \'{Subject}\'", emailMessage.Subject);
 

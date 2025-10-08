@@ -26,7 +26,9 @@ ConfigureLogging(builder.Configuration, builder.Services, fullyQualifiedLogFile,
 // Add settings
 var settings = new Settings
 {
-    AzureStorageConnectionString = null!,
+    AzureBlobStorageConnectionString = null!,
+    AzureTableStorageConnectionString = null!,
+    AzureQueueStorageConnectionString = null!,
     Email = null!
 };
 builder.Configuration.Bind("Settings", settings);

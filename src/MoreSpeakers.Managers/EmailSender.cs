@@ -62,7 +62,7 @@ public class EmailSender: IEmailSender
             ReplyToDisplayName = replyToAddress.DisplayName
         };
 
-        var queue = new Queue(_settings.AzureStorageConnectionString, Queues.SendEmail );
+        var queue = new Queue(_settings.AzureQueueStorageConnectionString, Queues.SendEmail );
         await queue.QueueClient.CreateIfNotExistsAsync();
             
         if (queue.QueueClient is null)

@@ -1,3 +1,4 @@
+using Azure.Provisioning.Storage;
 using Projects;
 
 var builder = DistributedApplication.CreateBuilder(args);
@@ -5,6 +6,7 @@ var builder = DistributedApplication.CreateBuilder(args);
 // Add Azure Storage
 var storage = builder.AddAzureStorage("AzureStorage");
 
+var blobs = storage.AddBlobs("AzureStorageBlobs");
 var logTable = storage.AddTables("AzureStorageTables");
 var queues = storage.AddQueues("AzureStorageQueues");
 storage.RunAsEmulator(azurite =>
@@ -33,12 +35,36 @@ var sqlText = string.Concat(
 var db = sql.AddDatabase("MoreSpeakers")
     .WithCreationScript(sqlText);
 
+// Add the Azure Functions
+var functions = builder.AddAzureFunctionsProject<Projects.Morespeakers_Functions>("functions")
+    .WithReference(blobs)
+    .WithReference(logTable)
+    .WithReference(queues)
+    .WithExternalHttpEndpoints()
+    .WithRoleAssignments(storage,
+        // Storage Account Contributor and Storage Blob Data Owner roles are required by the Azure Functions host
+        StorageBuiltInRole.StorageAccountContributor, StorageBuiltInRole.StorageBlobDataOwner,
+        // Queue Data Contributor role is required to send messages to the queue
+        StorageBuiltInRole.StorageQueueDataContributor)
+    .WithHostStorage(storage)
+    .WaitFor(db)
+    .WaitFor(logTable)
+    .WaitFor(queues)
+    .WithEnvironment("Settings__AzureBlobStorageConnectionString", blobs)
+    .WithEnvironment("Settings__AzureTableStorageConnectionString", logTable)
+    .WithEnvironment("Settings__AzureQueueStorageConnectionString", queues)
+    .WithEnvironment("ConnectionStrings__sqldb", db);
+
+
 // Add the main web application
 builder.AddProject<MoreSpeakers_Web>("web")
     .WaitFor(db)
     .WaitFor(logTable)
     .WaitFor(queues)
-    .WithEnvironment("Settings__AzureStorageConnectionString", queues)
+    .WaitFor(functions)
+    .WithEnvironment("Settings__AzureBlobStorageConnectionString", blobs)
+    .WithEnvironment("Settings__AzureTableStorageConnectionString", logTable)
+    .WithEnvironment("Settings__AzureQueueStorageConnectionString", queues)
     .WithEnvironment("ConnectionStrings__sqldb", db)
     .WithExternalHttpEndpoints()
     .WithHttpHealthCheck("/health");

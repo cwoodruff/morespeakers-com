@@ -45,13 +45,15 @@
         <DocumentationFile>bin\Release\MoreSpeakers.Web.xml</DocumentationFile>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="Aspire.Hosting.AppHost" Version="9.5.0" />
+        <PackageReference Include="Aspire.Hosting.AppHost" Version="9.5.1" />
+        <PackageReference Include="Aspire.Hosting.Azure.Functions" Version="9.5.1-preview.1.25502.11" />
         <PackageReference Include="Aspire.Hosting.Azure.Storage" Version="9.5.1" />
-        <PackageReference Include="Aspire.Hosting.SqlServer" Version="9.5.0" />
-        <PackageReference Include="Aspire.Microsoft.EntityFrameworkCore.SqlServer" Version="9.5.0" />
+        <PackageReference Include="Aspire.Hosting.SqlServer" Version="9.5.1" />
+        <PackageReference Include="Aspire.Microsoft.EntityFrameworkCore.SqlServer" Version="9.5.1" />
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\Morespeakers.Functions\Morespeakers.Functions.csproj" />
         <ProjectReference Include="..\MoreSpeakers.Web\MoreSpeakers.Web.csproj"/>
     </ItemGroup>
 
