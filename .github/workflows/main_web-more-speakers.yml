@@ -81,7 +81,7 @@ jobs:
           package: .
       
       - name: Deploy to Azure Function App
-        id: deploy-to-webapp
+        id: deploy-to-function-app
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'more-speakers-functions'
