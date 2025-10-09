@@ -55,13 +55,11 @@ var functions = builder.AddAzureFunctionsProject<Projects.Morespeakers_Functions
     .WithEnvironment("Settings__AzureQueueStorageConnectionString", queues)
     .WithEnvironment("ConnectionStrings__sqldb", db);
 
-
 // Add the main web application
 builder.AddProject<MoreSpeakers_Web>("web")
     .WaitFor(db)
     .WaitFor(logTable)
     .WaitFor(queues)
-    .WaitFor(functions)
     .WithEnvironment("Settings__AzureBlobStorageConnectionString", blobs)
     .WithEnvironment("Settings__AzureTableStorageConnectionString", logTable)
     .WithEnvironment("Settings__AzureQueueStorageConnectionString", queues)
