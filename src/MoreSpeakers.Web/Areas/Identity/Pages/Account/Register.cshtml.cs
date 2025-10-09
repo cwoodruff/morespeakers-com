@@ -1,11 +1,8 @@
 #nullable disable
 
-using System.ComponentModel.DataAnnotations;
-using System.Text;
-using System.Text.Encodings.Web;
+using Microsoft.ApplicationInsights;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
@@ -13,29 +10,33 @@ using Microsoft.EntityFrameworkCore;
 using MoreSpeakers.Web.Data;
 using MoreSpeakers.Web.Models;
 using MoreSpeakers.Web.Services;
+using System.ComponentModel.DataAnnotations;
+using System.Text;
+using System.Text.Encodings.Web;
 
 namespace MoreSpeakers.Web.Areas.Identity.Pages.Account;
-
 
 public class RegisterModel : PageModel
 {
     private readonly ApplicationDbContext _context;
-    private readonly IEmailSender _emailSender;
+    private readonly Domain.Interfaces.IEmailSender _emailSender;
     private readonly IUserEmailStore<User> _emailStore;
     private readonly IExpertiseService _expertiseService;
     private readonly ILogger<RegisterModel> _logger;
     private readonly SignInManager<User> _signInManager;
     private readonly UserManager<User> _userManager;
     private readonly IUserStore<User> _userStore;
+    private readonly TelemetryClient _telemetryClient;
 
     public RegisterModel(
         UserManager<User> userManager,
         IUserStore<User> userStore,
         SignInManager<User> signInManager,
         ILogger<RegisterModel> logger,
-        IEmailSender emailSender,
+        Domain.Interfaces.IEmailSender emailSender,
         IExpertiseService expertiseService,
-        ApplicationDbContext context)
+        ApplicationDbContext context,
+        TelemetryClient telemetryClient)
     {
         _userManager = userManager;
         _userStore = userStore;
@@ -45,6 +46,7 @@ public class RegisterModel : PageModel
         _emailSender = emailSender;
         _expertiseService = expertiseService;
         _context = context;
+        _telemetryClient = telemetryClient;
     }
 
     /// <summary>
@@ -475,8 +477,15 @@ public class RegisterModel : PageModel
                     new { area = "Identity", userId, code, returnUrl },
                     Request.Scheme);
 
-                await _emailSender.SendEmailAsync(Input.Email, "Confirm your email",
+                await _emailSender.QueueEmail(new System.Net.Mail.MailAddress(user.Email, $"{user.FirstName} {user.LastName}"),
+                    "Confirm your email",
                     $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
+
+                _telemetryClient.TrackEvent("ConfirmationEmailSent", new Dictionary<string, string>
+                {
+                    { "UserId", user.Id.ToString() },
+                    { "Email", user.Email }
+                });
 
                 // Load data needed for step 5 display
                 await LoadFormDataAsync();
@@ -634,9 +643,14 @@ public class RegisterModel : PageModel
             _logger.LogInformation("Subject: {Subject}", emailSubject);
             _logger.LogInformation("Body: {Body}", emailBody);
             
-            // In a real implementation, you would use _emailSender.SendEmailAsync here:
-            // await _emailSender.SendEmailAsync(user.Email, emailSubject, emailBody);
-            
+            await _emailSender.QueueEmail(new System.Net.Mail.MailAddress(user.Email, $"{user.FirstName} {user.LastName}"),
+                emailSubject, emailBody);
+
+            _telemetryClient.TrackEvent("WelcomeEmailSent", new Dictionary<string, string>
+            {
+                { "UserId", user.Id.ToString() },
+                { "Email", user.Email }
+            });
             _logger.LogInformation("Welcome email successfully sent to {Email}", user.Email);
         }
         catch (Exception ex)
