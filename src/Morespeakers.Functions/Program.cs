@@ -2,7 +2,6 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using MoreSpeakers.Functions.Interfaces;
@@ -17,10 +16,10 @@ var builder = FunctionsApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
 builder.ConfigureFunctionsWebApplication();
 
-builder.Configuration.SetBasePath(currentDirectory)
-    .AddJsonFile("local.settings.json", true)
-    .AddUserSecrets(Assembly.GetExecutingAssembly(), true)
-    .AddEnvironmentVariables();
+//builder.Configuration.SetBasePath(currentDirectory)
+//    .AddJsonFile("local.settings.json", true)
+//    .AddUserSecrets(Assembly.GetExecutingAssembly(), true)
+//    .AddEnvironmentVariables();
 var settings = new Settings
 {
     AzureCommunicationsConnectionString = string.Empty,
@@ -29,7 +28,11 @@ var settings = new Settings
     AzureQueueStorageConnectionString = string.Empty,
     BouncedEmailStatuses = string.Empty 
 };
-// TODO: Settings are not being loaded from local.settings.json, only secrets
+
+builder.Configuration.SetBasePath(currentDirectory);
+builder.Configuration.AddJsonFile("local.settings.json", optional: true, reloadOnChange: true);
+builder.Configuration.AddUserSecrets(Assembly.GetExecutingAssembly(), true, true);
+builder.Configuration.AddEnvironmentVariables();
 builder.Configuration.Bind("Settings", settings);
 builder.Services.AddSingleton<ISettings>(settings);
 

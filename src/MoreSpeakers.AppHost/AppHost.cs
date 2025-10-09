@@ -36,17 +36,17 @@ var db = sql.AddDatabase("MoreSpeakers")
     .WithCreationScript(sqlText);
 
 // Add the Azure Functions
-var functions = builder.AddAzureFunctionsProject<Projects.Morespeakers_Functions>("functions")
-    .WithReference(blobs)
-    .WithReference(logTable)
-    .WithReference(queues)
-    .WithExternalHttpEndpoints()
+builder.AddAzureFunctionsProject<Morespeakers_Functions>("functions")
     .WithRoleAssignments(storage,
         // Storage Account Contributor and Storage Blob Data Owner roles are required by the Azure Functions host
         StorageBuiltInRole.StorageAccountContributor, StorageBuiltInRole.StorageBlobDataOwner,
         // Queue Data Contributor role is required to send messages to the queue
         StorageBuiltInRole.StorageQueueDataContributor)
     .WithHostStorage(storage)
+    .WithReference(blobs)
+    .WithReference(logTable)
+    .WithReference(queues)
+    .WithExternalHttpEndpoints()
     .WaitFor(db)
     .WaitFor(logTable)
     .WaitFor(queues)
