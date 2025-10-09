@@ -53,13 +53,13 @@ public class SendEmail
         try
         {
             var emailResult = await emailClient.SendAsync(WaitUntil.Started, email);
-            _telemetryClient.TrackEvent("EmailSent");
             if (emailResult is null)
             {
                 _logger.LogError("SendEmail: Failed to send email for Subject \'{Subject}\' for \'{EmailAddress}'", emailMessage.Subject, emailMessage.ToMailAddress);
             }
             else
             {
+                _telemetryClient.TrackEvent("EmailSent");
                 _logger.LogDebug("SendEmail: Successfully sent email for Subject \'{Subject}\'", emailMessage.Subject);
             }
         }
