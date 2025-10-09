@@ -1,5 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 18
+VisualStudioVersion = 18.0.11104.47 d18.0
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoreSpeakers.Web", "MoreSpeakers.Web\MoreSpeakers.Web.csproj", "{2AA4E5CE-F163-4FFC-A160-BCFBE60D4492}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoreSpeakers.AppHost", "MoreSpeakers.AppHost\MoreSpeakers.AppHost.csproj", "{E0630104-F53A-4E79-9F78-384D53703829}"
@@ -10,25 +13,23 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoreSpeakers.Tests", "MoreS
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoreSpeakers.Functions", "MoreSpeakers.Functions\MoreSpeakers.Functions.csproj", "{5CAE39D9-B4CF-4190-9708-382DBB95E8C9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoreSpeakers.Domain", "MoreSpeakers.Domain\MoreSpeakers.Domain.csproj", "{F199AA32-6627-426E-B9C2-710FE5C6F43E}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoreSpeakers.Managers", "MoreSpeakers.Managers\MoreSpeakers.Managers.csproj", "{C3DF31E7-C67C-44C7-B629-4FB470E9F5CE}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ExtraStuff", "ExtraStuff", "{F237316C-4113-4191-9EF7-EFA8065ED236}"
 	ProjectSection(SolutionItems) = preProject
 		..\.gitignore = ..\.gitignore
-		..\claude.md = ..\claude.md
-		..\next-steps.md = ..\next-steps.md
-		install-libman.ps1 = install-libman.ps1
-		libman-restore.ps1 = libman-restore.ps1
-		..\README.md = ..\README.md
 		..\docs\architecture.md = ..\docs\architecture.md
+		..\claude.md = ..\claude.md
+		..\docs\Custom-Icon-Design-Flatastic-11-Megaphone.512.png = ..\docs\Custom-Icon-Design-Flatastic-11-Megaphone.512.png
 		..\docs\database_overview.md = ..\docs\database_overview.md
 		..\docs\deployment_guide.md = ..\docs\deployment_guide.md
-		..\.github\workflows\main_web-more-speakers.yml = ..\.github\workflows\main_web-more-speakers.yml
-		..\docs\Custom-Icon-Design-Flatastic-11-Megaphone.512.png = ..\docs\Custom-Icon-Design-Flatastic-11-Megaphone.512.png
 		..\docs\icon-readme.md = ..\docs\icon-readme.md
+		install-libman.ps1 = install-libman.ps1
+		libman-restore.ps1 = libman-restore.ps1
+		..\.github\workflows\main_web-more-speakers.yml = ..\.github\workflows\main_web-more-speakers.yml
+		..\next-steps.md = ..\next-steps.md
+		..\README.md = ..\README.md
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoreSpeakers.Managers", "MoreSpeakers.Managers\MoreSpeakers.Managers.csproj", "{C3DF31E7-C67C-44C7-B629-4FB470E9F5CE}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SQLServer", "SQLServer", "{6385B702-FE45-4AEF-93CC-E724BEC47B0D}"
 	ProjectSection(SolutionItems) = preProject
@@ -36,9 +37,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SQLServer", "SQLServer", "{
 		..\scripts\database\create-functions.sql = ..\scripts\database\create-functions.sql
 		..\scripts\database\create-tables.sql = ..\scripts\database\create-tables.sql
 		..\scripts\database\create-views.sql = ..\scripts\database\create-views.sql
-		..\scripts\database\seed-data.sql = ..\scripts\database\seed-data.sql
 		..\scripts\database\delete-user.sql = ..\scripts\database\delete-user.sql
+		..\scripts\database\seed-data.sql = ..\scripts\database\seed-data.sql
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoreSpeakers.Domain", "MoreSpeakers.Domain\MoreSpeakers.Domain.csproj", "{F199AA32-6627-426E-B9C2-710FE5C6F43E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -66,13 +69,19 @@ Global
 		{5CAE39D9-B4CF-4190-9708-382DBB95E8C9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5CAE39D9-B4CF-4190-9708-382DBB95E8C9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5CAE39D9-B4CF-4190-9708-382DBB95E8C9}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F199AA32-6627-426E-B9C2-710FE5C6F43E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F199AA32-6627-426E-B9C2-710FE5C6F43E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F199AA32-6627-426E-B9C2-710FE5C6F43E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F199AA32-6627-426E-B9C2-710FE5C6F43E}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C3DF31E7-C67C-44C7-B629-4FB470E9F5CE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{C3DF31E7-C67C-44C7-B629-4FB470E9F5CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C3DF31E7-C67C-44C7-B629-4FB470E9F5CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C3DF31E7-C67C-44C7-B629-4FB470E9F5CE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F199AA32-6627-426E-B9C2-710FE5C6F43E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F199AA32-6627-426E-B9C2-710FE5C6F43E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F199AA32-6627-426E-B9C2-710FE5C6F43E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F199AA32-6627-426E-B9C2-710FE5C6F43E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {CC32AB96-AE47-433F-86EF-F3713EAB8482}
 	EndGlobalSection
 EndGlobal

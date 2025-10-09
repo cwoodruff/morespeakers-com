@@ -23,17 +23,29 @@ jobs:
         with:
           dotnet-version: '9.x'
 
-      - name: Build with dotnet
+      - name: Build with the Web Application
         run: dotnet build ./src/MoreSpeakers.Web/MoreSpeakers.Web.csproj --configuration Release
 
-      - name: dotnet publish
-        run: dotnet publish ./src/MoreSpeakers.Web/MoreSpeakers.Web.csproj -c Release -o ${{env.DOTNET_ROOT}}/myapp
+      - name: Public the Web Application
+        run: dotnet publish ./src/MoreSpeakers.Web/MoreSpeakers.Web.csproj -c Release -o ${{env.DOTNET_ROOT}}/webapp
 
-      - name: Upload artifact for deployment job
+      - name: Upload the Web Application Artifact
         uses: actions/upload-artifact@v4
         with:
           name: .net-app
-          path: ${{env.DOTNET_ROOT}}/myapp
+          path: ${{env.DOTNET_ROOT}}/webapp
+
+      - name: Build with the Function Application
+        run: dotnet build ./src/MoreSpeakers.Functions/MoreSpeakers.Functions.csproj --configuration Release
+
+      - name: Public the Function Application
+        run: dotnet publish ./src/MoreSpeakers.Functions/MoreSpeakers.Functions.csproj -c Release -o ${{env.DOTNET_ROOT}}/functionapp
+
+      - name: Upload the Function Application Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: function-app
+          path: ${{env.DOTNET_ROOT}}/functionapp
 
   deploy:
     runs-on: ubuntu-latest
@@ -43,11 +55,16 @@ jobs:
       contents: read #This is required for actions/checkout
 
     steps:
-      - name: Download artifact from build job
+      - name: Download artifact the Web Application
         uses: actions/download-artifact@v4
         with:
           name: .net-app
       
+      - name: Download artifact the Web Application
+        uses: actions/download-artifact@v4
+        with:
+          name: function-app
+
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -60,6 +77,14 @@ jobs:
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'web-more-speakers'
+          slot-name: 'Production'
+          package: .
+      
+      - name: Deploy to Azure Function App
+        id: deploy-to-webapp
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: 'more-speakers-functions'
           slot-name: 'Production'
           package: .
           
