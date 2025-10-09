@@ -12,7 +12,6 @@
         <Description>The More Speakers Web application</Description>
         <Copyright>Copyright ©2014-2025, Woodruff Solutions, LLC</Copyright>
         <Title>More Speakers - Web</Title>
-
     </PropertyGroup>
 
     <PropertyGroup>
@@ -44,12 +43,14 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="Aspire.Azure.Data.Tables" Version="9.5.1" />
+        <PackageReference Include="Aspire.Azure.Storage.Queues" Version="9.5.1" />
         <PackageReference Include="Aspire.Microsoft.EntityFrameworkCore.SqlServer" Version="9.5.1" />
         <PackageReference Include="Microsoft.ApplicationInsights" Version="2.23.0" />
         <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.23.0" />
-        <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="9.0.9"/>
-        <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.9"/>
-        <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="9.0.9"/>
+        <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="9.0.9" />
+        <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.9" />
+        <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="9.0.9" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.9">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -59,7 +60,7 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="Microsoft.Extensions.Logging.ApplicationInsights" Version="2.23.0" />
-        <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="9.0.0"/>
+        <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="9.0.0" />
         <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
         <PackageReference Include="Serilog.Enrichers.AssemblyName" Version="2.0.0" />
         <PackageReference Include="Serilog.Enrichers.Environment" Version="3.0.1" />
@@ -72,11 +73,8 @@
 
     <ItemGroup>
         <ProjectReference Include="..\MoreSpeakers.Domain\MoreSpeakers.Domain.csproj" />
-        <ProjectReference Include="..\MoreSpeakers.ServiceDefaults\MoreSpeakers.ServiceDefaults.csproj"/>
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Extensions\" />
+        <ProjectReference Include="..\MoreSpeakers.Managers\MoreSpeakers.Managers.csproj" />
+        <ProjectReference Include="..\MoreSpeakers.ServiceDefaults\MoreSpeakers.ServiceDefaults.csproj" />
     </ItemGroup>
 
 </Project>

@@ -1,7 +1,9 @@
-namespace MoreSpeakers.Functions.Interfaces;
+using MoreSpeakers.Domain.Models;
+
+namespace MoreSpeakers.Domain.Interfaces;
 
 /// <summary>
-/// The settings for the function application
+/// Settings for the application.
 /// </summary>
 public interface ISettings
 {
@@ -21,12 +23,7 @@ public interface ISettings
     public string AzureQueueStorageConnectionString { get; init; }
     
     /// <summary>
-    /// Gets or sets the Azure Communication Services connection settings.
+    /// The email settings.
     /// </summary>
-    public string AzureCommunicationsConnectionString { get; set; }
-    
-    /// <summary>
-    /// Gets or sets the email statuses that are considered bounced.
-    /// </summary>
-    public string BouncedEmailStatuses { get; set; }
+    public EmailSettings Email { get; init; }
 }

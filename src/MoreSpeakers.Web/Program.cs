@@ -1,6 +1,9 @@
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights.WindowsServer;
 using Microsoft.AspNetCore.Identity;
+using MoreSpeakers.Domain.Interfaces;
+using MoreSpeakers.Domain.Models;
+using MoreSpeakers.Managers;
 using MoreSpeakers.Web.Data;
 using MoreSpeakers.Web.Models;
 using MoreSpeakers.Web.Services;
@@ -19,6 +22,17 @@ builder.Services.AddApplicationInsightsTelemetry();
 // Configure the logger
 var fullyQualifiedLogFile = Path.Combine(builder.Environment.ContentRootPath, "logs\\logs.txt");
 ConfigureLogging(builder.Configuration, builder.Services, fullyQualifiedLogFile, "Web");
+
+// Add settings
+var settings = new Settings
+{
+    AzureBlobStorageConnectionString = null!,
+    AzureTableStorageConnectionString = null!,
+    AzureQueueStorageConnectionString = null!,
+    Email = null!
+};
+builder.Configuration.Bind("Settings", settings);
+builder.Services.AddSingleton<ISettings>(settings);
 
 // Add database context
 builder.AddSqlServerDbContext<ApplicationDbContext>("sqldb");
@@ -63,6 +77,7 @@ builder.Services.AddScoped<ISpeakerService, SpeakerService>();
 builder.Services.AddScoped<IMentorshipService, MentorshipService>();
 builder.Services.AddScoped<IExpertiseService, ExpertiseService>();
 builder.Services.AddScoped<IFileUploadService, FileUploadService>();
+builder.Services.AddScoped<IEmailSender, EmailSender>();
 
 // Add HTTP context accessor for services
 builder.Services.AddHttpContextAccessor();
@@ -84,8 +99,7 @@ builder.Services.AddSession(options =>
 
 var app = builder.Build();
 
-// Map health checks endpoint at /health for readiness probes
-app.MapHealthChecks("/health");
+app.MapDefaultEndpoints();
 
 // Configure the HTTP request pipeline
 if (!app.Environment.IsDevelopment())

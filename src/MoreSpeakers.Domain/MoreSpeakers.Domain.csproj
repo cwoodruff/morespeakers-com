@@ -40,8 +40,5 @@
     <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
         <DocumentationFile>bin\Release\MoreSpeakers.Web.xml</DocumentationFile>
     </PropertyGroup>
-    <ItemGroup>
-      <Folder Include="Models\" />
-    </ItemGroup>
 
 </Project>

@@ -5,6 +5,11 @@ using Microsoft.Extensions.Logging;
 using MoreSpeakers.Domain.Constants;
 using MoreSpeakers.Functions.Interfaces;
 
+namespace MoreSpeakers.Functions;
+
+/// <summary>
+/// Handles emails that could not be sent
+/// </summary>
 public class ProcessPoisonedSendEmailMessages
 {
     private readonly ISettings _settings;
@@ -19,11 +24,11 @@ public class ProcessPoisonedSendEmailMessages
     }
 
     [Function("ProcessPoisonedSendEmailMessages")]
-    public async Task Run([TimerTrigger("0 */20 * * * *")] TimerInfo myTimer)
+    public async Task Run([TimerTrigger("%ProcessPoisonedSendEmailMessages_CronSettings%")] TimerInfo myTimer)
     {
         _logger.LogDebug("ProcessPoisonedSendEmailMessages: Timer trigger function executed at: {Now}", DateTime.Now);
 
-        var poisonQueueClient = new QueueClient(_settings.AzureStorageConnectionString, Queues.SendEmailPoison);
+        var poisonQueueClient = new QueueClient(_settings.AzureQueueStorageConnectionString, Queues.SendEmailPoison);
 
         var messageCount = 0;
         if (await poisonQueueClient.ExistsAsync())
@@ -31,7 +36,7 @@ public class ProcessPoisonedSendEmailMessages
             var poisonMessages = await poisonQueueClient.ReceiveMessagesAsync(30);
             if (poisonMessages is not null)
             {
-                var sendEmailsQueueClient = new QueueClient(_settings.AzureStorageConnectionString, Queues.SendEmail);
+                var sendEmailsQueueClient = new QueueClient(_settings.AzureQueueStorageConnectionString, Queues.SendEmail);
                 foreach (var poisonMessage in poisonMessages.Value)
                 {
                     await sendEmailsQueueClient.SendMessageAsync(poisonMessage.MessageText);
