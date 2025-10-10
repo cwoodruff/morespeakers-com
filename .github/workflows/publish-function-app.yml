@@ -61,4 +61,5 @@ jobs:
             app-name: 'more-speakers-functions'
             package: .
             slot-name: 'production'
+            sku: 'flexconsumption'
     
