@@ -58,8 +58,7 @@ jobs:
       - name: Azure Functions Action
         uses: Azure/functions-action@v1.5.3
         with:
-            app-name: 'more-speakers-functions-h7f4fub2d9bghudx'
+            app-name: 'more-speakers-functions'
             package: .
             slot-name: 'production'
-            sku: 'flexconsumption'
     
