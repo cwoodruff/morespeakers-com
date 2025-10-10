@@ -12,12 +12,15 @@ namespace MoreSpeakers.Functions;
 /// </summary>
 public class ProcessPoisonedSendEmailMessages
 {
+
+    private readonly QueueServiceClient _queueServiceClient;
     private readonly ISettings _settings;
     private readonly TelemetryClient _telemetryClient;
     private readonly ILogger<ProcessPoisonedSendEmailMessages> _logger;
 
-    public ProcessPoisonedSendEmailMessages(ISettings settings, TelemetryClient telemetryClient, ILogger<ProcessPoisonedSendEmailMessages> logger)
+    public ProcessPoisonedSendEmailMessages(QueueServiceClient queueServiceClient, ISettings settings, TelemetryClient telemetryClient, ILogger<ProcessPoisonedSendEmailMessages> logger)
     {
+        _queueServiceClient = queueServiceClient;
         _settings = settings;
         _telemetryClient = telemetryClient;
         _logger = logger;
@@ -28,7 +31,7 @@ public class ProcessPoisonedSendEmailMessages
     {
         _logger.LogDebug("ProcessPoisonedSendEmailMessages: Timer trigger function executed at: {Now}", DateTime.Now);
 
-        var poisonQueueClient = new QueueClient(_settings.AzureQueueStorageConnectionString, Queues.SendEmailPoison);
+        var poisonQueueClient = _queueServiceClient.GetQueueClient(Queues.SendEmailPoison);
 
         var messageCount = 0;
         if (await poisonQueueClient.ExistsAsync())
@@ -36,12 +39,19 @@ public class ProcessPoisonedSendEmailMessages
             var poisonMessages = await poisonQueueClient.ReceiveMessagesAsync(30);
             if (poisonMessages is not null)
             {
-                var sendEmailsQueueClient = new QueueClient(_settings.AzureQueueStorageConnectionString, Queues.SendEmail);
+                var sendEmailsQueueClient = _queueServiceClient.GetQueueClient(Queues.SendEmail);
                 foreach (var poisonMessage in poisonMessages.Value)
                 {
                     await sendEmailsQueueClient.SendMessageAsync(poisonMessage.MessageText);
                     await poisonQueueClient.DeleteMessageAsync(poisonMessage.MessageId, poisonMessage.PopReceipt);
                     messageCount++;
+                    _telemetryClient.TrackEvent("PoisonedSendEmailMessageReprocessed", new Dictionary<string, string>
+                    {
+                        {"MessageId", poisonMessage.MessageId},
+                        {"InsertionTime", poisonMessage.InsertedOn?.ToString("o") ?? string.Empty},
+                        {"NextVisibleTime", poisonMessage.NextVisibleOn?.ToString("o") ?? string.Empty},
+                        {"DequeueCount", poisonMessage.DequeueCount.ToString()}
+                    });
                 }
             }
         }
