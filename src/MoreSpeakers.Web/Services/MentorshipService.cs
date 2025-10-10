@@ -48,9 +48,9 @@ public class MentorshipService : IMentorshipService
         {
             // Check if there's already a pending or active mentorship between these users
             var existingMentorship = await _context.Mentorship
-                .FirstOrDefaultAsync(m => 
-                    m.MenteeId == newSpeakerId && 
-                    m.MentorId == mentorId && 
+                .FirstOrDefaultAsync(m =>
+                    m.MenteeId == newSpeakerId &&
+                    m.MentorId == mentorId &&
                     (m.Status == MentorshipStatus.Pending || m.Status == MentorshipStatus.Active));
 
             if (existingMentorship != null)
@@ -63,7 +63,7 @@ public class MentorshipService : IMentorshipService
                 MenteeId = newSpeakerId,
                 Status = MentorshipStatus.Pending,
                 RequestedAt = DateTime.UtcNow,
-                RequestMessage = notes,
+                Notes = notes,
                 Type = MentorshipType.NewToExperienced
             };
 
