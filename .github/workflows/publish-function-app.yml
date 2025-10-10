@@ -24,7 +24,7 @@ jobs:
           dotnet-version: '9.x'
 
       - name: Build the Function App with dotnet
-        run: dotnet build ./src/Morespeakers.Function/Morespeakers.Functions.csproj --configuration Release
+        run: dotnet build ./src/Morespeakers.Functions/Morespeakers.Functions.csproj --configuration Release
 
       - name: Publish the Function App
         run: dotnet publish ./src/Morespeakers.Functions/Morespeakers.Functions.csproj -c Release -o ${{env.DOTNET_ROOT}}/myapp
