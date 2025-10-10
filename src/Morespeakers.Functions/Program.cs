@@ -16,10 +16,6 @@ var builder = FunctionsApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
 builder.ConfigureFunctionsWebApplication();
 
-//builder.Configuration.SetBasePath(currentDirectory)
-//    .AddJsonFile("local.settings.json", true)
-//    .AddUserSecrets(Assembly.GetExecutingAssembly(), true)
-//    .AddEnvironmentVariables();
 var settings = new Settings
 {
     AzureCommunicationsConnectionString = string.Empty,
@@ -44,6 +40,7 @@ builder.Services
     .AddApplicationInsightsTelemetryWorkerService()
     .ConfigureFunctionsApplicationInsights();
 
+builder.AddAzureBlobServiceClient("AzureStorageBlobs");
 builder.AddAzureQueueServiceClient("AzureStorageQueues");
 builder.AddAzureTableServiceClient("AzureStorageTables");
 

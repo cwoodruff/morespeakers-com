@@ -72,6 +72,10 @@ builder.Services.AddRazorPages(options =>
     options.Conventions.AuthorizeAreaPage("Identity", "/Account/Logout");
 });
 
+// Add Azure Storage services
+builder.AddAzureBlobServiceClient("AzureStorageBlobs");
+builder.AddAzureQueueServiceClient("AzureStorageQueues");
+builder.AddAzureTableServiceClient("AzureStorageTables");
 // Add application services
 builder.Services.AddScoped<ISpeakerService, SpeakerService>();
 builder.Services.AddScoped<IMentorshipService, MentorshipService>();

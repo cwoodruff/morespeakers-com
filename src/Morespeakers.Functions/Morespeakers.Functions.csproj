@@ -48,6 +48,7 @@
     <ItemGroup>
         <FrameworkReference Include="Microsoft.AspNetCore.App" />
         <PackageReference Include="Aspire.Azure.Data.Tables" Version="9.5.1" />
+        <PackageReference Include="Aspire.Azure.Storage.Blobs" Version="9.5.1" />
         <PackageReference Include="Aspire.Azure.Storage.Queues" Version="9.5.1" />
         <PackageReference Include="Azure.Communication.Email" Version="1.1.0" />
         <PackageReference Include="Microsoft.ApplicationInsights.WorkerService" Version="2.23.0" />
