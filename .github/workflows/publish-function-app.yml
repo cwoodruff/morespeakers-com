@@ -61,5 +61,5 @@ jobs:
         with:
           app-name: 'more-speakers-functions'
           slot-name: 'Production'
-          package: function-app
+          package: .
           
