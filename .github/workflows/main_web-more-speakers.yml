@@ -38,7 +38,7 @@ jobs:
       - name: Build with the Function Application
         run: dotnet build ./src/Morespeakers.Functions/Morespeakers.Functions.csproj --configuration Release
 
-      - name: Public the Function Application
+      - name: Publish the Function Application
         run: dotnet publish ./src/Morespeakers.Functions/Morespeakers.Functions.csproj -c Release -o ${{env.DOTNET_ROOT}}/functionapp
 
       - name: Upload the Function Application Artifact
@@ -78,7 +78,7 @@ jobs:
         with:
           app-name: 'web-more-speakers'
           slot-name: 'Production'
-          package: web-app
+          package: web-app.zip
       
       - name: Deploy to Azure Function App
         id: deploy-to-function-app
@@ -86,7 +86,8 @@ jobs:
         with:
           app-name: 'more-speakers-functions'
           slot-name: 'Production'
-          package: function-app
+          package: function-app.zip
 
           
+
 
