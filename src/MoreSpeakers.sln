@@ -24,9 +24,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ExtraStuff", "ExtraStuff", 
 		..\docs\icon-readme.md = ..\docs\icon-readme.md
 		install-libman.ps1 = install-libman.ps1
 		libman-restore.ps1 = libman-restore.ps1
-		..\.github\workflows\main_web-more-speakers.yml = ..\.github\workflows\main_web-more-speakers.yml
 		..\next-steps.md = ..\next-steps.md
+		..\.github\workflows\publish-function-app.yml = ..\.github\workflows\publish-function-app.yml
 		..\README.md = ..\README.md
+		..\.github\workflows\publish-web-app.yml = ..\.github\workflows\publish-web-app.yml
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoreSpeakers.Managers", "MoreSpeakers.Managers\MoreSpeakers.Managers.csproj", "{C3DF31E7-C67C-44C7-B629-4FB470E9F5CE}"
