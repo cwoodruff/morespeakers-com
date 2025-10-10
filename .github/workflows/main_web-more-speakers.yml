@@ -32,7 +32,7 @@ jobs:
       - name: Upload the Web Application Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: .net-app
+          name: web-app
           path: ${{env.DOTNET_ROOT}}/webapp
 
       - name: Build with the Function Application
@@ -58,7 +58,7 @@ jobs:
       - name: Download artifact the Web Application
         uses: actions/download-artifact@v4
         with:
-          name: .net-app
+          name: web-app
       
       - name: Download artifact the Web Application
         uses: actions/download-artifact@v4
@@ -78,7 +78,7 @@ jobs:
         with:
           app-name: 'web-more-speakers'
           slot-name: 'Production'
-          package: .net-app
+          package: web-app
       
       - name: Deploy to Azure Function App
         id: deploy-to-function-app
@@ -89,3 +89,4 @@ jobs:
           package: function-app
 
           
+
