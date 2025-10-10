@@ -48,11 +48,11 @@ BEGIN TRY
     PRINT 'Deleted user tokens';
 
     -- 5. Delete from SocialMedia (CASCADE configured, but being explicit)
-    DELETE FROM SocialMedia WHERE UserId = @UserId;
+    DELETE FROM SocialMedias WHERE UserId = @UserId;
     PRINT 'Deleted social media links';
 
     -- 6. Delete from UserExpertise (CASCADE configured, but being explicit)
-    DELETE FROM UserExpertise WHERE UserId = @UserId;
+    DELETE FROM UserExpertises WHERE UserId = @UserId;
     PRINT 'Deleted user expertise relationships';
 
     -- 7. Handle Mentorships - These have RESTRICT delete behavior

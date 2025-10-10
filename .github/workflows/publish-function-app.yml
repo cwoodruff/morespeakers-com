@@ -55,11 +55,11 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_F54FBBE9F2FB49F9B1B4F25144C0529A }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_A568104651C84976894442C1226EEF06 }}
 
-      - name: Deploy to Azure Web App
-        id: deploy-to-webapp
-        uses: azure/webapps-deploy@v3
+      - name: Deploy to Azure Function App
+        id: deploy-to-function-app
+        uses: Azure/functions-action@v1.5.3
         with:
-          app-name: 'web-more-speakers'
+          app-name: 'more-speakers-functions'
           slot-name: 'Production'
-          package: .
+          package: function-app
           

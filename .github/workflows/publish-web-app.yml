@@ -23,10 +23,10 @@ jobs:
         with:
           dotnet-version: '9.x'
 
-      - name: Build the Web Application with dotnet
+      - name: Build the Web App with dotnet
         run: dotnet build ./src/MoreSpeakers.Web/MoreSpeakers.Web.csproj --configuration Release
 
-      - name: Publish the Web Application
+      - name: Publish the Web App
         run: dotnet publish ./src/MoreSpeakers.Web/MoreSpeakers.Web.csproj -c Release -o ${{env.DOTNET_ROOT}}/myapp
 
       - name: Upload artifact for deployment job
