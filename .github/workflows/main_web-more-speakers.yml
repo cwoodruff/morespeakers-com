@@ -36,10 +36,10 @@ jobs:
           path: ${{env.DOTNET_ROOT}}/webapp
 
       - name: Build with the Function Application
-        run: dotnet build ./src/MoreSpeakers.Functions/MoreSpeakers.Functions.csproj --configuration Release
+        run: dotnet build ./src/Morespeakers.Functions/Morespeakers.Functions.csproj --configuration Release
 
       - name: Public the Function Application
-        run: dotnet publish ./src/MoreSpeakers.Functions/MoreSpeakers.Functions.csproj -c Release -o ${{env.DOTNET_ROOT}}/functionapp
+        run: dotnet publish ./src/Morespeakers.Functions/Morespeakers.Functions.csproj -c Release -o ${{env.DOTNET_ROOT}}/functionapp
 
       - name: Upload the Function Application Artifact
         uses: actions/upload-artifact@v4
