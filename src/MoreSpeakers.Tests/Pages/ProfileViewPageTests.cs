@@ -80,7 +80,7 @@ public class ProfileViewPageTests : TestBase
     }
 
     [Fact]
-    public async Task OnGetAsync_WithNonExistentUserId_ShouldReturnPageWithNullUser()
+    public async Task OnGetAsync_WithNonExistentUserId_ShouldReturnNotFound()
     {
         // Arrange
         _pageModel.Id = Guid.NewGuid(); // Random non-existent ID
@@ -89,7 +89,7 @@ public class ProfileViewPageTests : TestBase
         var result = await _pageModel.OnGetAsync();
 
         // Assert
-        result.Should().BeOfType<PageResult>();
+        result.Should().BeOfType<NotFoundResult>();
         _pageModel.ProfileUser.Should().BeNull();
         _pageModel.UserExpertise.Should().BeEmpty();
         _pageModel.SocialMedia.Should().BeEmpty();
@@ -126,7 +126,7 @@ public class ProfileViewPageTests : TestBase
         result.Should().BeOfType<PageResult>();
         _pageModel.UserExpertise.Should().NotBeEmpty();
         _pageModel.UserExpertise.Should().OnlyContain(ue => ue.Expertise != null);
-        
+
         var firstExpertise = _pageModel.UserExpertise.First();
         firstExpertise.Expertise.Name.Should().NotBeNullOrEmpty();
     }
@@ -172,7 +172,7 @@ public class ProfileViewPageTests : TestBase
     {
         // Arrange
         var user = GetExperiencedSpeaker();
-        
+
         // Add additional social media for testing
         var additionalSocialMedia = new SocialMedia
         {
@@ -183,7 +183,7 @@ public class ProfileViewPageTests : TestBase
         };
         Context.SocialMedia.Add(additionalSocialMedia);
         await Context.SaveChangesAsync();
-        
+
         _pageModel.Id = user.Id;
 
         // Act
@@ -203,11 +203,11 @@ public class ProfileViewPageTests : TestBase
 
         // Assert
         property.Should().NotBeNull();
-        
+
         var bindPropertyAttribute = property!.GetCustomAttributes(typeof(Microsoft.AspNetCore.Mvc.BindPropertyAttribute), false)
             .Cast<Microsoft.AspNetCore.Mvc.BindPropertyAttribute>()
             .FirstOrDefault();
-            
+
         bindPropertyAttribute.Should().NotBeNull();
         bindPropertyAttribute!.SupportsGet.Should().BeTrue();
     }
