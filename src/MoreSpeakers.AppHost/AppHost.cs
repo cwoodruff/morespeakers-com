@@ -47,6 +47,7 @@ builder.AddAzureFunctionsProject<Morespeakers_Functions>("functions")
     .WithReference(queues)
     .WithExternalHttpEndpoints()
     .WaitFor(db)
+    .WaitFor(blobs)
     .WaitFor(logTable)
     .WaitFor(queues)
     .WithEnvironment("ConnectionStrings__sqldb", db);
