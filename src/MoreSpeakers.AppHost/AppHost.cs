@@ -5,7 +5,6 @@ var builder = DistributedApplication.CreateBuilder(args);
 
 // Add Azure Storage
 var storage = builder.AddAzureStorage("AzureStorage");
-
 var blobs = storage.AddBlobs("AzureStorageBlobs");
 var logTable = storage.AddTables("AzureStorageTables");
 var queues = storage.AddQueues("AzureStorageQueues");
@@ -48,21 +47,20 @@ builder.AddAzureFunctionsProject<Morespeakers_Functions>("functions")
     .WithReference(queues)
     .WithExternalHttpEndpoints()
     .WaitFor(db)
+    .WaitFor(blobs)
     .WaitFor(logTable)
     .WaitFor(queues)
-    .WithEnvironment("Settings__AzureBlobStorageConnectionString", blobs)
-    .WithEnvironment("Settings__AzureTableStorageConnectionString", logTable)
-    .WithEnvironment("Settings__AzureQueueStorageConnectionString", queues)
     .WithEnvironment("ConnectionStrings__sqldb", db);
 
 // Add the main web application
 builder.AddProject<MoreSpeakers_Web>("web")
+    .WithReference(blobs)
+    .WithReference(logTable)
+    .WithReference(queues)
     .WaitFor(db)
+    .WaitFor(blobs)
     .WaitFor(logTable)
     .WaitFor(queues)
-    .WithEnvironment("Settings__AzureBlobStorageConnectionString", blobs)
-    .WithEnvironment("Settings__AzureTableStorageConnectionString", logTable)
-    .WithEnvironment("Settings__AzureQueueStorageConnectionString", queues)
     .WithEnvironment("ConnectionStrings__sqldb", db)
     .WithExternalHttpEndpoints()
     .WithHttpHealthCheck("/health");

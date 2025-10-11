@@ -1,8 +1,9 @@
 ﻿using System.Net.Mail;
-using JosephGuadagno.AzureHelpers.Storage;
+using Azure.Storage.Queues;
 using Microsoft.Extensions.Logging;
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models.Messages;
+using JosephGuadagno.AzureHelpers.Storage;
 using Queues = MoreSpeakers.Domain.Constants.Queues;
 
 namespace MoreSpeakers.Managers;
@@ -12,16 +13,19 @@ namespace MoreSpeakers.Managers;
 /// </summary>
 public class EmailSender: IEmailSender
 {
+    private readonly QueueServiceClient _queueServiceClient;
     private readonly ISettings _settings;
     private readonly ILogger<EmailSender> _logger;
 
     /// <summary>
     /// The constructor.
     /// </summary>
+    /// <param name="queueServiceClient">Azure Queue Service client</param>
     /// <param name="settings">The <see cref="MoreSpeakers.Domain.Models.Settings"/></param>
     /// <param name="logger">The logger</param>
-    public EmailSender(ISettings settings, ILogger<EmailSender> logger)
+    public EmailSender(QueueServiceClient queueServiceClient, ISettings settings, ILogger<EmailSender> logger)
     {
+        _queueServiceClient = queueServiceClient;
         _settings = settings;
         _logger = logger;
     }
@@ -62,15 +66,7 @@ public class EmailSender: IEmailSender
             ReplyToDisplayName = replyToAddress.DisplayName
         };
 
-        var queue = new Queue(_settings.AzureQueueStorageConnectionString, Queues.SendEmail );
-        await queue.QueueClient.CreateIfNotExistsAsync();
-            
-        if (queue.QueueClient is null)
-        {
-            _logger.LogError("Failed to Queue Email to {Address}. Failed to get a reference to the Queue", toAddress.Address);
-            throw new Exception("Failed to get a reference to the Queue");
-        }
-
+        var queue = new Queue(_queueServiceClient, Queues.SendEmail);
         await queue.AddMessageAsync(emailMessage);
     }
 }

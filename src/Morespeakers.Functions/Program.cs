@@ -16,16 +16,9 @@ var builder = FunctionsApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
 builder.ConfigureFunctionsWebApplication();
 
-//builder.Configuration.SetBasePath(currentDirectory)
-//    .AddJsonFile("local.settings.json", true)
-//    .AddUserSecrets(Assembly.GetExecutingAssembly(), true)
-//    .AddEnvironmentVariables();
 var settings = new Settings
 {
     AzureCommunicationsConnectionString = string.Empty,
-    AzureBlobStorageConnectionString = string.Empty,
-    AzureTableStorageConnectionString = string.Empty,
-    AzureQueueStorageConnectionString = string.Empty,
     BouncedEmailStatuses = string.Empty 
 };
 
@@ -44,8 +37,9 @@ builder.Services
     .AddApplicationInsightsTelemetryWorkerService()
     .ConfigureFunctionsApplicationInsights();
 
-builder.AddAzureQueueServiceClient("AzureStorageQueues");
+builder.AddAzureBlobServiceClient("AzureStorageBlobs");
 builder.AddAzureTableServiceClient("AzureStorageTables");
+builder.AddAzureQueueServiceClient("AzureStorageQueues");
 
 builder.Build().Run();
 
