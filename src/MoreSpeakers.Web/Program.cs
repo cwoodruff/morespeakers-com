@@ -26,9 +26,6 @@ ConfigureLogging(builder.Configuration, builder.Services, fullyQualifiedLogFile,
 // Add settings
 var settings = new Settings
 {
-    AzureBlobStorageConnectionString = null!,
-    AzureTableStorageConnectionString = null!,
-    AzureQueueStorageConnectionString = null!,
     Email = null!
 };
 builder.Configuration.Bind("Settings", settings);
@@ -74,8 +71,8 @@ builder.Services.AddRazorPages(options =>
 
 // Add Azure Storage services
 builder.AddAzureBlobServiceClient("AzureStorageBlobs");
-builder.AddAzureQueueServiceClient("AzureStorageQueues");
 builder.AddAzureTableServiceClient("AzureStorageTables");
+builder.AddAzureQueueServiceClient("AzureStorageQueues");
 // Add application services
 builder.Services.AddScoped<ISpeakerService, SpeakerService>();
 builder.Services.AddScoped<IMentorshipService, MentorshipService>();

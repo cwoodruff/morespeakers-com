@@ -19,9 +19,6 @@ builder.ConfigureFunctionsWebApplication();
 var settings = new Settings
 {
     AzureCommunicationsConnectionString = string.Empty,
-    AzureBlobStorageConnectionString = string.Empty,
-    AzureTableStorageConnectionString = string.Empty,
-    AzureQueueStorageConnectionString = string.Empty,
     BouncedEmailStatuses = string.Empty 
 };
 
@@ -41,8 +38,8 @@ builder.Services
     .ConfigureFunctionsApplicationInsights();
 
 builder.AddAzureBlobServiceClient("AzureStorageBlobs");
-builder.AddAzureQueueServiceClient("AzureStorageQueues");
 builder.AddAzureTableServiceClient("AzureStorageTables");
+builder.AddAzureQueueServiceClient("AzureStorageQueues");
 
 builder.Build().Run();
 

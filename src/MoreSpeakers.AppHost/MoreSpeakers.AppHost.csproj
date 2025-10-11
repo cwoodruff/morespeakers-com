@@ -53,6 +53,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\MoreSpeakers.Domain\MoreSpeakers.Domain.csproj" />
         <ProjectReference Include="..\Morespeakers.Functions\Morespeakers.Functions.csproj" />
         <ProjectReference Include="..\MoreSpeakers.Web\MoreSpeakers.Web.csproj" />
     </ItemGroup>
