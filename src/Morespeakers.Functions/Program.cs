@@ -31,7 +31,7 @@ builder.Configuration.Bind("Settings", settings);
 builder.Services.AddSingleton<ISettings>(settings);
 
 // Configure the logger
-string loggerFile = Path.Combine(currentDirectory, "logs\\logs.txt");
+string loggerFile = Path.Combine(currentDirectory, $"logs{Path.PathSeparator}logs.txt");
 ConfigureLogging(builder.Configuration, builder.Services, loggerFile, "Functions");
 
 builder.Services
