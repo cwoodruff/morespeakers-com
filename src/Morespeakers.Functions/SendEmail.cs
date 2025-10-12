@@ -45,10 +45,6 @@ public class SendEmail
     [Function(nameof(SendEmail))]
     public async Task RunAsync([QueueTrigger(Queues.SendEmail)] Email emailMessage)
     {
-        // Note: For this to work with Azure Communication Services, the emailMessage.FromMailAddress 
-        // must be a valid email address that is registered in the Azure Communication Services portal.
-        // Currently, only 'DoNotReply@morespeakers.com' is registered.
-        
         _logger.LogDebug("SendEmail: Processing message for Subject \'{Subject}\'", emailMessage.Subject);
 
         var emailClient = new EmailClient(_settings.AzureCommunicationsConnectionString);
