@@ -1,8 +1,8 @@
 {
   "profiles": {
-    "Morespeakers.Functions": {
+    "MoreSpeakers.Functions": {
       "commandName": "Project",
-      "commandLineArgs": "--port 7060",
+      "commandLineArgs": "--port 7235",
       "launchBrowser": false
     }
   }

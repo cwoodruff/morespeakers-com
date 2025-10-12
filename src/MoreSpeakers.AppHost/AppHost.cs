@@ -11,6 +11,7 @@ var queues = storage.AddQueues("AzureStorageQueues");
 storage.RunAsEmulator(azurite =>
 {
     azurite.WithLifetime(ContainerLifetime.Persistent);
+    azurite.WithDataVolume();
 });
 
 // Add SQL Server database

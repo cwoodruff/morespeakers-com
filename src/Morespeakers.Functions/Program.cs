@@ -1,3 +1,5 @@
+using System.Reflection;
+
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Builder;
 using Microsoft.Extensions.Configuration;
@@ -8,7 +10,6 @@ using MoreSpeakers.Functions.Interfaces;
 using MoreSpeakers.Functions.Models;
 using Serilog;
 using Serilog.Exceptions;
-using System.Reflection;
 
 var currentDirectory = Directory.GetCurrentDirectory();
 
@@ -19,7 +20,7 @@ builder.ConfigureFunctionsWebApplication();
 var settings = new Settings
 {
     AzureCommunicationsConnectionString = string.Empty,
-    BouncedEmailStatuses = string.Empty 
+    BouncedEmailStatuses = string.Empty
 };
 
 builder.Configuration.SetBasePath(currentDirectory);

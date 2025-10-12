@@ -36,6 +36,11 @@ public class ProcessPoisonedSendEmailMessages
         _logger = logger;
     }
 
+    /// <summary>
+    /// Processes messages from the Send-Email Poison queue
+    /// </summary>
+    /// <param name="myTimer">How often the function checks the queue</param>
+    /// <returns>Nothing</returns>
     [Function("ProcessPoisonedSendEmailMessages")]
     public async Task Run([TimerTrigger("%ProcessPoisonedSendEmailMessages_CronSettings%")] TimerInfo myTimer)
     {

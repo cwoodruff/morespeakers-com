@@ -19,13 +19,29 @@ public class SendEmail
     private readonly ILogger<SendEmail> _logger;
     private readonly ISettings _settings;
 
+    /// <summary>
+    /// Sends emails
+    /// </summary>
+    /// <param name="settings">The <see cref="Domain.Interfaces.ISettings"/> to use.</param>
+    /// <param name="telemetryConfiguration">A Telemetry Client</param>
+    /// <param name="logger">A logger</param>
     public SendEmail(ISettings settings, TelemetryConfiguration telemetryConfiguration, ILogger<SendEmail> logger)
     {
         _telemetryClient = new TelemetryClient(telemetryConfiguration);
         _logger = logger;
         _settings = settings;
     }
-    
+
+    /// <summary>
+    /// Sends the email
+    /// </summary>
+    /// <param name="emailMessage">The <see cref="Email"/> to send.</param>
+    /// <returns>Nothing</returns>
+    /// <remarks>
+    /// Note: For this to work with Azure Communication Services, the emailMessage.FromMailAddress 
+    /// must be a valid email address that is registered in the Azure Communication Services portal.
+    /// Currently, only 'DoNotReply@morespeakers.com' is registered.
+    /// </remarks>
     [Function(nameof(SendEmail))]
     public async Task RunAsync([QueueTrigger(Queues.SendEmail)] Email emailMessage)
     {
