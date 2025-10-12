@@ -41,7 +41,7 @@ MoreSpeakers.com follows a clean, layered architecture built on ASP.NET Core wit
 
 ### Backend Technologies
 
-**ASP.NET Core 8.0 with Razor Pages**
+**ASP.NET Core 9~~~~.0 with Razor Pages**
 - Server-side rendering for optimal performance and SEO
 - Built-in dependency injection
 - Integrated authentication and authorization
