@@ -37,13 +37,13 @@ jobs:
         run: dotnet build "${{ env.WORKING_DIRECTORY }}" --configuration ${{ env.CONFIGURATION }} --no-restore
       
       - name: Publish
-        run: dotnet publish "${{ env.WORKING_DIRECTORY }}" --configuration ${{ env.CONFIGURATION }} --no-build --output "${{ env.AZURE_WEBAPP_PACKAGE_PATH }}"
+        run: dotnet publish "${{ env.WORKING_DIRECTORY }}" --configuration ${{ env.CONFIGURATION }} --no-build --output "${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/myapp"
       
       - name: Publish Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: webapp
-          path: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+          path: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/myapp
           include-hidden-files: true
 
   deploy:
@@ -58,7 +58,6 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: webapp
-          path: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
       
       - name: Login to Azure
         uses: azure/login@v2
@@ -73,6 +72,6 @@ jobs:
         uses: azure/webapps-deploy@v3
         with:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
-          package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+          package: .
           slot-name: Production
           
