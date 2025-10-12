@@ -20,7 +20,7 @@ builder.Services.AddSingleton<ITelemetryInitializer, AzureWebAppRoleEnvironmentT
 builder.Services.AddApplicationInsightsTelemetry();
 
 // Configure the logger
-var fullyQualifiedLogFile = Path.Combine(builder.Environment.ContentRootPath, "logs\\logs.txt");
+var fullyQualifiedLogFile = Path.Combine(builder.Environment.ContentRootPath, $"logs{Path.DirectorySeparatorChar}logs.txt");
 ConfigureLogging(builder.Configuration, builder.Services, fullyQualifiedLogFile, "Web");
 
 // Add settings
@@ -28,6 +28,7 @@ var settings = new Settings
 {
     Email = null!
 };
+builder.Configuration.AddEnvironmentVariables();
 builder.Configuration.Bind("Settings", settings);
 builder.Services.AddSingleton<ISettings>(settings);
 
