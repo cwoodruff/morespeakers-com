@@ -56,7 +56,7 @@ jobs:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
-          name: function-app
+          name: functionapp
           path: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
       
       - name: Login to Azure
