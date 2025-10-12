@@ -9,6 +9,13 @@ on:
       - main
   workflow_dispatch:
 
+env:
+  AZURE_FUNCTIONAPP_NAME: more-speakers-functions
+  AZURE_FUNCTIONAPP_PACKAGE_PATH: .\published
+  CONFIGURATION: Release
+  DOTNET_CORE_VERSION: 9.0.x
+  WORKING_DIRECTORY: ./src/Morespeakers.Functions/
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -18,22 +25,25 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up .NET Core
+      - name: Setup .NET SDK
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '9.x'
-
-      - name: Build the Function App with dotnet
-        run: dotnet build ./src/Morespeakers.Functions/Morespeakers.Functions.csproj --configuration Release
-
-      - name: Publish the Function App
-        run: dotnet publish ./src/Morespeakers.Functions/Morespeakers.Functions.csproj -c Release -o ${{env.DOTNET_ROOT}}/myapp
-
-      - name: Upload artifact for deployment job
+          dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
+      
+      - name: Restore
+        run: dotnet restore "${{ env.WORKING_DIRECTORY }}"
+      
+      - name: Build
+        run: dotnet build "${{ env.WORKING_DIRECTORY }}" --configuration ${{ env.CONFIGURATION }} --no-restore
+      
+      - name: Publish
+        run: dotnet publish "${{ env.WORKING_DIRECTORY }}" --configuration ${{ env.CONFIGURATION }} --no-build --output "${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}"
+      
+      - name: Publish Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: function-app
-          path: ${{env.DOTNET_ROOT}}/myapp
+          name: functionapp
+          path: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
 
   deploy:
     runs-on: ubuntu-latest
@@ -47,6 +57,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: function-app
+          path: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
       
       - name: Login to Azure
         uses: azure/login@v2
@@ -56,9 +67,9 @@ jobs:
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_A568104651C84976894442C1226EEF06 }}
 
       - name: Azure Functions Action
-        uses: Azure/functions-action@v1.5.3
+        uses: Azure/functions-action@v1
         with:
-            app-name: 'more-speakers-functions'
-            package: .
-            slot-name: 'production'
+          app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
+          package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
+          slot-name: Production
     
