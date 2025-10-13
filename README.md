@@ -122,6 +122,8 @@ See [DEPLOYMENT.md](docs/DEPLOYMENT.md) for detailed deployment instructions.
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
+Check out the [Developer Startup](docs/developer-startup.md) for detailed instructions on setting up your development environment to work on this project.
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

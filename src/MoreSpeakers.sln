@@ -27,6 +27,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ExtraStuff", "ExtraStuff", 
 		..\.github\workflows\publish-function-app.yml = ..\.github\workflows\publish-function-app.yml
 		..\.github\workflows\publish-web-app.yml = ..\.github\workflows\publish-web-app.yml
 		..\README.md = ..\README.md
+		..\docs\developer-startup.md = ..\docs\developer-startup.md
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoreSpeakers.Managers", "MoreSpeakers.Managers\MoreSpeakers.Managers.csproj", "{C3DF31E7-C67C-44C7-B629-4FB470E9F5CE}"
