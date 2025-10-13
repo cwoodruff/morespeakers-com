@@ -25,7 +25,7 @@
     <!-- Registration Summary Card -->
     <div class="card border-0 shadow-sm mb-5">
         <div class="card-header bg-primary bg-opacity-10 border-0">
-            <h5 class="mb-0 text-primary fw-bold">
+            <h5 class="mb-0 text-color fw-bold">
                 <i class="bi bi-person-check me-2"></i>
                 Your Profile Summary
             </h5>
@@ -37,7 +37,7 @@
                     <div class="h-100 bg-light bg-opacity-50 rounded-3 p-3 border border-primary border-opacity-10">
                         <div class="d-flex align-items-start">
                             <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-3">
-                                <i class="bi bi-person text-primary"></i>
+                                <i class="bi bi-person text-color"></i>
                             </div>
                             <div class="flex-grow-1">
                                 <small class="text-muted text-uppercase fw-bold d-block">Full Name</small>
@@ -51,7 +51,7 @@
                     <div class="h-100 bg-light bg-opacity-50 rounded-3 p-3 border border-primary border-opacity-10">
                         <div class="d-flex align-items-start">
                             <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-3">
-                                <i class="bi bi-envelope text-primary"></i>
+                                <i class="bi bi-envelope text-color"></i>
                             </div>
                             <div class="flex-grow-1">
                                 <small class="text-muted text-uppercase fw-bold d-block">Email</small>
@@ -65,7 +65,7 @@
                     <div class="h-100 bg-light bg-opacity-50 rounded-3 p-3 border border-primary border-opacity-10">
                         <div class="d-flex align-items-start">
                             <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-3">
-                                <i class="bi @(Model.Input.SpeakerTypeId == 1 ? "bi-person-plus" : "bi-award") text-primary"></i>
+                                <i class="bi @(Model.Input.SpeakerTypeId == 1 ? "bi-person-plus" : "bi-award") text-color"></i>
                             </div>
                             <div class="flex-grow-1">
                                 <small class="text-muted text-uppercase fw-bold d-block">Speaker Type</small>
@@ -81,7 +81,7 @@
                     <div class="h-100 bg-light bg-opacity-50 rounded-3 p-3 border border-primary border-opacity-10">
                         <div class="d-flex align-items-start">
                             <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-3">
-                                <i class="bi bi-telephone text-primary"></i>
+                                <i class="bi bi-telephone text-color"></i>
                             </div>
                             <div class="flex-grow-1">
                                 <small class="text-muted text-uppercase fw-bold d-block">Phone</small>
@@ -97,7 +97,7 @@
                 <div class="mt-4 pt-3 border-top border-primary border-opacity-10">
                     <div class="d-flex align-items-center mb-3">
                         <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-3">
-                            <i class="bi bi-lightbulb text-primary"></i>
+                            <i class="bi bi-lightbulb text-color"></i>
                         </div>
                         <small class="text-muted text-uppercase fw-bold">Areas of Expertise</small>
                     </div>
@@ -107,7 +107,7 @@
                             var expertise = Model.AllExpertise.FirstOrDefault(e => e.Id == expertiseId);
                             if (expertise != null)
                             {
-                                <span class="expertise-tag bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25">
+                                <span class="expertise-tag bg-primary bg-opacity-10 text-color border border-primary border-opacity-25">
                                     @expertise.Name
                                 </span>
                             }
@@ -162,12 +162,12 @@
                                 <span class="badge bg-primary rounded-pill fs-4 fw-bold">1</span>
                             </div>
                         </div>
-                        <h5 class="fw-bold text-primary mb-3">Complete Your Profile</h5>
+                        <h5 class="fw-bold text-color mb-3">Complete Your Profile</h5>
                         <p class="text-muted mb-3">
                             Add a professional headshot, detailed bio, and showcase your expertise 
                             to help others find and connect with you.
                         </p>
-                        <div class="text-primary">
+                        <div class="text-color">
                             <i class="bi bi-person-gear" style="font-size: 1.5rem;"></i>
                         </div>
                     </div>
@@ -264,7 +264,7 @@
         <!-- Thank You Message -->
         <div class="mt-5 pt-4 border-top border-primary border-opacity-10">
             <div class="bg-primary bg-opacity-5 rounded-4 p-4">
-                <h6 class="text-primary fw-bold mb-2">
+                <h6 class="text-color fw-bold mb-2">
                     <i class="bi bi-heart-fill text-danger me-2"></i>
                     Welcome to the Family!
                 </h6>
