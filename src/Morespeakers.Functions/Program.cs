@@ -1,3 +1,5 @@
+using System.Reflection;
+
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Builder;
 using Microsoft.Extensions.Configuration;
@@ -8,7 +10,6 @@ using MoreSpeakers.Functions.Interfaces;
 using MoreSpeakers.Functions.Models;
 using Serilog;
 using Serilog.Exceptions;
-using System.Reflection;
 
 var currentDirectory = Directory.GetCurrentDirectory();
 
@@ -16,17 +17,10 @@ var builder = FunctionsApplication.CreateBuilder(args);
 builder.AddServiceDefaults();
 builder.ConfigureFunctionsWebApplication();
 
-//builder.Configuration.SetBasePath(currentDirectory)
-//    .AddJsonFile("local.settings.json", true)
-//    .AddUserSecrets(Assembly.GetExecutingAssembly(), true)
-//    .AddEnvironmentVariables();
 var settings = new Settings
 {
     AzureCommunicationsConnectionString = string.Empty,
-    AzureBlobStorageConnectionString = string.Empty,
-    AzureTableStorageConnectionString = string.Empty,
-    AzureQueueStorageConnectionString = string.Empty,
-    BouncedEmailStatuses = string.Empty 
+    BouncedEmailStatuses = string.Empty
 };
 
 builder.Configuration.SetBasePath(currentDirectory);
@@ -37,15 +31,16 @@ builder.Configuration.Bind("Settings", settings);
 builder.Services.AddSingleton<ISettings>(settings);
 
 // Configure the logger
-string loggerFile = Path.Combine(currentDirectory, "logs\\logs.txt");
+string loggerFile = Path.Combine(currentDirectory, $"logs{Path.DirectorySeparatorChar}logs.txt");
 ConfigureLogging(builder.Configuration, builder.Services, loggerFile, "Functions");
 
 builder.Services
     .AddApplicationInsightsTelemetryWorkerService()
     .ConfigureFunctionsApplicationInsights();
 
-builder.AddAzureQueueServiceClient("AzureStorageQueues");
+builder.AddAzureBlobServiceClient("AzureStorageBlobs");
 builder.AddAzureTableServiceClient("AzureStorageTables");
+builder.AddAzureQueueServiceClient("AzureStorageQueues");
 
 builder.Build().Run();
 

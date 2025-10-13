@@ -9,6 +9,13 @@ on:
       - main
   workflow_dispatch:
 
+env:
+  AZURE_WEBAPP_NAME: web-more-speakers
+  AZURE_WEBAPP_PACKAGE_PATH: ./published
+  CONFIGURATION: Release
+  DOTNET_CORE_VERSION: 9.0.x
+  WORKING_DIRECTORY: ./src/MoreSpeakers.Web/
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -18,22 +25,26 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up .NET Core
+      - name: Setup .NET SDK
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '9.x'
-
-      - name: Build the Web App with dotnet
-        run: dotnet build ./src/MoreSpeakers.Web/MoreSpeakers.Web.csproj --configuration Release
-
-      - name: Publish the Web App
-        run: dotnet publish ./src/MoreSpeakers.Web/MoreSpeakers.Web.csproj -c Release -o ${{env.DOTNET_ROOT}}/myapp
-
-      - name: Upload artifact for deployment job
+          dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
+      
+      - name: Restore
+        run: dotnet restore "${{ env.WORKING_DIRECTORY }}"
+      
+      - name: Build
+        run: dotnet build "${{ env.WORKING_DIRECTORY }}" --configuration ${{ env.CONFIGURATION }} --no-restore
+      
+      - name: Publish
+        run: dotnet publish "${{ env.WORKING_DIRECTORY }}" --configuration ${{ env.CONFIGURATION }} --no-build --output "${{ env.AZURE_WEBAPP_PACKAGE_PATH }}"
+      
+      - name: Publish Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: .net-app
-          path: ${{env.DOTNET_ROOT}}/myapp
+          name: webapp
+          path: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+          include-hidden-files: true
 
   deploy:
     runs-on: ubuntu-latest
@@ -46,7 +57,8 @@ jobs:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
-          name: .net-app
+          name: webapp
+          path: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
       
       - name: Login to Azure
         uses: azure/login@v2
@@ -55,11 +67,12 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_F54FBBE9F2FB49F9B1B4F25144C0529A }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_A568104651C84976894442C1226EEF06 }}
 
+
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: 'web-more-speakers'
-          slot-name: 'Production'
-          package: .
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+          slot-name: Production
           

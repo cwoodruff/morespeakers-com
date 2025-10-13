@@ -20,17 +20,15 @@ builder.Services.AddSingleton<ITelemetryInitializer, AzureWebAppRoleEnvironmentT
 builder.Services.AddApplicationInsightsTelemetry();
 
 // Configure the logger
-var fullyQualifiedLogFile = Path.Combine(builder.Environment.ContentRootPath, "logs\\logs.txt");
+var fullyQualifiedLogFile = Path.Combine(builder.Environment.ContentRootPath, $"logs{Path.DirectorySeparatorChar}logs.txt");
 ConfigureLogging(builder.Configuration, builder.Services, fullyQualifiedLogFile, "Web");
 
 // Add settings
 var settings = new Settings
 {
-    AzureBlobStorageConnectionString = null!,
-    AzureTableStorageConnectionString = null!,
-    AzureQueueStorageConnectionString = null!,
     Email = null!
 };
+builder.Configuration.AddEnvironmentVariables();
 builder.Configuration.Bind("Settings", settings);
 builder.Services.AddSingleton<ISettings>(settings);
 
@@ -72,6 +70,10 @@ builder.Services.AddRazorPages(options =>
     options.Conventions.AuthorizeAreaPage("Identity", "/Account/Logout");
 });
 
+// Add Azure Storage services
+builder.AddAzureBlobServiceClient("AzureStorageBlobs");
+builder.AddAzureTableServiceClient("AzureStorageTables");
+builder.AddAzureQueueServiceClient("AzureStorageQueues");
 // Add application services
 builder.Services.AddScoped<ISpeakerService, SpeakerService>();
 builder.Services.AddScoped<IMentorshipService, MentorshipService>();

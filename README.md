@@ -40,49 +40,51 @@ MoreSpeakers.com is a mentorship platform designed to help aspiring speakers in 
 
 ### Prerequisites
 - .NET 9.0 SDK
-- Visual Studio 2022, JetBrains Rider or VS Code
+- Visual Studio 2022, JetBrains Rider, or VS Code
 - Docker Desktop (for .NET Aspire)
-- Azure SQL, SQL Server Full,  LocalDB or SQL Server Express
+- Azure Storage Explorer
 
 ### Installation
 
 1. Clone the repository:
+
 ```bash
-git clone https://github.com/yourusername/morespeakers.com.git
+git clone https://github.com/cwoodruff/morespeakers.com.git
 cd morespeakers.com
 ```
 
 2. Restore dependencies:
+
 ```bash
 dotnet restore
 ```
 
-3. Set up the database:
-```bash
-dotnet ef database update
-```
+3. Run the application with Aspire:
 
-4. Run the application with Aspire:
 ```bash
 dotnet run --project MoreSpeakers.AppHost
 ```
-
-5. Open your browser to `https://localhost:5000`
 
 ## Project Structure
 
 ```
 MoreSpeakers/
-├── MoreSpeakers.AppHost/          # .NET Aspire orchestration
-├── MoreSpeakers.Web/             # Main web application
-│   ├── Pages/                    # Razor Pages
-│   ├── Models/                   # Data models
-│   ├── Data/                     # Entity Framework context
-│   ├── wwwroot/                  # Static files (CSS, JS, images)
-│   └── Areas/                    # Feature areas
-├── MoreSpeakers.Database/        # Database projects and migrations
-├── docs/                         # Documentation
-└── tests/                        # Unit and integration tests
+| src/                                # Source code
+│   ├── MoreSpeakers.AppHost/         # .NET Aspire orchestration
+│   ├── MoreSpeakers.ServiceDefaults/ # .NET Aspire orchestration
+│   ├── MoreSpeakers.Domain/          # Domain models
+│   ├── MoreSpeakers.Functions/       # Azure Functions to support the application, like email notifications
+│   ├── MoreSpeakers.Managers/        # Appplication services/managers/business logic
+│   ├── MoreSpeakers.Tests/           # Unit tests
+│   └── MoreSpeakers.Web/             # Main web application
+│       ├── Pages/                    # Razor Pages
+│       ├── Models/                   # Data models
+│       ├── Data/                     # Entity Framework context
+│       ├── wwwroot/                  # Static files (CSS, JS, images)
+│       └── Areas/                    # Feature areas
+├── docs/                             # Documentation
+├── scripts/database                  # Scripts for the database deployment
+└── .github/                          # Deployment files
 ```
 
 ## Development
@@ -109,9 +111,6 @@ This project follows standard C# coding conventions. Please ensure your IDE is c
 ## Deployment
 
 ### Azure Deployment
-1. Create Azure resources (App Service, SQL Database)
-2. Configure connection strings in Azure App Service
-3. Deploy using GitHub Actions or Azure DevOps
 
 See [DEPLOYMENT.md](docs/DEPLOYMENT.md) for detailed deployment instructions.
 
@@ -122,6 +121,8 @@ See [DEPLOYMENT.md](docs/DEPLOYMENT.md) for detailed deployment instructions.
 3. Commit your changes (`git commit -m 'Add amazing feature'`)
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
+
+Check out the [Developer Startup](docs/developer-startup.md) for detailed instructions on setting up your development environment to work on this project.
 
 ## License
 
