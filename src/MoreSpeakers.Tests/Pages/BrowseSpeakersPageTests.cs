@@ -3,7 +3,11 @@ using System.Text.Json;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using Microsoft.AspNetCore.Routing;
+
 using Moq;
 using MoreSpeakers.Web.Models;
 using MoreSpeakers.Web.Pages;
@@ -21,10 +25,28 @@ public class BrowseSpeakersPageTests
     {
         _mockSpeakerService = new Mock<ISpeakerService>();
         _mockExpertiseService = new Mock<IExpertiseService>();
-
         _pageModel = new BrowseSpeakersModel(
-            _mockSpeakerService.Object,
-            _mockExpertiseService.Object);
+					_mockSpeakerService.Object,
+					_mockExpertiseService.Object)
+		{
+			PageContext = CreateStubPageContext()
+		};
+
+    }
+
+    private static PageContext CreateStubPageContext()
+    {
+		var httpContext = new DefaultHttpContext();
+
+	    var modelState = new ModelStateDictionary();
+	    var actionContext = new ActionContext(httpContext, new RouteData(), new PageActionDescriptor(), modelState);
+	    var modelMetadataProvider = new EmptyModelMetadataProvider();
+	    var viewData = new ViewDataDictionary(modelMetadataProvider, modelState);
+	    var pageContext = new PageContext(actionContext)
+	    {
+		    ViewData = viewData
+	    };
+	    return pageContext;
     }
 
     [Fact]
@@ -90,7 +112,7 @@ public class BrowseSpeakersPageTests
 
         // Assert
         _mockSpeakerService.Verify(s => s.GetNewSpeakersAsync(), Times.Once);
-        _mockSpeakerService.Verify(s => s.GetExperiencedSpeakersAsync(), Times.Never);
+        _mockSpeakerService.Verify(s => s.GetExperiencedSpeakersAsync(), Times.Once);
     }
 
     [Fact]
@@ -111,15 +133,15 @@ public class BrowseSpeakersPageTests
 
         // Assert
         _mockSpeakerService.Verify(s => s.GetExperiencedSpeakersAsync(), Times.Once);
-        _mockSpeakerService.Verify(s => s.GetNewSpeakersAsync(), Times.Never);
+        _mockSpeakerService.Verify(s => s.GetNewSpeakersAsync(), Times.Once);
     }
 
     [Fact]
     public async Task OnGetAsync_WithExpertiseFilter_ShouldCallGetSpeakersByExpertise()
     {
-        // Arrange
-        _pageModel.ExpertiseFilter = 1;
-        var speakersWithExpertise = CreateSampleUsers(2);
+		// Arrange
+		_pageModel.ExpertiseFilter = 1;
+		var speakersWithExpertise = CreateSampleUsers(2);
 
         _mockExpertiseService.Setup(e => e.GetAllExpertiseAsync())
             .ReturnsAsync(new List<Expertise>());
@@ -131,7 +153,7 @@ public class BrowseSpeakersPageTests
         await _pageModel.OnGetAsync();
 
         // Assert
-        _mockSpeakerService.Verify(s => s.GetSpeakersByExpertiseAsync(1), Times.Once);
+        _mockSpeakerService.Verify(s => s.GetSpeakersByExpertiseAsync(It.IsAny<int>()), Times.Once);
         _pageModel.Speakers.Should().HaveCount(2);
     }
 

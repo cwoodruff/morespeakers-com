@@ -54,19 +54,23 @@ public class BrowseSpeakersModel : PageModel
 
         // Start with all speakers
         var newSpeakers = await _speakerService.GetNewSpeakersAsync();
-        var experiencedSpeakers = await _speakerService.GetExperiencedSpeakersAsync();
-        IEnumerable<User> allSpeakers = newSpeakers.Concat(experiencedSpeakers);
+        IEnumerable<User> experiencedSpeakers;
+        // Apply expertise filter
+		if (ExpertiseFilter.HasValue)
+        {
+	        experiencedSpeakers = await _speakerService.GetSpeakersByExpertiseAsync(ExpertiseFilter.Value);
+        }
+		else
+		{
+			experiencedSpeakers = await _speakerService.GetExperiencedSpeakersAsync();
+		}
+
+		IEnumerable<User> allSpeakers = newSpeakers.Concat(experiencedSpeakers);
 
         // Apply search filter
         if (!string.IsNullOrWhiteSpace(SearchTerm))
         {
-            var searchTermLower = SearchTerm.ToLower();
-            allSpeakers = allSpeakers.Where(s => 
-                s.FirstName.ToLower().Contains(searchTermLower) ||
-                s.LastName.ToLower().Contains(searchTermLower) ||
-                s.Bio.ToLower().Contains(searchTermLower) ||
-                s.UserExpertise.Any(ue => ue.Expertise.Name.ToLower().Contains(searchTermLower))
-            );
+			allSpeakers = await _speakerService.SearchSpeakersAsync(SearchTerm, SpeakerTypeFilter);
         }
 
         // Apply speaker type filter
@@ -75,12 +79,6 @@ public class BrowseSpeakersModel : PageModel
             allSpeakers = SpeakerTypeFilter == 1
                 ? allSpeakers.Where(s => s.SpeakerTypeId == 1)
                 : allSpeakers.Where(s => s.SpeakerTypeId == 2);
-        }
-
-        // Apply expertise filter
-        if (ExpertiseFilter.HasValue)
-        {
-            allSpeakers = allSpeakers.Where(s => s.UserExpertise.Any(ue => ue.ExpertiseId == ExpertiseFilter.Value));
         }
 
         // Apply sorting
