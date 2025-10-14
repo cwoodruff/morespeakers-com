@@ -8,6 +8,8 @@ dotnet_diagnostic.PRm1011.severity = none
 dotnet_diagnostic.PRm1010.severity = none
 dotnet_diagnostic.PRm1000.severity = none
 dotnet_diagnostic.PRm1001.severity = none
+# disable XML comment warnings fow now
+dotnet_diagnostic.CS1591.severity = none
 
 #### Core EditorConfig Options ####
 
