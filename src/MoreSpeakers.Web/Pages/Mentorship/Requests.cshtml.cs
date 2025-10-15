@@ -154,4 +154,31 @@ public class RequestsModel : PageModel
             .OrderByDescending(m => m.RequestedAt)
             .ToListAsync();
     }
+
+    public async Task<IActionResult> OnPostCancelRequestAsync(Guid mentorshipId)
+    {
+        var currentUser = await _userManager.GetUserAsync(User);
+        if (currentUser == null) return Unauthorized();
+
+        // Ensure the current user is the mentee who created the request
+        var mentorship = await _context.Mentorship.FirstOrDefaultAsync(m => m.Id == mentorshipId);
+        if (mentorship == null || mentorship.MenteeId != currentUser.Id)
+        {
+            return NotFound();
+        }
+
+        if (mentorship.Status != MentorshipStatus.Pending)
+        {
+            return BadRequest("Only pending requests can be cancelled.");
+        }
+
+        var success = await _mentorshipService.CancelMentorshipAsync(mentorshipId);
+        if (!success)
+        {
+            return BadRequest();
+        }
+
+        // Return empty content so hx-swap="outerHTML" removes the card from the DOM
+        return Content(string.Empty);
+    }
 }

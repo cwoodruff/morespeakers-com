@@ -1,5 +1,10 @@
 @model MoreSpeakers.Web.Models.Mentorship
 
+<!-- Hidden form to supply anti-forgery token for HTMX requests -->
+<form id="htmx-af" method="post" style="display:none">
+    @Html.AntiForgeryToken()
+</form>
+
 <div class="request-card card mb-3 fade-in" id="request-@Model.Id">
     <div class="card-body">
         <!-- Header: User Info -->
@@ -75,7 +80,7 @@
 
         <!-- Actions -->
         <div class="d-flex justify-content-end gap-2 flex-wrap">
-            <a href="/Profile/View?userId=@Model.MenteeId"
+            <a href="/Profile/View?id=@Model.MenteeId"
                class="btn btn-sm btn-outline-secondary"
                target="_blank">
                 <i class="bi bi-person me-1"></i>View Profile
@@ -84,6 +89,7 @@
             <button class="btn btn-sm btn-outline-danger"
                     hx-get="/Mentorship/Requests?handler=DeclineModal&mentorshipId=@Model.Id"
                     hx-target="#modal-container"
+                    hx-include="#incoming-requests"
                     hx-swap="innerHTML">
                 <i class="bi bi-x-circle me-1"></i>Decline
             </button>
@@ -92,6 +98,7 @@
                     hx-post="/Mentorship/Requests?handler=Accept&mentorshipId=@Model.Id"
                     hx-target="#request-@Model.Id"
                     hx-swap="outerHTML swap:1s"
+                    hx-include="#incoming-requests"
                     hx-confirm="Accept @(Model.Type == MentorshipType.NewToExperienced ? "mentorship" : "connection") request from @Model.Mentee.FullName?">
                 <i class="bi bi-check-circle me-1"></i>Accept
             </button>

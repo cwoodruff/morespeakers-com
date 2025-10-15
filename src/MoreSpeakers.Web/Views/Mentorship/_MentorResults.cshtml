@@ -1,5 +1,10 @@
 @model MoreSpeakers.Web.Models.ViewModels.BrowseMentorsViewModel
 
+<!-- Hidden form to supply anti-forgery token for HTMX requests -->
+<form id="htmx-af" method="post" style="display:none">
+    @Html.AntiForgeryToken()
+</form>
+
 @if (!Model.Mentors.Any())
 {
     <div class="text-center py-5">
@@ -120,7 +125,7 @@ else
                                 </button>
                             }
 
-                            <a href="/Profile/View?userId=@mentor.Id" class="btn btn-outline-primary btn-sm" target="_blank">
+                            <a href="/Profile/View?id=@mentor.Id" class="btn btn-outline-primary btn-sm" target="_blank">
                                 <i class="bi bi-person me-2"></i>View Profile
                             </a>
                         </div>
