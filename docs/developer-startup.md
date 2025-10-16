@@ -65,6 +65,12 @@ Open up the user secrets for this project.  Add the following secrets:
 }
 ```
 
+Or execute the following commands in the terminal/Developer PowerShell:
+```bash
+dotnet user-secrets set APPLICATIONINSIGHTS_CONNECTION_STRING "InstrumentationKey=<Replace_Me>;IngestionEndpoint=https://centralus-2.in.applicationinsights.azure.com/;LiveEndpoint=https://centralus.livediagnostics.monitor.azure.com/;ApplicationId=<Replace_Me>"
+dotnet user-secrets set APPINSIGHTS_INSTRUMENTATIONKEY "<Replace_Me"
+```
+
 ### MoreSpeakers.Functions
 
 #### Local.Settings.json
