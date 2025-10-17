@@ -398,7 +398,6 @@ public class RegisterModel : PageModel
         // Validate all steps before final submission
         var allStepsValid = true;
         foreach(var i in RegistrationProgressions.All)
-        //for (var i = 1; i <= 4; i++)
             if (!ValidateStep(i))
                 allStepsValid = false;
 
