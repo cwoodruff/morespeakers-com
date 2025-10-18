@@ -1,5 +1,5 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-bs-theme="light">
 <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -29,9 +29,8 @@
         <link href="https://cdn.jsdelivr.net/npm/@@fortawesome/fontawesome-free@7.1.0/css/fontawesome.min.css" rel="stylesheet" integrity="sha256-G5bovI+uHM2gCO6EwO9PFQcclSBYzTaxY6DXks3YxBU=" crossorigin="anonymous">
     </environment>
     <environment exclude="Production">
-        <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css"/>
-        <link rel="stylesheet" href="~/lib/bootstrap-icons/font/bootstrap-icons.css"/>
         <link rel="stylesheet" href="~/lib/bootswatch/dist/united/bootstrap.css" />
+        <link rel="stylesheet" href="~/lib/bootstrap-icons/font/bootstrap-icons.css"/>
         <link rel="stylesheet" href="~/lib/fontawesome-free/css/all.css"/>
     </environment>
     
@@ -44,14 +43,15 @@
     <environment exclude="Production">
         <script src="~/lib/htmx-org/dist/htmx.js"></script>
         <script src="~/lib/hyperscript-org/dist/_hyperscript.js"></script>
-    </environment>    
+    </environment>
+    <script src="~/js/theme-support.js" asp-append-version="true"></script>
 </head>
 <body>
 <header>
-    <nav class="navbar navbar-expand-sm navbar-dark bg-primary shadow-sm">
+    <nav class="navbar navbar-expand-lg fixed-top bg-primary">
         <div class="container">
-            <a class="navbar-brand fw-bold" href="~/">
-                <img src="/images/favicons/favicon-32x32.png" alt="More Speakers Logo" class="d-inline-block align-text-top" />
+            <a class="navbar-brand" href="~/">
+                <img src="/images/favicons/favicon-32x32.png" alt="More Speakers Logo" width="30" height="24" class="d-inline-block align-text-top" />
                 MoreSpeakers.com
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse"
@@ -96,29 +96,28 @@
                     </li>
                 </ul>
                 <ul class="navbar-nav">
-                    <!-- Theme Toggle -->
-                    <li class="nav-item">
-                        <div class="theme-toggle">
-                            <button class="theme-toggle-btn" id="themeToggle" type="button" title="Change theme">
-                                <i class="bi bi-circle-half" id="themeIcon"></i>
-                                <span id="themeText">System</span>
-                                <i class="bi bi-chevron-down"></i>
-                            </button>
-                            <div class="theme-dropdown" id="themeDropdown">
-                                <button class="theme-option" data-theme="light">
-                                    <i class="bi bi-sun-fill theme-icon"></i>
-                                    Light
+                    <li class="nav-item dropdown" data-bs-theme="light">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="theme-menu" aria-expanded="false" data-bs-toggle="dropdown" data-bs-display="static" aria-label="Toggle theme">
+                            <i class="bi bi-circle-half"></i>
+                            <span class="d-lg-none ms-2">Toggle theme</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li>
+                                <button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="light" aria-pressed="false">
+                                    <i class="bi bi-sun-fill"></i><span class="ms-2">Light</span>
                                 </button>
-                                <button class="theme-option" data-theme="dark">
-                                    <i class="bi bi-moon-fill theme-icon"></i>
-                                    Dark
+                            </li>
+                            <li>
+                                <button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="dark" aria-pressed="true">
+                                    <i class="bi bi-moon-stars-fill"></i><span class="ms-2">Dark</span>
                                 </button>
-                                <button class="theme-option active" data-theme="system">
-                                    <i class="bi bi-circle-half theme-icon"></i>
-                                    System
+                            </li>
+                            <li>
+                                <button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="auto" aria-pressed="true">
+                                    <i class="bi bi-circle-half"></i><span class="ms-2">Auto</span>
                                 </button>
-                            </div>
-                        </div>
+                            </li>
+                        </ul>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="https://github.com/cwoodruff/morespeakers-com" target="_blank" title="View on GitHub">
@@ -180,13 +179,13 @@
     @RenderBody()
 </main>
 
-<footer class="footer text-muted">
+<footer class="footer mt-4">
     <div class="container">
-        <div class="row gy-2">
+        <div class="row">
             <div class="col-md-6">
                 <h6 class="fw-bold text-primary mb-1">MoreSpeakers.com</h6>
                 <p class="small mb-1">Connecting new speakers with experienced mentors in the technology community.</p>
-                <p class="small text-muted mb-0">&copy; 2025 MoreSpeakers.com. All rights reserved.</p>
+                <p class="small text-muted mb-0">&copy;2025 MoreSpeakers.com. All rights reserved.</p>
             </div>
             <div class="col-md-3">
                 <h6 class="fw-bold mb-1">Quick Links</h6>
