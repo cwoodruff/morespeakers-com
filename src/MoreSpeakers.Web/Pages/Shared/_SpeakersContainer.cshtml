@@ -5,19 +5,19 @@
             @foreach (var speaker in Model.Speakers)
             {
                 <div class="col-md-6 col-lg-4 mb-4">
-                    <div class="card speaker-card h-100">
+                    <div class="card ">
                         <div class="card-body">
                             <div class="d-flex align-items-start mb-3">
                                 @if (!string.IsNullOrEmpty(speaker.HeadshotUrl))
                                 {
                                     <img src="@speaker.HeadshotUrl"
                                          alt="@speaker.FullName"
-                                         class="speaker-avatar-sm me-3 flex-shrink-0">
+                                         class="">
                                 }
                                 else
                                 {
                                     <div
-                                        class="speaker-avatar-sm me-3 flex-shrink-0 bg-light d-flex align-items-center justify-content-center">
+                                        class="align-items-center justify-content-center">
                                         <i class="bi bi-person-fill text-muted"></i>
                                     </div>
                                 }
@@ -40,7 +40,7 @@
                             <div class="mb-3">
                                 @foreach (var userExpertise in speaker.UserExpertise.Take(4))
                                 {
-                                    <span class="expertise-tag me-1 mb-1">@userExpertise.Expertise.Name</span>
+                                    <span class="badge rounded-pill text-bg-primary">@userExpertise.Expertise.Name</span>
                                 }
                                 @if (speaker.UserExpertise.Count > 4)
                                 {
@@ -51,10 +51,10 @@
                             <!-- Social Media Links -->
                             @if (speaker.SocialMediaLinks.Any())
                             {
-                                <div class="social-links mb-3">
+                                <div class="">
                                     @foreach (var social in speaker.SocialMediaLinks.Take(3))
                                     {
-                                        <a href="@social.Url" target="_blank" class="social-link me-2">
+                                        <a href="@social.Url" target="_blank" class="btn btn-primary ">
                                             <i class="bi bi-@GetSocialIcon(social.Platform)"></i>
                                             @social.Platform
                                         </a>
