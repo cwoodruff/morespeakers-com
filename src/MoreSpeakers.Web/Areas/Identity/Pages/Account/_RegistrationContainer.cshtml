@@ -28,10 +28,10 @@
             @for (int i = 1; i <= 5; i++)
             {
                 <div class="col">
-                    <div class="step @(i < currentStep ? "completed" : i == currentStep ? "active" : "")" data-step="@i">
-                        <div class="step-circle">@i</div>
-                        <small>@(i switch { 1 => "Account", 2 => "Profile", 3 => "Expertise", 4 => "Social", 5 => "Complete", _ => "" })</small>
-                    </div>
+                    <i class="bi bi-@i-circle@(i < currentStep ? "-fill text-success" : i == currentStep ? "-fill text-primary" : " text-secondary")" data-step="@i" style="font-size:2rem;"></i>
+                    <p class="text-sm mb-0">
+                        @(i switch { 1 => "Account", 2 => "Profile", 3 => "Expertise", 4 => "Social", 5 => "Complete", _ => "" })
+                    </p>
                 </div>
             }
         </div>

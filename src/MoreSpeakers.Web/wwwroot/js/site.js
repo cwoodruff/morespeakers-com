@@ -8,7 +8,6 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeFormValidation();
     initializeSearchEnhancements();
     initializeHtmxEnhancements();
-    initializeSmoothScrolling();
     initializeFadeInAnimations();
     
     // Initialize page-specific functionality
@@ -554,21 +553,6 @@ function updatePageHeader(step) {
             pageHeader.innerHTML = '<h1 class="h3 fw-bold text-primary">Create Your Speaker Profile</h1><p class="text-muted">Tell us about yourself and join the community</p>';
         }
     }
-}
-
-// Initialize smooth scrolling for anchor links
-function initializeSmoothScrolling() {
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function (e) {
-            e.preventDefault();
-            const target = document.querySelector(this.getAttribute('href'));
-            if (target) {
-                target.scrollIntoView({
-                    behavior: 'smooth'
-                });
-            }
-        });
-    });
 }
 
 // Initialize fade-in animations using Intersection Observer
