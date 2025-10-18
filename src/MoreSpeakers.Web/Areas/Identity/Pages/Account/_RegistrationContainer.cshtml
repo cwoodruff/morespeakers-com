@@ -8,7 +8,7 @@
 
 <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post">
     <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
-    
+
     @if (hasValidationErrors && !string.IsNullOrEmpty(validationMessage))
     {
         <div class="alert alert-danger mb-3">
@@ -39,25 +39,23 @@
 
     <!-- Step Container -->
     <div id="stepContainer">
-        @if (currentStep == 1)
+        @switch (currentStep)
         {
-            <partial name="_RegisterStep1" model="Model"/>
-        }
-        else if (currentStep == 2)
-        {
-            <partial name="_RegisterStep2" model="Model"/>
-        }
-        else if (currentStep == 3)
-        {
-            <partial name="_RegisterStep3" model="Model"/>
-        }
-        else if (currentStep == 4)
-        {
-            <partial name="_RegisterStep4" model="Model"/>
-        }
-        else if (currentStep == 5)
-        {
-            <partial name="_RegisterStep5" model="Model"/>
+            case 1:
+                <partial name="_RegisterStep1" model="Model"/>
+                break;
+            case 2:
+                <partial name="_RegisterStep2" model="Model"/>
+                break;
+            case 3:
+                <partial name="_RegisterStep3" model="Model"/>
+                break;
+            case 4:
+                <partial name="_RegisterStep4" model="Model"/>
+                break;
+            case 5:
+                <partial name="_RegisterStep5" model="Model"/>
+                break;
         }
     </div>
 
@@ -74,7 +72,7 @@
                     hx-swap="innerHTML">
                 <i class="bi bi-arrow-left me-2"></i>Previous
             </button>
-            
+
             @if (currentStep < 4)
             {
                 <button type="button" id="nextBtn" class="btn btn-primary"
