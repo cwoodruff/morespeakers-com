@@ -49,7 +49,7 @@
 <body>
 <header>
     <nav class="navbar navbar-expand-lg fixed-top bg-primary">
-        <div class="container">
+        <div class="container-fluid">
             <a class="navbar-brand" href="~/">
                 <img src="/images/favicons/favicon-32x32.png" alt="More Speakers Logo" width="30" height="24" class="d-inline-block align-text-top" />
                 MoreSpeakers.com
@@ -175,8 +175,10 @@
     </nav>
 </header>
 
-<main role="main">
+<main role="main" class="pt-3">
+    <div class="container my-5">
     @RenderBody()
+    </div>
 </main>
 
 <footer class="footer mt-4">
