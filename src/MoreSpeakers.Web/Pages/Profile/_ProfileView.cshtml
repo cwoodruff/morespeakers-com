@@ -58,7 +58,7 @@
     <div class="card mb-4">
         <div class="card-header">
             <h5 class="mb-0">
-                <i class="bi bi-target me-2"></i>Goals & Objectives
+                <i class="bi bi-bullseye me-2"></i>Goals & Objectives
             </h5>
         </div>
         <div class="card-body">
@@ -83,7 +83,7 @@
                     <div class="d-flex flex-wrap gap-2">
                         @foreach (var ue in Model.UserExpertise)
                         {
-                            <span class="badge bg-secondary px-3 py-2">@ue.Expertise.Name</span>
+                            <span class="badge rounded-pill text-bg-primary fw-light px-3 py-2">@ue.Expertise.Name</span>
                         }
                     </div>
                 </div>
@@ -121,7 +121,7 @@
 <div class="row">
     @if (!string.IsNullOrEmpty(Model.ProfileUser.SessionizeUrl))
     {
-        <div class="col-md-6 mb-4">
+        <div>
             <div class="card">
                 <div class="card-header">
                     <h5 class="mb-0">
@@ -137,7 +137,7 @@
         </div>
     }
     
-    <div class="col-md-6 mb-4">
+    <div>
         <div class="card">
             <div class="card-header">
                 <h5 class="mb-0">
