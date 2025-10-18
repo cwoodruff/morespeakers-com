@@ -72,15 +72,15 @@ public class RegisterModel : PageModel
 
     public IEnumerable<SpeakerType> SpeakerTypes { get; set; } = new List<SpeakerType>();
 
-    // Properties needed for step 5 confirmation
+    // Properties needed for complete registration (step 5) confirmation
     public IEnumerable<Expertise> AllExpertise { get; set; } = new List<Expertise>();
 
-    // Property to expose selected expertise IDs for step 5
-    public int[] ExpertiseIds => Input?.SelectedExpertiseIds ?? Array.Empty<int>();
+    // Property to expose selected expertise IDs for registration completion (step 5_
+    public int[] ExpertiseIds => Input?.SelectedExpertiseIds ?? [];
 
     // Properties required by _RegistrationContainer.cshtml
-    public int CurrentStep { get; set; } = 1;
-    public bool HasValidationErrors { get; set; } = false;
+    public int CurrentStep { get; set; } = RegistrationProgressions.SpeakerProfileNeeded;
+    public bool HasValidationErrors { get; set; }
     public string ValidationMessage { get; set; } = string.Empty;
     public string SuccessMessage { get; set; } = string.Empty;
 
@@ -94,7 +94,7 @@ public class RegisterModel : PageModel
         Input ??= new InputModel();
 
         // Initialize registration state
-        CurrentStep = 1;
+        CurrentStep = RegistrationProgressions.SpeakerProfileNeeded;
         HasValidationErrors = false;
         ValidationMessage = string.Empty;
         SuccessMessage = string.Empty;
@@ -110,7 +110,7 @@ public class RegisterModel : PageModel
     public async Task<IActionResult> OnPostValidateStepAsync(int step)
     {
         // Validate step number
-        if (step < 1 || step > 5)
+        if (!RegistrationProgressions.IsValid(step))
         {
             ModelState.AddModelError("", "Invalid step number.");
             return BadRequest();
@@ -123,7 +123,7 @@ public class RegisterModel : PageModel
         var stepValid = ValidateStep(step);
 
         // Additional async validations for step 1 (e.g., email uniqueness)
-        if (step == 1 && stepValid)
+        if (step == RegistrationProgressions.SpeakerProfileNeeded && stepValid)
         {
             if (!string.IsNullOrWhiteSpace(Input?.Email))
             {
@@ -155,13 +155,13 @@ public class RegisterModel : PageModel
 
         // All validation passed - move to next step
         var nextStep = step + 1;
-        if (nextStep <= 4)
+        if (nextStep <= RegistrationProgressions.SocialMediaNeeded)
         {
             HasValidationErrors = false;
             SuccessMessage = GetSuccessMessage(step);
             CurrentStep = nextStep;
             ValidationMessage = string.Empty;
-            
+
             // Return complete registration container with next step
             return Partial("_RegistrationContainer", this);
         }
@@ -178,10 +178,10 @@ public class RegisterModel : PageModel
     {
         return step switch
         {
-            1 => "Please complete all required account information before proceeding.",
-            2 => "Please fill out your speaker profile completely.",
-            3 => "Please select at least one area of expertise.",
-            4 => "Please review your social media information.",
+            RegistrationProgressions.SpeakerProfileNeeded => "Please complete all required account information before proceeding.",
+            RegistrationProgressions.RequiredInformationNeeded => "Please fill out your speaker profile completely.",
+            RegistrationProgressions.ExpertiseNeeded => "Please select at least one area of expertise.",
+            RegistrationProgressions.SocialMediaNeeded => "Please review your social media information.",
             _ => "Please complete the required information."
         };
     }
@@ -190,9 +190,9 @@ public class RegisterModel : PageModel
     {
         return step switch
         {
-            1 => "Account information saved successfully!",
-            2 => "Profile information saved successfully!",
-            3 => "Expertise areas saved successfully!",
+            RegistrationProgressions.SpeakerProfileNeeded => "Account information saved successfully!",
+            RegistrationProgressions.RequiredInformationNeeded => "Profile information saved successfully!",
+            RegistrationProgressions.ExpertiseNeeded => "Expertise areas saved successfully!",
             _ => "Information saved successfully!"
         };
     }
@@ -204,13 +204,14 @@ public class RegisterModel : PageModel
 
         // Return previous step without validation
         var prevStep = step - 1;
-        if (prevStep < 1) prevStep = 1;
-        
+        if (prevStep < RegistrationProgressions.SpeakerProfileNeeded)
+            prevStep = RegistrationProgressions.SpeakerProfileNeeded;
+
         CurrentStep = prevStep;
         HasValidationErrors = false;
         ValidationMessage = string.Empty;
         SuccessMessage = string.Empty;
-        
+
         return Partial("_RegistrationContainer", this);
     }
 
@@ -253,9 +254,9 @@ public class RegisterModel : PageModel
 
         if (existingExpertise != null)
         {
-            return new JsonResult(new 
-            { 
-                isValid = false, 
+            return new JsonResult(new
+            {
+                isValid = false,
                 message = $"'{existingExpertise.Name}' already exists in our database.",
                 suggestion = $"Consider selecting '{existingExpertise.Name}' from the list above instead.",
                 existingId = existingExpertise.Id
@@ -264,7 +265,7 @@ public class RegisterModel : PageModel
 
         // Check for similar expertise (fuzzy matching for suggestions)
         var similarExpertise = await _context.Expertise
-            .Where(e => e.Name.ToLower().Contains(trimmedName.ToLower()) || 
+            .Where(e => e.Name.ToLower().Contains(trimmedName.ToLower()) ||
                        trimmedName.ToLower().Contains(e.Name.ToLower()))
             .Take(3)
             .Select(e => new { e.Id, e.Name })
@@ -273,9 +274,9 @@ public class RegisterModel : PageModel
         if (similarExpertise.Any())
         {
             var suggestions = string.Join(", ", similarExpertise.Select(s => s.Name));
-            return new JsonResult(new 
-            { 
-                isValid = true, 
+            return new JsonResult(new
+            {
+                isValid = true,
                 message = "",
                 suggestion = $"Similar expertise found: {suggestions}. Consider selecting from existing options.",
                 similarItems = similarExpertise
@@ -288,7 +289,7 @@ public class RegisterModel : PageModel
     private async Task LoadFormDataAsync()
     {
         AvailableExpertise = await _expertiseService.GetAllExpertiseAsync();
-        AllExpertise = AvailableExpertise; // Same data, different property name for step 5
+        AllExpertise = AvailableExpertise; // Same data, different property name for registration completion (step 5)
         SpeakerTypes = new List<SpeakerType>
         {
             new() { Id = 1, Name = "NewSpeaker", Description = "I'm new to speaking and looking for mentorship" },
@@ -306,7 +307,7 @@ public class RegisterModel : PageModel
 
         switch (step)
         {
-            case 1: // Account step
+            case RegistrationProgressions.SpeakerProfileNeeded: // Account step
                 if (string.IsNullOrWhiteSpace(Input.FirstName))
                 {
                     ModelState.AddModelError("Input.FirstName", "First name is required.");
@@ -339,7 +340,7 @@ public class RegisterModel : PageModel
                 else
                 {
                     // Allow formats like +1 (555) 123-4567 or 555-123-4567 etc.
-                    var phone = Input.PhoneNumber?.Trim();
+                    var phone = Input.PhoneNumber!.Trim();
                     // Reject if contains letters
                     if (phone.Any(char.IsLetter))
                     {
@@ -366,7 +367,7 @@ public class RegisterModel : PageModel
                     ModelState.AddModelError("Input.ConfirmPassword", "Passwords do not match.");
                 }
                 break;
-            case 2: // Profile step
+            case RegistrationProgressions.RequiredInformationNeeded: // Profile step
                 if (Input.SpeakerTypeId <= 0)
                     ModelState.AddModelError("Input.SpeakerTypeId", "Please select a speaker type.");
                 if (string.IsNullOrWhiteSpace(Input.Bio))
@@ -374,12 +375,12 @@ public class RegisterModel : PageModel
                 if (string.IsNullOrWhiteSpace(Input.Goals))
                     ModelState.AddModelError("Input.Goals", "Goals are required.");
                 break;
-            case 3: // Expertise step
+            case RegistrationProgressions.ExpertiseNeeded: // Expertise step
                 if ((Input.SelectedExpertiseIds?.Length ?? 0) == 0 && (Input.CustomExpertise?.Length ?? 0) == 0)
                     ModelState.AddModelError("Input.SelectedExpertiseIds",
                         "Please select at least one area of expertise.");
                 break;
-            case 4: // Social step - optional, no validation needed
+            case RegistrationProgressions.SocialMediaNeeded: // Social step - optional, no validation needed
                 break;
         }
 
@@ -396,7 +397,7 @@ public class RegisterModel : PageModel
 
         // Validate all steps before final submission
         var allStepsValid = true;
-        for (var i = 1; i <= 4; i++)
+        foreach(var i in RegistrationProgressions.All)
             if (!ValidateStep(i))
                 allStepsValid = false;
 
@@ -475,9 +476,9 @@ public class RegisterModel : PageModel
                     "/Account/ConfirmEmail",
                     null,
                     new { area = "Identity", userId, code, returnUrl },
-                    Request.Scheme);
+                    Request.Scheme)!;
 
-                await _emailSender.QueueEmail(new System.Net.Mail.MailAddress(user.Email, $"{user.FirstName} {user.LastName}"),
+                await _emailSender.QueueEmail(new System.Net.Mail.MailAddress(user.Email!, $"{user.FirstName} {user.LastName}"),
                     "Confirm your email",
                     $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
 
@@ -487,14 +488,14 @@ public class RegisterModel : PageModel
                     { "Email", user.Email }
                 });
 
-                // Load data needed for step 5 display
+                // Load data needed for registration completion (step 5) display
                 await LoadFormDataAsync();
-                
-                CurrentStep = 5;
+
+                CurrentStep = RegistrationProgressions.Complete;
                 HasValidationErrors = false;
                 ValidationMessage = string.Empty;
                 SuccessMessage = "Registration completed successfully!";
-                
+
                 // Return step 5 (confirmation) instead of redirecting away
                 return Partial("_RegistrationContainer", this);
             }
@@ -504,7 +505,7 @@ public class RegisterModel : PageModel
 
         // If we got this far, something failed, redisplay form with current state
         await LoadFormDataAsync();
-        CurrentStep = 1; // Reset to first step on major failure
+        CurrentStep = RegistrationProgressions.SpeakerProfileNeeded; // Reset to first step on major failure
         HasValidationErrors = true;
         ValidationMessage = "Registration failed. Please check the errors and try again.";
         return Page();
@@ -538,7 +539,7 @@ public class RegisterModel : PageModel
     {
         var speakerType = user.SpeakerTypeId == 1 ? "New Speaker" : "Experienced Speaker";
         var emailSubject = "Welcome to MoreSpeakers.com - Your Speaking Journey Begins!";
-        
+
         var emailBody = $@"
 <!DOCTYPE html>
 <html>
@@ -593,12 +594,12 @@ public class RegisterModel : PageModel
                     <div class='step-number'>2</div>
                     <div>
                         <strong>{(user.SpeakerTypeId == 1 ? "Find Mentors" : "Connect with New Speakers")}</strong><br>
-                        <small>{(user.SpeakerTypeId == 1 
+                        <small>{(user.SpeakerTypeId == 1
                             ? "Browse our community of experienced speakers and find mentors who can guide your speaking journey."
                             : "Discover new speakers who could benefit from your experience and mentorship.")}</small>
                     </div>
                 </div>
-                
+
                 <div class='step'>
                     <div class='step-number'>3</div>
                     <div>
@@ -607,19 +608,19 @@ public class RegisterModel : PageModel
                     </div>
                 </div>
             </div>
-            
+
             <div style='text-align: center; margin: 30px 0;'>
                 <a href='https://localhost:5001/Profile/Edit' class='btn'>Complete My Profile →</a>
             </div>
-            
+
             <h3>📧 Email Confirmation Required</h3>
             <p>To activate your account and access all features, please check your email for a confirmation link. If you don't see it in your inbox, don't forget to check your spam folder.</p>
-            
+
             <h3>🤝 Community Guidelines</h3>
             <p>We're building a supportive and inclusive community. Please be respectful, helpful, and authentic in all your interactions.</p>
-            
+
         </div>
-        
+
         <div class='footer'>
             <p>
                 <strong>MoreSpeakers.com</strong><br>
@@ -642,8 +643,8 @@ public class RegisterModel : PageModel
             _logger.LogInformation("To: {Email}", user.Email);
             _logger.LogInformation("Subject: {Subject}", emailSubject);
             _logger.LogInformation("Body: {Body}", emailBody);
-            
-            await _emailSender.QueueEmail(new System.Net.Mail.MailAddress(user.Email, $"{user.FirstName} {user.LastName}"),
+
+            await _emailSender.QueueEmail(new System.Net.Mail.MailAddress(user.Email!, $"{user.FirstName} {user.LastName}"),
                 emailSubject, emailBody);
 
             _telemetryClient.TrackEvent("WelcomeEmailSent", new Dictionary<string, string>
