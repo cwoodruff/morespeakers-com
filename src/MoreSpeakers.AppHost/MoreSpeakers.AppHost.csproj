@@ -15,6 +15,7 @@
         <Description>The More Speakers Application Hosts</Description>
         <Copyright>Copyright ©2014-2025, Woodruff Solutions, LLC</Copyright>
         <Title>More Speakers - Application Hosts</Title>
+        <UserSecretsId>b947c459-0334-4920-8005-4e4d658c9169</UserSecretsId>
     </PropertyGroup>
 
     <PropertyGroup>
