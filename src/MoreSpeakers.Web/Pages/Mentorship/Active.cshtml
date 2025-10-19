@@ -135,8 +135,9 @@
 
                         <div class="card-footer bg-transparent">
                             <div class="d-flex gap-2">
-                                <a href="/Profile/View/@otherPerson.Id" class="btn btn-outline-primary btn-sm">
-                                    <i class="bi bi-person me-1"></i>View Profile
+                                <a asp-page="/Profile/View" asp-route-id="@otherPerson.Id"
+                                   class="btn btn-primary">
+                                    <i class="bi bi-eye me-1"></i>View Profile
                                 </a>
                                 
                                 <a href="mailto:@otherPerson.Email" class="btn btn-outline-secondary btn-sm">
