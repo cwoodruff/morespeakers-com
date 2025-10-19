@@ -4,7 +4,7 @@
     ViewData["Title"] = "Edit Profile";
 }
 
-<div class="container py-4">
+<div class="container">
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
@@ -12,7 +12,7 @@
             <p class="text-muted mb-0">Update your speaker profile and account settings</p>
         </div>
         <div>
-            <a href="/Profile" class="btn btn-outline-secondary">
+            <a asp-page="/Profile/View" class="btn btn-outline-secondary">
                 <i class="bi bi-arrow-left me-2"></i>Back to Profile
             </a>
         </div>
@@ -21,7 +21,7 @@
     <!-- Tab Navigation -->
     <div class="card">
         <div class="card-header p-0">
-            <ul class="nav nav-tabs card-header-tabs" id="profileTabs" role="tablist">
+            <ul class="nav nav-tabs" id="profileTabs" role="tablist">
                 <li class="nav-item" role="presentation">
                     <button class="nav-link @(Model.ActiveTab == "profile" ? "active" : "")" 
                             type="button" 

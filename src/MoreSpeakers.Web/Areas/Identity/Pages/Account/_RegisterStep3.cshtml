@@ -18,12 +18,12 @@
 
     <div class="mb-4">
         <label class="form-label fw-medium">Select Your Expertise Areas</label>
-        <div class="expertise-grid">
+        <div>
             @foreach (var expertise in Model.AvailableExpertise)
             {
-                <div class="form-check expertise-item">
-                    <input class="form-check-input" type="checkbox" name="Input.SelectedExpertiseIds"
-                           value="@expertise.Id" id="expertise@(expertise.Id)"/>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" role="switch" switch 
+                           name="Input.SelectedExpertiseIds" value="@expertise.Id" id="expertise@(expertise.Id)"/>
                     <label class="form-check-label" for="expertise@(expertise.Id)">
                         @expertise.Name
                     </label>

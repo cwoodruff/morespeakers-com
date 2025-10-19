@@ -38,6 +38,10 @@
     {
       "library": "hyperscript.org@0.9.14",
       "destination": "wwwroot/lib/hyperscript-org"
+    },
+    {
+      "library": "bootswatch@5.3.8",
+      "destination": "wwwroot/lib/bootswatch"
     }
   ]
 }
