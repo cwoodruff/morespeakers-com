@@ -3,13 +3,12 @@
 <div class="form-step" data-step="5">
     <!-- Hero Section -->
     <div class="text-center mb-5">
-        <div class="success-checkmark mx-auto mb-4">
+        <div class="mx-auto mb-4">
             <div class="position-relative d-inline-block">
-                <div class="bg-success bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center" 
+                <div class="align-items-center justify-content-center" 
                      style="width: 120px; height: 120px;">
                     <i class="bi bi-check-circle-fill text-success" style="font-size: 4.5rem;"></i>
                 </div>
-                <div class="position-absolute top-0 start-0 w-100 h-100 rounded-circle bg-success bg-opacity-20 animate__animated animate__pulse animate__infinite"></div>
             </div>
         </div>
 
@@ -34,7 +33,7 @@
             <div class="row g-4">
                 <!-- Personal Information -->
                 <div class="col-md-6">
-                    <div class="h-100 bg-light bg-opacity-50 rounded-3 p-3 border border-primary border-opacity-10">
+                    <div class="h-100 bg-opacity-50 rounded-3 p-3 border border-primary border-opacity-10">
                         <div class="d-flex align-items-start">
                             <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-3">
                                 <i class="bi bi-person text-color"></i>
@@ -48,7 +47,7 @@
                 </div>
                 
                 <div class="col-md-6">
-                    <div class="h-100 bg-light bg-opacity-50 rounded-3 p-3 border border-primary border-opacity-10">
+                    <div class="h-100 bg-opacity-50 rounded-3 p-3 border border-primary border-opacity-10">
                         <div class="d-flex align-items-start">
                             <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-3">
                                 <i class="bi bi-envelope text-color"></i>
@@ -62,14 +61,14 @@
                 </div>
                 
                 <div class="col-md-6">
-                    <div class="h-100 bg-light bg-opacity-50 rounded-3 p-3 border border-primary border-opacity-10">
+                    <div class="h-100 bg-opacity-50 rounded-3 p-3 border border-primary border-opacity-10">
                         <div class="d-flex align-items-start">
                             <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-3">
                                 <i class="bi @(Model.Input.SpeakerTypeId == 1 ? "bi-person-plus" : "bi-award") text-color"></i>
                             </div>
                             <div class="flex-grow-1">
                                 <small class="text-muted text-uppercase fw-bold d-block">Speaker Type</small>
-                                <span class="badge @(Model.Input.SpeakerTypeId == 1 ? "bg-primary" : "bg-success") fs-6 px-3 py-2">
+                                <span class="badge @(Model.Input.SpeakerTypeId == 1 ? "bg-primary" : "bg-success")">
                                     @(Model.Input.SpeakerTypeId == 1 ? "New Speaker" : "Experienced Speaker")
                                 </span>
                             </div>
@@ -78,7 +77,7 @@
                 </div>
                 
                 <div class="col-md-6">
-                    <div class="h-100 bg-light bg-opacity-50 rounded-3 p-3 border border-primary border-opacity-10">
+                    <div class="h-100 bg-opacity-50 rounded-3 p-3 border border-primary border-opacity-10">
                         <div class="d-flex align-items-start">
                             <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-3">
                                 <i class="bi bi-telephone text-color"></i>
@@ -107,7 +106,7 @@
                             var expertise = Model.AllExpertise.FirstOrDefault(e => e.Id == expertiseId);
                             if (expertise != null)
                             {
-                                <span class="expertise-tag bg-primary bg-opacity-10 text-color border border-primary border-opacity-25">
+                                <span class="badge rounded-pill text-bg-primary fw-light">
                                     @expertise.Name
                                 </span>
                             }
@@ -123,7 +122,7 @@
         <div class="d-flex align-items-start">
             <div class="me-3">
                 <div class="bg-info bg-opacity-20 rounded-circle p-3">
-                    <i class="bi bi-envelope-heart text-info" style="font-size: 1.5rem;"></i>
+                    <i class="bi bi-envelope-heart" style="font-size: 1.5rem;"></i>
                 </div>
             </div>
             <div class="flex-grow-1">

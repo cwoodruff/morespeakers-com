@@ -5,68 +5,59 @@
             @foreach (var speaker in Model.Speakers)
             {
                 <div class="col-md-6 col-lg-4 mb-4">
-                    <div class="card speaker-card h-100">
-                        <div class="card-body">
-                            <div class="d-flex align-items-start mb-3">
-                                @if (!string.IsNullOrEmpty(speaker.HeadshotUrl))
+                    <div class="card">
+                        <div class="card">
+                            @if (!string.IsNullOrEmpty(speaker.HeadshotUrl))
+                            {
+                            <img src="@speaker.HeadshotUrl" alt="@speaker.FullName"
+                                class="object-fit-contain border rounded" style="width:100%; height:100%;">
+                            }
+                            else
+                            {
+                            <div
+                                class="align-items-center justify-content-center">
+                                <i class="bi bi-person-fill text-muted"></i>
+                            </div>
+                            }
+                            <div class="card-body">
+                                <h5 class="card-title">@speaker.FullName</h5>
+                                <span class="badge @(speaker.IsNewSpeaker ? "bg-primary" : "bg-success") mb-2">
+                                    @(speaker.IsNewSpeaker ? "New Speaker" : "Experienced Speaker")
+                                </span>
+                                
+                                <p class="card-text">
+                                    @{
+                                        var bioPreview = speaker.Bio.Length > 120 ? speaker.Bio.Substring(0, 120) + "..." : speaker.Bio;
+                                    }
+                                    @bioPreview    
+                                </p>
+                                <p>
+                                    @foreach (var userExpertise in speaker.UserExpertise.Take(4))
+                                    {
+                                        <span class="badge rounded-pill text-bg-primary fw-light">@userExpertise.Expertise.Name</span>
+                                    }
+                                    @if (speaker.UserExpertise.Count > 4)
+                                    {
+                                        <span class="text-muted small">+@(speaker.UserExpertise.Count - 4) more</span>
+                                    }
+                                </p>
+                                <!-- Social Media Links -->
+                                @if (speaker.SocialMediaLinks.Any())
                                 {
-                                    <img src="@speaker.HeadshotUrl"
-                                         alt="@speaker.FullName"
-                                         class="speaker-avatar-sm me-3 flex-shrink-0">
-                                }
-                                else
-                                {
-                                    <div
-                                        class="speaker-avatar-sm me-3 flex-shrink-0 bg-light d-flex align-items-center justify-content-center">
-                                        <i class="bi bi-person-fill text-muted"></i>
+                                    <div>
+                                        @foreach (var social in speaker.SocialMediaLinks.Take(3))
+                                        {
+                                            <a href="@social.Url" target="_blank" class="btn btn-secondary">
+                                                <i class="bi bi-@GetSocialIcon(social.Platform)"></i>
+                                                @social.Platform
+                                            </a>
+                                        }
                                     </div>
                                 }
-                                <div class="flex-grow-1">
-                                    <h5 class="card-title mb-1">@speaker.FullName</h5>
-                                    <span class="badge @(speaker.IsNewSpeaker ? "bg-primary" : "bg-success") mb-2">
-                                            @(speaker.IsNewSpeaker ? "New Speaker" : "Experienced Speaker")
-                                        </span>
-                                </div>
                             </div>
-
-                            <p class="card-text text-muted small">
-                                @{
-                                    var bioPreview = speaker.Bio.Length > 120 ? speaker.Bio.Substring(0, 120) + "..." : speaker.Bio;
-                                }
-                                @bioPreview
-                            </p>
-
-                            <!-- Expertise Tags -->
-                            <div class="mb-3">
-                                @foreach (var userExpertise in speaker.UserExpertise.Take(4))
-                                {
-                                    <span class="expertise-tag me-1 mb-1">@userExpertise.Expertise.Name</span>
-                                }
-                                @if (speaker.UserExpertise.Count > 4)
-                                {
-                                    <span class="text-muted small">+@(speaker.UserExpertise.Count - 4) more</span>
-                                }
-                            </div>
-
-                            <!-- Social Media Links -->
-                            @if (speaker.SocialMediaLinks.Any())
-                            {
-                                <div class="social-links mb-3">
-                                    @foreach (var social in speaker.SocialMediaLinks.Take(3))
-                                    {
-                                        <a href="@social.Url" target="_blank" class="social-link me-2">
-                                            <i class="bi bi-@GetSocialIcon(social.Platform)"></i>
-                                            @social.Platform
-                                        </a>
-                                    }
-                                </div>
-                            }
-                        </div>
-
-                        <div class="card-footer bg-transparent">
-                            <div class="d-flex gap-2">
+                            <div class="card-footer">
                                 <a asp-page="/Profile/View" asp-route-id="@speaker.Id"
-                                   class="btn btn-outline-primary flex-fill">
+                                   class="btn btn-primary">
                                     <i class="bi bi-eye me-1"></i>View Profile
                                 </a>
                                 @if (User.Identity?.IsAuthenticated == true && User.Identity.Name != speaker.Email)
@@ -82,8 +73,8 @@
                                         </button>
                                     }
                                 }
+                                <div id="mentorship-status-@speaker.Id" class="mt-2"></div>
                             </div>
-                            <div id="mentorship-status-@speaker.Id" class="mt-2"></div>
                         </div>
                     </div>
                 </div>
