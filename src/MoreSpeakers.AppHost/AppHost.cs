@@ -17,7 +17,8 @@ storage.RunAsEmulator(azurite =>
 // Add SQL Server database
 var sql = builder.AddSqlServer("sqldb")
     .WithImageTag("2022-latest")
-    .WithLifetime(ContainerLifetime.Persistent);
+    .WithLifetime(ContainerLifetime.Persistent)
+    .WithDataVolume("MoreSpeakersSqlData");
 
 var path = builder.AppHostDirectory;
 
