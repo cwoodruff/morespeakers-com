@@ -25,8 +25,8 @@
 </div>
 
 <!-- Search and Filter Section -->
-<div class="search-filters">
-    <form method="get" hx-get="/BrowseSpeakers" hx-target="#speakers-container" hx-indicator="#loading">
+<div class="border my-3 p-3 bg-body-tertiary">
+    <form method="get" hx-get="/BrowseSpeakers" hx-target="#speakers-container" hx-indicator="#loading" hx-swap="morph" hx-trigger="keyup changed delay:500ms from:#searchTerm, change from:#speakerTypeFilter, change from:#expertiseFilter, change from:#sortBy">
         <div class="row">
             <div class="col-md-6 mb-3">
                 <label for="searchTerm" class="form-label">Search</label>
@@ -36,17 +36,15 @@
                            name="searchTerm"
                            value="@Model.SearchTerm"
                            class="form-control"
-                           placeholder="Search by name, bio, or expertise..."
-                           _="on input debounced at 500ms trigger submit on closest form">
-                    <button type="submit" class="btn btn-primary">
+                           placeholder="Search by name, bio, or expertise...">
+                    <button type="submit" class="btn btn-primary" aria-label="Search">
                         <i class="bi bi-search"></i>
                     </button>
                 </div>
             </div>
             <div class="col-md-3 mb-3">
                 <label for="speakerTypeFilter" class="form-label">Speaker Type</label>
-                <select id="speakerTypeFilter" name="speakerTypeFilter" class="form-select"
-                        _="on change trigger submit on closest form">
+                <select id="speakerTypeFilter" name="speakerTypeFilter" class="form-select">
                     <option value="">All Speakers</option>
                     <option value="1" selected="@(Model.SpeakerTypeFilter == 1)">New Speakers</option>
                     <option value="2" selected="@(Model.SpeakerTypeFilter == 2)">Experienced Speakers</option>
@@ -54,8 +52,7 @@
             </div>
             <div class="col-md-3 mb-3">
                 <label for="expertiseFilter" class="form-label">Expertise Area</label>
-                <select id="expertiseFilter" name="expertiseFilter" class="form-select"
-                        _="on change trigger submit on closest form">
+                <select id="expertiseFilter" name="expertiseFilter" class="form-select">
                     <option value="">All Expertise</option>
                     @foreach (var expertise in Model.AllExpertise)
                     {
@@ -74,15 +71,14 @@
                         <strong>@Model.TotalCount</strong> speaker(s) found
                         @if (!string.IsNullOrEmpty(Model.SearchTerm) || Model.SpeakerTypeFilter.HasValue || Model.ExpertiseFilter.HasValue)
                         {
-                            <a href="/BrowseSpeakers" class="btn btn-outline-secondary btn-sm ms-2">
+                            <a asp-page="/BrowseSpeakers" class="btn btn-outline-secondary btn-sm ms-2">
                                 <i class="bi bi-x-circle"></i> Clear Filters
                             </a>
                         }
                     </div>
                     <div class="mb-2">
                         <label for="sortBy" class="form-label me-2">Sort by:</label>
-                        <select id="sortBy" name="sortBy" class="form-select d-inline-block w-auto"
-                                _="on change trigger submit on closest form">
+                        <select id="sortBy" name="sortBy" class="form-select d-inline-block w-auto">
                             <option value="name" selected="@(Model.SortBy == "name")">Name</option>
                             <option value="newest" selected="@(Model.SortBy == "newest")">Newest First</option>
                             <option value="expertise" selected="@(Model.SortBy == "expertise")">Most Expertise</option>

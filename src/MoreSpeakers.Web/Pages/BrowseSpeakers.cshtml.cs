@@ -46,6 +46,19 @@ public class BrowseSpeakersModel : PageModel
 
         return Page();
     }
+    
+    private async Task<IActionResult> OnGetBrowseSpeakersAsync()
+    {
+        await LoadSpeakersAsync();
+        
+        // Check if this is an HTMX request for just the speakers container
+        if (Request.Headers.ContainsKey("HX-Request"))
+        {
+            return Partial("_SpeakersContainer", this);
+        }
+
+        return Page();
+    }
 
     private async Task LoadSpeakersAsync()
     {
