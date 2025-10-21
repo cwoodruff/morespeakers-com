@@ -10,14 +10,13 @@
                             @if (!string.IsNullOrEmpty(speaker.HeadshotUrl))
                             {
                             <img hx-preserve src="@speaker.HeadshotUrl" alt="@speaker.FullName"
-                                class="object-fit-contain border rounded" style="width:100%; height:100%;">
+                                class="object-fit-contain border image-thumbnail rounded float-start" style="width:100%; height:100%;">
                             }
                             else
                             {
-                            <div
-                                class="align-items-center justify-content-center">
-                                <i class="bi bi-person-fill text-muted"></i>
-                            </div>
+                                <div class="align-items-center justify-content-center">
+                                    <i class="bi bi-person-fill text-muted d-flex justify-content-center align-items-center" style="font-size: 10rem;"></i>
+                                </div>
                             }
                             <div class="card-body">
                                 <h5 class="card-title">@speaker.FullName</h5>
@@ -44,7 +43,7 @@
                                 <!-- Social Media Links -->
                                 @if (speaker.SocialMediaLinks.Any())
                                 {
-                                    <div>
+                                    <div class="d-grid gap-2 mx-auto">
                                         @foreach (var social in speaker.SocialMediaLinks.Take(3))
                                         {
                                             <a href="@social.Url" target="_blank" class="btn btn-secondary">
@@ -56,23 +55,28 @@
                                 }
                             </div>
                             <div class="card-footer">
-                                <a asp-page="/Profile/View" asp-route-id="@speaker.Id"
-                                   class="btn btn-primary">
-                                    <i class="bi bi-eye me-1"></i>View Profile
-                                </a>
-                                @if (User.Identity?.IsAuthenticated == true && User.Identity.Name != speaker.Email)
-                                {
-                                    @if (speaker.IsExperiencedSpeaker)
+                                <div class="d-grid gap-2 mx-auto">
+                                   
+                                    <a asp-page="/Profile/View" asp-route-id="@speaker.Id"
+                                       class="btn btn-primary">
+                                        <i class="bi bi-eye"></i>View Profile
+                                    </a>
+
+                                    @if (User.Identity?.IsAuthenticated == true && User.Identity.Name != speaker.Email)
                                     {
+                                        @if (speaker.IsExperiencedSpeaker)
+                                        {
                                         <button class="btn btn-primary"
                                                 hx-post="/Mentorship/Request"
                                                 hx-vals='{"mentorId": "@speaker.Id"}'
                                                 hx-confirm="Request mentorship from @speaker.FullName?"
                                                 hx-target="#mentorship-status-@(speaker.Id)">
-                                            <i class="bi bi-person-plus me-1"></i>Request Mentor
+                                            <i class="bi bi-person-plus"></i>Request Mentor
                                         </button>
+                                        }
                                     }
-                                }
+
+                                </div>
                                 <div id="mentorship-status-@speaker.Id" class="mt-2"></div>
                             </div>
                         </div>
