@@ -267,7 +267,7 @@ function initializeHtmxEnhancements() {
             const buttons = form.querySelectorAll('button[type="submit"]');
             buttons.forEach(btn => {
                 btn.disabled = true;
-                btn.innerHTML = '<span class="loading me-2"></span>' + btn.textContent;
+                btn.innerHTML = '<span class="loading me-2"></span>' + btn.innerHTML;
             });
         }
     });
@@ -285,7 +285,7 @@ function initializeHtmxEnhancements() {
             const buttons = form.querySelectorAll('button[type="submit"]');
             buttons.forEach(btn => {
                 btn.disabled = false;
-                btn.innerHTML = btn.textContent.replace(/^.*?(\w)/, '$1');
+                btn.removeChild(btn.firstChild);
             });
         }
     });
