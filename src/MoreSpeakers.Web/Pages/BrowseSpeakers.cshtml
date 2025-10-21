@@ -71,7 +71,7 @@
                         <strong>@Model.TotalCount</strong> speaker(s) found
                         @if (!string.IsNullOrEmpty(Model.SearchTerm) || Model.SpeakerTypeFilter.HasValue || Model.ExpertiseFilter.HasValue)
                         {
-                            <a href="/BrowseSpeakers" class="btn btn-outline-secondary btn-sm ms-2">
+                            <a asp-page="/BrowseSpeakers" class="btn btn-outline-secondary btn-sm ms-2">
                                 <i class="bi bi-x-circle"></i> Clear Filters
                             </a>
                         }
