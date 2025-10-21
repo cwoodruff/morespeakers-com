@@ -60,12 +60,6 @@ public class RegisterModel : PageModel
     ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
     ///     directly from your code. This API may change or be removed in future releases.
     /// </summary>
-    public string ReturnUrl { get; set; }
-
-    /// <summary>
-    ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-    ///     directly from your code. This API may change or be removed in future releases.
-    /// </summary>
     public IList<AuthenticationScheme> ExternalLogins { get; set; }
 
     public IEnumerable<Expertise> AvailableExpertise { get; set; } = new List<Expertise>();
@@ -85,9 +79,8 @@ public class RegisterModel : PageModel
     public string SuccessMessage { get; set; } = string.Empty;
 
 
-    public async Task OnGetAsync(string returnUrl = null)
+    public async Task OnGetAsync()
     {
-        ReturnUrl = returnUrl;
         ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
 
         // Initialize Input model if not already initialized
@@ -102,9 +95,9 @@ public class RegisterModel : PageModel
         await LoadFormDataAsync();
     }
 
-    public async Task<IActionResult> OnPostAsync(string returnUrl = null)
+    public async Task<IActionResult> OnPostAsync()
     {
-        return await OnPostSubmitAsync(returnUrl);
+        return await OnPostSubmitAsync();
     }
 
     public async Task<IActionResult> OnPostValidateStepAsync(int step)
@@ -387,9 +380,8 @@ public class RegisterModel : PageModel
         return ModelState.IsValid;
     }
 
-    public async Task<IActionResult> OnPostSubmitAsync(string returnUrl = null)
+    public async Task<IActionResult> OnPostSubmitAsync()
     {
-        returnUrl ??= Url.Content("~/");
         ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
 
         // Reload data in case of validation errors
@@ -475,7 +467,7 @@ public class RegisterModel : PageModel
                 var callbackUrl = Url.Page(
                     "/Account/ConfirmEmail",
                     null,
-                    new { area = "Identity", userId, code, returnUrl },
+                    new { area = "Identity", userId, code, S = "~//" },
                     Request.Scheme)!;
 
                 await _emailSender.QueueEmail(new System.Net.Mail.MailAddress(user.Email!, $"{user.FirstName} {user.LastName}"),

@@ -6,7 +6,7 @@
     var validationMessage = Model.ValidationMessage;
 }
 
-<form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post">
+<form id="registerForm" method="post">
     <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
 
     @if (hasValidationErrors && !string.IsNullOrEmpty(validationMessage))
