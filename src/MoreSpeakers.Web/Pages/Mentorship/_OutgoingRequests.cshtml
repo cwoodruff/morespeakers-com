@@ -1,0 +1,112 @@
+@model List<MoreSpeakers.Web.Models.Mentorship>
+
+@if (!Model.Any())
+{
+    <div class="text-center py-4">
+        <i class="bi bi-send display-4 text-muted"></i>
+        <h6 class="mt-3">No outgoing requests</h6>
+        <p class="text-muted">You haven't sent any mentorship requests yet.</p>
+        <a href="/Mentorship/Browse" class="btn btn-primary">
+            <i class="bi bi-search me-2"></i>Find a Mentor
+        </a>
+    </div>
+}
+else
+{
+    @foreach (var request in Model)
+    {
+        <div class="request-card card mb-3">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="d-flex align-items-center">
+                        <div class="me-3">
+                            @if (!string.IsNullOrEmpty(request.Mentor.HeadshotUrl))
+                            {
+                                <img src="@request.Mentor.HeadshotUrl" class="mentor-avatar" alt="@request.Mentor.FullName">
+                            }
+                            else
+                            {
+                                <div class="mentor-avatar mentor-avatar-placeholder">
+                                    <i class="bi bi-person-fill"></i>
+                                </div>
+                            }
+                        </div>
+                        <div>
+                            <h6 class="mb-1">@request.Mentor.FullName</h6>
+                            <small class="text-muted">@request.Mentor.SpeakerType.Name</small>
+                        </div>
+                    </div>
+                    <span class="request-status request-@request.Status.ToString().ToLower()">
+                        @switch (request.Status)
+                        {
+                            case MentorshipStatus.Pending:
+                                <i class="bi bi-clock me-1"></i>
+                                break;
+                            case MentorshipStatus.Active:
+                                <i class="bi bi-check-circle me-1"></i>
+                                break;
+                            case MentorshipStatus.Declined:
+                                <i class="bi bi-x-circle me-1"></i>
+                                break;
+                        }
+                        @request.Status
+                    </span>
+                </div>
+
+                <div class="mb-3">
+                    <strong class="small">Your message:</strong>
+                    <p class="small text-muted mb-0">@request.RequestMessage</p>
+                </div>
+
+                @if (request.FocusAreas.Any())
+                {
+                    <div class="mb-3">
+                        <strong class="small">Focus areas:</strong>
+                        <div class="mt-1">
+                            @foreach (var focus in request.FocusAreas)
+                            {
+                                <span class="expertise-tag expertise-tag-sm">@focus.Expertise.Name</span>
+                            }
+                        </div>
+                    </div>
+                }
+
+                @if (!string.IsNullOrEmpty(request.ResponseMessage))
+                {
+                    <div class="mb-3">
+                        <strong class="small">Response:</strong>
+                        <p class="small text-muted mb-0">@request.ResponseMessage</p>
+                    </div>
+                }
+
+                <div class="d-flex justify-content-between align-items-center">
+                    <small class="text-muted">
+                        Requested @request.RequestedAt.ToString("MMM dd, yyyy")
+                        @if (request.ResponsedAt.HasValue)
+                        {
+                            <span>• Responded @request.ResponsedAt.Value.ToString("MMM dd, yyyy")</span>
+                        }
+                    </small>
+
+                    @if (request.Status == MentorshipStatus.Active)
+                    {
+                        <a href="/Mentorship/Active" class="btn btn-sm btn-success">
+                            <i class="bi bi-chat-dots me-1"></i>View Mentorship
+                        </a>
+                    }
+                    else if (request.Status == MentorshipStatus.Pending)
+                    {
+                        <button class="btn btn-sm btn-outline-secondary"
+                                hx-post="/Mentorship/Requests?handler=CancelRequest&mentorshipId=@request.Id"
+                                hx-target="closest .request-card"
+                                hx-swap="outerHTML"
+                                hx-include="#htmx-af input[name='__RequestVerificationToken']"
+                                hx-confirm="Are you sure you want to cancel this request?">
+                            <i class="bi bi-x me-1"></i>Cancel
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+}

@@ -70,6 +70,9 @@ public class RequestsModel : PageModel
         if (success)
         {
             var updatedMentorship = await _mentorshipService.GetMentorshipByIdAsync(mentorshipId);
+            // Notify the client via HTMX events so both lists can refresh and any listeners can react
+            Response.Headers["HX-Trigger"] = "{\"mentorship:accepted\":{\"id\":\"" + mentorshipId + "\"},\"mentorship:updated\":true}";
+            // Return an OOB toast (partial renders as OOB) and remove the card by swapping empty content
             return Partial("_AcceptSuccess", updatedMentorship);
         }
 
@@ -90,6 +93,7 @@ public class RequestsModel : PageModel
         if (success)
         {
             var updatedMentorship = await _mentorshipService.GetMentorshipByIdAsync(mentorshipId);
+            Response.Headers["HX-Trigger"] = "{\"mentorship:declined\":{\"id\":\"" + mentorshipId + "\"},\"mentorship:updated\":true}";
             return Partial("_DeclineSuccess", updatedMentorship);
         }
 
@@ -129,6 +133,29 @@ public class RequestsModel : PageModel
         }
 
         return Partial("_IncomingRequests", IncomingRequests);
+    }
+
+    public async Task<IActionResult> OnGetPollOutgoingAsync()
+    {
+        var currentUser = await _userManager.GetUserAsync(User);
+        if (currentUser == null) return Unauthorized();
+
+        OutgoingRequests = await GetOutgoingRequests(currentUser.Id);
+
+        if (!OutgoingRequests.Any())
+        {
+            return Content(@"
+                <div class='text-center py-4'>
+                    <i class='bi bi-send display-4 text-muted'></i>
+                    <h6 class='mt-3'>No outgoing requests</h6>
+                    <p class='text-muted'>You haven't sent any mentorship requests yet.</p>
+                    <a href='/Mentorship/Browse' class='btn btn-primary'>
+                        <i class='bi bi-search me-2'></i>Find a Mentor
+                    </a>
+                </div>");
+        }
+
+        return Partial("_OutgoingRequests", OutgoingRequests);
     }
 
     private async Task<List<Models.Mentorship>> GetIncomingRequests(Guid userId)
@@ -178,7 +205,10 @@ public class RequestsModel : PageModel
             return BadRequest();
         }
 
-        // Return empty content so hx-swap="outerHTML" removes the card from the DOM
+        // Trigger updates so both lists can refresh
+        Response.Headers["HX-Trigger"] = "{\"mentorship:cancelled\":{\"id\":\"" + mentorshipId + "\"},\"mentorship:updated\":true}";
+
+        // Return empty content so hx-swap=\"outerHTML\" removes the card from the DOM
         return Content(string.Empty);
     }
 }
