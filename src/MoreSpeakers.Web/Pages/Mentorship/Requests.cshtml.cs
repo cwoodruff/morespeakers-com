@@ -178,6 +178,7 @@ public class RequestsModel : PageModel
             .Include(m => m.FocusAreas)
                 .ThenInclude(fa => fa.Expertise)
             .Where(m => m.MenteeId == userId)
+            .Where(m => m.Status == MentorshipStatus.Pending)
             .OrderByDescending(m => m.RequestedAt)
             .ToListAsync();
     }
