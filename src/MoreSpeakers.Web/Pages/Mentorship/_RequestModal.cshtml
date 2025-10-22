@@ -6,6 +6,7 @@
               hx-target="#modal-container"
               hx-swap="innerHTML"
               hx-indicator="#submit-loading">
+            @Html.AntiForgeryToken()
 
             <input type="hidden" name="targetId" value="@Model.TargetUser.Id"/>
             <input type="hidden" name="type" value="@Model.Type"/>
@@ -106,6 +107,10 @@
             </div>
         </form>
     </div>
+</div>
+
+<div id="submit-loading-global" class="htmx-indicator" style="display:none;">
+    Loading...
 </div>
 
 <script>
