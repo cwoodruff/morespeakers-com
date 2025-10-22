@@ -32,21 +32,11 @@
                             <span class="badge bg-warning ms-2">@Model.IncomingRequests.Count</span>
                         }
                     </h5>
-                    @if (Model.IncomingRequests.Any())
-                    {
-                        <small class="text-muted"
-                               hx-get="/Mentorship/PollRequests"
-                               hx-trigger="every 30s"
-                               hx-target="#incoming-requests"
-                               hx-swap="innerHTML">
-                            Auto-refreshing
-                        </small>
-                    }
                 </div>
                 <div class="card-body">
                     <div id="incoming-requests"
                          hx-get="/Mentorship/Requests?handler=PollIncoming"
-                         hx-trigger="every 30s"
+                         @* hx-trigger="every 30s" *@
                          hx-swap="innerHTML">
                         @await Html.PartialAsync("_IncomingRequests", Model.IncomingRequests)
                     </div>
