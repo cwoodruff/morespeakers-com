@@ -1,3 +1,5 @@
+using System.Text.Encodings.Web;
+using Microsoft.ApplicationInsights;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -16,12 +18,17 @@ public class BrowseModel : PageModel
     private readonly ApplicationDbContext _context;
     private readonly UserManager<User> _userManager;
     private readonly IMentorshipService _mentorshipService;
+    private readonly Domain.Interfaces.IEmailSender _emailSender;
+    private readonly TelemetryClient _telemetryClient;
 
-    public BrowseModel(ApplicationDbContext context, UserManager<User> userManager, IMentorshipService mentorshipService)
+    public BrowseModel(ApplicationDbContext context, UserManager<User> userManager,
+        IMentorshipService mentorshipService, Domain.Interfaces.IEmailSender emailSender, TelemetryClient telemetryClient)
     {
         _context = context;
         _userManager = userManager;
         _mentorshipService = mentorshipService;
+        _emailSender = emailSender;
+        _telemetryClient = telemetryClient;
     }
 
     public BrowseMentorsViewModel ViewModel { get; set; } = null!;
@@ -122,6 +129,9 @@ public class BrowseModel : PageModel
     {
         var currentUser = await _userManager.GetUserAsync(User);
         if (currentUser == null) return Unauthorized();
+        
+        var targetMentorUser = await _userManager.FindByIdAsync(targetId.ToString());
+        if (targetMentorUser == null) return Unauthorized();
 
         // Check if can request
         var canRequest = await _mentorshipService.CanRequestMentorshipAsync(currentUser.Id, targetId);
@@ -137,7 +147,24 @@ public class BrowseModel : PageModel
         {
             return Content("<div class='alert alert-danger'>Failed to send request. Please try again.</div>");
         }
+        
+        var code = await _userManager.GenerateEmailConfirmationTokenAsync(targetMentorUser);
+        var callbackUrl = Url.Page(
+            "/Mentorship/Requests/",
+            null,
+            new { area = "Identity", targetMentorUser.Id, code, S = "~//" },
+            Request.Scheme)!;
+        
+        await _emailSender.QueueEmail(new System.Net.Mail.MailAddress(targetMentorUser.Email!, $"{targetMentorUser.FirstName} {targetMentorUser.LastName}"),
+            "You have a new MoreSpeaker.com Mentorship Request",
+            $"Please review and accept confirm your account at <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
 
+        _telemetryClient.TrackEvent("MentorRequestEmailSent", new Dictionary<string, string>
+        {
+            { "UserId", targetMentorUser.Id.ToString() },
+            { "Email", targetMentorUser.Email ?? string.Empty }
+        });
+        
         return Partial("_RequestSuccess", mentorship);
     }
 
