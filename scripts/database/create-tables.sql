@@ -231,20 +231,6 @@ create index IX_Mentorships_MenteeId_Status
     on Mentorships (MenteeId, Status)
 go
 
-CREATE TRIGGER TR_Mentorships_UpdatedAt
-    ON Mentorships
-    AFTER UPDATE
-    AS
-BEGIN
-    SET NOCOUNT ON;
-
-    UPDATE Mentorships
-    SET UpdatedAt = GETUTCDATE()
-    FROM Mentorships m
-             INNER JOIN inserted i ON m.Id = i.Id;
-END;
-go
-
 create table SocialMedias
 (
     Id          int identity

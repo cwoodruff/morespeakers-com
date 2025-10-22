@@ -88,6 +88,7 @@ public class MentorshipService : IMentorshipService
             mentorship.Status = MentorshipStatus.Active;
             mentorship.StartedAt = DateTime.UtcNow;
             mentorship.ResponsedAt = DateTime.UtcNow;
+            mentorship.UpdatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
             return true;

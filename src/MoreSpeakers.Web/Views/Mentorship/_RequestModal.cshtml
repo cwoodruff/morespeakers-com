@@ -1,6 +1,10 @@
 @model MoreSpeakers.Web.Models.ViewModels.MentorshipRequestViewModel
 
-<div class="modal fade show" style="display: block;" tabindex="-1">
+<div class="modal fade show" style="display: block;" tabindex="-1"
+     hx-get="/Mentorship/CloseModal"
+     hx-target="#modal-container"
+     hx-swap="innerHTML"
+     hx-trigger="keydown[key=='Escape'] from:document">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
@@ -132,7 +136,11 @@
 </div>
 
 <!-- Modal backdrop -->
-<div class="modal-backdrop fade show"></div>
+<div class="modal-backdrop fade show"
+     hx-get="/Mentorship/CloseModal"
+     hx-target="#modal-container"
+     hx-swap="innerHTML"
+     hx-trigger="click"></div>
 
 <script>
     // Limit expertise selection to 3
@@ -151,15 +159,4 @@
         }
     });
 
-    // Close modal on backdrop click
-    document.querySelector('.modal-backdrop')?.addEventListener('click', function() {
-        htmx.ajax('GET', '/Mentorship/CloseModal', {target: '#modal-container', swap: 'innerHTML'});
-    });
-
-    // Close modal on escape key
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            htmx.ajax('GET', '/Mentorship/CloseModal', {target: '#modal-container', swap: 'innerHTML'});
-        }
-    });
 </script>
