@@ -35,7 +35,7 @@ public class EditModel(
 
     // Properties for HTMX state management
     public string ActiveTab { get; set; } = "profile";
-    public bool HasValidationErrors { get; set; } = false;
+    public bool HasValidationErrors { get; set; }
     public string ValidationMessage { get; set; } = string.Empty;
     public string SuccessMessage { get; set; } = string.Empty;
 
@@ -124,6 +124,7 @@ public class EditModel(
         {
             HasValidationErrors = true;
             ValidationMessage = "An error occurred while updating your profile. Please try again.";
+
             return Partial("_ProfileEditForm", this);
         }
     }
@@ -135,10 +136,16 @@ public class EditModel(
 
         ActiveTab = "password";
 
-        if (!ModelState.IsValid)
+        var validationErrors = ValidatePasswordInputModel(PasswordInput);
+        if (validationErrors.Count != 0)
         {
             HasValidationErrors = true;
-            ValidationMessage = "Please correct the password errors below.";
+            ValidationMessage = "Please correct the password errors below.</br><ul>";
+            foreach (var error in validationErrors)
+            {
+                ValidationMessage += $"<li>{error.ErrorMessage}</li>";
+            }
+            ValidationMessage += "</ul>";
             return Partial("_PasswordChangeForm", this);
         }
 
@@ -169,6 +176,16 @@ public class EditModel(
             ValidationMessage = "An error occurred while changing your password. Please try again.";
             return Partial("_PasswordChangeForm", this);
         }
+    }
+
+    private List<ValidationResult> ValidatePasswordInputModel(PasswordChangeInputModel model)
+    {
+        var context = new ValidationContext(model, null, null);
+        var results = new List<ValidationResult>();
+
+        bool isValid = Validator.TryValidateObject(model, context, results, true);
+
+        return !isValid ? results : [];
     }
 
     public async Task<IActionResult> OnGetTabAsync(string tab)
