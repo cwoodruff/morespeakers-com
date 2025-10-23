@@ -1,7 +1,7 @@
 @model MoreSpeakers.Web.Models.ViewModels.BrowseMentorsViewModel
 
 <!-- Hidden form to supply anti-forgery token for HTMX requests -->
-<form id="htmx-af" method="post" style="display:none">
+<form id="htmx-af" method="post" style="display:none" >
     @Html.AntiForgeryToken()
 </form>
 
@@ -19,11 +19,10 @@ else
         @foreach (var mentor in Model.Mentors)
         {
             <div class="col-md-6 col-lg-4 mb-4">
-                <div class="card h-100">
-
+                <div class="card p-2">
                     <!-- Header with Avatar and Basic Info -->
                     <div class="d-flex align-items-center mb-3">
-                        <div class="me-3">
+                        <div class="">
                             @if (!string.IsNullOrEmpty(mentor.HeadshotUrl))
                             {
                                 <img hx-preserve src="@mentor.HeadshotUrl" alt="@mentor.FullName"
@@ -111,7 +110,7 @@ else
                         {
                             <button class="btn btn-primary"
                                     hx-get="/Mentorship/Browse?handler=RequestModal&mentorId=@mentor.Id&type=@Model.MentorshipType"
-                                    hx-target="#modal-container"
+                                    hx-target="#requestModal"
                                     hx-swap="innerHTML">
                                 <i class="bi bi-@(Model.MentorshipType == MentorshipType.NewToExperienced ? "chat-dots" : "people") me-2"></i>
                                 @(Model.MentorshipType == MentorshipType.NewToExperienced ? "Request Mentorship" : "Connect as Peer")
@@ -171,4 +170,7 @@ else
             </button>
         }
     </div>
+    
+    @await Html.PartialAsync("~/Views/Mentorship/_RequestModel.cshtml", Model.ViewModel)
+    
 }

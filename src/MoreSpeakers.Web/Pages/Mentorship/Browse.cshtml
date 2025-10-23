@@ -93,11 +93,11 @@
                                 Show More (+@(Model.AvailableExpertise.Count - 20))
                             </button>
                             <div class="collapse mt-2" id="moreExpertise">
-                                <div class="expertise-filter-grid">
+                                <div class="">
                                     @foreach (var expertise in Model.AvailableExpertise.Skip(20))
                                     {
                                         <div
-                                            class="expertise-filter-item @(Model.SelectedExpertise.Contains(expertise.Name) ? "selected" : "")">
+                                            class=" @(Model.SelectedExpertise.Contains(expertise.Name) ? "selected" : "")">
                                             <input class="form-check-input d-none" type="checkbox"
                                                    name="expertise" value="@expertise.Name"
                                                    id="exp-@expertise.Id"
@@ -168,9 +168,6 @@
         </div>
     </div>
 </div>
-
-<!-- Modal Container -->
-<div id="modal-container"></div>
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {

@@ -1,18 +1,20 @@
 @model MoreSpeakers.Web.Models.ViewModels.RequestMentorshipViewModel
 
-<div class="modal-container" onclick="this.remove()">
-    <div class="modal-content" onclick="event.stopPropagation()">
+<div class="modal fade" id="requestModal" tabindex="-1"
+     _="on htmx:beforeRequest show #loading
+       on htmx:afterRequest hide #loading">
+    <div class="modal-dialog">
         <form hx-post="/Mentorship/Browse?handler=SubmitRequest"
               hx-target="#modal-container"
               hx-swap="innerHTML"
-              hx-indicator="#submit-loading">
+              hx-indicator="#submit-loading"
+              hx-on::after-swap="this.showModal();">
             @Html.AntiForgeryToken()
-
             <input type="hidden" name="targetId" value="@Model.TargetUser.Id"/>
             <input type="hidden" name="type" value="@Model.Type"/>
-
+        <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">
+                <h1 class="modal-title fs-5" id="exampleModalLabel">
                     @if (Model.Type == MentorshipType.NewToExperienced)
                     {
                         <i class="bi bi-person-plus me-2"></i>
@@ -23,12 +25,10 @@
                         <i class="bi bi-people me-2"></i>
                         <text>Connect as Peers</text>
                     }
-                </h5>
-                <button type="button" class="btn-close" onclick="document.getElementById('modal-container').innerHTML = ''" aria-label="Close"></button>
+                </h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-
             <div class="modal-body">
-                <!-- Target User Info Display -->
                 <div class="card mb-3">
                     <div class="card-body">
                         <div class="d-flex align-items-center">
@@ -93,26 +93,24 @@
                     </select>
                 </div>
             </div>
-
             <!-- Actions -->
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary"
-                        onclick="document.getElementById('modal-container').innerHTML = ''">
-                    Cancel
-                </button>
+                <button type="button" class="btn btn-secondary gap-2" data-bs-dismiss="modal">Cancel</button>
                 <button type="submit" class="btn btn-primary">
-                    <span id="submit-loading" class="htmx-indicator spinner-border spinner-border-sm me-2"></span>
-                    @Model.GetRequestButtonText()
+                    <i class="bi bi-chat-dots me-2"></i>@Model.GetRequestButtonText()
                 </button>
             </div>
+        </div>
         </form>
     </div>
 </div>
 
-<div id="submit-loading-global" class="htmx-indicator" style="display:none;">
-    Loading...
+<div id="loading" class="htmx-indicator visually-hidden">
+    <div class="spinner-border spinner-border-sm me-2" role="status">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+    Requesting Mentor...
 </div>
-
 <script>
     // Character counter
     const textarea = document.getElementById('request-message-textarea');
