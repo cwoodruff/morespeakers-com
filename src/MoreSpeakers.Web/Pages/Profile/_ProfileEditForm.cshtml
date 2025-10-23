@@ -111,9 +111,33 @@
             </h5>
         </div>
         <div class="col-12">
-            <div id="headshotContainer">
-                <partial name="_HeadshotUpload" model="Model" />
+            <div class="mb-3">
+                @if (!string.IsNullOrEmpty(Model.ProfileUser.HeadshotUrl))
+                {
+                    <img src="@Model.ProfileUser.HeadshotUrl" 
+                         alt="Current headshot" 
+                         class="rounded-circle border shadow-sm" 
+                         style="width: 120px; height: 120px; object-fit: cover;" 
+                         id="currentHeadshot" />
+                }
+                else
+                {
+                    <div class="rounded-circle border shadow-sm bg-light d-flex align-items-center justify-content-center" 
+                         style="width: 120px; height: 120px; margin: 0 auto;" 
+                         id="currentHeadshot">
+                        <i class="bi bi-person display-4 text-muted"></i>
+                    </div>
+                }
             </div>
+            <div class="mb-3">
+                <input asp-for="Input.HeadshotUrl" 
+                       class="form-control form-control-sm" 
+                       placeholder="https://example.com/your-photo.jpg" />
+                <div class="form-text">Direct link to your professional headshot image</div>
+            </div>
+            @* <div id="headshotContainer"> *@
+            @*     <partial name="_HeadshotUpload" model="Model"/> *@
+            @* </div> *@
         </div>
     </div>
 

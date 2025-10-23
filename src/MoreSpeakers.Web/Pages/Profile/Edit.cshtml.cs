@@ -55,10 +55,16 @@ public class EditModel(
 
         ActiveTab = "profile";
 
-        if (!ModelState.IsValid)
+        var validationErrors = ValidateProfileEditInputModel(Input);
+        if (validationErrors.Count != 0)
         {
             HasValidationErrors = true;
-            ValidationMessage = "Please correct the errors below.";
+            ValidationMessage = "Please correct the password errors below.</br><ul>";
+            foreach (var error in validationErrors)
+            {
+                ValidationMessage += $"<li>{error.ErrorMessage}</li>";
+            }
+            ValidationMessage += "</ul>";
             return Partial("_ProfileEditForm", this);
         }
 
@@ -178,7 +184,17 @@ public class EditModel(
         }
     }
 
+    private List<ValidationResult> ValidateProfileEditInputModel(ProfileEditInputModel model)
+    {
+        return ValidateModel(model);
+    }
+    
     private List<ValidationResult> ValidatePasswordInputModel(PasswordChangeInputModel model)
+    {
+        return ValidateModel(model);
+    }
+    
+    private List<ValidationResult> ValidateModel(object model)
     {
         var context = new ValidationContext(model, null, null);
         var results = new List<ValidationResult>();
