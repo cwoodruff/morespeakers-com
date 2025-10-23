@@ -5,10 +5,8 @@
        on htmx:afterRequest hide #loading">
     <div class="modal-dialog">
         <form hx-post="/Mentorship/Browse?handler=SubmitRequest"
-              hx-target="#modal-container"
-              hx-swap="innerHTML"
               hx-indicator="#submit-loading"
-              hx-on::after-swap="this.showModal();">
+              hx-on::after-request="this.showModal();">
             @Html.AntiForgeryToken()
             <input type="hidden" name="targetId" value="@Model.TargetUser.Id"/>
             <input type="hidden" name="type" value="@Model.Type"/>
