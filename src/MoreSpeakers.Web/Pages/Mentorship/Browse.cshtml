@@ -11,15 +11,15 @@
         <div class="col-lg-3 mb-4">
             <div class="mentorship-filters card sticky-top" style="top: 1rem;">
                 <div class="card-header">
-                    <h5 class="mb-0">
+                    <h6 class="mb-0">
                         <i class="bi bi-funnel me-2"></i>Find Your Mentor
-                    </h5>
+                    </h6>
                 </div>
                 <div class="card-body">
                     <!-- Type Selection -->
                     <div class="mb-4">
-                        <label class="form-label fw-medium">Mentorship Type</label>
-                        <div class="btn-group w-100" role="group">
+                        <p class="lead">Mentorship Type</p>
+                        <div role="group">
                             <input type="radio" name="mentorshipType" value="NewToExperienced"
                                    class="btn-check" id="type-new"
                                    @(Model.MentorshipType == MentorshipType.NewToExperienced ? "checked" : "")
@@ -55,24 +55,23 @@
                     <!-- Expertise Filter -->
                     <div class="mb-4">
                         <div class="d-flex justify-content-between align-items-center mb-2">
-                            <label class="form-label fw-medium mb-0">Expertise Areas</label>
-                            @if (!Model.SelectedExpertise.Any())
-                            {
-                                <style>#clearAllBtn{display:none;}</style>
-                            }
+                            <p class="fs-5">Expertise Areas</p>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
                             <button type="button"
                                     id="clearAllBtn"
+                                    style="display:none;"
                                     class="btn btn-sm btn-link text-danger p-0"
                                     onclick="(function(btn){ const checks=document.querySelectorAll('input[name=expertise]:checked'); checks.forEach(cb=>{ cb.checked=false; const item=cb.closest('.expertise-filter-item'); if(item){ item.classList.remove('selected'); }}); btn.style.display='none'; const mt=document.querySelector('input[name=mentorshipType]:checked'); if(mt){ htmx.trigger(mt,'change'); } })(this)">
                                 <i class="bi bi-x-circle me-1"></i>Clear All
                             </button>
                         </div>
-                        <div class="expertise-filter-grid">
+                        <div class="">
                             @foreach (var expertise in Model.AvailableExpertise.Take(20))
                             {
                                 <div
-                                    class="expertise-filter-item @(Model.SelectedExpertise.Contains(expertise.Name) ? "selected" : "")">
-                                    <input class="form-check-input d-none" type="checkbox"
+                                    class="form-check form-switch @(Model.SelectedExpertise.Contains(expertise.Name) ? "selected" : "")">
+                                    <input class="form-check-input" type="checkbox" switch
                                            name="expertise" value="@expertise.Name"
                                            id="exp-@expertise.Id"
                                            @(Model.SelectedExpertise.Contains(expertise.Name) ? "checked" : "")
@@ -93,12 +92,12 @@
                                 Show More (+@(Model.AvailableExpertise.Count - 20))
                             </button>
                             <div class="collapse mt-2" id="moreExpertise">
-                                <div class="">
+                                <div>
                                     @foreach (var expertise in Model.AvailableExpertise.Skip(20))
                                     {
                                         <div
-                                            class=" @(Model.SelectedExpertise.Contains(expertise.Name) ? "selected" : "")">
-                                            <input class="form-check-input d-none" type="checkbox"
+                                            class="form-check form-switch @(Model.SelectedExpertise.Contains(expertise.Name) ? "selected" : "")">
+                                            <input class="form-check-input" type="checkbox" switch
                                                    name="expertise" value="@expertise.Name"
                                                    id="exp-@expertise.Id"
                                                    @(Model.SelectedExpertise.Contains(expertise.Name) ? "checked" : "")

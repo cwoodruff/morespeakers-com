@@ -26,18 +26,19 @@
                                 <div class="me-3">
                                     @if (!string.IsNullOrEmpty(Model.Mentor.HeadshotUrl))
                                     {
-                                        <img src="@Model.Mentor.HeadshotUrl" class="me-3" alt="@Model.Mentor.FullName">
+                                    <img src="@Model.Mentor.HeadshotUrl" alt="@Model.Mentor.FullName"
+                                         class="object-fit-contain border image-thumbnail rounded float-start" style="width:10rem; height:10rem;">
                                     }
                                     else
                                     {
-                                        <div class="">
-                                            <i class="bi bi-person-fill"></i>
-                                        </div>
+                                    <div class="align-items-center justify-content-center">
+                                        <i class="bi bi-person-fill text-muted d-flex justify-content-center align-items-center" style="font-size: 10rem;"></i>
+                                    </div>
                                     }
                                 </div>
                                 <div>
-                                    <h6 class="mb-1">@Model.Mentor.FullName</h6>
-                                    <p class="text-muted small mb-1">@Model.Mentor.SpeakerType.Name</p>
+                                    <h5 class="card-title">@Model.Mentor.FullName</h5>
+                                    <p class="badge bg-success">@Model.Mentor.SpeakerType.Name</p>
                                     @if (!string.IsNullOrEmpty(Model.Mentor.MentorshipFocus))
                                     {
                                         <p class="small mb-0"><strong>Focus:</strong> @Model.Mentor.MentorshipFocus</p>
@@ -58,15 +59,11 @@
                             <div class="expertise-selection">
                                 @foreach (var expertise in Model.AvailableExpertise)
                                 {
-                                    <div class="form-check expertise-check">
-                                        <input class="form-check-input" type="checkbox" 
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" switch
                                                name="SelectedExpertiseIds" value="@expertise.Id" 
                                                id="focus-@expertise.Id">
-                                        <label class="form-check-label" for="focus-@expertise.Id">
-                                            <span class="expertise-tag">
-                                                <i class="bi bi-star-fill me-1"></i>@expertise.Name
-                                            </span>
-                                        </label>
+                                        <label class="form-check-label" for="focus-@expertise.Id">@expertise.Name</label>
                                     </div>
                                 }
                             </div>
