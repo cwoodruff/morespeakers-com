@@ -1,3 +1,4 @@
+@using MoreSpeakers.Web.Models
 @model MoreSpeakers.Web.Areas.Identity.Pages.Account.RegisterModel
 @{
     var currentStep = Model.CurrentStep;
@@ -28,7 +29,14 @@
             @for (int i = 1; i <= 5; i++)
             {
                 <div class="col">
-                    <i class="bi bi-@i-circle@(i < currentStep ? "-fill text-success" : i == currentStep ? "-fill text-primary" : " text-secondary")" data-step="@i" style="font-size:2rem;"></i>
+                    @if (i == RegistrationProgressions.Complete && currentStep == RegistrationProgressions.Complete)
+                    {
+                        <i class="bi bi-@i-circle-fill text-success" data-step="@i" style="font-size:2rem;"></i>    
+                    }
+                    else
+                    {
+                        <i class="bi bi-@i-circle@(i < currentStep ? "-fill text-success" : i == currentStep ? "-fill text-primary" : " text-secondary")" data-step="@i" style="font-size:2rem;"></i>    
+                    }
                     <p class="text-sm mb-0">
                         @(i switch { 1 => "Account", 2 => "Profile", 3 => "Expertise", 4 => "Social", 5 => "Complete", _ => "" })
                     </p>

@@ -7,31 +7,31 @@
 <div class="container-fluid">
     <div class="row min-vh-100">
         <!-- Welcome Section -->
-        <div class="col-xl-4 col-lg-5 d-none d-lg-flex align-items-center justify-content-center bg-primary text-white">
+        <div class="col-md-3 d-none d-lg-flex align-items-center justify-content-center bg-primary text-white">
             <div class="text-center px-4">
                 <div class="mb-4">
-                    <i class="bi bi-megaphone-fill display-1"></i>
+                    <img src="~/images/favicons/apple-icon-76x76.png" alt="MoreSpeakers Logo" class="img-fluid" />
                 </div>
                 <h2 class="fw-bold mb-3">Start Your Speaking Journey</h2>
                 <p class="lead mb-4">Join thousands of speakers who are growing their careers through mentorship and
                     community support.</p>
 
                 <div class="row text-center">
-                    <div class="col-4">
+                    <div class="col-12">
                         <div class="bg-white bg-opacity-10 rounded p-3 mb-3">
                             <i class="bi bi-person-plus-fill h3 mb-2 d-block"></i>
                             <h6 class="fw-bold">New Speakers</h6>
                             <small>Learn from experienced mentors</small>
                         </div>
                     </div>
-                    <div class="col-4">
+                    <div class="col-12">
                         <div class="bg-white bg-opacity-10 rounded p-3 mb-3">
                             <i class="bi bi-award-fill h3 mb-2 d-block"></i>
                             <h6 class="fw-bold">Mentors</h6>
                             <small>Share your expertise</small>
                         </div>
                     </div>
-                    <div class="col-4">
+                    <div class="col-12">
                         <div class="bg-white bg-opacity-10 rounded p-3 mb-3">
                             <i class="bi bi-people-fill h3 mb-2 d-block"></i>
                             <h6 class="fw-bold">Community</h6>
@@ -43,36 +43,34 @@
         </div>
 
         <!-- Registration Form Section -->
-        <div class="col-xl-8 col-lg-7 py-5">
-            <div class="container">
+        <div class="col-md-9 py-5">
+            <div class="container-fluid">
                 <div class="row justify-content-center">
-                    <div class="col-lg-8">
-                        <div class="text-center mb-4" id="pageHeader">
-                            <h1 class="h3 fw-bold text-primary">Create Your Speaker Profile</h1>
-                            <p>Tell us about yourself and join the community</p>
-                        </div>
+                    <div class="text-center mb-4" id="pageHeader">
+                        <h1 class="h3 fw-bold text-primary">Create Your Speaker Profile</h1>
+                        <p>Tell us about yourself and join the community</p>
+                    </div>
 
-                        <div class="card shadow-sm border-0">
-                            <div class="card-body p-4" id="registrationContainer">
-                                <partial name="_RegistrationContainer" model="Model"/>
+                    <div class="card shadow-sm border-0">
+                        <div class="card-body p-4" id="registrationContainer">
+                            <partial name="_RegistrationContainer" model="Model"/>
 
-                                <div class="text-center mt-4">
-                                    <small class="text-muted">
-                                        By creating an account, you agree to our
-                                        <a asp-page="/TermsOfService" class="text-decoration-none">Terms of Service</a> and
-                                        <a asp-page="/Privacy" class="text-decoration-none">Privacy Policy</a>
-                                    </small>
-                                </div>
+                            <div class="text-center mt-4">
+                                <small class="text-muted">
+                                    By creating an account, you agree to our
+                                    <a asp-page="/TermsOfService" class="text-decoration-none">Terms of Service</a> and
+                                    <a asp-page="/Privacy" class="text-decoration-none">Privacy Policy</a>
+                                </small>
                             </div>
                         </div>
+                    </div>
 
-                        <div class="text-center mt-4">
-                            <p class="text-muted mb-0">Already have an account?</p>
-                            <a asp-page="./Login" 
-                               class="btn btn-outline-primary mt-2">
-                                <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
-                            </a>
-                        </div>
+                    <div class="text-center mt-4">
+                        <p class="text-muted mb-0">Already have an account?</p>
+                        <a asp-page="./Login" 
+                           class="btn btn-outline-primary mt-2">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+                        </a>
                     </div>
                 </div>
             </div>
