@@ -29,12 +29,25 @@ MoreSpeakers.com is a mentorship platform designed to help aspiring speakers in 
 
 ## Technology Stack
 
-- **Backend**: ASP.NET Core 8.0 with Razor Pages
-- **Frontend**: HTML5, CSS3, HTMX, Hyperscript (minimal JavaScript)
+- **Backend**: ASP.NET Core 9.0 with Razor Pages
+- **Frontend**: HTML5, CSS3, HTMX, Hyperscript (minimal JavaScript), Bootstrap 5
+- **ORM**: Entity Framework Core 9.0
 - **Database**: Microsoft SQL Server (Local for development, Azure SQL for production)
 - **Development Environment**: .NET Aspire for orchestration
 - **Hosting**: Azure App Service
 - **Database Hosting**: Azure SQL Database
+- **Email Notifications**: Azure Functions with SendGrid
+- **Version Control**: Git and GitHub
+- **CI/CD**: GitHub Actions
+- **Containerization**: Docker (for local development with .NET Aspire)
+- **Testing**: xUnit, Moq
+- **Logging**: Serilog
+- **Documentation**: Markdown files in the docs/ directory
+- **Code Quality**: SonarCloud
+- **Monitoring**: Azure Application Insights
+- **Security**: ASP.NET Core Identity, Azure Key Vault
+- **Caching**: In-memory caching with ASP.NET Core MemoryCache
+- **Search**: Azure Cognitive Search (planned for future releases)
 
 ## Quick Start
 
@@ -44,26 +57,9 @@ MoreSpeakers.com is a mentorship platform designed to help aspiring speakers in 
 - Docker Desktop (for .NET Aspire)
 - Azure Storage Explorer
 
-### Installation
+### Developer Setup
 
-1. Clone the repository:
-
-```bash
-git clone https://github.com/cwoodruff/morespeakers.com.git
-cd morespeakers.com
-```
-
-2. Restore dependencies:
-
-```bash
-dotnet restore
-```
-
-3. Run the application with Aspire:
-
-```bash
-dotnet run --project MoreSpeakers.AppHost
-```
+Read about set up and developer solution installation in [Developer Startup](docs/developer-startup.md).
 
 ## Project Structure
 
@@ -71,23 +67,25 @@ dotnet run --project MoreSpeakers.AppHost
 MoreSpeakers/
 | src/                                # Source code
 │   ├── MoreSpeakers.AppHost/         # .NET Aspire orchestration
-│   ├── MoreSpeakers.ServiceDefaults/ # .NET Aspire orchestration
-│   ├── MoreSpeakers.Domain/          # Domain models
-│   ├── MoreSpeakers.Functions/       # Azure Functions to support the application, like email notifications
-│   ├── MoreSpeakers.Managers/        # Appplication services/managers/business logic
-│   ├── MoreSpeakers.Tests/           # Unit tests
+│   ├── MoreSpeakers.ServiceDefaults/ # .NET Aspire service defaults
+│   ├── MoreSpeakers.Domain/          # Domain models and abstractions
+│   ├── Morespeakers.Functions/       # Azure Functions (e.g., email notifications)
+│   ├── MoreSpeakers.Managers/        # Application services/managers/business logic
+│   ├── MoreSpeakers.Tests/           # Automated tests
 │   └── MoreSpeakers.Web/             # Main web application
+│       ├── Areas/                    # Feature areas (e.g., Identity)
+│       ├── Controllers/              # MVC controllers
+│       ├── Data/                     # EF Core DbContext and Migrations
+│       ├── Models/                   # View models and data models
 │       ├── Pages/                    # Razor Pages
-│       ├── Models/                   # Data models
-│       ├── Data/                     # Entity Framework context
-│       ├── wwwroot/                  # Static files (CSS, JS, images)
-│       └── Areas/                    # Feature areas
+│       ├── Services/                 # App-level services used by the web app
+│       ├── Views/                    # MVC Views
+│       ├── wwwroot/                  # Static files (CSS, JS, images, libs)
+│       └── Properties/               # Launch settings and config
 ├── docs/                             # Documentation
-├── scripts/database                  # Scripts for the database deployment
-└── .github/                          # Deployment files
+├── scripts/database/                 # Database deployment scripts
+└── .github/                          # CI/CD and workflows
 ```
-
-## Development
 
 ### Database Migrations
 Create a new migration:
@@ -112,7 +110,7 @@ This project follows standard C# coding conventions. Please ensure your IDE is c
 
 ### Azure Deployment
 
-See [DEPLOYMENT.md](docs/DEPLOYMENT.md) for detailed deployment instructions.
+See [deployment_guide.md](docs/deployment_guide.md) for detailed deployment instructions.
 
 ## Contributing
 
@@ -123,6 +121,10 @@ See [DEPLOYMENT.md](docs/DEPLOYMENT.md) for detailed deployment instructions.
 5. Open a Pull Request
 
 Check out the [Developer Startup](docs/developer-startup.md) for detailed instructions on setting up your development environment to work on this project.
+
+## Architecture Overview
+
+See [architecture_overview.md](docs/architecture_overview.md) for a detailed explanation of the system architecture, design decisions, and patterns used in this project.
 
 ## License
 
