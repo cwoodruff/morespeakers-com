@@ -1,26 +1,22 @@
 @model MoreSpeakers.Web.Models.ViewModels.MentorshipRequestViewModel
 
-<div class="modal fade show" style="display: block;" tabindex="-1"
-     hx-get="/Mentorship/CloseModal"
-     hx-target="#modal-container"
-     hx-swap="innerHTML"
-     hx-trigger="keydown[key=='Escape'] from:document">
+<div class="modal fade" tabindex="-1" id="requestModal">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">
                     <i class="bi bi-chat-dots me-2"></i>Request Mentorship
                 </h5>
-                <button type="button" class="btn-close" 
-                        hx-get="/Mentorship/CloseModal" 
-                        hx-target="#modal-container"
-                        hx-swap="innerHTML"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             
             <form hx-post="/Mentorship/SendRequest/@Model.Mentor.Id"
                   hx-target="#modal-container"
                   hx-swap="innerHTML"
                   hx-indicator="#request-loading">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="targetId" value="@Model.Mentor.Id"/>
+                <input type="hidden" name="type" value="@Model.MentorshipType.ToString()"/>
                   
                 <div class="modal-body">
                     <!-- Mentor Summary -->
@@ -30,11 +26,11 @@
                                 <div class="me-3">
                                     @if (!string.IsNullOrEmpty(Model.Mentor.HeadshotUrl))
                                     {
-                                        <img src="@Model.Mentor.HeadshotUrl" class="mentor-avatar" alt="@Model.Mentor.FullName">
+                                        <img src="@Model.Mentor.HeadshotUrl" class="me-3" alt="@Model.Mentor.FullName">
                                     }
                                     else
                                     {
-                                        <div class="mentor-avatar mentor-avatar-placeholder">
+                                        <div class="">
                                             <i class="bi bi-person-fill"></i>
                                         </div>
                                     }
@@ -52,7 +48,7 @@
                     </div>
                     
                     <!-- Focus Areas Selection -->
-                    @if (Model.SharedExpertise.Any())
+                    @if (Model.AvailableExpertise.Any())
                     {
                         <div class="mb-4">
                             <label class="form-label fw-medium">
@@ -60,7 +56,7 @@
                                 <small class="text-muted">(Select up to 3 areas you'd like to focus on)</small>
                             </label>
                             <div class="expertise-selection">
-                                @foreach (var expertise in Model.SharedExpertise)
+                                @foreach (var expertise in Model.AvailableExpertise)
                                 {
                                     <div class="form-check expertise-check">
                                         <input class="form-check-input" type="checkbox" 
@@ -119,28 +115,16 @@
                 </div>
                 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary"
-                            hx-get="/Mentorship/CloseModal" 
-                            hx-target="#modal-container"
-                            hx-swap="innerHTML">
-                        Cancel
-                    </button>
+                    <button type="button" class="btn btn-secondary gap-2" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-primary">
                         <span id="request-loading" class="htmx-indicator spinner-border spinner-border-sm me-2"></span>
-                        <i class="bi bi-send me-2"></i>Send Request
+                        <i class="bi bi-chat-dots me-2"></i>Send Request
                     </button>
                 </div>
             </form>
         </div>
     </div>
 </div>
-
-<!-- Modal backdrop -->
-<div class="modal-backdrop fade show"
-     hx-get="/Mentorship/CloseModal"
-     hx-target="#modal-container"
-     hx-swap="innerHTML"
-     hx-trigger="click"></div>
 
 <script>
     // Limit expertise selection to 3
@@ -158,5 +142,11 @@
             }
         }
     });
+    function showModal() {
+        const modal = new bootstrap.Modal('#requestModal');
+        modal.show();
+    }
+    // scopes the modal so we can keep creating them
+    showModal();
 
 </script>

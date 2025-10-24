@@ -100,7 +100,7 @@ public class MentorshipController : Controller
         var model = new MentorshipRequestViewModel
         {
             Mentor = mentor,
-            SharedExpertise = sharedExpertise,
+            AvailableExpertise = sharedExpertise,
             MentorshipType = currentUser.IsNewSpeaker ? 
                 MentorshipType.NewToExperienced : 
                 MentorshipType.ExperiencedToExperienced

@@ -1,4 +1,3 @@
-using System.Text.Encodings.Web;
 using Microsoft.ApplicationInsights;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -19,17 +18,19 @@ public class BrowseModel : PageModel
     private readonly UserManager<User> _userManager;
     private readonly IMentorshipService _mentorshipService;
     private readonly Domain.Interfaces.IEmailSender _emailSender;
+    private readonly ILogger<BrowseModel> _logger;
     private readonly TelemetryClient _telemetryClient;
 
     public BrowseModel(ApplicationDbContext context, UserManager<User> userManager,
         IMentorshipService mentorshipService, Domain.Interfaces.IEmailSender emailSender,
-        TelemetryClient telemetryClient)
+        TelemetryClient telemetryClient, ILogger<BrowseModel> logger)
     {
         _context = context;
         _userManager = userManager;
         _mentorshipService = mentorshipService;
         _emailSender = emailSender;
         _telemetryClient = telemetryClient;
+        _logger = logger;
     }
 
     public BrowseMentorsViewModel ViewModel { get; set; } = null!;
@@ -68,32 +69,42 @@ public class BrowseModel : PageModel
 
     public async Task<IActionResult> OnGetRequestModalAsync(Guid mentorId, MentorshipType type)
     {
-        var currentUser = await _userManager.GetUserAsync(User);
-        if (currentUser == null) return Unauthorized();
 
-        var targetUser = await _context.Users
-            .Include(u => u.SpeakerType)
-            .Include(u => u.UserExpertise)
-            .ThenInclude(ue => ue.Expertise)
-            .FirstOrDefaultAsync(u => u.Id == mentorId);
-
-        if (targetUser == null) return NotFound();
-
-        // Get expertise areas for the target user
-        var expertise = targetUser.UserExpertise
-            .Select(ue => ue.Expertise)
-            .OrderBy(e => e.Name)
-            .ToList();
-
-        var viewModel = new RequestMentorshipViewModel
+        try
         {
-            TargetUser = targetUser,
-            CurrentUser = currentUser,
-            Type = type,
-            AvailableExpertise = expertise
-        };
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null) return Unauthorized();
 
-        return Partial("_RequestModal", viewModel);
+            var targetUser = await _context.Users
+                .Include(u => u.SpeakerType)
+                .Include(u => u.UserExpertise)
+                .ThenInclude(ue => ue.Expertise)
+                .FirstOrDefaultAsync(u => u.Id == mentorId);
+
+            if (targetUser == null) return NotFound();
+
+            // Get expertise areas for the target user
+            var expertise = targetUser.UserExpertise
+                .Select(ue => ue.Expertise)
+                .OrderBy(e => e.Name)
+                .ToList();
+
+            var viewModel = new MentorshipRequestViewModel
+            {
+                Mentor = targetUser,
+                Mentee = currentUser,
+                MentorshipType = type,
+                AvailableExpertise = expertise
+            };
+
+            return Partial("/Views/Mentorship/_RequestModal.cshtml", viewModel);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error loading mentor request modal");
+            Console.WriteLine(e);
+            throw;
+        }
     }
 
     public async Task<IActionResult> OnGetSearchMentorsAsync(
