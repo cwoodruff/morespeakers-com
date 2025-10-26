@@ -170,7 +170,7 @@
             <div class="text-center">
                 @foreach (var expertise in Model.PopularExpertise)
                 {
-                    <a asp-page="/Speakers/Index" asp-route-expertise="@expertise.Id" role="button" type="button" class="btn btn-primary">
+                    <a asp-page="/Speakers/Index" asp-route-expertisefilter="@expertise.Id" role="button" type="button" class="btn btn-primary">
                         @expertise.Name <span class="badge text-bg-secondary">@expertise.UserExpertise.Count</span>
                     </a>
                 }
