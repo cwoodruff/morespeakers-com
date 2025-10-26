@@ -114,25 +114,7 @@
                             </div>
                         }
                     </div>
-
-                    <!-- Availability Filter -->
-                    <div class="mb-3">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox"
-                                   name="availability" value="true"
-                                   id="availability-immediate"
-                                   @(Model.AvailableNow == true ? "checked" : "")
-                                   hx-get="/Mentorship/Browse?handler=SearchMentors"
-                                   hx-target="#mentor-results"
-                                   hx-include="[name='mentorshipType']:checked,[name='expertise']:checked"
-                                   hx-trigger="change"
-                                   hx-indicator="#search-loading">
-                            <label class="form-check-label" for="availability-immediate">
-                                <i class="bi bi-clock me-1"></i>Available for immediate mentorship
-                            </label>
-                        </div>
-                    </div>
-
+                    
                     <!-- Search Loading Indicator -->
                     <div id="search-loading" class="htmx-indicator text-center">
                         <div class="spinner-border spinner-border-sm text-primary" role="status">
