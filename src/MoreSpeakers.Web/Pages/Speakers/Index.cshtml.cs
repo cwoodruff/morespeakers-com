@@ -4,15 +4,15 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using MoreSpeakers.Web.Models;
 using MoreSpeakers.Web.Services;
 
-namespace MoreSpeakers.Web.Pages;
+namespace MoreSpeakers.Web.Pages.Speakers;
 
-public class BrowseSpeakersModel : PageModel
+public class IndexModel : PageModel
 {
     private const int PageSize = 12;
     private readonly IExpertiseService _expertiseService;
     private readonly ISpeakerService _speakerService;
 
-    public BrowseSpeakersModel(ISpeakerService speakerService, IExpertiseService expertiseService)
+    public IndexModel(ISpeakerService speakerService, IExpertiseService expertiseService)
     {
         _speakerService = speakerService;
         _expertiseService = expertiseService;

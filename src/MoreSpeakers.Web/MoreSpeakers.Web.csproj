@@ -78,4 +78,8 @@
         <ProjectReference Include="..\MoreSpeakers.ServiceDefaults\MoreSpeakers.ServiceDefaults.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="logs\" />
+    </ItemGroup>
+
 </Project>
