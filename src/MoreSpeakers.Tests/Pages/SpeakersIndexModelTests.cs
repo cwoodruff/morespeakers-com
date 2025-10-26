@@ -10,22 +10,22 @@ using Microsoft.AspNetCore.Routing;
 
 using Moq;
 using MoreSpeakers.Web.Models;
-using MoreSpeakers.Web.Pages;
+using MoreSpeakers.Web.Pages.Speakers;
 using MoreSpeakers.Web.Services;
 
 namespace MoreSpeakers.Tests.Pages;
 
-public class BrowseSpeakersPageTests
+public class SpeakersIndexModelTests
 {
     private readonly Mock<IExpertiseService> _mockExpertiseService;
     private readonly Mock<ISpeakerService> _mockSpeakerService;
-    private readonly BrowseSpeakersModel _pageModel;
+    private readonly IndexModel _pageModel;
 
-    public BrowseSpeakersPageTests()
+    public SpeakersIndexModelTests()
     {
         _mockSpeakerService = new Mock<ISpeakerService>();
         _mockExpertiseService = new Mock<IExpertiseService>();
-        _pageModel = new BrowseSpeakersModel(
+        _pageModel = new IndexModel(
 					_mockSpeakerService.Object,
 					_mockExpertiseService.Object)
 		{
@@ -324,14 +324,14 @@ public class BrowseSpeakersPageTests
     }
 
     [Fact]
-    public void BrowseSpeakersModel_ShouldInheritFromPageModel()
+    public void SpeakersIndexModel_ShouldInheritFromPageModel()
     {
         // Assert
         _pageModel.Should().BeAssignableTo<PageModel>();
     }
 
     [Fact]
-    public void BrowseSpeakersModel_Properties_ShouldHaveDefaultValues()
+    public void SpeakersIndexModel_Properties_ShouldHaveDefaultValues()
     {
         // Assert
         _pageModel.Speakers.Should().NotBeNull().And.BeEmpty();

@@ -15,7 +15,7 @@ MoreSpeakers.com is a mentorship platform designed to help aspiring speakers in 
 - Track mentorship relationships
 
 ### For Experienced Speakers
-- Create mentor profiles highlighting expertise and available support
+- Create mentor profiles highlighting expertise and available suppo~~~~rt
 - Browse new speakers seeking mentorship
 - Offer guidance and assign yourself to new speakers
 - Manage multiple mentorship relationships

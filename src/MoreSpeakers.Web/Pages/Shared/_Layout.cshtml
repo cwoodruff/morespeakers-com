@@ -66,7 +66,7 @@
                         <a class="nav-link" asp-area="" asp-page="/Index">Home</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" asp-area="" asp-page="/BrowseSpeakers">Browse Speakers</a>
+                        <a class="nav-link" asp-area="" asp-page="/Speakers/Index">Browse Speakers</a>
                     </li>
                     @if (User.Identity?.IsAuthenticated == true)
                     {
@@ -194,7 +194,7 @@
                 <h6 class="fw-bold mb-1">Quick Links</h6>
                 <ul class="list-unstyled small mb-0">
                     <li class="mb-1"><a href="~/" class="text-decoration-none">Home</a></li>
-                    <li class="mb-1"><a asp-page="/BrowseSpeakers" class="text-decoration-none">Browse Speakers</a></li>
+                    <li class="mb-1"><a asp-page="/Speakers/Index" class="text-decoration-none">Browse Speakers</a></li>
                     <li class="mb-1"><a asp-page="/About" class="text-decoration-none">About</a></li>
                     <li class="mb-1"><a href="https://github.com/cwoodruff/morespeakers-com" target="_blank" class="text-decoration-none">
                         GitHub Repo

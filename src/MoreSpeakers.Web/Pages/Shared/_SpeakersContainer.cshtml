@@ -1,4 +1,4 @@
-@model MoreSpeakers.Web.Pages.BrowseSpeakersModel
+@model MoreSpeakers.Web.Pages.Speakers.IndexModel
     @if (Model.Speakers?.Any() == true)
     {
         <div class="row">
@@ -137,7 +137,7 @@
             <p class="text-muted">Try adjusting your search criteria or browse all speakers.</p>
             @if (!string.IsNullOrEmpty(Model.SearchTerm) || Model.SpeakerTypeFilter.HasValue || Model.ExpertiseFilter.HasValue)
             {
-                <a href="/BrowseSpeakers" class="btn btn-primary">
+                <a asp-page="/Speakers/Index" class="btn btn-primary">
                     <i class="bi bi-arrow-clockwise me-2"></i>Clear Filters
                 </a>
             }
@@ -176,6 +176,6 @@
         if (!string.IsNullOrEmpty(Model.SortBy))
             queryParams.Add($"SortBy={Model.SortBy}");
 
-        return $"/BrowseSpeakers?{string.Join("&", queryParams)}";
+        return $"/Speakers/Index?{string.Join("&", queryParams)}";
     }
 }

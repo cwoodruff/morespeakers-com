@@ -28,7 +28,7 @@
                         <a asp-page="/Profile/Index" class="btn btn-primary btn-lg">
                             <i class="bi bi-person me-2"></i>View My Profile
                         </a>
-                        <a asp-page="/BrowseSpeakers" class="btn btn-secondary btn-lg">
+                        <a asp-page="/Speakers/Index" class="btn btn-secondary btn-lg">
                             <i class="bi bi-search me-2"></i>Browse Speakers
                         </a>
                     }
@@ -170,13 +170,13 @@
             <div class="text-center">
                 @foreach (var expertise in Model.PopularExpertise)
                 {
-                    <a asp-page="/Speakers/Browse" asp-route-expertise="@expertise.Id" role="button" type="button" class="btn btn-primary">
+                    <a asp-page="/Speakers/Index" asp-route-expertise="@expertise.Id" role="button" type="button" class="btn btn-primary">
                         @expertise.Name <span class="badge text-bg-secondary">@expertise.UserExpertise.Count</span>
                     </a>
                 }
             </div>
             <div class="text-center my-3">
-                <a asp-page="/Speakers/Browse" class="btn btn-outline-primary">
+                <a asp-page="/Speakers/Index" class="btn btn-outline-primary">
                     <i class="bi bi-search me-2"></i>Browse All Speakers
                 </a>
             </div>
