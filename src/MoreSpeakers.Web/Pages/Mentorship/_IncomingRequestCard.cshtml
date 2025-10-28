@@ -91,8 +91,8 @@
             <button class="btn btn-sm btn-outline-danger"
                     hx-get="/Mentorship/Requests?handler=DeclineModal&mentorshipId=@Model.Id"
                     hx-target="#modal-container"
-                    hx-include="#incoming-requests"
-                    hx-swap="innerHTML">
+                    hx-page-handler="Modal"
+                    hx-include="#incoming-requests">
                 <i class="bi bi-x-circle me-1"></i>Decline
             </button>
 
@@ -107,3 +107,5 @@
         </div>
     </div>
 </div>
+
+<div id="modal-container"></div>
