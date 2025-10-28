@@ -17,7 +17,7 @@
                         hx-swap="innerHTML"></button>
             </div>
             
-            <form hx-post="/Mentorship/SendRequest/@Model.Mentor.Id"
+            <form hx-post="/Mentorship/Browse?handler=SubmitRequest"
                   hx-target="#modal-container"
                   hx-swap="innerHTML"
                   hx-indicator="#request-loading">
