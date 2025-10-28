@@ -1,13 +1,26 @@
+using AutoMapper;
+
 using Microsoft.EntityFrameworkCore;
-using MoreSpeakers.Web.Data;
-using MoreSpeakers.Web.Models;
+using MoreSpeakers.Data.Models;
+using MoreSpeakers.Domain.Interfaces;
 
-namespace MoreSpeakers.Web.Services;
+namespace MoreSpeakers.Data;
 
-public class ExpertiseService(ApplicationDbContext context) : IExpertiseService
+public class ExpertiseDataStore : IExpertiseDataStore
 {
-    private readonly ApplicationDbContext _context = context;
+    private readonly MoreSpeakersDbContext _context;
+    private readonly Mapper _mapper;
 
+    private ExpertiseDataStore(IDatabaseSettings databaseSettings)
+    {
+        _context = new MoreSpeakersDbContext(databaseSettings);
+        var mappingConfiguration = new MapperConfiguration(cfg =>
+        {
+            cfg.AddProfile<MappingProfiles.MoreSpeakersProfile>();
+        });
+        _mapper = new Mapper(mappingConfiguration);
+    }
+    
     public async Task<IEnumerable<Expertise>> GetAllExpertiseAsync()
     {
         return await _context.Expertise

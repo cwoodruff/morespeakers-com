@@ -1,23 +1,26 @@
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using MoreSpeakers.Web.Models;
+
+using MoreSpeakers.Domain.Interfaces;
+using MoreSpeakers.Domain.Models;
 using MoreSpeakers.Web.Services;
 
 namespace MoreSpeakers.Web.Pages;
 
 public class IndexModel : PageModel
 {
-    private readonly IExpertiseService _expertiseService;
+    private readonly IExpertiseDataStore _expertiseDataStore;
     private readonly IMentorshipService _mentorshipService;
-    private readonly ISpeakerService _speakerService;
+    private readonly ISpeakerDataStore _speakerDataStore;
 
     public IndexModel(
-        ISpeakerService speakerService,
+        IExpertiseDataStore expertiseDataStore,
         IMentorshipService mentorshipService,
-        IExpertiseService expertiseService)
+        ISpeakerDataStore speakerDataStore
+        )
     {
-        _speakerService = speakerService;
+        _expertiseDataStore = expertiseDataStore;
         _mentorshipService = mentorshipService;
-        _expertiseService = expertiseService;
+        _speakerDataStore = speakerDataStore;   
     }
 
     public int NewSpeakersCount { get; set; }
@@ -29,8 +32,8 @@ public class IndexModel : PageModel
     public async Task OnGetAsync()
     {
         // Get statistics
-        var newSpeakers = await _speakerService.GetNewSpeakersAsync();
-        var experiencedSpeakers = await _speakerService.GetExperiencedSpeakersAsync();
+        var newSpeakers = await _speakerDataStore.GetNewSpeakersAsync();
+        var experiencedSpeakers = await _speakerDataStore.GetExperiencedSpeakersAsync();
         var activeMentorships = await _mentorshipService.GetActiveMentorshipsAsync();
 
         NewSpeakersCount = newSpeakers.Count();
@@ -45,6 +48,6 @@ public class IndexModel : PageModel
             .ToList();
 
         // Get popular expertise areas
-        PopularExpertise = await _expertiseService.GetPopularExpertiseAsync(8);
+        PopularExpertise = await _expertiseDataStore.GetPopularExpertiseAsync(8);
     }
 }

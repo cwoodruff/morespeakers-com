@@ -46,6 +46,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoreSpeakers.Domain", "More
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoreSpeakers.Functions", "MoreSpeakers.Functions\MoreSpeakers.Functions.csproj", "{AA38EDCA-5D11-9436-207B-64761E36719F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoreSpeakers.Data", "MoreSpeakers.Data\MoreSpeakers.Data.csproj", "{C3D185A8-D129-44F3-B716-756349ED0C6A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoreSpeakers.Data.Tests", "MoreSpeakers.Data.Tests\MoreSpeakers.Data.Tests.csproj", "{972C4670-4A50-455B-88B6-8A4E23AE619D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -80,6 +84,14 @@ Global
 		{AA38EDCA-5D11-9436-207B-64761E36719F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AA38EDCA-5D11-9436-207B-64761E36719F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AA38EDCA-5D11-9436-207B-64761E36719F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C3D185A8-D129-44F3-B716-756349ED0C6A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C3D185A8-D129-44F3-B716-756349ED0C6A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C3D185A8-D129-44F3-B716-756349ED0C6A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C3D185A8-D129-44F3-B716-756349ED0C6A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{972C4670-4A50-455B-88B6-8A4E23AE619D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{972C4670-4A50-455B-88B6-8A4E23AE619D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{972C4670-4A50-455B-88B6-8A4E23AE619D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{972C4670-4A50-455B-88B6-8A4E23AE619D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

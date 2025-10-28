@@ -1,10 +1,8 @@
-using MoreSpeakers.Web.Models;
+using MoreSpeakers.Domain.Models;
 
-namespace MoreSpeakers.Web.Services;
+namespace MoreSpeakers.Domain.Interfaces;
 
-
-// Speaker Service Interface
-public interface ISpeakerService
+public interface ISpeakerDataStore
 {
     Task<IEnumerable<User>> GetNewSpeakersAsync();
     Task<IEnumerable<User>> GetExperiencedSpeakersAsync();

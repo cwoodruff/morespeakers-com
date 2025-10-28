@@ -2,9 +2,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+
+using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Web.Data;
 using MoreSpeakers.Web.Models;
-using MoreSpeakers.Web.Services;
 using MoreSpeakers.Web.Models.ViewModels;
 
 namespace MoreSpeakers.Web.Controllers;
@@ -15,16 +16,16 @@ public class MentorshipController : Controller
 {
     private readonly ApplicationDbContext _context;
     private readonly UserManager<User> _userManager;
-    private readonly ISpeakerService _speakerService;
+    private readonly ISpeakerDataStore _speakerDataStore;
 
     public MentorshipController(
         ApplicationDbContext context,
         UserManager<User> userManager,
-        ISpeakerService speakerService)
+        ISpeakerDataStore speakerDataStore)
     {
         _context = context;
         _userManager = userManager;
-        _speakerService = speakerService;
+        _speakerDataStore = speakerDataStore;
     }
 
     [HttpGet("Browse")]

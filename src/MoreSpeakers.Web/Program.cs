@@ -1,12 +1,14 @@
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights.WindowsServer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models;
 using MoreSpeakers.Managers;
-using MoreSpeakers.Web.Data;
 using MoreSpeakers.Web.Models;
 using MoreSpeakers.Web.Services;
+using MoreSpeakers.Data;
 using Serilog;
 using Serilog.Exceptions;
 
@@ -31,13 +33,18 @@ var settings = new Settings
 builder.Configuration.AddEnvironmentVariables();
 builder.Configuration.Bind("Settings", settings);
 builder.Services.AddSingleton<ISettings>(settings);
+builder.Services.TryAddSingleton<IDatabaseSettings>(new DatabaseSettings
+{
+    DatabaseConnectionString = builder.Configuration.GetConnectionString("sqldb") ?? string.Empty
+});
 
+// TODO: Remove after the Mentorship feature is implemented
 // Add database context
-builder.AddSqlServerDbContext<ApplicationDbContext>("sqldb");
-builder.EnrichSqlServerDbContext<ApplicationDbContext>();
+builder.AddSqlServerDbContext<MoreSpeakers.Web.Data.ApplicationDbContext>("sqldb");
+builder.EnrichSqlServerDbContext<MoreSpeakers.Web.Data.ApplicationDbContext>();
 
 // Add Identity services
-builder.Services.AddDefaultIdentity<User>(options =>
+builder.Services.AddDefaultIdentity<MoreSpeakers.Domain.Models.User>(options =>
     {
         // Password settings
         options.Password.RequireDigit = true;
@@ -61,7 +68,7 @@ builder.Services.AddDefaultIdentity<User>(options =>
         options.SignIn.RequireConfirmedPhoneNumber = false;
     })
     .AddRoles<IdentityRole<Guid>>()
-    .AddEntityFrameworkStores<ApplicationDbContext>();
+    .AddEntityFrameworkStores<MoreSpeakers.Web.Data.ApplicationDbContext>();
 
 // Add Razor Pages
 builder.Services.AddRazorPages(options =>
@@ -75,9 +82,9 @@ builder.AddAzureBlobServiceClient("AzureStorageBlobs");
 builder.AddAzureTableServiceClient("AzureStorageTables");
 builder.AddAzureQueueServiceClient("AzureStorageQueues");
 // Add application services
-builder.Services.AddScoped<ISpeakerService, SpeakerService>();
+builder.Services.AddScoped<ISpeakerDataStore, SpeakerDataStore>();
 builder.Services.AddScoped<IMentorshipService, MentorshipService>();
-builder.Services.AddScoped<IExpertiseService, ExpertiseService>();
+builder.Services.AddScoped<IExpertiseDataStore, ExpertiseDataStore>();
 builder.Services.AddScoped<IFileUploadService, FileUploadService>();
 builder.Services.AddScoped<IEmailSender, EmailSender>();
 

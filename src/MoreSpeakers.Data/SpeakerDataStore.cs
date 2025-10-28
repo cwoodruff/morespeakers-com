@@ -1,16 +1,27 @@
+using AutoMapper;
 using Microsoft.EntityFrameworkCore;
-using MoreSpeakers.Web.Data;
-using MoreSpeakers.Web.Models;
+using MoreSpeakers.Data.Models;
+using MoreSpeakers.Domain.Interfaces;
 
-namespace MoreSpeakers.Web.Services;
+namespace MoreSpeakers.Data;
 
-
-// Speaker Service Implementation
-public class SpeakerService(ApplicationDbContext context) : ISpeakerService
+public class SpeakerDataStore : ISpeakerDataStore
 {
-    public async Task<IEnumerable<User>> GetNewSpeakersAsync()
+    private readonly MoreSpeakersDbContext _context;
+    private readonly Mapper _mapper;
+
+    private SpeakerDataStore(IDatabaseSettings databaseSettings)
     {
-        return await context.Users
+        _context = new MoreSpeakersDbContext(databaseSettings);
+        var mappingConfiguration = new MapperConfiguration(cfg =>
+        {
+            cfg.AddProfile<MappingProfiles.MoreSpeakersProfile>();
+        });
+        _mapper = new Mapper(mappingConfiguration);
+    }
+    public async Task<IEnumerable<Domain.Models.User>> GetNewSpeakersAsync()
+    {
+        var users = await _context.Users
             .Include(u => u.SpeakerType)
             .Include(u => u.UserExpertise)
             .ThenInclude(ue => ue.Expertise)
@@ -18,11 +29,13 @@ public class SpeakerService(ApplicationDbContext context) : ISpeakerService
             .Where(u => u.SpeakerType.Name == "NewSpeaker")
             .OrderBy(u => u.FirstName)
             .ToListAsync();
+            
+        return _mapper.Map<IEnumerable<Domain.Models.User>>(users);
     }
 
-    public async Task<IEnumerable<User>> GetExperiencedSpeakersAsync()
+    public async Task<IEnumerable<Domain.Models.User>> GetExperiencedSpeakersAsync()
     {
-        return await context.Users
+        var users = await _context.Users
             .Include(u => u.SpeakerType)
             .Include(u => u.UserExpertise)
             .ThenInclude(ue => ue.Expertise)
@@ -30,21 +43,25 @@ public class SpeakerService(ApplicationDbContext context) : ISpeakerService
             .Where(u => u.SpeakerType.Name == "ExperiencedSpeaker")
             .OrderBy(u => u.FirstName)
             .ToListAsync();
+        
+        return _mapper.Map<IEnumerable<Domain.Models.User>>(users);
     }
 
-    public async Task<User?> GetSpeakerByIdAsync(Guid id)
+    public async Task<Domain.Models.User?> GetSpeakerByIdAsync(Guid id)
     {
-        return await context.Users
+        var user = await _context.Users
             .Include(u => u.SpeakerType)
             .Include(u => u.UserExpertise)
             .ThenInclude(ue => ue.Expertise)
             .Include(u => u.SocialMediaLinks)
             .FirstOrDefaultAsync(u => u.Id == id);
+        
+        return _mapper.Map<Domain.Models.User>(user);
     }
 
-    public async Task<IEnumerable<User>> SearchSpeakersAsync(string searchTerm, int? speakerTypeId = null)
+    public async Task<IEnumerable<Domain.Models.User>> SearchSpeakersAsync(string searchTerm, int? speakerTypeId = null)
     {
-        var query = context.Users
+        var query = _context.Users
             .Include(u => u.SpeakerType)
             .Include(u => u.UserExpertise)
             .ThenInclude(ue => ue.Expertise)
@@ -59,32 +76,32 @@ public class SpeakerService(ApplicationDbContext context) : ISpeakerService
 
         if (speakerTypeId.HasValue) query = query.Where(u => u.SpeakerTypeId == speakerTypeId.Value);
 
-        return await query.OrderBy(u => u.FirstName).ToListAsync();
+        var users = await query.OrderBy(u => u.FirstName).ToListAsync();
+        
+        return _mapper.Map<IEnumerable<Domain.Models.User>>(users);
     }
 
-    public async Task<IEnumerable<User>> GetSpeakersByExpertiseAsync(int expertiseId)
+    public async Task<IEnumerable<Domain.Models.User>> GetSpeakersByExpertiseAsync(int expertiseId)
     {
-        return await context.Users
+        var users = await _context.Users
             .Include(u => u.SpeakerType)
             .Include(u => u.UserExpertise)
             .ThenInclude(ue => ue.Expertise)
             .Where(u => u.UserExpertise.Any(ue => ue.ExpertiseId == expertiseId))
             .OrderBy(u => u.FirstName)
             .ToListAsync();
+        
+        return _mapper.Map<IEnumerable<Domain.Models.User>>(users);
     }
 
-    public async Task<bool> UpdateSpeakerProfileAsync(User user)
+    public async Task<bool> UpdateSpeakerProfileAsync(Domain.Models.User user)
     {
-        try
-        {
-            context.Users.Update(user);
-            await context.SaveChangesAsync();
-            return true;
-        }
-        catch
-        {
-            return false;
-        }
+        var dbUser = _mapper.Map<User>(user);
+        _context.Entry(dbUser).State =
+            dbUser.Id == Guid.Empty ? EntityState.Added : EntityState.Modified;
+        
+        var result = await _context.SaveChangesAsync() != 0;
+        return result ? true : throw new ApplicationException("Failed to save user profile");
     }
 
     public async Task<bool> AddSocialMediaLinkAsync(Guid userId, string platform, string url)
@@ -98,8 +115,8 @@ public class SpeakerService(ApplicationDbContext context) : ISpeakerService
                 Url = url
             };
 
-            context.SocialMedia.Add(socialMedia);
-            await context.SaveChangesAsync();
+            _context.SocialMedia.Add(socialMedia);
+            await _context.SaveChangesAsync();
             return true;
         }
         catch
@@ -112,11 +129,11 @@ public class SpeakerService(ApplicationDbContext context) : ISpeakerService
     {
         try
         {
-            var socialMedia = await context.SocialMedia.FindAsync(socialMediaId);
+            var socialMedia = await _context.SocialMedia.FindAsync(socialMediaId);
             if (socialMedia != null)
             {
-                context.SocialMedia.Remove(socialMedia);
-                await context.SaveChangesAsync();
+                _context.SocialMedia.Remove(socialMedia);
+                await _context.SaveChangesAsync();
                 return true;
             }
 
@@ -138,8 +155,8 @@ public class SpeakerService(ApplicationDbContext context) : ISpeakerService
                 ExpertiseId = expertiseId
             };
 
-            context.UserExpertise.Add(userExpertise);
-            await context.SaveChangesAsync();
+            _context.UserExpertise.Add(userExpertise);
+            await _context.SaveChangesAsync();
             return true;
         }
         catch
@@ -152,13 +169,13 @@ public class SpeakerService(ApplicationDbContext context) : ISpeakerService
     {
         try
         {
-            var userExpertise = await context.UserExpertise
+            var userExpertise = await _context.UserExpertise
                 .FirstOrDefaultAsync(ue => ue.UserId == userId && ue.ExpertiseId == expertiseId);
 
             if (userExpertise != null)
             {
-                context.UserExpertise.Remove(userExpertise);
-                await context.SaveChangesAsync();
+                _context.UserExpertise.Remove(userExpertise);
+                await _context.SaveChangesAsync();
                 return true;
             }
 

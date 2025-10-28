@@ -1,10 +1,8 @@
-using MoreSpeakers.Web.Models;
+using MoreSpeakers.Domain.Models;
 
-namespace MoreSpeakers.Web.Services;
+namespace MoreSpeakers.Domain.Interfaces;
 
-
-// Expertise Service Interface
-public interface IExpertiseService
+public interface IExpertiseDataStore
 {
     Task<IEnumerable<Expertise>> GetAllExpertiseAsync();
     Task<Expertise?> GetExpertiseByIdAsync(int id);

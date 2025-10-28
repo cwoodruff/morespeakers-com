@@ -8,20 +8,21 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 using MoreSpeakers.Web.Data;
-using MoreSpeakers.Web.Models;
-using MoreSpeakers.Web.Services;
+using MoreSpeakers.Domain.Models;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
 using System.Text.Encodings.Web;
+
+using MoreSpeakers.Domain.Interfaces;
 
 namespace MoreSpeakers.Web.Areas.Identity.Pages.Account;
 
 public class RegisterModel : PageModel
 {
     private readonly ApplicationDbContext _context;
-    private readonly Domain.Interfaces.IEmailSender _emailSender;
+    private readonly IEmailSender _emailSender;
     private readonly IUserEmailStore<User> _emailStore;
-    private readonly IExpertiseService _expertiseService;
+    private readonly IExpertiseDataStore _expertiseDataStore;
     private readonly ILogger<RegisterModel> _logger;
     private readonly SignInManager<User> _signInManager;
     private readonly UserManager<User> _userManager;
@@ -33,8 +34,8 @@ public class RegisterModel : PageModel
         IUserStore<User> userStore,
         SignInManager<User> signInManager,
         ILogger<RegisterModel> logger,
-        Domain.Interfaces.IEmailSender emailSender,
-        IExpertiseService expertiseService,
+        IEmailSender emailSender,
+        IExpertiseDataStore expertiseDataStore,
         ApplicationDbContext context,
         TelemetryClient telemetryClient)
     {
@@ -44,7 +45,7 @@ public class RegisterModel : PageModel
         _signInManager = signInManager;
         _logger = logger;
         _emailSender = emailSender;
-        _expertiseService = expertiseService;
+        _expertiseDataStore = expertiseDataStore;
         _context = context;
         _telemetryClient = telemetryClient;
     }
@@ -73,7 +74,7 @@ public class RegisterModel : PageModel
     public int[] ExpertiseIds => Input?.SelectedExpertiseIds ?? [];
 
     // Properties required by _RegistrationContainer.cshtml
-    public int CurrentStep { get; set; } = RegistrationProgressions.SpeakerProfileNeeded;
+    public int CurrentStep { get; set; } = Models.RegistrationProgressions.SpeakerProfileNeeded;
     public bool HasValidationErrors { get; set; }
     public string ValidationMessage { get; set; } = string.Empty;
     public string SuccessMessage { get; set; } = string.Empty;
@@ -87,7 +88,7 @@ public class RegisterModel : PageModel
         Input ??= new InputModel();
 
         // Initialize registration state
-        CurrentStep = RegistrationProgressions.SpeakerProfileNeeded;
+        CurrentStep = Models.RegistrationProgressions.SpeakerProfileNeeded;
         HasValidationErrors = false;
         ValidationMessage = string.Empty;
         SuccessMessage = string.Empty;
@@ -103,7 +104,7 @@ public class RegisterModel : PageModel
     public async Task<IActionResult> OnPostValidateStepAsync(int step)
     {
         // Validate step number
-        if (!RegistrationProgressions.IsValid(step))
+        if (!Models.RegistrationProgressions.IsValid(step))
         {
             ModelState.AddModelError("", "Invalid step number.");
             return BadRequest();
@@ -116,7 +117,7 @@ public class RegisterModel : PageModel
         var stepValid = ValidateStep(step);
 
         // Additional async validations for step 1 (e.g., email uniqueness)
-        if (step == RegistrationProgressions.SpeakerProfileNeeded && stepValid)
+        if (step == Models.RegistrationProgressions.SpeakerProfileNeeded && stepValid)
         {
             if (!string.IsNullOrWhiteSpace(Input?.Email))
             {
@@ -148,7 +149,7 @@ public class RegisterModel : PageModel
 
         // All validation passed - move to next step
         var nextStep = step + 1;
-        if (nextStep <= RegistrationProgressions.SocialMediaNeeded)
+        if (nextStep <= Models.RegistrationProgressions.SocialMediaNeeded)
         {
             HasValidationErrors = false;
             SuccessMessage = GetSuccessMessage(step);
@@ -171,10 +172,10 @@ public class RegisterModel : PageModel
     {
         return step switch
         {
-            RegistrationProgressions.SpeakerProfileNeeded => "Please complete all required account information before proceeding.",
-            RegistrationProgressions.RequiredInformationNeeded => "Please fill out your speaker profile completely.",
-            RegistrationProgressions.ExpertiseNeeded => "Please select at least one area of expertise.",
-            RegistrationProgressions.SocialMediaNeeded => "Please review your social media information.",
+            Models.RegistrationProgressions.SpeakerProfileNeeded => "Please complete all required account information before proceeding.",
+            Models.RegistrationProgressions.RequiredInformationNeeded => "Please fill out your speaker profile completely.",
+            Models.RegistrationProgressions.ExpertiseNeeded => "Please select at least one area of expertise.",
+            Models.RegistrationProgressions.SocialMediaNeeded => "Please review your social media information.",
             _ => "Please complete the required information."
         };
     }
@@ -183,9 +184,9 @@ public class RegisterModel : PageModel
     {
         return step switch
         {
-            RegistrationProgressions.SpeakerProfileNeeded => "Account information saved successfully!",
-            RegistrationProgressions.RequiredInformationNeeded => "Profile information saved successfully!",
-            RegistrationProgressions.ExpertiseNeeded => "Expertise areas saved successfully!",
+            Models.RegistrationProgressions.SpeakerProfileNeeded => "Account information saved successfully!",
+            Models.RegistrationProgressions.RequiredInformationNeeded => "Profile information saved successfully!",
+            Models.RegistrationProgressions.ExpertiseNeeded => "Expertise areas saved successfully!",
             _ => "Information saved successfully!"
         };
     }
@@ -197,8 +198,8 @@ public class RegisterModel : PageModel
 
         // Return previous step without validation
         var prevStep = step - 1;
-        if (prevStep < RegistrationProgressions.SpeakerProfileNeeded)
-            prevStep = RegistrationProgressions.SpeakerProfileNeeded;
+        if (prevStep < Models.RegistrationProgressions.SpeakerProfileNeeded)
+            prevStep = Models.RegistrationProgressions.SpeakerProfileNeeded;
 
         CurrentStep = prevStep;
         HasValidationErrors = false;
@@ -281,7 +282,7 @@ public class RegisterModel : PageModel
 
     private async Task LoadFormDataAsync()
     {
-        AvailableExpertise = await _expertiseService.GetAllExpertiseAsync();
+        AvailableExpertise = await _expertiseDataStore.GetAllExpertiseAsync();
         AllExpertise = AvailableExpertise; // Same data, different property name for registration completion (step 5)
         SpeakerTypes = new List<SpeakerType>
         {
@@ -300,7 +301,7 @@ public class RegisterModel : PageModel
 
         switch (step)
         {
-            case RegistrationProgressions.SpeakerProfileNeeded: // Account step
+            case Models.RegistrationProgressions.SpeakerProfileNeeded: // Account step
                 if (string.IsNullOrWhiteSpace(Input.FirstName))
                 {
                     ModelState.AddModelError("Input.FirstName", "First name is required.");
@@ -360,7 +361,7 @@ public class RegisterModel : PageModel
                     ModelState.AddModelError("Input.ConfirmPassword", "Passwords do not match.");
                 }
                 break;
-            case RegistrationProgressions.RequiredInformationNeeded: // Profile step
+            case Models.RegistrationProgressions.RequiredInformationNeeded: // Profile step
                 if (Input.SpeakerTypeId <= 0)
                     ModelState.AddModelError("Input.SpeakerTypeId", "Please select a speaker type.");
                 if (string.IsNullOrWhiteSpace(Input.Bio))
@@ -368,12 +369,12 @@ public class RegisterModel : PageModel
                 if (string.IsNullOrWhiteSpace(Input.Goals))
                     ModelState.AddModelError("Input.Goals", "Goals are required.");
                 break;
-            case RegistrationProgressions.ExpertiseNeeded: // Expertise step
+            case Models.RegistrationProgressions.ExpertiseNeeded: // Expertise step
                 if ((Input.SelectedExpertiseIds?.Length ?? 0) == 0 && (Input.CustomExpertise?.Length ?? 0) == 0)
                     ModelState.AddModelError("Input.SelectedExpertiseIds",
                         "Please select at least one area of expertise.");
                 break;
-            case RegistrationProgressions.SocialMediaNeeded: // Social step - optional, no validation needed
+            case Models.RegistrationProgressions.SocialMediaNeeded: // Social step - optional, no validation needed
                 break;
         }
 
@@ -389,7 +390,7 @@ public class RegisterModel : PageModel
 
         // Validate all steps before final submission
         var allStepsValid = true;
-        foreach(var i in RegistrationProgressions.All)
+        foreach(var i in Models.RegistrationProgressions.All)
             if (!ValidateStep(i))
                 allStepsValid = false;
 
@@ -483,7 +484,7 @@ public class RegisterModel : PageModel
                 // Load data needed for registration completion (step 5) display
                 await LoadFormDataAsync();
 
-                CurrentStep = RegistrationProgressions.Complete;
+                CurrentStep = Models.RegistrationProgressions.Complete;
                 HasValidationErrors = false;
                 ValidationMessage = string.Empty;
                 SuccessMessage = "Registration completed successfully!";
@@ -497,7 +498,7 @@ public class RegisterModel : PageModel
 
         // If we got this far, something failed, redisplay form with current state
         await LoadFormDataAsync();
-        CurrentStep = RegistrationProgressions.SpeakerProfileNeeded; // Reset to first step on major failure
+        CurrentStep = Models.RegistrationProgressions.SpeakerProfileNeeded; // Reset to first step on major failure
         HasValidationErrors = true;
         ValidationMessage = "Registration failed. Please check the errors and try again.";
         return Page();
