@@ -1,7 +1,7 @@
 using AutoMapper;
 
 using Microsoft.EntityFrameworkCore;
-using MoreSpeakers.Data.Models;
+using MoreSpeakers.Domain.Models;
 using MoreSpeakers.Domain.Interfaces;
 
 namespace MoreSpeakers.Data;
@@ -20,95 +20,76 @@ public class ExpertiseDataStore : IExpertiseDataStore
         });
         _mapper = new Mapper(mappingConfiguration);
     }
-    
-    public async Task<IEnumerable<Expertise>> GetAllExpertiseAsync()
+
+    public async Task<Expertise> GetAsync(int primaryKey)
     {
-        return await _context.Expertise
-            .OrderBy(e => e.Name)
-            .ToListAsync();
+        var expertise = await _context.Expertise.FirstOrDefaultAsync(e => e.Id == primaryKey);
+        return _mapper.Map<Expertise>(expertise);
     }
 
-    public async Task<Expertise?> GetExpertiseByIdAsync(int id)
+    public async Task<Expertise> SaveAsync(Expertise entity)
     {
-        return await _context.Expertise.FindAsync(id);
-    }
+        var expertise = _mapper.Map<Models.Expertise>(entity);
+        _context.Entry(entity).State = entity.Id == 0 ? EntityState.Added : EntityState.Modified;
 
-    public async Task<IEnumerable<Expertise>> SearchExpertiseAsync(string searchTerm)
-    {
-        return await _context.Expertise
-            .Where(e => e.Name.Contains(searchTerm) ||
-                        (e.Description != null && e.Description.Contains(searchTerm)))
-            .OrderBy(e => e.Name)
-            .ToListAsync();
-    }
-
-    public async Task<bool> CreateExpertiseAsync(string name, string? description = null)
-    {
-        try
+        var result = await _context.SaveChangesAsync() != 0;
+        if (result)
         {
-            var expertise = new Expertise
-            {
-                Name = name,
-                Description = description
-            };
+            return _mapper.Map<Expertise>(expertise);
+        }
 
-            _context.Expertise.Add(expertise);
-            await _context.SaveChangesAsync();
+        throw new ApplicationException("Failed to save the expertise");
+    }
+
+    public async Task<List<Expertise>> GetAllAsync()
+    {
+        var expertises = await _context.Expertise.ToListAsync();
+        return _mapper.Map<List<Expertise>>(expertises);
+    }
+
+    public async Task<bool> DeleteAsync(Expertise entity)
+    {
+        return await DeleteAsync(entity.Id);
+    }
+
+    public async Task<bool> DeleteAsync(int primaryKey)
+    {
+        var expertise = await _context.Expertise.Include(e => e.UserExpertise)
+            .FirstOrDefaultAsync(e => e.Id == primaryKey);
+
+        if (expertise is null)
+        {
             return true;
         }
-        catch
+        
+        foreach (var userExpertise in expertise.UserExpertise)
         {
-            return false;
+            _context.UserExpertise.Remove(userExpertise);
         }
-    }
+        _context.Expertise.Remove(expertise);
 
-    public async Task<bool> UpdateExpertiseAsync(int id, string name, string? description = null)
-    {
-        try
-        {
-            var expertise = await _context.Expertise.FindAsync(id);
-            if (expertise != null)
-            {
-                expertise.Name = name;
-                expertise.Description = description;
-                await _context.SaveChangesAsync();
-                return true;
-            }
-
-            return false;
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
-    public async Task<bool> DeleteExpertiseAsync(int id)
-    {
-        try
-        {
-            var expertise = await _context.Expertise.FindAsync(id);
-            if (expertise != null)
-            {
-                _context.Expertise.Remove(expertise);
-                await _context.SaveChangesAsync();
-                return true;
-            }
-
-            return false;
-        }
-        catch
-        {
-            return false;
-        }
+        return await _context.SaveChangesAsync() != 0;
     }
 
     public async Task<IEnumerable<Expertise>> GetPopularExpertiseAsync(int count = 10)
     {
-        return await _context.Expertise
+        var expertises = await _context.Expertise
             .Include(e => e.UserExpertise)
             .OrderByDescending(e => e.UserExpertise.Count)
             .Take(count)
             .ToListAsync();
+        
+        return _mapper.Map<IEnumerable<Expertise>>(expertises);
+    }
+
+    public async Task<IEnumerable<Expertise>> SearchExpertiseAsync(string searchTerm)
+    {
+        var expertises = await _context.Expertise
+            .Where(e => e.Name.Contains(searchTerm) ||
+                        (e.Description != null && e.Description.Contains(searchTerm)))
+            .OrderBy(e => e.Name)
+            .ToListAsync();
+        
+        return _mapper.Map<IEnumerable<Expertise>>(expertises);
     }
 }

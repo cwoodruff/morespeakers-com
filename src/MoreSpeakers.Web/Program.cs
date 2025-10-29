@@ -81,10 +81,16 @@ builder.Services.AddRazorPages(options =>
 builder.AddAzureBlobServiceClient("AzureStorageBlobs");
 builder.AddAzureTableServiceClient("AzureStorageTables");
 builder.AddAzureQueueServiceClient("AzureStorageQueues");
+
 // Add application services
-builder.Services.AddScoped<ISpeakerDataStore, SpeakerDataStore>();
 builder.Services.AddScoped<IMentorshipService, MentorshipService>();
 builder.Services.AddScoped<IExpertiseDataStore, ExpertiseDataStore>();
+builder.Services.AddScoped<IMentoringDataStore, MentoringDataStore>();
+builder.Services.AddScoped<ISpeakerDataStore, SpeakerDataStore>();
+builder.Services.AddScoped<IExpertiseManager, ExpertiseManager>();
+builder.Services.AddScoped<IMentoringManager, MentoringManager>();
+builder.Services.AddScoped<ISpeakerManager, SpeakerManager>();
+
 builder.Services.AddScoped<IFileUploadService, FileUploadService>();
 builder.Services.AddScoped<IEmailSender, EmailSender>();
 
