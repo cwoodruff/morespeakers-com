@@ -71,6 +71,14 @@ public class ExpertiseDataStore : IExpertiseDataStore
         return await _context.SaveChangesAsync() != 0;
     }
 
+    public async Task<int> CreateExpertiseAsync(string name, string? description = null)
+    {
+        var expertise = new Data.Models.Expertise { Name = name, Description = description, CreatedDate = DateTime.UtcNow};
+        _context.Expertise.Add(expertise);
+        await _context.SaveChangesAsync();
+        return expertise.Id;   
+    }
+
     public async Task<IEnumerable<Expertise>> GetPopularExpertiseAsync(int count = 10)
     {
         var expertises = await _context.Expertise
@@ -91,5 +99,24 @@ public class ExpertiseDataStore : IExpertiseDataStore
             .ToListAsync();
         
         return _mapper.Map<IEnumerable<Expertise>>(expertises);
+    }
+
+    public async Task<Expertise?> SearchForExpertiseExistsAsync(string name)
+    {
+        var experiences = await _context.Expertise.FirstOrDefaultAsync(e => e.Name.Equals(name.Trim(), StringComparison.CurrentCultureIgnoreCase));
+        return _mapper.Map<Expertise>(experiences);   
+    }
+    
+    public async Task<List<Expertise>> FuzzySearchForExistingExpertise(string name, int count = 3)
+    {
+        var trimmedName = name.Trim();
+        var expertises = await _context.Expertise
+            .Where(e => e.Name.ToLower().Contains(trimmedName.ToLower()) ||
+                        trimmedName.ToLower().Contains(e.Name.ToLower()))
+            .Take(count)
+            .Select(e => new { e.Id, e.Name })
+            .ToListAsync();
+        
+        return _mapper.Map<List<Expertise>>(expertises.FirstOrDefault());   
     }
 }

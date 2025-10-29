@@ -31,7 +31,7 @@ public class User : IdentityUser<Guid>
 
     public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedDate { get; set; } = DateTime.UtcNow;
-
+    
     // Navigation properties
     public SpeakerType SpeakerType { get; set; } = null!;
     public ICollection<SocialMedia> SocialMediaLinks { get; set; } = new List<SocialMedia>();

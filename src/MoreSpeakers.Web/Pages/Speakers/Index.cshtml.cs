@@ -10,14 +10,14 @@ namespace MoreSpeakers.Web.Pages.Speakers;
 public class IndexModel : PageModel
 {
     private const int PageSize = 12;
-    private readonly IExpertiseDataStore _expertiseDataStore;
-    private readonly ISpeakerDataStore _speakerDataStore;
+    private readonly IExpertiseManager _expertiseManager;
+    private readonly ISpeakerManager _speakerManager;
     private readonly ILogger<IndexModel> _logger;
 
-    public IndexModel(IExpertiseDataStore expertiseDataStore, ISpeakerDataStore speakerDataStore, ILogger<IndexModel> logger)
+    public IndexModel(IExpertiseManager expertiseManager, ISpeakerManager speakerManager, ILogger<IndexModel> logger)
     {
-        _expertiseDataStore = expertiseDataStore;
-        _speakerDataStore = speakerDataStore;   
+        _expertiseManager = expertiseManager;
+        _speakerManager = speakerManager;
         _logger = logger;
     }
 
@@ -66,19 +66,19 @@ public class IndexModel : PageModel
     private async Task LoadSpeakersAsync()
     {
         // Load all expertise for filter dropdown
-        AllExpertise = await _expertiseDataStore.GetAllExpertiseAsync();
+        AllExpertise = await _expertiseManager.GetAllAsync();
 
         // Start with all speakers
-        var newSpeakers = await _speakerDataStore.GetNewSpeakersAsync();
+        var newSpeakers = await _speakerManager.GetNewSpeakersAsync();
         IEnumerable<User> experiencedSpeakers;
         // Apply expertise filter
 		if (ExpertiseFilter.HasValue)
         {
-	        experiencedSpeakers = await _speakerDataStore.GetSpeakersByExpertiseAsync(ExpertiseFilter.Value);
+	        experiencedSpeakers = await _speakerManager.GetSpeakersByExpertiseAsync(ExpertiseFilter.Value);
         }
 		else
 		{
-			experiencedSpeakers = await _speakerDataStore.GetExperiencedSpeakersAsync();
+			experiencedSpeakers = await _speakerManager.GetExperiencedSpeakersAsync();
 		}
 
 		IEnumerable<User> allSpeakers = newSpeakers.Concat(experiencedSpeakers);
@@ -86,7 +86,7 @@ public class IndexModel : PageModel
         // Apply search filter
         if (!string.IsNullOrWhiteSpace(SearchTerm))
         {
-			allSpeakers = await _speakerDataStore.SearchSpeakersAsync(SearchTerm, SpeakerTypeFilter);
+			allSpeakers = await _speakerManager.SearchSpeakersAsync(SearchTerm, SpeakerTypeFilter);
         }
 
         // Apply speaker type filter

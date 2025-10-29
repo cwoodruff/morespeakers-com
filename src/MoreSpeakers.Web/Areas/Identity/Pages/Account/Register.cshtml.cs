@@ -6,8 +6,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.EntityFrameworkCore;
-using MoreSpeakers.Web.Data;
 using MoreSpeakers.Domain.Models;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
@@ -17,12 +15,12 @@ using MoreSpeakers.Domain.Interfaces;
 
 namespace MoreSpeakers.Web.Areas.Identity.Pages.Account;
 
-public class RegisterModel : PageModel
+public partial class RegisterModel : PageModel
 {
-    private readonly ApplicationDbContext _context;
     private readonly IEmailSender _emailSender;
     private readonly IUserEmailStore<User> _emailStore;
-    private readonly IExpertiseDataStore _expertiseDataStore;
+    private readonly IExpertiseManager _expertiseManager;
+    private readonly ISpeakerManager _speakerManager;
     private readonly ILogger<RegisterModel> _logger;
     private readonly SignInManager<User> _signInManager;
     private readonly UserManager<User> _userManager;
@@ -35,8 +33,8 @@ public class RegisterModel : PageModel
         SignInManager<User> signInManager,
         ILogger<RegisterModel> logger,
         IEmailSender emailSender,
-        IExpertiseDataStore expertiseDataStore,
-        ApplicationDbContext context,
+        IExpertiseManager expertiseManager,
+        ISpeakerManager speakerManager,
         TelemetryClient telemetryClient)
     {
         _userManager = userManager;
@@ -45,8 +43,8 @@ public class RegisterModel : PageModel
         _signInManager = signInManager;
         _logger = logger;
         _emailSender = emailSender;
-        _expertiseDataStore = expertiseDataStore;
-        _context = context;
+        _expertiseManager = expertiseManager;
+        _speakerManager = speakerManager;
         _telemetryClient = telemetryClient;
     }
 
@@ -242,9 +240,7 @@ public class RegisterModel : PageModel
         var trimmedName = expertiseName.Trim();
 
         // Check if expertise already exists (case-insensitive)
-        var existingExpertise = await _context.Expertise
-            .Where(e => e.Name.ToLower() == trimmedName.ToLower())
-            .FirstOrDefaultAsync();
+        var existingExpertise = await _expertiseManager.SearchForExpertiseExistsAsync(trimmedName);
 
         if (existingExpertise != null)
         {
@@ -258,12 +254,7 @@ public class RegisterModel : PageModel
         }
 
         // Check for similar expertise (fuzzy matching for suggestions)
-        var similarExpertise = await _context.Expertise
-            .Where(e => e.Name.ToLower().Contains(trimmedName.ToLower()) ||
-                       trimmedName.ToLower().Contains(e.Name.ToLower()))
-            .Take(3)
-            .Select(e => new { e.Id, e.Name })
-            .ToListAsync();
+        var similarExpertise = await _expertiseManager.FuzzySearchForExistingExpertise(trimmedName);
 
         if (similarExpertise.Any())
         {
@@ -282,7 +273,7 @@ public class RegisterModel : PageModel
 
     private async Task LoadFormDataAsync()
     {
-        AvailableExpertise = await _expertiseDataStore.GetAllExpertiseAsync();
+        AvailableExpertise = await _expertiseManager.GetAllAsync();
         AllExpertise = AvailableExpertise; // Same data, different property name for registration completion (step 5)
         SpeakerTypes = new List<SpeakerType>
         {
@@ -415,41 +406,25 @@ public class RegisterModel : PageModel
 
             if (result.Succeeded)
             {
-                _logger.LogInformation("User created a new account with password.");
+                _logger.LogInformation("User created a new account with password");
 
                 // Add expertise relationships
-                foreach (var expertiseId in Input.SelectedExpertiseIds)
-                    _context.UserExpertise.Add(new UserExpertise
-                    {
-                        UserId = user.Id,
-                        ExpertiseId = expertiseId
-                    });
-
+                await _speakerManager.EmptyAndAddExpertiseForUserAsync(user.Id, Input.SelectedExpertiseIds);
+                
                 // Add custom expertise
                 foreach (var customExpertise in Input.CustomExpertise.Where(ce => !string.IsNullOrWhiteSpace(ce)))
                 {
-                    // Create new expertise
-                    var expertise = new Expertise
-                    {
-                        Name = customExpertise.Trim(),
-                        Description = $"Custom expertise: {customExpertise.Trim()}",
-                        CreatedDate = DateTime.UtcNow
-                    };
-                    _context.Expertise.Add(expertise);
-                    await _context.SaveChangesAsync(); // Save to get the ID
-
-                    _context.UserExpertise.Add(new UserExpertise
-                    {
-                        UserId = user.Id,
-                        ExpertiseId = expertise.Id
-                    });
+                    var expertiseId = await _expertiseManager.CreateExpertiseAsync(customExpertise.Trim(),
+                        $"Custom expertise: {customExpertise.Trim()}");
+                    await _speakerManager.AddExpertiseToUserAsync(user.Id, expertiseId);
                 }
 
                 // Add social media links
+                var socialMediaLinks = new List<SocialMedia>();
                 for (var i = 0; i < Input.SocialMediaPlatforms.Length && i < Input.SocialMediaUrls.Length; i++)
                     if (!string.IsNullOrWhiteSpace(Input.SocialMediaPlatforms[i]) &&
                         !string.IsNullOrWhiteSpace(Input.SocialMediaUrls[i]))
-                        _context.SocialMedia.Add(new SocialMedia
+                        socialMediaLinks.Add(new SocialMedia
                         {
                             UserId = user.Id,
                             Platform = Input.SocialMediaPlatforms[i],
@@ -457,7 +432,7 @@ public class RegisterModel : PageModel
                             CreatedDate = DateTime.UtcNow
                         });
 
-                await _context.SaveChangesAsync();
+                await _speakerManager.EmptyAndAddSocialMediaForUserAsync(user.Id, socialMediaLinks);
 
                 // Send welcome email (mock implementation)
                 await SendWelcomeEmailAsync(user);
@@ -652,78 +627,5 @@ public class RegisterModel : PageModel
             _logger.LogError(ex, "Failed to send welcome email to {Email}", user.Email);
             // Don't throw - registration should still succeed even if email fails
         }
-    }
-
-    public class InputModel
-    {
-        [Required]
-        [EmailAddress]
-        [Display(Name = "Email")]
-        public string Email { get; set; }
-
-        [Required]
-        [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.",
-            MinimumLength = 6)]
-        [DataType(DataType.Password)]
-        [Display(Name = "Password")]
-        public string Password { get; set; }
-
-        [DataType(DataType.Password)]
-        [Display(Name = "Confirm password")]
-        [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
-        public string ConfirmPassword { get; set; }
-
-        // Additional User entity fields
-        [Required]
-        [StringLength(100)]
-        [Display(Name = "First Name")]
-        public string FirstName { get; set; }
-
-        [Required]
-        [StringLength(100)]
-        [Display(Name = "Last Name")]
-        public string LastName { get; set; }
-
-        [Required]
-        [Phone]
-        [Display(Name = "Phone Number")]
-        public string PhoneNumber { get; set; }
-
-        [Required]
-        [StringLength(6000)]
-        [Display(Name = "Bio")]
-        [DataType(DataType.MultilineText)]
-        public string Bio { get; set; }
-
-        [Required]
-        [StringLength(2000)]
-        [Display(Name = "Goals")]
-        [DataType(DataType.MultilineText)]
-        public string Goals { get; set; }
-
-        [Url]
-        [StringLength(500)]
-        [Display(Name = "Sessionize Profile URL")]
-        public string SessionizeUrl { get; set; }
-
-        [StringLength(500)]
-        [Display(Name = "Headshot URL")]
-        public string HeadshotUrl { get; set; }
-
-        [Required]
-        [Display(Name = "Speaker Type")]
-        public int SpeakerTypeId { get; set; }
-
-        [Required]
-        [Display(Name = "Areas of Expertise")]
-        public int[] SelectedExpertiseIds { get; set; } = Array.Empty<int>();
-
-        [Display(Name = "Custom Expertise")] public string[] CustomExpertise { get; set; } = Array.Empty<string>();
-
-        // Social Media Links
-        [Display(Name = "Social Media Platforms")]
-        public string[] SocialMediaPlatforms { get; set; } = Array.Empty<string>();
-
-        [Display(Name = "Social Media URLs")] public string[] SocialMediaUrls { get; set; } = Array.Empty<string>();
     }
 }

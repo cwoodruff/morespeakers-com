@@ -10,7 +10,7 @@ public class User
     [Required] [MaxLength(100)] public string LastName { get; set; } = string.Empty;
 
     [Required] [Phone] public string? PhoneNumber { get; set; }
-    [Required] [EmailAddress] public string Email { get; init; }
+    [Required] [EmailAddress] public required string Email { get; set; }
 
     [Required]
     [MaxLength(6000)] // Approximately 1000 words

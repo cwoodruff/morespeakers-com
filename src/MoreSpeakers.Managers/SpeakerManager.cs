@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 
 using MoreSpeakers.Domain.Interfaces;
+using MoreSpeakers.Domain.Models;
 
 namespace MoreSpeakers.Managers;
 
@@ -15,172 +16,97 @@ public class SpeakerManager: ISpeakerManager
         _logger = logger;
     }
     
-    
+    public async Task<User> GetAsync(Guid primaryKey)
+    {
+        return await _dataStore.GetAsync(primaryKey);
+    }
+
+    public async Task<bool> DeleteAsync(Guid primaryKey)
+    {
+        return await _dataStore.DeleteAsync(primaryKey);
+    }
+
+    public async Task<User> SaveAsync(User entity)
+    {
+        return await _dataStore.SaveAsync(entity);
+    }
+
+    public async Task<List<User>> GetAllAsync()
+    {
+        return await _dataStore.GetAllAsync();
+    }
+
+    public async Task<bool> DeleteAsync(User entity)
+    {
+        return await _dataStore.DeleteAsync(entity);
+    }
+
     public async Task<IEnumerable<Domain.Models.User>> GetNewSpeakersAsync()
     {
-        var users = await _context.Users
-            .Include(u => u.SpeakerType)
-            .Include(u => u.UserExpertise)
-            .ThenInclude(ue => ue.Expertise)
-            .Include(u => u.SocialMediaLinks)
-            .Where(u => u.SpeakerType.Name == "NewSpeaker")
-            .OrderBy(u => u.FirstName)
-            .ToListAsync();
-            
-        return _mapper.Map<IEnumerable<Domain.Models.User>>(users);
+        return await _dataStore.GetNewSpeakersAsync();
     }
 
     public async Task<IEnumerable<Domain.Models.User>> GetExperiencedSpeakersAsync()
     {
-        var users = await _context.Users
-            .Include(u => u.SpeakerType)
-            .Include(u => u.UserExpertise)
-            .ThenInclude(ue => ue.Expertise)
-            .Include(u => u.SocialMediaLinks)
-            .Where(u => u.SpeakerType.Name == "ExperiencedSpeaker")
-            .OrderBy(u => u.FirstName)
-            .ToListAsync();
-        
-        return _mapper.Map<IEnumerable<Domain.Models.User>>(users);
+        return await _dataStore.GetExperiencedSpeakersAsync();
     }
 
-    public async Task<Domain.Models.User?> GetSpeakerByIdAsync(Guid id)
-    {
-        var user = await _context.Users
-            .Include(u => u.SpeakerType)
-            .Include(u => u.UserExpertise)
-            .ThenInclude(ue => ue.Expertise)
-            .Include(u => u.SocialMediaLinks)
-            .FirstOrDefaultAsync(u => u.Id == id);
-        
-        return _mapper.Map<Domain.Models.User>(user);
-    }
 
     public async Task<IEnumerable<Domain.Models.User>> SearchSpeakersAsync(string searchTerm, int? speakerTypeId = null)
     {
-        var query = _context.Users
-            .Include(u => u.SpeakerType)
-            .Include(u => u.UserExpertise)
-            .ThenInclude(ue => ue.Expertise)
-            .AsQueryable();
-
-        if (!string.IsNullOrWhiteSpace(searchTerm))
-            query = query.Where(u =>
-                u.FirstName.Contains(searchTerm) ||
-                u.LastName.Contains(searchTerm) ||
-                u.Bio.Contains(searchTerm) ||
-                u.UserExpertise.Any(ue => ue.Expertise.Name.Contains(searchTerm)));
-
-        if (speakerTypeId.HasValue) query = query.Where(u => u.SpeakerTypeId == speakerTypeId.Value);
-
-        var users = await query.OrderBy(u => u.FirstName).ToListAsync();
-        
-        return _mapper.Map<IEnumerable<Domain.Models.User>>(users);
+        return await _dataStore.SearchSpeakersAsync(searchTerm, speakerTypeId);
     }
 
     public async Task<IEnumerable<Domain.Models.User>> GetSpeakersByExpertiseAsync(int expertiseId)
     {
-        var users = await _context.Users
-            .Include(u => u.SpeakerType)
-            .Include(u => u.UserExpertise)
-            .ThenInclude(ue => ue.Expertise)
-            .Where(u => u.UserExpertise.Any(ue => ue.ExpertiseId == expertiseId))
-            .OrderBy(u => u.FirstName)
-            .ToListAsync();
-        
-        return _mapper.Map<IEnumerable<Domain.Models.User>>(users);
-    }
-
-    public async Task<bool> UpdateSpeakerProfileAsync(Domain.Models.User user)
-    {
-        var dbUser = _mapper.Map<User>(user);
-        _context.Entry(dbUser).State =
-            dbUser.Id == Guid.Empty ? EntityState.Added : EntityState.Modified;
-        
-        var result = await _context.SaveChangesAsync() != 0;
-        return result ? true : throw new ApplicationException("Failed to save user profile");
+        return await _dataStore.GetSpeakersByExpertiseAsync(expertiseId);
     }
 
     public async Task<bool> AddSocialMediaLinkAsync(Guid userId, string platform, string url)
     {
-        try
-        {
-            var socialMedia = new SocialMedia
-            {
-                UserId = userId,
-                Platform = platform,
-                Url = url
-            };
-
-            _context.SocialMedia.Add(socialMedia);
-            await _context.SaveChangesAsync();
-            return true;
-        }
-        catch
-        {
-            return false;
-        }
+        return await _dataStore.AddSocialMediaLinkAsync(userId, platform, url);
     }
 
     public async Task<bool> RemoveSocialMediaLinkAsync(int socialMediaId)
     {
-        try
-        {
-            var socialMedia = await _context.SocialMedia.FindAsync(socialMediaId);
-            if (socialMedia != null)
-            {
-                _context.SocialMedia.Remove(socialMedia);
-                await _context.SaveChangesAsync();
-                return true;
-            }
-
-            return false;
-        }
-        catch
-        {
-            return false;
-        }
+        return await _dataStore.RemoveSocialMediaLinkAsync(socialMediaId); 
     }
 
     public async Task<bool> AddExpertiseToUserAsync(Guid userId, int expertiseId)
     {
-        try
-        {
-            var userExpertise = new UserExpertise
-            {
-                UserId = userId,
-                ExpertiseId = expertiseId
-            };
-
-            _context.UserExpertise.Add(userExpertise);
-            await _context.SaveChangesAsync();
-            return true;
-        }
-        catch
-        {
-            return false;
-        }
+        return await _dataStore.AddExpertiseToUserAsync(userId, expertiseId);  
     }
 
     public async Task<bool> RemoveExpertiseFromUserAsync(Guid userId, int expertiseId)
     {
-        try
-        {
-            var userExpertise = await _context.UserExpertise
-                .FirstOrDefaultAsync(ue => ue.UserId == userId && ue.ExpertiseId == expertiseId);
+        return await _dataStore.RemoveExpertiseFromUserAsync(userId, expertiseId);   
+    }
 
-            if (userExpertise != null)
-            {
-                _context.UserExpertise.Remove(userExpertise);
-                await _context.SaveChangesAsync();
-                return true;
-            }
-
-            return false;
-        }
-        catch
+    public async Task<bool> EmptyAndAddExpertiseForUserAsync(Guid userId, int[] expertises)
+    {
+        if (userId == Guid.Empty || userId == Guid.NewGuid())
         {
-            return false;
+            throw new ArgumentException("Invalid user id");
         }
+        return await _dataStore.EmptyAndAddExpertiseForUserAsync(userId, expertises); 
+    }
+
+    public async Task<bool> EmptyAndAddSocialMediaForUserAsync(Guid userId, List<SocialMedia> socialMedias)
+    {
+        if (userId == Guid.Empty || userId == Guid.NewGuid())
+        {
+            throw new ArgumentException("Invalid user id");
+        }
+        return await _dataStore.EmptyAndAddSocialMediaForUserAsync(userId, socialMedias);
+    }
+
+    public async Task<List<UserExpertise>> GetUserExpertisesForUserAsync(Guid userId)
+    {
+        return await _dataStore.GetUserExpertisesForUserAsync(userId);
+    }
+
+    public async Task<List<SocialMedia>> GetUserSocialMediaForUserAsync(Guid userId)
+    {
+        return await _dataStore.GetUserSocialMediaForUserAsync(userId);
     }
 }

@@ -1,25 +1,26 @@
 using System.ComponentModel.DataAnnotations;
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.EntityFrameworkCore;
-using MoreSpeakers.Web.Data;
-using MoreSpeakers.Web.Models;
+
+using MoreSpeakers.Domain.Interfaces;
+using MoreSpeakers.Web.Models.ViewModels;
 using MoreSpeakers.Web.Services;
 
 namespace MoreSpeakers.Web.Pages.Profile;
 
 [Authorize]
 public class EditModel(
-    ApplicationDbContext context, 
-    UserManager<User> userManager,
-    IExpertiseService expertiseService,
+    UserManager<Domain.Models.User> userManager,
+    IExpertiseManager expertiseManager,
+    ISpeakerManager speakerManager,
     IFileUploadService fileUploadService) : PageModel
 {
-    private readonly ApplicationDbContext _context = context;
-    private readonly UserManager<User> _userManager = userManager;
-    private readonly IExpertiseService _expertiseService = expertiseService;
+    private readonly UserManager<Domain.Models.User> _userManager = userManager;
+    private readonly IExpertiseManager _expertiseManager = expertiseManager;
+    private readonly ISpeakerManager _speakerManager = speakerManager;
     private readonly IFileUploadService _fileUploadService = fileUploadService;
 
     [BindProperty]
@@ -28,10 +29,10 @@ public class EditModel(
     [BindProperty]
     public PasswordChangeInputModel PasswordInput { get; set; } = new();
 
-    public User ProfileUser { get; set; } = null!;
-    public IEnumerable<Expertise> AvailableExpertise { get; set; } = new List<Expertise>();
-    public IEnumerable<UserExpertise> UserExpertise { get; set; } = new List<UserExpertise>();
-    public IEnumerable<SocialMedia> SocialMedia { get; set; } = new List<SocialMedia>();
+    public Domain.Models.User ProfileUser { get; set; } = null!;
+    public IEnumerable<Domain.Models.Expertise> AvailableExpertise { get; set; } = new List<Domain.Models.Expertise>();
+    public IEnumerable<Domain.Models.UserExpertise> UserExpertise { get; set; } = new List<Domain.Models.UserExpertise>();
+    public IEnumerable<Domain.Models.SocialMedia> SocialMedia { get; set; } = new List<Domain.Models.SocialMedia>();
 
     // Properties for HTMX state management
     public string ActiveTab { get; set; } = "profile";
@@ -112,14 +113,14 @@ public class EditModel(
             ProfileUser.SessionizeUrl = Input.SessionizeUrl;
             ProfileUser.SpeakerTypeId = Input.SpeakerTypeId;
             ProfileUser.UpdatedDate = DateTime.UtcNow;
+            
+            await _speakerManager.SaveAsync(ProfileUser);
 
             // Update expertise
             await UpdateUserExpertiseAsync();
 
             // Update social media
             await UpdateSocialMediaAsync();
-
-            await _context.SaveChangesAsync();
 
             HasValidationErrors = false;
             SuccessMessage = "Profile updated successfully!";
@@ -219,6 +220,7 @@ public class EditModel(
         };
     }
 
+    // Note implemented yet, but will be used in the future for uploading headshots
     public async Task<IActionResult> OnPostUploadHeadshotAsync()
     {
         var result = await LoadUserDataAsync();
@@ -251,7 +253,8 @@ public class EditModel(
                 {
                     ProfileUser.HeadshotUrl = _fileUploadService.GetHeadshotPath(fileName);
                     ProfileUser.UpdatedDate = DateTime.UtcNow;
-                    await _context.SaveChangesAsync();
+                    // NOTE: Place holder for saving to DB
+                    //await _context.SaveChangesAsync();
 
                     HasValidationErrors = false;
                     SuccessMessage = "Headshot uploaded successfully!";
@@ -287,20 +290,13 @@ public class EditModel(
             return Challenge();
         }
 
-        ProfileUser = await _context.Users
-            .Include(u => u.SpeakerType)
-            .FirstOrDefaultAsync(u => u.Id == currentUser.Id) ?? currentUser;
-
-        AvailableExpertise = await _expertiseService.GetAllExpertiseAsync();
+        ProfileUser = await _speakerManager.GetAsync(currentUser.Id);
         
-        UserExpertise = await _context.UserExpertise
-            .Include(ue => ue.Expertise)
-            .Where(ue => ue.UserId == currentUser.Id)
-            .ToListAsync();
-
-        SocialMedia = await _context.SocialMedia
-            .Where(sm => sm.UserId == currentUser.Id)
-            .ToListAsync();
+        AvailableExpertise = await _expertiseManager.GetAllAsync();
+        
+        UserExpertise = await _speakerManager.GetUserExpertisesForUserAsync(currentUser.Id);
+        
+        SocialMedia = await _speakerManager.GetUserSocialMediaForUserAsync(currentUser.Id);
 
         // Populate Input model if not already populated
         if (string.IsNullOrEmpty(Input.FirstName))
@@ -325,122 +321,29 @@ public class EditModel(
 
     private async Task UpdateUserExpertiseAsync()
     {
-        // Remove existing expertise
-        var existingUserExpertise = await _context.UserExpertise
-            .Where(ue => ue.UserId == ProfileUser.Id)
-            .ToListAsync();
-        
-        _context.UserExpertise.RemoveRange(existingUserExpertise);
-
-        // Add selected expertise
-        foreach (var expertiseId in Input.SelectedExpertiseIds ?? Array.Empty<int>())
-        {
-            _context.UserExpertise.Add(new UserExpertise
-            {
-                UserId = ProfileUser.Id,
-                ExpertiseId = expertiseId
-            });
-        }
+        await _speakerManager.EmptyAndAddExpertiseForUserAsync(ProfileUser.Id, Input.SelectedExpertiseIds);
     }
 
     private async Task UpdateSocialMediaAsync()
     {
-        // Remove existing social media
-        var existingSocialMedia = await _context.SocialMedia
-            .Where(sm => sm.UserId == ProfileUser.Id)
-            .ToListAsync();
-        
-        _context.SocialMedia.RemoveRange(existingSocialMedia);
 
-        // Add new social media
-        if (Input.SocialMediaPlatforms != null && Input.SocialMediaUrls != null)
+        var socialMedias = new List<Domain.Models.SocialMedia>();
+        
+        for (int i = 0; i < Math.Min(Input.SocialMediaPlatforms.Length, Input.SocialMediaUrls.Length); i++)
         {
-            for (int i = 0; i < Math.Min(Input.SocialMediaPlatforms.Length, Input.SocialMediaUrls.Length); i++)
+            if (!string.IsNullOrWhiteSpace(Input.SocialMediaPlatforms[i]) && 
+                !string.IsNullOrWhiteSpace(Input.SocialMediaUrls[i]))
             {
-                if (!string.IsNullOrWhiteSpace(Input.SocialMediaPlatforms[i]) && 
-                    !string.IsNullOrWhiteSpace(Input.SocialMediaUrls[i]))
+                socialMedias.Add(new Domain.Models.SocialMedia
                 {
-                    _context.SocialMedia.Add(new SocialMedia
-                    {
-                        UserId = ProfileUser.Id,
-                        Platform = Input.SocialMediaPlatforms[i].Trim(),
-                        Url = Input.SocialMediaUrls[i].Trim(),
-                        CreatedDate = DateTime.UtcNow
-                    });
-                }
+                    UserId = ProfileUser.Id,
+                    Platform = Input.SocialMediaPlatforms[i].Trim(),
+                    Url = Input.SocialMediaUrls[i].Trim(),
+                    CreatedDate = DateTime.UtcNow
+                });
             }
         }
-    }
-
-    public class ProfileEditInputModel
-    {
-        [Required]
-        [StringLength(100)]
-        [Display(Name = "First Name")]
-        public string FirstName { get; set; } = string.Empty;
-
-        [Required]
-        [StringLength(100)]
-        [Display(Name = "Last Name")]
-        public string LastName { get; set; } = string.Empty;
-
-        [Phone]
-        [Display(Name = "Phone Number")]
-        public string PhoneNumber { get; set; } = string.Empty;
-
-        [StringLength(6000)]
-        [Display(Name = "Bio")]
-        [DataType(DataType.MultilineText)]
-        public string Bio { get; set; } = string.Empty;
-
-        [StringLength(2000)]
-        [Display(Name = "Goals")]
-        [DataType(DataType.MultilineText)]
-        public string Goals { get; set; } = string.Empty;
-
-        [Url]
-        [StringLength(500)]
-        [Display(Name = "Sessionize Profile URL")]
-        public string SessionizeUrl { get; set; } = string.Empty;
-
-        [Url]
-        [StringLength(500)]
-        [Display(Name = "Headshot URL")]
-        public string HeadshotUrl { get; set; } = string.Empty;
-
-        [Required]
-        [Display(Name = "Speaker Type")]
-        public int SpeakerTypeId { get; set; }
-
-        [Display(Name = "Areas of Expertise")]
-        public int[] SelectedExpertiseIds { get; set; } = Array.Empty<int>();
-
-        [Display(Name = "Social Media Platforms")]
-        public string[] SocialMediaPlatforms { get; set; } = Array.Empty<string>();
-
-        [Display(Name = "Social Media URLs")]
-        public string[] SocialMediaUrls { get; set; } = Array.Empty<string>();
-
-        [Display(Name = "Upload Headshot")]
-        public IFormFile? HeadshotFile { get; set; }
-    }
-
-    public class PasswordChangeInputModel
-    {
-        [Required]
-        [DataType(DataType.Password)]
-        [Display(Name = "Current Password")]
-        public string CurrentPassword { get; set; } = string.Empty;
-
-        [Required]
-        [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
-        [DataType(DataType.Password)]
-        [Display(Name = "New Password")]
-        public string NewPassword { get; set; } = string.Empty;
-
-        [DataType(DataType.Password)]
-        [Display(Name = "Confirm New Password")]
-        [Compare("NewPassword", ErrorMessage = "The new password and confirmation password do not match.")]
-        public string ConfirmPassword { get; set; } = string.Empty;
+        
+        await _speakerManager.EmptyAndAddSocialMediaForUserAsync(ProfileUser.Id,socialMedias);
     }
 }
