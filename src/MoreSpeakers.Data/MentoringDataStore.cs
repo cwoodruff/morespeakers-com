@@ -2,6 +2,7 @@ using AutoMapper;
 
 using Microsoft.EntityFrameworkCore;
 using MoreSpeakers.Domain.Interfaces;
+using MoreSpeakers.Domain.Models;
 
 using Mentorship = MoreSpeakers.Domain.Models.Mentorship;
 
@@ -65,5 +66,33 @@ public class MentoringDataStore: IMentoringDataStore
 
         _context.Mentorship.Remove(mentorship);
         return await _context.SaveChangesAsync() != 0;
+    }
+
+    public async Task<List<Expertise>> GetSharedExpertisesAsync(User mentor, User mentee)
+    {
+        var mentorExpertises = await _context.UserExpertise
+            .Where(ue => ue.UserId == mentor.Id)
+            .Select(ue => ue.ExpertiseId)
+            .ToListAsync();
+        var menteeExpertises = await _context.UserExpertise
+            .Where(ue => ue.UserId == mentee.Id)
+            .Select(ue => ue.ExpertiseId)
+            .ToListAsync();
+        
+        var expertises = await _context.Expertise
+            .Where(e => mentorExpertises.Contains(e.Id) && menteeExpertises.Contains(e.Id))
+            .ToListAsync();
+        
+        return _mapper.Map<List<Expertise>>(expertises);
+    }
+
+    public async Task<bool> DoesMentorshipRequestsExistsAsync(User mentor, User mentee)
+    {
+        throw new NotImplementedException();
+    }
+
+    public async Task<bool> CreeateMentorshipRequestAsync(Mentorship mentorship)
+    {
+        throw new NotImplementedException();
     }
 }

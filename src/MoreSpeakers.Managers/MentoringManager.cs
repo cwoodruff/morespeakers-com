@@ -40,4 +40,19 @@ public class MentoringManager: IMentoringManager
     {
         return await _dataStore.DeleteAsync(entity);
     }
+
+    public async Task<List<Expertise>> GetSharedExpertisesAsync(User mentor, User mentee)
+    {
+        return await _dataStore.GetSharedExpertisesAsync(mentor, mentee);
+    }
+
+    public async Task<bool> DoesMentorshipRequestsExistsAsync(User mentor, User mentee)
+    {
+        return await _dataStore.DoesMentorshipRequestsExistsAsync(mentor, mentee);
+    }
+
+    public async Task<bool> CreeateMentorshipRequestAsync(Mentorship mentorship)
+    {
+        return await _dataStore.CreeateMentorshipRequestAsync(mentorship);
+    }
 }

@@ -1,11 +1,10 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
+using MoreSpeakers.Domain.Models;
 using MoreSpeakers.Domain.Interfaces;
-using MoreSpeakers.Web.Data;
-using MoreSpeakers.Web.Models;
+
 using MoreSpeakers.Web.Models.ViewModels;
 
 namespace MoreSpeakers.Web.Controllers;
@@ -14,18 +13,23 @@ namespace MoreSpeakers.Web.Controllers;
 [Route("Mentorship")]
 public class MentorshipController : Controller
 {
-    private readonly ApplicationDbContext _context;
     private readonly UserManager<User> _userManager;
-    private readonly ISpeakerDataStore _speakerDataStore;
+    private readonly IExpertiseManager _expertiseManager;
+    private readonly IMentoringManager _mentoringManager;
+    private readonly ISpeakerManager _speakerManager;
+    
 
     public MentorshipController(
-        ApplicationDbContext context,
         UserManager<User> userManager,
-        ISpeakerDataStore speakerDataStore)
+        IExpertiseManager expertiseManager,
+        IMentoringManager mentoringManager,
+        ISpeakerManager speakerManager
+        )
     {
-        _context = context;
         _userManager = userManager;
-        _speakerDataStore = speakerDataStore;
+        _expertiseManager = expertiseManager;
+        _mentoringManager = mentoringManager;
+        _speakerManager = speakerManager;
     }
 
     [HttpGet("Browse")]
@@ -41,7 +45,7 @@ public class MentorshipController : Controller
             MentorshipType = type,
             SelectedExpertise = expertise?.Split(',').ToList() ?? new List<string>(),
             AvailableNow = availableNow,
-            AvailableExpertise = await _context.Expertise.OrderBy(e => e.Name).ToListAsync()
+            AvailableExpertise = await _expertiseManager.GetAllAsync()
         };
 
         // Load mentors based on filters
@@ -67,7 +71,7 @@ public class MentorshipController : Controller
             MentorshipType = filters.Type,
             SelectedExpertise = filters.Expertise?.Split(',').ToList() ?? new List<string>(),
             AvailableNow = filters.AvailableNow,
-            AvailableExpertise = await _context.Expertise.OrderBy(e => e.Name).ToListAsync()
+            AvailableExpertise = await _expertiseManager.GetAllAsync()
         };
 
         await LoadMentors(model);
@@ -80,28 +84,15 @@ public class MentorshipController : Controller
         var currentUser = await _userManager.GetUserAsync(User);
         if (currentUser == null) return Unauthorized();
 
-        var mentor = await _context.Users
-            .Include(u => u.UserExpertise)
-            .ThenInclude(ue => ue.Expertise)
-            .FirstOrDefaultAsync(u => u.Id == mentorId);
-
-        if (mentor == null) return NotFound();
+        var mentor = await _speakerManager.GetAsync(mentorId);
 
         // Get shared expertise between current user and mentor
-        var currentUserExpertise = await _context.UserExpertise
-            .Where(ue => ue.UserId == currentUser.Id)
-            .Select(ue => ue.ExpertiseId)
-            .ToListAsync();
-
-        var sharedExpertise = mentor.UserExpertise
-            .Where(ue => currentUserExpertise.Contains(ue.ExpertiseId))
-            .Select(ue => ue.Expertise)
-            .ToList();
+        var sharedExpertises = await _mentoringManager.GetSharedExpertisesAsync(mentor, currentUser);
 
         var model = new MentorshipRequestViewModel
         {
             Mentor = mentor,
-            AvailableExpertise = sharedExpertise,
+            AvailableExpertise = sharedExpertises,
             MentorshipType = currentUser.IsNewSpeaker ? 
                 MentorshipType.NewToExperienced : 
                 MentorshipType.ExperiencedToExperienced
@@ -116,8 +107,7 @@ public class MentorshipController : Controller
         var currentUser = await _userManager.GetUserAsync(User);
         if (currentUser == null) return Unauthorized();
 
-        var mentor = await _context.Users.FindAsync(mentorId);
-        if (mentor == null) return NotFound();
+        var mentor = await _speakerManager.GetAsync(mentorId);
 
         // Check if request already exists
         var existingRequest = await _context.Mentorship

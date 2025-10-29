@@ -9,4 +9,7 @@ public interface IMentoringManager
     public Task<Mentorship> SaveAsync(Mentorship entity);
     public Task<List<Mentorship>> GetAllAsync();
     public Task<bool> DeleteAsync(Mentorship entity);
+    public Task<List<Expertise>> GetSharedExpertisesAsync(User mentor, User mentee);
+    public Task<bool> DoesMentorshipRequestsExistsAsync(User mentor, User mentee);
+    public Task<bool> CreeateMentorshipRequestAsync(Mentorship mentorship);
 }
