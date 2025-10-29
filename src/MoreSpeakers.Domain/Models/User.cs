@@ -1,8 +1,10 @@
 using System.ComponentModel.DataAnnotations;
 
+using Microsoft.AspNetCore.Identity;
+
 namespace MoreSpeakers.Domain.Models;
 
-public class User
+public class User: IdentityUser<Guid>
 {
     [Required] public Guid Id { get; set; }
     [Required] [MaxLength(100)] public string FirstName { get; set; } = string.Empty;

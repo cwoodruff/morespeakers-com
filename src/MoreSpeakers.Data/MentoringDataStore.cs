@@ -12,7 +12,7 @@ public class MentoringDataStore: IMentoringDataStore
     private readonly MoreSpeakersDbContext _context;
     private readonly Mapper _mapper;
 
-    private MentoringDataStore(IDatabaseSettings databaseSettings)
+    public MentoringDataStore(IDatabaseSettings databaseSettings)
     {
         _context = new MoreSpeakersDbContext(databaseSettings);
         var mappingConfiguration = new MapperConfiguration(cfg =>

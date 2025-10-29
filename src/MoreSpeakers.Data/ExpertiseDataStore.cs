@@ -11,7 +11,7 @@ public class ExpertiseDataStore : IExpertiseDataStore
     private readonly MoreSpeakersDbContext _context;
     private readonly Mapper _mapper;
 
-    private ExpertiseDataStore(IDatabaseSettings databaseSettings)
+    public ExpertiseDataStore(IDatabaseSettings databaseSettings)
     {
         _context = new MoreSpeakersDbContext(databaseSettings);
         var mappingConfiguration = new MapperConfiguration(cfg =>

@@ -40,8 +40,8 @@ builder.Services.TryAddSingleton<IDatabaseSettings>(new DatabaseSettings
 
 // TODO: Remove after the Mentorship feature is implemented
 // Add database context
-builder.AddSqlServerDbContext<MoreSpeakers.Web.Data.ApplicationDbContext>("sqldb");
-builder.EnrichSqlServerDbContext<MoreSpeakers.Web.Data.ApplicationDbContext>();
+//builder.AddSqlServerDbContext<MoreSpeakers.Web.Data.ApplicationDbContext>("sqldb");
+//builder.EnrichSqlServerDbContext<MoreSpeakers.Web.Data.ApplicationDbContext>();
 
 // Add Identity services
 builder.Services.AddDefaultIdentity<MoreSpeakers.Domain.Models.User>(options =>
@@ -84,6 +84,7 @@ builder.AddAzureQueueServiceClient("AzureStorageQueues");
 
 // Add application services
 builder.Services.AddScoped<IMentorshipService, MentorshipService>();
+
 builder.Services.AddScoped<IExpertiseDataStore, ExpertiseDataStore>();
 builder.Services.AddScoped<IMentoringDataStore, MentoringDataStore>();
 builder.Services.AddScoped<ISpeakerDataStore, SpeakerDataStore>();
