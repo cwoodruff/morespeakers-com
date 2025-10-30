@@ -40,11 +40,7 @@ builder.Services.TryAddSingleton<IDatabaseSettings>(new DatabaseSettings
 });
 
 // Add database context
-builder.Services.AddDbContext<MoreSpeakersDbContext>(options =>
-{
-    options.UseSqlServer(builder.Configuration.GetConnectionString("sqldb") ?? string.Empty);
-});
-//builder.AddSqlServerDbContext<MoreSpeakersDbContext>("sqldb");
+builder.AddSqlServerDbContext<MoreSpeakersDbContext>("sqldb");
 builder.EnrichSqlServerDbContext<MoreSpeakersDbContext>(
     configureSettings: sqlServerSettings =>
     {
