@@ -1,4 +1,4 @@
-@model MoreSpeakers.Web.Models.Mentorship
+@model MoreSpeakers.Domain.Models.Mentorship
 
 <!-- Hidden form to supply anti-forgery token for HTMX requests -->
 <form id="htmx-af" method="post" style="display:none">
@@ -33,7 +33,7 @@
         </div>
 
         <!-- Request Type -->
-        @if (Model.Type == MentorshipType.ExperiencedToExperienced)
+        @if (Model.Type == Domain.Models.MentorshipType.ExperiencedToExperienced)
         {
             <div class="mb-3">
                 <span class="badge bg-info">
@@ -101,7 +101,7 @@
                     hx-target="#request-@Model.Id"
                     hx-swap="outerHTML swap:1s"
                     hx-include="#incoming-requests"
-                    hx-confirm="Accept @(Model.Type == MentorshipType.NewToExperienced ? "mentorship" : "connection") request from @Model.Mentee.FullName?">
+                    hx-confirm="Accept @(Model.Type == Domain.Models.MentorshipType.NewToExperienced ? "mentorship" : "connection") request from @Model.Mentee.FullName?">
                 <i class="bi bi-check-circle me-1"></i>Accept
             </button>
         </div>

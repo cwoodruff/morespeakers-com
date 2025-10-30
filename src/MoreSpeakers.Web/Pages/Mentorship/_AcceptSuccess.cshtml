@@ -1,10 +1,10 @@
-@model MoreSpeakers.Web.Models.Mentorship
+@model MoreSpeakers.Domain.Models.Mentorship
 
 <div id="toast-zone" hx-swap-oob="true">
     <div class="alert alert-success alert-dismissible fade show fade-in" role="alert">
         <i class="bi bi-check-circle-fill me-2"></i>
         <strong>Request Accepted!</strong> You're now connected with @Model.Mentee.FullName.
-        <a href="/Mentorship/Active" class="alert-link ms-2">View active @(Model.Type == MentorshipType.NewToExperienced ? "mentorships" : "connections")</a>
+        <a href="/Mentorship/Active" class="alert-link ms-2">View active @(Model.Type == Domain.Models.MentorshipType.NewToExperienced ? "mentorships" : "connections")</a>
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 </div>

@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 using MoreSpeakers.Domain.Interfaces;
-using MoreSpeakers.Web.Models;
+using MoreSpeakers.Domain.Models;
 
 namespace MoreSpeakers.Web.Pages.Mentorship;
 

@@ -10,9 +10,9 @@ public class SpeakerDataStore : ISpeakerDataStore
     private readonly MoreSpeakersDbContext _context;
     private readonly Mapper _mapper;
 
-    public SpeakerDataStore(IDatabaseSettings databaseSettings)
+    public SpeakerDataStore(MoreSpeakersDbContext context)
     {
-        _context = new MoreSpeakersDbContext(databaseSettings);
+        _context = context;
         var mappingConfiguration = new MapperConfiguration(cfg =>
         {
             cfg.AddProfile<MappingProfiles.MoreSpeakersProfile>();

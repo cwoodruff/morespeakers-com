@@ -1,6 +1,7 @@
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights.WindowsServer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 using MoreSpeakers.Domain.Interfaces;
@@ -8,6 +9,7 @@ using MoreSpeakers.Domain.Models;
 using MoreSpeakers.Managers;
 using MoreSpeakers.Web.Services;
 using MoreSpeakers.Data;
+
 using Serilog;
 using Serilog.Exceptions;
 
@@ -37,13 +39,21 @@ builder.Services.TryAddSingleton<IDatabaseSettings>(new DatabaseSettings
     DatabaseConnectionString = builder.Configuration.GetConnectionString("sqldb") ?? string.Empty
 });
 
-// TODO: Remove after the Mentorship feature is implemented
 // Add database context
-builder.AddSqlServerDbContext<MoreSpeakersDbContext>("sqldb");
-builder.EnrichSqlServerDbContext<MoreSpeakersDbContext>();
+builder.Services.AddDbContext<MoreSpeakersDbContext>(options =>
+{
+    options.UseSqlServer(builder.Configuration.GetConnectionString("sqldb") ?? string.Empty);
+});
+//builder.AddSqlServerDbContext<MoreSpeakersDbContext>("sqldb");
+builder.EnrichSqlServerDbContext<MoreSpeakersDbContext>(
+    configureSettings: sqlServerSettings =>
+    {
+        sqlServerSettings.DisableRetry = false;
+        sqlServerSettings.CommandTimeout = 30; // seconds
+    });
 
 // Add Identity services
-builder.Services.AddDefaultIdentity<MoreSpeakers.Domain.Models.User>(options =>
+builder.Services.AddDefaultIdentity<MoreSpeakers.Data.Models.User>(options =>
     {
         // Password settings
         options.Password.RequireDigit = true;
@@ -67,7 +77,7 @@ builder.Services.AddDefaultIdentity<MoreSpeakers.Domain.Models.User>(options =>
         options.SignIn.RequireConfirmedPhoneNumber = false;
     })
     .AddRoles<IdentityRole<Guid>>()
-    .AddEntityFrameworkStores<MoreSpeakers.Data.MoreSpeakersDbContext>();
+    .AddEntityFrameworkStores<MoreSpeakersDbContext>();
 
 // Add Razor Pages
 builder.Services.AddRazorPages(options =>
@@ -98,7 +108,7 @@ builder.Services.AddHttpContextAccessor();
 // Configure cookie policy
 builder.Services.Configure<CookiePolicyOptions>(options =>
 {
-    options.CheckConsentNeeded = context => true;
+    options.CheckConsentNeeded = _ => true;
     options.MinimumSameSitePolicy = SameSiteMode.None;
 });
 

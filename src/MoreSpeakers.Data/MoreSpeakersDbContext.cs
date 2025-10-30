@@ -1,25 +1,28 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using System.Runtime.Intrinsics.Arm;
+
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+
 using MoreSpeakers.Data.Models;
-using MoreSpeakers.Domain.Interfaces;
 
 namespace MoreSpeakers.Data;
 
-public class MoreSpeakersDbContext(IDatabaseSettings databaseSettings)
+public class MoreSpeakersDbContext
     : IdentityDbContext<User, IdentityRole<Guid>, Guid>
 {
+    public MoreSpeakersDbContext(DbContextOptions<MoreSpeakersDbContext> options)
+        : base(options)
+    {
+        
+    }
+    
     public DbSet<SpeakerType> SpeakerType { get; set; }
     public DbSet<Expertise> Expertise { get; set; }
     public DbSet<UserExpertise> UserExpertise { get; set; }
     public DbSet<SocialMedia> SocialMedia { get; set; }
     public DbSet<Mentorship> Mentorship { get; set; }
     public DbSet<MentorshipExpertise> MentorshipExpertise { get; set; }
-
-    private readonly IDatabaseSettings _databaseSettings = databaseSettings;
-    
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) =>
-        optionsBuilder.UseSqlServer(_databaseSettings.DatabaseConnectionString);
     
     protected override void OnModelCreating(ModelBuilder builder)
     {

@@ -3,8 +3,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
+using MoreSpeakers.Domain.Models;
 using MoreSpeakers.Domain.Interfaces;
-using MoreSpeakers.Web.Models;
 using MoreSpeakers.Web.Models.ViewModels;
 
 namespace MoreSpeakers.Web.Pages.Mentorship;

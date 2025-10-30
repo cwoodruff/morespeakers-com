@@ -1,5 +1,5 @@
 @using MoreSpeakers.Domain.Extensions
-@model List<MoreSpeakers.Web.Models.Mentorship>
+@model List<MoreSpeakers.Domain.Models.Mentorship>
 
 @if (!Model.Any())
 {
@@ -33,7 +33,7 @@ else
                             <h6 class="mb-1">@request.Mentee.FullName</h6>
                             <small class="text-muted">@request.Mentee.SpeakerType.Name</small>
                             <div class="mt-1">
-                                @if (request.Type == MentorshipType.NewToExperienced)
+                                @if (request.Type == MoreSpeakers.Domain.Models.MentorshipType.NewToExperienced)
                                 {
                                     <span class="badge bg-primary">New Speaker Mentorship</span>
                                 }
