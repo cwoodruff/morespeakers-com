@@ -51,8 +51,66 @@ public class MentoringManager: IMentoringManager
         return await _dataStore.DoesMentorshipRequestsExistsAsync(mentor, mentee);
     }
 
-    public async Task<bool> CreeateMentorshipRequestAsync(Mentorship mentorship)
+    public async Task<bool> CreateMentorshipRequestAsync(Mentorship mentorship, List<int> expertiseIds)
     {
-        return await _dataStore.CreeateMentorshipRequestAsync(mentorship);
+        return await _dataStore.CreateMentorshipRequestAsync(mentorship, expertiseIds);   
+    }
+
+    public async Task<Mentorship?> RespondToRequestAsync(Guid mentorshipId, Guid userId, bool accepted, string? message = null)
+    {
+        return await _dataStore.RespondToRequestAsync(mentorshipId, userId, accepted, message);
+    }
+
+    public async Task<List<Mentorship>> GetActiveMentorshipsForUserAsync(Guid userId)
+    {
+        return await _dataStore.GetActiveMentorshipsForUserAsync(userId);
+    }
+
+    public async Task<(int outboundCount, int inboundCount)> GetNumberOfMentorshipsPending(Guid userId)
+    {
+        return await _dataStore.GetNumberOfMentorshipsPending(userId);
+    }
+
+    public async Task<List<Mentorship>> GetIncomingMentorshipRequests(Guid userId)
+    {
+        return await _dataStore.GetIncomingMentorshipRequests(userId);
+    }
+
+    public async Task<List<Mentorship>> GetOutgoingMentorshipRequests(Guid userId)
+    {
+        return await _dataStore.GetOutgoingMentorshipRequests(userId);
+    }
+
+    public async Task<bool> CancelMentorshipRequestAsync(Guid mentorshipId, Guid userId)
+    {
+        // Might want to add a cancellation reason here
+        // Might want log the cancellation here
+        return await _dataStore.CancelMentorshipRequestAsync(mentorshipId, userId);
+    }
+    public async Task<bool> CompleteMentorshipRequestAsync(Guid mentorshipId, Guid userId)
+    {
+        // Might want log the completion here
+        return await _dataStore.CompleteMentorshipRequestAsync(mentorshipId, userId);
+    }
+
+    public async Task<List<User>> GetMentorsExceptForUserAsync(Guid userId, MentorshipType mentorshipType, List<string>? expertiseNames, bool? availability = true)
+    {
+        return await _dataStore.GetMentorsExceptForUserAsync(userId, mentorshipType, expertiseNames, availability);
+    }
+
+    public async Task<User?> GetMentorAsync(Guid userId)
+    {
+        return await _dataStore.GetMentorAsync(userId);   
+    }
+
+    public async Task<bool> CanRequestMentorshipAsync(Guid menteeId, Guid mentorId)
+    {
+        return await _dataStore.CanRequestMentorshipAsync(menteeId, mentorId);
+    }
+
+    public async Task<Mentorship?> RequestMentorshipWithDetailsAsync(Guid requesterId, Guid targetId,
+        MentorshipType type, string? requestMessage, List<int>? focusAreaIds, string? preferredFrequency)
+    {
+        return await _dataStore.RequestMentorshipWithDetailsAsync(requesterId, targetId, type, requestMessage, focusAreaIds, preferredFrequency);
     }
 }

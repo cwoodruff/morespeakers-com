@@ -290,4 +290,27 @@ public class SpeakerDataStore : ISpeakerDataStore
             .ToListAsync();
         return _mapper.Map<List<SocialMedia>>(socialMedias);   
     }
+
+    public async Task<(int newSpeakers, int experiencedSpeakers, int activeMentorships)> GetStatisticsForApplicationAsync()
+    {
+        var newSpeakers = await _context.Users.CountAsync(u => u.SpeakerType.Name == "NewSpeaker");
+
+        var experiencedSpeakers = await _context.Users.CountAsync(u => u.SpeakerType.Name == "ExperiencedSpeaker");;
+
+        var activeMentorships = await _context.Mentorship.CountAsync(m => m.Status == Models.MentorshipStatus.Active);
+        
+        return (newSpeakers, experiencedSpeakers, activeMentorships);
+
+    }
+
+    public async Task<List<User>> GetFeaturedSpeakersAsync(int count)
+    {
+        var speakers = await _context.Users
+            .Where(s => !string.IsNullOrEmpty(s.Bio) && s.UserExpertise.Any())
+            .OrderByDescending(s => s.UserExpertise.Count)
+            .Take(count)
+            .ToListAsync();
+        
+        return _mapper.Map<List<User>>(speakers);
+    }
 }

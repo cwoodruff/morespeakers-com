@@ -18,7 +18,6 @@ public class MentorshipController : Controller
     private readonly IMentoringManager _mentoringManager;
     private readonly ISpeakerManager _speakerManager;
     
-
     public MentorshipController(
         UserManager<User> userManager,
         IExpertiseManager expertiseManager,
@@ -110,12 +109,9 @@ public class MentorshipController : Controller
         var mentor = await _speakerManager.GetAsync(mentorId);
 
         // Check if request already exists
-        var existingRequest = await _context.Mentorship
-            .FirstOrDefaultAsync(m => m.MentorId == mentorId && 
-                                    m.MenteeId == currentUser.Id && 
-                                    m.Status == MentorshipStatus.Pending);
+        var existingRequest = await _mentoringManager.DoesMentorshipRequestsExistsAsync(mentor, currentUser);
 
-        if (existingRequest != null)
+        if (existingRequest)
         {
             return Json(new { success = false, message = "You already have a pending request with this mentor." });
         }
@@ -132,21 +128,7 @@ public class MentorshipController : Controller
             Status = MentorshipStatus.Pending
         };
 
-        _context.Mentorship.Add(mentorship);
-        await _context.SaveChangesAsync();
-
-        // Add focus areas
-        if (model.SelectedExpertiseIds?.Any() == true)
-        {
-            var focusAreas = model.SelectedExpertiseIds.Select((int expertiseId) => new MentorshipExpertise
-            {
-                MentorshipId = mentorship.Id,
-                ExpertiseId = expertiseId
-            });
-
-            _context.MentorshipExpertise.AddRange(focusAreas);
-            await _context.SaveChangesAsync();
-        }
+        await _mentoringManager.CreateMentorshipRequestAsync(mentorship, model.SelectedExpertiseIds);
 
         return Json(new { success = true, message = "Your mentorship request has been sent!" });
     }
@@ -159,8 +141,8 @@ public class MentorshipController : Controller
 
         var model = new MentorshipRequestsViewModel
         {
-            IncomingRequests = await GetIncomingRequests(currentUser.Id),
-            OutgoingRequests = await GetOutgoingRequests(currentUser.Id)
+            IncomingRequests = await _mentoringManager.GetIncomingMentorshipRequests(currentUser.Id),
+            OutgoingRequests = await _mentoringManager.GetOutgoingMentorshipRequests(currentUser.Id)
         };
 
         return View(model);
@@ -172,25 +154,9 @@ public class MentorshipController : Controller
         var currentUser = await _userManager.GetUserAsync(User);
         if (currentUser == null) return Unauthorized();
 
-        var mentorship = await _context.Mentorship
-            .Include(m => m.Mentee)
-            .Include(m => m.FocusAreas)
-            .ThenInclude(fa => fa.Expertise)
-            .FirstOrDefaultAsync(m => m.Id == requestId && m.MentorId == currentUser.Id);
-
+        var mentorship = await _mentoringManager.RespondToRequestAsync(requestId, currentUser.Id, accept, responseMessage);
+        
         if (mentorship == null) return NotFound();
-
-        mentorship.Status = accept ? MentorshipStatus.Active : MentorshipStatus.Declined;
-        mentorship.ResponseMessage = responseMessage;
-        mentorship.ResponsedAt = DateTime.UtcNow;
-        mentorship.UpdatedAt = DateTime.UtcNow;
-
-        if (accept)
-        {
-            mentorship.StartedAt = DateTime.UtcNow;
-        }
-
-        await _context.SaveChangesAsync();
 
         if (Request.Headers.ContainsKey("HX-Request"))
         {
@@ -206,15 +172,7 @@ public class MentorshipController : Controller
         var currentUser = await _userManager.GetUserAsync(User);
         if (currentUser == null) return Unauthorized();
 
-        var activeMentorships = await _context.Mentorship
-            .Include(m => m.Mentor)
-            .Include(m => m.Mentee)
-            .Include(m => m.FocusAreas)
-            .ThenInclude(fa => fa.Expertise)
-            .Where(m => (m.MentorId == currentUser.Id || m.MenteeId == currentUser.Id) && 
-                       m.Status == MentorshipStatus.Active)
-            .OrderBy(m => m.StartedAt)
-            .ToListAsync();
+        var activeMentorships = await _mentoringManager.GetActiveMentorshipsForUserAsync(currentUser.Id);
 
         return View(activeMentorships);
     }
@@ -228,15 +186,15 @@ public class MentorshipController : Controller
     [HttpGet("NotificationCount")]
     public async Task<IActionResult> NotificationCount()
     {
+        // TODO: Change this to include pending inbound and outbound requests
         var currentUser = await _userManager.GetUserAsync(User);
         if (currentUser == null) return Json(new { count = 0 });
 
-        var pendingCount = await _context.Mentorship
-            .CountAsync(m => m.MentorId == currentUser.Id && m.Status == MentorshipStatus.Pending);
+        var pendingCount = await _mentoringManager.GetNumberOfMentorshipsPending(currentUser.Id);
 
-        if (pendingCount > 0)
+        if (pendingCount.inboundCount > 0)
         {
-            return PartialView("_NotificationBadge", pendingCount);
+            return PartialView("_NotificationBadge", pendingCount.inboundCount);
         }
 
         return Content("");
@@ -248,7 +206,7 @@ public class MentorshipController : Controller
         var currentUser = await _userManager.GetUserAsync(User);
         if (currentUser == null) return Unauthorized();
 
-        var incomingRequests = await GetIncomingRequests(currentUser.Id);
+        var incomingRequests = await _mentoringManager.GetIncomingMentorshipRequests(currentUser.Id);
         return PartialView("_IncomingRequests", incomingRequests);
     }
 
@@ -258,14 +216,9 @@ public class MentorshipController : Controller
         var currentUser = await _userManager.GetUserAsync(User);
         if (currentUser == null) return Unauthorized();
 
-        var mentorship = await _context.Mentorship
-            .FirstOrDefaultAsync(m => m.Id == requestId && m.MenteeId == currentUser.Id);
+        var mentorshipCancelled = await _mentoringManager.CancelMentorshipRequestAsync(requestId, currentUser.Id);
 
-        if (mentorship == null) return NotFound();
-
-        mentorship.Status = MentorshipStatus.Cancelled;
-        mentorship.UpdatedAt = DateTime.UtcNow;
-        await _context.SaveChangesAsync();
+        if (!mentorshipCancelled) return NotFound();
 
         return Content("<div class='alert alert-info'>Request cancelled successfully.</div>");
     }
@@ -276,16 +229,9 @@ public class MentorshipController : Controller
         var currentUser = await _userManager.GetUserAsync(User);
         if (currentUser == null) return Unauthorized();
 
-        var mentorship = await _context.Mentorship
-            .FirstOrDefaultAsync(m => m.Id == mentorshipId && 
-                               (m.MentorId == currentUser.Id || m.MenteeId == currentUser.Id));
+        var mentorCompleted = await _mentoringManager.CancelMentorshipRequestAsync(mentorshipId, currentUser.Id);
 
-        if (mentorship == null) return NotFound();
-
-        mentorship.Status = MentorshipStatus.Completed;
-        mentorship.CompletedAt = DateTime.UtcNow;
-        mentorship.UpdatedAt = DateTime.UtcNow;
-        await _context.SaveChangesAsync();
+        if (!mentorCompleted) return NotFound();
 
         return Content("<div class='alert alert-success'>Mentorship marked as completed!</div>");
     }
@@ -296,78 +242,17 @@ public class MentorshipController : Controller
         var currentUser = await _userManager.GetUserAsync(User);
         if (currentUser == null) return Unauthorized();
 
-        var mentorship = await _context.Mentorship
-            .FirstOrDefaultAsync(m => m.Id == mentorshipId && 
-                               (m.MentorId == currentUser.Id || m.MenteeId == currentUser.Id));
+        var mentorshipCancelled = await _mentoringManager.CancelMentorshipRequestAsync(mentorshipId, currentUser.Id);
 
-        if (mentorship == null) return NotFound();
-
-        mentorship.Status = MentorshipStatus.Cancelled;
-        mentorship.UpdatedAt = DateTime.UtcNow;
-        await _context.SaveChangesAsync();
+        if (!mentorshipCancelled) return NotFound();
 
         return Content("<div class='alert alert-warning'>Mentorship cancelled.</div>");
     }
 
     private async Task LoadMentors(BrowseMentorsViewModel model)
     {
-        var query = _context.Users
-            .Include(u => u.UserExpertise)
-            .ThenInclude(ue => ue.Expertise)
-            .Where(u => u.Id != model.CurrentUser.Id); // Exclude current user
-
-        // Filter by speaker type based on mentorship type
-        if (model.MentorshipType == MentorshipType.NewToExperienced)
-        {
-            query = query.Where(u => u.SpeakerTypeId == 2); // Experienced speakers only
-        }
-        else
-        {
-            query = query.Where(u => u.SpeakerTypeId == 2); // Both can mentor each other, but for now experienced only
-        }
-
-        // Filter by expertise
-        if (model.SelectedExpertise.Any())
-        {
-            var expertiseIds = await _context.Expertise
-                .Where(e => model.SelectedExpertise.Contains(e.Name))
-                .Select(e => e.Id)
-                .ToListAsync();
-
-            query = query.Where(u => u.UserExpertise.Any(ue => expertiseIds.Contains(ue.ExpertiseId)));
-        }
-
-        // Filter by availability
-        if (model.AvailableNow == true)
-        {
-            query = query.Where(u => u.IsAvailableForMentoring);
-        }
-
-        model.Mentors = await query
-            .OrderBy(u => u.LastName)
-            .ThenBy(u => u.FirstName)
-            .ToListAsync();
-    }
-
-    private async Task<List<Mentorship>> GetIncomingRequests(Guid userId)
-    {
-        return await _context.Mentorship
-            .Include(m => m.Mentee)
-            .Include(m => m.FocusAreas)
-            .ThenInclude(fa => fa.Expertise)
-            .Where(m => m.MentorId == userId && m.Status == MentorshipStatus.Pending)
-            .OrderByDescending(m => m.RequestedAt)
-            .ToListAsync();
-    }
-
-    private async Task<List<Mentorship>> GetOutgoingRequests(Guid userId)
-    {
-        return await _context.Mentorship
-            .Include(m => m.Mentor)
-            .Include(m => m.FocusAreas)
-            .ThenInclude(fa => fa.Expertise)
-            .Where(m => m.MenteeId == userId)
-            .OrderByDescending(m => m.RequestedAt)
-            .ToListAsync();
+        var mentors = await _mentoringManager.GetMentorsExceptForUserAsync(model.CurrentUser.Id, model.MentorshipType,
+            model.SelectedExpertise, model.AvailableNow);
+        model.Mentors = mentors;
     }
 }

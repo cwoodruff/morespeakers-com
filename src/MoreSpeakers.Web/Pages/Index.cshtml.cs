@@ -2,24 +2,23 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models;
-using MoreSpeakers.Web.Services;
 
 namespace MoreSpeakers.Web.Pages;
 
 public class IndexModel : PageModel
 {
     private readonly IExpertiseDataStore _expertiseDataStore;
-    private readonly IMentorshipService _mentorshipService;
+    private readonly IMentoringManager _mentoringManager;
     private readonly ISpeakerDataStore _speakerDataStore;
 
     public IndexModel(
         IExpertiseDataStore expertiseDataStore,
-        IMentorshipService mentorshipService,
+        IMentoringManager mentoringManager,
         ISpeakerDataStore speakerDataStore
         )
     {
         _expertiseDataStore = expertiseDataStore;
-        _mentorshipService = mentorshipService;
+        _mentoringManager = mentoringManager;      
         _speakerDataStore = speakerDataStore;   
     }
 
@@ -32,20 +31,14 @@ public class IndexModel : PageModel
     public async Task OnGetAsync()
     {
         // Get statistics
-        var newSpeakers = await _speakerDataStore.GetNewSpeakersAsync();
-        var experiencedSpeakers = await _speakerDataStore.GetExperiencedSpeakersAsync();
-        var activeMentorships = await _mentorshipService.GetActiveMentorshipsAsync();
-
-        NewSpeakersCount = newSpeakers.Count();
-        ExperiencedSpeakersCount = experiencedSpeakers.Count();
-        ActiveMentorshipsCount = activeMentorships.Count();
+        var stats = await _speakerDataStore.GetStatisticsForApplicationAsync();
+        
+        NewSpeakersCount = stats.newSpeakers;
+        ExperiencedSpeakersCount = stats.experiencedSpeakers;
+        ActiveMentorshipsCount = stats.activeMentorships;
 
         // Get featured speakers (experienced speakers with profiles)
-        FeaturedSpeakers = experiencedSpeakers
-            .Where(s => !string.IsNullOrEmpty(s.Bio) && s.UserExpertise.Any())
-            .OrderByDescending(s => s.UserExpertise.Count)
-            .Take(6)
-            .ToList();
+        FeaturedSpeakers = await _speakerDataStore.GetFeaturedSpeakersAsync(6);
 
         // Get popular expertise areas
         PopularExpertise = await _expertiseDataStore.GetPopularExpertiseAsync(8);

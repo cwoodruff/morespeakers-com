@@ -113,8 +113,8 @@ else
                                     hx-target="#modal-container"
                                     hx-swap="innerHTML"
                                     >
-                                <i class="bi bi-@(Model.MentorshipType == MentorshipType.NewToExperienced ? "chat-dots" : "people") me-2"></i>
-                                @(Model.MentorshipType == MentorshipType.NewToExperienced ? "Request Mentorship" : "Connect as Peer")
+                                <i class="bi bi-@(Model.MentorshipType == MoreSpeakers.Domain.Models.MentorshipType.NewToExperienced ? "chat-dots" : "people") me-2"></i>
+                                @(Model.MentorshipType == MoreSpeakers.Domain.Models.MentorshipType.NewToExperienced ? "Request Mentorship" : "Connect as Peer")
                             </button>
                         }
                         else

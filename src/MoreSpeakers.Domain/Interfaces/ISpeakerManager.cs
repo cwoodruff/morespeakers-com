@@ -22,5 +22,7 @@ public interface ISpeakerManager
     Task<bool> EmptyAndAddSocialMediaForUserAsync(Guid userId, List<SocialMedia> socialMedias);
     Task<List<UserExpertise>> GetUserExpertisesForUserAsync(Guid userId);
     Task<List<SocialMedia>> GetUserSocialMediaForUserAsync(Guid userId);
+    Task<(int newSpeakers, int experiencedSpeakers, int activeMentorships)> GetStatisticsForApplicationAsync();
+    Task<List<User>> GetFeaturedSpeakersAsync(int count);
 
 }

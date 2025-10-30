@@ -1,4 +1,4 @@
-@model List<MoreSpeakers.Web.Models.Mentorship>
+@model List<Domain.Models.Mentorship>
 
 @if (!Model.Any())
 {
@@ -6,7 +6,7 @@
         <i class="bi bi-send display-4 text-muted"></i>
         <h6 class="mt-3">No outgoing requests</h6>
         <p class="text-muted">You haven't sent any mentorship requests yet.</p>
-        <a href="/Mentorship/Browse" class="btn btn-primary">
+        <a asp-page="/Mentorship/Browse" class="btn btn-primary">
             <i class="bi bi-search me-2"></i>Find a Mentor
         </a>
     </div>
@@ -39,13 +39,13 @@ else
                     <span class="request-status request-@request.Status.ToString().ToLower()">
                         @switch (request.Status)
                         {
-                            case MentorshipStatus.Pending:
+                            case Domain.Models.MentorshipStatus.Pending:
                                 <i class="bi bi-clock me-1"></i>
                                 break;
-                            case MentorshipStatus.Active:
+                            case Domain.Models.MentorshipStatus.Active:
                                 <i class="bi bi-check-circle me-1"></i>
                                 break;
-                            case MentorshipStatus.Declined:
+                            case Domain.Models.MentorshipStatus.Declined:
                                 <i class="bi bi-x-circle me-1"></i>
                                 break;
                         }
@@ -88,13 +88,13 @@ else
                         }
                     </small>
 
-                    @if (request.Status == MentorshipStatus.Active)
+                    @if (request.Status == Domain.Models.MentorshipStatus.Active)
                     {
-                        <a href="/Mentorship/Active" class="btn btn-sm btn-success">
+                        <a asp-page="/Mentorship/Active" class="btn btn-sm btn-success">
                             <i class="bi bi-chat-dots me-1"></i>View Mentorship
                         </a>
                     }
-                    else if (request.Status == MentorshipStatus.Pending)
+                    else if (request.Status == Domain.Models.MentorshipStatus.Pending)
                     {
                         <button class="btn btn-sm btn-outline-secondary"
                                 hx-post="/Mentorship/Requests?handler=CancelRequest&mentorshipId=@request.Id"

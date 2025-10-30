@@ -41,23 +41,23 @@ public class SpeakerManager: ISpeakerManager
         return await _dataStore.DeleteAsync(entity);
     }
 
-    public async Task<IEnumerable<Domain.Models.User>> GetNewSpeakersAsync()
+    public async Task<IEnumerable<User>> GetNewSpeakersAsync()
     {
         return await _dataStore.GetNewSpeakersAsync();
     }
 
-    public async Task<IEnumerable<Domain.Models.User>> GetExperiencedSpeakersAsync()
+    public async Task<IEnumerable<User>> GetExperiencedSpeakersAsync()
     {
         return await _dataStore.GetExperiencedSpeakersAsync();
     }
 
 
-    public async Task<IEnumerable<Domain.Models.User>> SearchSpeakersAsync(string searchTerm, int? speakerTypeId = null)
+    public async Task<IEnumerable<User>> SearchSpeakersAsync(string searchTerm, int? speakerTypeId = null)
     {
         return await _dataStore.SearchSpeakersAsync(searchTerm, speakerTypeId);
     }
 
-    public async Task<IEnumerable<Domain.Models.User>> GetSpeakersByExpertiseAsync(int expertiseId)
+    public async Task<IEnumerable<User>> GetSpeakersByExpertiseAsync(int expertiseId)
     {
         return await _dataStore.GetSpeakersByExpertiseAsync(expertiseId);
     }
@@ -108,5 +108,16 @@ public class SpeakerManager: ISpeakerManager
     public async Task<List<SocialMedia>> GetUserSocialMediaForUserAsync(Guid userId)
     {
         return await _dataStore.GetUserSocialMediaForUserAsync(userId);
+    }
+
+    public async Task<(int newSpeakers, int experiencedSpeakers, int activeMentorships)> GetStatisticsForApplicationAsync()
+    {
+        return await _dataStore.GetStatisticsForApplicationAsync();
+    }
+
+    public async Task<List<User>> GetFeaturedSpeakersAsync(int count)
+    {
+        // TODO: Need to improve this logic and just not pick the count with most expertise
+        return await _dataStore.GetFeaturedSpeakersAsync(count);
     }
 }

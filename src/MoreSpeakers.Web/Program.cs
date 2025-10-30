@@ -6,7 +6,6 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models;
 using MoreSpeakers.Managers;
-using MoreSpeakers.Web.Models;
 using MoreSpeakers.Web.Services;
 using MoreSpeakers.Data;
 using Serilog;
@@ -40,8 +39,8 @@ builder.Services.TryAddSingleton<IDatabaseSettings>(new DatabaseSettings
 
 // TODO: Remove after the Mentorship feature is implemented
 // Add database context
-//builder.AddSqlServerDbContext<MoreSpeakers.Web.Data.ApplicationDbContext>("sqldb");
-//builder.EnrichSqlServerDbContext<MoreSpeakers.Web.Data.ApplicationDbContext>();
+builder.AddSqlServerDbContext<MoreSpeakersDbContext>("sqldb");
+builder.EnrichSqlServerDbContext<MoreSpeakersDbContext>();
 
 // Add Identity services
 builder.Services.AddDefaultIdentity<MoreSpeakers.Domain.Models.User>(options =>
@@ -68,7 +67,7 @@ builder.Services.AddDefaultIdentity<MoreSpeakers.Domain.Models.User>(options =>
         options.SignIn.RequireConfirmedPhoneNumber = false;
     })
     .AddRoles<IdentityRole<Guid>>()
-    .AddEntityFrameworkStores<MoreSpeakers.Web.Data.ApplicationDbContext>();
+    .AddEntityFrameworkStores<MoreSpeakers.Data.MoreSpeakersDbContext>();
 
 // Add Razor Pages
 builder.Services.AddRazorPages(options =>
@@ -83,8 +82,6 @@ builder.AddAzureTableServiceClient("AzureStorageTables");
 builder.AddAzureQueueServiceClient("AzureStorageQueues");
 
 // Add application services
-builder.Services.AddScoped<IMentorshipService, MentorshipService>();
-
 builder.Services.AddScoped<IExpertiseDataStore, ExpertiseDataStore>();
 builder.Services.AddScoped<IMentoringDataStore, MentoringDataStore>();
 builder.Services.AddScoped<ISpeakerDataStore, SpeakerDataStore>();

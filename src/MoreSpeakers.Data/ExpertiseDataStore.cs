@@ -43,7 +43,7 @@ public class ExpertiseDataStore : IExpertiseDataStore
 
     public async Task<List<Expertise>> GetAllAsync()
     {
-        var expertises = await _context.Expertise.ToListAsync();
+        var expertises = await _context.Expertise.OrderBy(e => e.Name).ToListAsync();
         return _mapper.Map<List<Expertise>>(expertises);
     }
 
