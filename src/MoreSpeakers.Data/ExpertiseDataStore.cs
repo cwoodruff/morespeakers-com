@@ -27,15 +27,15 @@ public class ExpertiseDataStore : IExpertiseDataStore
         return _mapper.Map<Expertise>(expertise);
     }
 
-    public async Task<Expertise> SaveAsync(Expertise entity)
+    public async Task<Expertise> SaveAsync(Expertise expertise)
     {
-        var expertise = _mapper.Map<Models.Expertise>(entity);
-        _context.Entry(entity).State = entity.Id == 0 ? EntityState.Added : EntityState.Modified;
+        var dbExpertise = _mapper.Map<Models.Expertise>(expertise);
+        _context.Entry(dbExpertise).State = dbExpertise.Id == 0 ? EntityState.Added : EntityState.Modified;
 
         var result = await _context.SaveChangesAsync() != 0;
         if (result)
         {
-            return _mapper.Map<Expertise>(expertise);
+            return _mapper.Map<Expertise>(dbExpertise);
         }
 
         throw new ApplicationException("Failed to save the expertise");

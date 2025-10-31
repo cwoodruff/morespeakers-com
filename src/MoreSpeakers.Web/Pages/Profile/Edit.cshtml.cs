@@ -49,8 +49,8 @@ public class EditModel(
 
     public async Task<IActionResult> OnPostUpdateProfileAsync()
     {
-        //var result = await LoadUserDataAsync();
-        //if (result != null) return result;
+        var result = await LoadUserDataAsync();
+        if (result != null) return result;
 
         ActiveTab = "profile";
 
@@ -112,6 +112,7 @@ public class EditModel(
             ProfileUser.SpeakerTypeId = Input.SpeakerTypeId;
             ProfileUser.UpdatedDate = DateTime.UtcNow;
             
+            // Change this to use UserManager UpdateAsync() method
             await _userManager.SaveAsync(ProfileUser);
 
             // Update expertise

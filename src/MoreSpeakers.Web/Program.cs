@@ -34,10 +34,6 @@ var settings = new Settings
 builder.Configuration.AddEnvironmentVariables();
 builder.Configuration.Bind("Settings", settings);
 builder.Services.AddSingleton<ISettings>(settings);
-builder.Services.TryAddSingleton<IDatabaseSettings>(new DatabaseSettings
-{
-    DatabaseConnectionString = builder.Configuration.GetConnectionString("sqldb") ?? string.Empty
-});
 
 // Add database context
 builder.AddSqlServerDbContext<MoreSpeakersDbContext>("sqldb");

@@ -29,15 +29,15 @@ public class MentoringDataStore: IMentoringDataStore
         return _mapper.Map<Mentorship>(mentorship);
     }
 
-    public async Task<Mentorship> SaveAsync(Mentorship entity)
+    public async Task<Mentorship> SaveAsync(Mentorship mentorship)
     {
-        var expertise = _mapper.Map<Models.Mentorship>(entity);
-        _context.Entry(entity).State = entity.Id == Guid.Empty ? EntityState.Added : EntityState.Modified;
+        var dbMentorship = _mapper.Map<Models.Mentorship>(mentorship);
+        _context.Entry(dbMentorship).State = dbMentorship.Id == Guid.Empty ? EntityState.Added : EntityState.Modified;
 
         var result = await _context.SaveChangesAsync() != 0;
         if (result)
         {
-            return _mapper.Map<Mentorship>(expertise);
+            return _mapper.Map<Mentorship>(dbMentorship);
         }
 
         throw new ApplicationException("Failed to save the expertise");

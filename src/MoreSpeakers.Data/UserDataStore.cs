@@ -89,15 +89,15 @@ public class UserDataStore : IUserDataStore
         return _mapper.Map<User>(speaker);
     }
 
-    public async Task<User> SaveAsync(User entity)
+    public async Task<User> SaveAsync(User user)
     {
-        var user = _mapper.Map<Models.User>(entity);
-        _context.Entry(entity).State = entity.Id == Guid.Empty ? EntityState.Added : EntityState.Modified;
-
+        var dbUser = _mapper.Map<Models.User>(user);
+        _context.Entry(dbUser).State = EntityState.Detached;
+        _context.Update(dbUser);
         var result = await _context.SaveChangesAsync() != 0;
         if (result)
         {
-            return _mapper.Map<User>(user);
+            return _mapper.Map<User>(dbUser);
         }
 
         throw new ApplicationException("Failed to save the user");
