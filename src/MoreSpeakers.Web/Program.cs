@@ -90,10 +90,10 @@ builder.AddAzureQueueServiceClient("AzureStorageQueues");
 // Add application services
 builder.Services.AddScoped<IExpertiseDataStore, ExpertiseDataStore>();
 builder.Services.AddScoped<IMentoringDataStore, MentoringDataStore>();
-builder.Services.AddScoped<ISpeakerDataStore, SpeakerDataStore>();
+builder.Services.AddScoped<IUserDataStore, UserDataStore>();
 builder.Services.AddScoped<IExpertiseManager, ExpertiseManager>();
 builder.Services.AddScoped<IMentoringManager, MentoringManager>();
-builder.Services.AddScoped<ISpeakerManager, SpeakerManager>();
+builder.Services.AddScoped<IUserManager, UserManager>();
 
 builder.Services.AddScoped<IFileUploadService, FileUploadService>();
 builder.Services.AddScoped<IEmailSender, EmailSender>();

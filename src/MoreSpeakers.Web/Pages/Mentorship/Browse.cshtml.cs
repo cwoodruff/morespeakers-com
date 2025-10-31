@@ -1,6 +1,5 @@
 using Microsoft.ApplicationInsights;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
@@ -14,7 +13,7 @@ namespace MoreSpeakers.Web.Pages.Mentorship;
 [Authorize]
 public class BrowseModel : PageModel
 {
-    private readonly UserManager<User> _userManager;
+    private readonly IUserManager _userManager;
     private readonly IExpertiseManager _expertiseManager;
     private readonly IMentoringManager _mentoringManager;
     private readonly IEmailSender _emailSender;
@@ -22,7 +21,7 @@ public class BrowseModel : PageModel
     private readonly TelemetryClient _telemetryClient;
 
     public BrowseModel(
-        UserManager<User> userManager,
+        IUserManager userManager,
         IExpertiseManager expertiseManager,
         IMentoringManager mentorshipService,
         IEmailSender emailSender,
@@ -141,8 +140,7 @@ public class BrowseModel : PageModel
         var currentUser = await _userManager.GetUserAsync(User);
         if (currentUser == null) return Unauthorized();
 
-        var targetMentorUser = await _userManager.FindByIdAsync(targetId.ToString());
-        if (targetMentorUser == null) return Unauthorized();
+        var targetMentorUser = await _userManager.GetAsync(targetId);
 
         // Check if can request
         var canRequest = await _mentoringManager.CanRequestMentorshipAsync(currentUser.Id, targetId);
@@ -163,7 +161,7 @@ public class BrowseModel : PageModel
         //var requestUrl = Url.Page("/Mentorship/Requests/");
 
         await _emailSender.QueueEmail(
-            new System.Net.Mail.MailAddress(targetMentorUser.Email!,
+            new System.Net.Mail.MailAddress(targetMentorUser.Email,
                 $"{targetMentorUser.FirstName} {targetMentorUser.LastName}"),
             "You have a new MoreSpeaker.com Mentorship Request",
             $"Please review and confirm the mentoring request at MoreSpeakers.com.");
@@ -171,7 +169,7 @@ public class BrowseModel : PageModel
         _telemetryClient.TrackEvent("MentorRequestEmailSent", new Dictionary<string, string>
         {
             { "UserId", targetMentorUser.Id.ToString() },
-            { "Email", targetMentorUser.Email ?? string.Empty }
+            { "Email", targetMentorUser.Email }
         });
 
         return Partial("_RequestSuccess", mentorship);

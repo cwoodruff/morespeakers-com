@@ -13,22 +13,22 @@ namespace MoreSpeakers.Web.Controllers;
 [Route("Mentorship")]
 public class MentorshipController : Controller
 {
-    private readonly UserManager<User> _userManager;
+    //private readonly UserManager<User> _userManager;
     private readonly IExpertiseManager _expertiseManager;
     private readonly IMentoringManager _mentoringManager;
-    private readonly ISpeakerManager _speakerManager;
+    private readonly IUserManager _userManager;
     
     public MentorshipController(
-        UserManager<User> userManager,
+        //UserManager<User> userManager,
         IExpertiseManager expertiseManager,
         IMentoringManager mentoringManager,
-        ISpeakerManager speakerManager
+        IUserManager userManager
         )
     {
-        _userManager = userManager;
+        //_userManager = userManager;
         _expertiseManager = expertiseManager;
         _mentoringManager = mentoringManager;
-        _speakerManager = speakerManager;
+        _userManager = userManager;
     }
 
     [HttpGet("Browse")]
@@ -83,7 +83,7 @@ public class MentorshipController : Controller
         var currentUser = await _userManager.GetUserAsync(User);
         if (currentUser == null) return Unauthorized();
 
-        var mentor = await _speakerManager.GetAsync(mentorId);
+        var mentor = await _userManager.GetAsync(mentorId);
 
         // Get shared expertise between current user and mentor
         var sharedExpertises = await _mentoringManager.GetSharedExpertisesAsync(mentor, currentUser);
@@ -106,7 +106,7 @@ public class MentorshipController : Controller
         var currentUser = await _userManager.GetUserAsync(User);
         if (currentUser == null) return Unauthorized();
 
-        var mentor = await _speakerManager.GetAsync(mentorId);
+        var mentor = await _userManager.GetAsync(mentorId);
 
         // Check if request already exists
         var existingRequest = await _mentoringManager.DoesMentorshipRequestsExistsAsync(mentor, currentUser);

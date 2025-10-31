@@ -1,16 +1,21 @@
+using System.Security.Claims;
+
 using AutoMapper;
+
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using MoreSpeakers.Domain.Models;
 using MoreSpeakers.Domain.Interfaces;
 
 namespace MoreSpeakers.Data;
 
-public class SpeakerDataStore : ISpeakerDataStore
+public class UserDataStore : IUserDataStore
 {
     private readonly MoreSpeakersDbContext _context;
+    private readonly UserManager<Data.Models.User> _userManager;
     private readonly Mapper _mapper;
 
-    public SpeakerDataStore(MoreSpeakersDbContext context)
+    public UserDataStore(MoreSpeakersDbContext context, UserManager<Data.Models.User> userManager)
     {
         _context = context;
         var mappingConfiguration = new MapperConfiguration(cfg =>
@@ -18,7 +23,60 @@ public class SpeakerDataStore : ISpeakerDataStore
             cfg.AddProfile<MappingProfiles.MoreSpeakersProfile>();
         });
         _mapper = new Mapper(mappingConfiguration);
+        
+        _userManager = userManager;
     }
+    
+    // ------------------------------------------
+    // Wrapper methods for AspNetCore Identity
+    // ------------------------------------------
+    
+    public async Task<User?> GetUserAsync(ClaimsPrincipal user)
+    {
+        var identityUser = await _userManager.GetUserAsync(user);
+        
+        return _mapper.Map<User>(identityUser);
+    }
+
+    public async Task<IdentityResult> ChangePasswordAsync(User user, string currentPassword, string newPassword)
+    {
+        var identityUser = _mapper.Map<Data.Models.User>(user);
+        return await _userManager.ChangePasswordAsync(identityUser, currentPassword, newPassword);
+    }
+
+    public async Task<IdentityResult> CreateAsync(User user, string password)
+    {
+        var identityUser = _mapper.Map<Data.Models.User>(user);
+        return await _userManager.CreateAsync(identityUser, password);
+    }
+
+    public async Task<User?> FindByEmailAsync(string email)
+    {
+        var identityUser = await _userManager.FindByEmailAsync(email);
+        return _mapper.Map<User>(identityUser);
+    }
+
+    public async Task<User?> GetUserIdAsync(ClaimsPrincipal user)
+    {
+        var identityUser = await _userManager.GetUserAsync(user);
+        return _mapper.Map<User>(identityUser);
+    }
+
+    public async Task<string> GenerateEmailConfirmationTokenAsync(User user)
+    {
+        var identityUser = _mapper.Map<Data.Models.User>(user);
+        return await _userManager.GenerateEmailConfirmationTokenAsync(identityUser);
+    }
+
+    public Task<IdentityResult> UpdateAsync(User user)
+    {
+        var identityUser = _mapper.Map<Data.Models.User>(user);
+        return _userManager.UpdateAsync(identityUser);
+    }
+
+    // ------------------------------------------
+    // Application Methods
+    // ------------------------------------------
     
     public async Task<User> GetAsync(Guid primaryKey)
     {

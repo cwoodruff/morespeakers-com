@@ -1,5 +1,3 @@
-#nullable disable
-
 using Microsoft.ApplicationInsights;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
@@ -18,33 +16,27 @@ namespace MoreSpeakers.Web.Areas.Identity.Pages.Account;
 public partial class RegisterModel : PageModel
 {
     private readonly IEmailSender _emailSender;
-    private readonly IUserEmailStore<User> _emailStore;
     private readonly IExpertiseManager _expertiseManager;
-    private readonly ISpeakerManager _speakerManager;
     private readonly ILogger<RegisterModel> _logger;
     private readonly SignInManager<User> _signInManager;
-    private readonly UserManager<User> _userManager;
-    private readonly IUserStore<User> _userStore;
+    private readonly IUserManager _userManager;
     private readonly TelemetryClient _telemetryClient;
 
     public RegisterModel(
-        UserManager<User> userManager,
         IUserStore<User> userStore,
         SignInManager<User> signInManager,
         ILogger<RegisterModel> logger,
         IEmailSender emailSender,
         IExpertiseManager expertiseManager,
-        ISpeakerManager speakerManager,
+        IUserManager userManager,
         TelemetryClient telemetryClient)
     {
         _userManager = userManager;
-        _userStore = userStore;
-        _emailStore = GetEmailStore();
         _signInManager = signInManager;
         _logger = logger;
         _emailSender = emailSender;
         _expertiseManager = expertiseManager;
-        _speakerManager = speakerManager;
+        _userManager = userManager;
         _telemetryClient = telemetryClient;
     }
 
@@ -68,8 +60,8 @@ public partial class RegisterModel : PageModel
     // Properties needed for complete registration (step 5) confirmation
     public IEnumerable<Expertise> AllExpertise { get; set; } = new List<Expertise>();
 
-    // Property to expose selected expertise IDs for registration completion (step 5_
-    public int[] ExpertiseIds => Input?.SelectedExpertiseIds ?? [];
+    // Property to expose selected expertise IDs for registration completion (step 5)
+    public int[] ExpertiseIds => Input.SelectedExpertiseIds ?? [];
 
     // Properties required by _RegistrationContainer.cshtml
     public int CurrentStep { get; set; } = Models.RegistrationProgressions.SpeakerProfileNeeded;
@@ -81,9 +73,6 @@ public partial class RegisterModel : PageModel
     public async Task OnGetAsync()
     {
         ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
-
-        // Initialize Input model if not already initialized
-        Input ??= new InputModel();
 
         // Initialize registration state
         CurrentStep = Models.RegistrationProgressions.SpeakerProfileNeeded;
@@ -117,7 +106,7 @@ public partial class RegisterModel : PageModel
         // Additional async validations for step 1 (e.g., email uniqueness)
         if (step == Models.RegistrationProgressions.SpeakerProfileNeeded && stepValid)
         {
-            if (!string.IsNullOrWhiteSpace(Input?.Email))
+            if (!string.IsNullOrWhiteSpace(Input.Email))
             {
                 var existingUser = await _userManager.FindByEmailAsync(Input.Email);
                 if (existingUser != null)
@@ -387,20 +376,19 @@ public partial class RegisterModel : PageModel
 
         if (allStepsValid)
         {
-            var user = CreateUser();
-
-            // Set all the user properties
-            await _userStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
-            await _emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
-
-            user.FirstName = Input.FirstName;
-            user.LastName = Input.LastName;
-            user.PhoneNumber = Input.PhoneNumber;
-            user.Bio = Input.Bio;
-            user.Goals = Input.Goals;
-            user.SessionizeUrl = Input.SessionizeUrl;
-            user.HeadshotUrl = Input.HeadshotUrl;
-            user.SpeakerTypeId = Input.SpeakerTypeId;
+            var user = new User
+            {
+                Email = Input.Email, 
+                UserName = Input.Email, 
+                FirstName = Input.FirstName,
+                LastName = Input.LastName,
+                PhoneNumber = Input.PhoneNumber,
+                Bio = Input.Bio,
+                Goals = Input.Goals,
+                SessionizeUrl = Input.SessionizeUrl,
+                HeadshotUrl = Input.HeadshotUrl,
+                SpeakerTypeId = Input.SpeakerTypeId,    
+            };
 
             var result = await _userManager.CreateAsync(user, Input.Password);
 
@@ -409,14 +397,14 @@ public partial class RegisterModel : PageModel
                 _logger.LogInformation("User created a new account with password");
 
                 // Add expertise relationships
-                await _speakerManager.EmptyAndAddExpertiseForUserAsync(user.Id, Input.SelectedExpertiseIds);
+                await _userManager.EmptyAndAddExpertiseForUserAsync(user.Id, Input.SelectedExpertiseIds);
                 
                 // Add custom expertise
                 foreach (var customExpertise in Input.CustomExpertise.Where(ce => !string.IsNullOrWhiteSpace(ce)))
                 {
                     var expertiseId = await _expertiseManager.CreateExpertiseAsync(customExpertise.Trim(),
                         $"Custom expertise: {customExpertise.Trim()}");
-                    await _speakerManager.AddExpertiseToUserAsync(user.Id, expertiseId);
+                    await _userManager.AddExpertiseToUserAsync(user.Id, expertiseId);
                 }
 
                 // Add social media links
@@ -432,18 +420,17 @@ public partial class RegisterModel : PageModel
                             CreatedDate = DateTime.UtcNow
                         });
 
-                await _speakerManager.EmptyAndAddSocialMediaForUserAsync(user.Id, socialMediaLinks);
+                await _userManager.EmptyAndAddSocialMediaForUserAsync(user.Id, socialMediaLinks);
 
                 // Send welcome email (mock implementation)
                 await SendWelcomeEmailAsync(user);
 
-                var userId = await _userManager.GetUserIdAsync(user);
                 var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
                 code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
                 var callbackUrl = Url.Page(
                     "/Account/ConfirmEmail",
                     null,
-                    new { area = "Identity", userId, code, S = "~//" },
+                    new { area = "Identity", user.Id, code, S = "~//" },
                     Request.Scheme)!;
 
                 await _emailSender.QueueEmail(new System.Net.Mail.MailAddress(user.Email!, $"{user.FirstName} {user.LastName}"),
@@ -477,27 +464,6 @@ public partial class RegisterModel : PageModel
         HasValidationErrors = true;
         ValidationMessage = "Registration failed. Please check the errors and try again.";
         return Page();
-    }
-
-    private User CreateUser()
-    {
-        try
-        {
-            return Activator.CreateInstance<User>();
-        }
-        catch
-        {
-            throw new InvalidOperationException($"Can't create an instance of '{nameof(User)}'. " +
-                                                $"Ensure that '{nameof(User)}' is not an abstract class and has a parameterless constructor, or alternatively " +
-                                                $"override the register page in /Areas/Identity/Pages/Account/Register.cshtml");
-        }
-    }
-
-    private IUserEmailStore<User> GetEmailStore()
-    {
-        if (!_userManager.SupportsUserEmail)
-            throw new NotSupportedException("The default UI requires a user store with email support.");
-        return (IUserEmailStore<User>)_userStore;
     }
 
     /// <summary>
@@ -612,7 +578,7 @@ public partial class RegisterModel : PageModel
             _logger.LogInformation("Subject: {Subject}", emailSubject);
             _logger.LogInformation("Body: {Body}", emailBody);
 
-            await _emailSender.QueueEmail(new System.Net.Mail.MailAddress(user.Email!, $"{user.FirstName} {user.LastName}"),
+            await _emailSender.QueueEmail(new System.Net.Mail.MailAddress(user.Email, $"{user.FirstName} {user.LastName}"),
                 emailSubject, emailBody);
 
             _telemetryClient.TrackEvent("WelcomeEmailSent", new Dictionary<string, string>

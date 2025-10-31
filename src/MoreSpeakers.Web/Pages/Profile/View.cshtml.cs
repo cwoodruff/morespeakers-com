@@ -7,10 +7,10 @@ using MoreSpeakers.Domain.Interfaces;
 namespace MoreSpeakers.Web.Pages.Profile;
 
 public class ViewModel(
-    ISpeakerManager speakerManager
+    IUserManager userManager
     ) : PageModel
 {
-    private readonly ISpeakerManager _speakerManager = speakerManager;
+    private readonly IUserManager _userManager = userManager;
 
     [BindProperty(SupportsGet = true)]
     public Guid Id { get; set; }
@@ -26,16 +26,16 @@ public class ViewModel(
             return NotFound();
         }
 
-        ProfileUser = await _speakerManager.GetAsync(Id);
+        ProfileUser = await _userManager.GetAsync(Id);
 
         if (ProfileUser == null)
         {
             return NotFound();
         }
 
-        UserExpertise = await _speakerManager.GetUserExpertisesForUserAsync(Id);
+        UserExpertise = await _userManager.GetUserExpertisesForUserAsync(Id);
 
-        SocialMedia = await _speakerManager.GetUserSocialMediaForUserAsync(Id);
+        SocialMedia = await _userManager.GetUserSocialMediaForUserAsync(Id);
 
         return Page();
     }

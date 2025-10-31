@@ -1,3 +1,6 @@
+using System.Security.Claims;
+
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 
 using MoreSpeakers.Domain.Interfaces;
@@ -5,16 +8,61 @@ using MoreSpeakers.Domain.Models;
 
 namespace MoreSpeakers.Managers;
 
-public class SpeakerManager: ISpeakerManager
+public class UserManager: IUserManager
 {
-    private readonly ISpeakerDataStore _dataStore;
-    private readonly ILogger<SpeakerManager> _logger;
+    private readonly IUserDataStore _dataStore;
+    private readonly ILogger<UserManager> _logger;
 
-    public SpeakerManager(ISpeakerDataStore dataStore, ILogger<SpeakerManager> logger)
+    public UserManager(IUserDataStore dataStore, ILogger<UserManager> logger)
     {
         _dataStore = dataStore;
         _logger = logger;
     }
+    
+    // ------------------------------------------
+    // Wrapper methods for AspNetCore Identity
+    // ------------------------------------------
+
+    public async Task<User?> GetUserAsync(ClaimsPrincipal user)
+    {
+        return await _dataStore.GetUserAsync(user);
+    }
+
+    public async Task<IdentityResult> ChangePasswordAsync(User user, string currentPassword, string newPassword)
+    {
+        return await _dataStore.ChangePasswordAsync(user, currentPassword, newPassword);
+    }
+
+    public async Task<IdentityResult> CreateAsync(User user, string password)
+    {
+        return await _dataStore.CreateAsync(user, password);
+    }
+
+    public async Task<User?> FindByEmailAsync(string email)
+    {
+        return await _dataStore.FindByEmailAsync(email);
+    }
+
+    public async Task<User?> GetUserIdAsync(ClaimsPrincipal user)
+    {
+        return await _dataStore.GetUserIdAsync(user);
+    }
+
+    public async Task<string> GenerateEmailConfirmationTokenAsync(User user)
+    {
+        return await _dataStore.GenerateEmailConfirmationTokenAsync(user);
+    }
+
+    public async Task<IdentityResult> UpdateAsync(User user)
+    {
+        return await _dataStore.UpdateAsync(user);
+    }
+
+
+    // ------------------------------------------
+    // Application Methods
+    // ------------------------------------------
+    
     
     public async Task<User> GetAsync(Guid primaryKey)
     {

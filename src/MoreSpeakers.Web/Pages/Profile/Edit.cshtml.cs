@@ -13,14 +13,12 @@ namespace MoreSpeakers.Web.Pages.Profile;
 
 [Authorize]
 public class EditModel(
-    UserManager<Domain.Models.User> userManager,
     IExpertiseManager expertiseManager,
-    ISpeakerManager speakerManager,
+    IUserManager userManager,
     IFileUploadService fileUploadService) : PageModel
 {
-    private readonly UserManager<Domain.Models.User> _userManager = userManager;
     private readonly IExpertiseManager _expertiseManager = expertiseManager;
-    private readonly ISpeakerManager _speakerManager = speakerManager;
+    private readonly IUserManager _userManager = userManager;
     private readonly IFileUploadService _fileUploadService = fileUploadService;
 
     [BindProperty]
@@ -51,8 +49,8 @@ public class EditModel(
 
     public async Task<IActionResult> OnPostUpdateProfileAsync()
     {
-        var result = await LoadUserDataAsync();
-        if (result != null) return result;
+        //var result = await LoadUserDataAsync();
+        //if (result != null) return result;
 
         ActiveTab = "profile";
 
@@ -114,7 +112,7 @@ public class EditModel(
             ProfileUser.SpeakerTypeId = Input.SpeakerTypeId;
             ProfileUser.UpdatedDate = DateTime.UtcNow;
             
-            await _speakerManager.SaveAsync(ProfileUser);
+            await _userManager.SaveAsync(ProfileUser);
 
             // Update expertise
             await UpdateUserExpertiseAsync();
@@ -223,8 +221,8 @@ public class EditModel(
     // Note implemented yet, but will be used in the future for uploading headshots
     public async Task<IActionResult> OnPostUploadHeadshotAsync()
     {
-        var result = await LoadUserDataAsync();
-        if (result != null) return result;
+        //var result = await LoadUserDataAsync();
+        //if (result != null) return result;
 
         ActiveTab = "profile";
 
@@ -290,13 +288,13 @@ public class EditModel(
             return Challenge();
         }
 
-        ProfileUser = await _speakerManager.GetAsync(currentUser.Id);
+        ProfileUser = await _userManager.GetAsync(currentUser.Id);
         
         AvailableExpertise = await _expertiseManager.GetAllAsync();
         
-        UserExpertise = await _speakerManager.GetUserExpertisesForUserAsync(currentUser.Id);
+        UserExpertise = await _userManager.GetUserExpertisesForUserAsync(currentUser.Id);
         
-        SocialMedia = await _speakerManager.GetUserSocialMediaForUserAsync(currentUser.Id);
+        SocialMedia = await _userManager.GetUserSocialMediaForUserAsync(currentUser.Id);
 
         // Populate Input model if not already populated
         if (string.IsNullOrEmpty(Input.FirstName))
@@ -321,7 +319,7 @@ public class EditModel(
 
     private async Task UpdateUserExpertiseAsync()
     {
-        await _speakerManager.EmptyAndAddExpertiseForUserAsync(ProfileUser.Id, Input.SelectedExpertiseIds);
+        await _userManager.EmptyAndAddExpertiseForUserAsync(ProfileUser.Id, Input.SelectedExpertiseIds);
     }
 
     private async Task UpdateSocialMediaAsync()
@@ -344,6 +342,6 @@ public class EditModel(
             }
         }
         
-        await _speakerManager.EmptyAndAddSocialMediaForUserAsync(ProfileUser.Id,socialMedias);
+        await _userManager.EmptyAndAddSocialMediaForUserAsync(ProfileUser.Id,socialMedias);
     }
 }

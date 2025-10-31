@@ -9,17 +9,17 @@ public class IndexModel : PageModel
 {
     private readonly IExpertiseDataStore _expertiseDataStore;
     private readonly IMentoringManager _mentoringManager;
-    private readonly ISpeakerDataStore _speakerDataStore;
+    private readonly IUserDataStore _userDataStore;
 
     public IndexModel(
         IExpertiseDataStore expertiseDataStore,
         IMentoringManager mentoringManager,
-        ISpeakerDataStore speakerDataStore
+        IUserDataStore userDataStore
         )
     {
         _expertiseDataStore = expertiseDataStore;
         _mentoringManager = mentoringManager;      
-        _speakerDataStore = speakerDataStore;   
+        _userDataStore = userDataStore;   
     }
 
     public int NewSpeakersCount { get; set; }
@@ -31,14 +31,14 @@ public class IndexModel : PageModel
     public async Task OnGetAsync()
     {
         // Get statistics
-        var stats = await _speakerDataStore.GetStatisticsForApplicationAsync();
+        var stats = await _userDataStore.GetStatisticsForApplicationAsync();
         
         NewSpeakersCount = stats.newSpeakers;
         ExperiencedSpeakersCount = stats.experiencedSpeakers;
         ActiveMentorshipsCount = stats.activeMentorships;
 
         // Get featured speakers (experienced speakers with profiles)
-        FeaturedSpeakers = await _speakerDataStore.GetFeaturedSpeakersAsync(6);
+        FeaturedSpeakers = await _userDataStore.GetFeaturedSpeakersAsync(6);
 
         // Get popular expertise areas
         PopularExpertise = await _expertiseDataStore.GetPopularExpertiseAsync(8);

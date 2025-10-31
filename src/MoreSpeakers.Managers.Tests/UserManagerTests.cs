@@ -1,6 +1,6 @@
 namespace MoreSpeakers.Managers.Tests;
 
-public class SpeakerManagerTests
+public class UserManagerTests
 {
     
 }

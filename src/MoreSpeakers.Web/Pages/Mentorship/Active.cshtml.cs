@@ -11,11 +11,11 @@ namespace MoreSpeakers.Web.Pages.Mentorship;
 [Authorize]
 public class ActiveModel : PageModel
 {
-    private readonly UserManager<User> _userManager;
+    private readonly IUserManager _userManager;
     private readonly IMentoringManager _mentoringManager;
 
     public ActiveModel(
-        UserManager<User> userManager,
+        IUserManager userManager,
         IMentoringManager mentorshipManager)
     {
         _userManager = userManager;

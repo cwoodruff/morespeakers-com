@@ -14,9 +14,9 @@ namespace MoreSpeakers.Web.Areas.Identity.Pages.Account;
 public class LoginModel : PageModel
 {
     private readonly ILogger<LoginModel> _logger;
-    private readonly SignInManager<Domain.Models.User> _signInManager;
+    private readonly SignInManager<Data.Models.User> _signInManager;
 
-    public LoginModel(SignInManager<Domain.Models.User> signInManager, ILogger<LoginModel> logger)
+    public LoginModel(SignInManager<Data.Models.User> signInManager, ILogger<LoginModel> logger)
     {
         _signInManager = signInManager;
         _logger = logger;

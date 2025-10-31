@@ -1,9 +1,34 @@
+using System.Security.Claims;
+
+using Microsoft.AspNetCore.Identity;
+
 using MoreSpeakers.Domain.Models;
 
 namespace MoreSpeakers.Domain.Interfaces;
 
-public interface ISpeakerDataStore: IDataStorePrimaryKeyGuid<User>
+public interface IUserManager
 {
+    // ------------------------------------------
+    // Wrapper methods for AspNetCore Identity
+    // ------------------------------------------
+    Task<User?> GetUserAsync(ClaimsPrincipal user);
+    Task<IdentityResult> ChangePasswordAsync(User user, string currentPassword, string newPassword);
+    Task<IdentityResult> CreateAsync(User user, string password);
+    Task<User?> FindByEmailAsync(string email);
+    Task<User?> GetUserIdAsync(ClaimsPrincipal user);
+    Task<string> GenerateEmailConfirmationTokenAsync(User user);
+    Task<IdentityResult> UpdateAsync(User user);
+    
+    // ------------------------------------------
+    // Application Methods
+    // ------------------------------------------
+    
+    public Task<User> GetAsync(Guid primaryKey);
+    public Task<bool> DeleteAsync(Guid primaryKey);
+    public Task<User> SaveAsync(User entity);
+    public Task<List<User>> GetAllAsync();
+    public Task<bool> DeleteAsync(User entity);
+    
     Task<IEnumerable<User>> GetNewSpeakersAsync();
     Task<IEnumerable<User>> GetExperiencedSpeakersAsync();
     Task<IEnumerable<User>> SearchSpeakersAsync(string searchTerm, int? speakerTypeId = null);
@@ -18,4 +43,5 @@ public interface ISpeakerDataStore: IDataStorePrimaryKeyGuid<User>
     Task<List<SocialMedia>> GetUserSocialMediaForUserAsync(Guid userId);
     Task<(int newSpeakers, int experiencedSpeakers, int activeMentorships)> GetStatisticsForApplicationAsync();
     Task<List<User>> GetFeaturedSpeakersAsync(int count);
+
 }

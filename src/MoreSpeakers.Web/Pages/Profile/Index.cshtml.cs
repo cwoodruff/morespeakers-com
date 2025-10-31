@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
@@ -9,12 +8,9 @@ using MoreSpeakers.Domain.Models;
 namespace MoreSpeakers.Web.Pages.Profile;
 
 [Authorize]
-public class IndexModel(
-    ISpeakerManager speakerManager,
-    UserManager<User> userManager) : PageModel
+public class IndexModel(IUserManager userManager) : PageModel
 {
-    private readonly ISpeakerManager _speakerManager = speakerManager;
-    private readonly UserManager<User> _userManager = userManager;
+    private readonly IUserManager _userManager = userManager;
 
     public User ProfileUser { get; set; } = null!;
     public IEnumerable<UserExpertise> UserExpertise { get; set; } = new List<UserExpertise>();
@@ -29,9 +25,9 @@ public class IndexModel(
             return Challenge();
         }
 
-        ProfileUser = await _speakerManager.GetAsync(currentUser.Id);
-        UserExpertise = await _speakerManager.GetUserExpertisesForUserAsync(currentUser.Id);
-        SocialMedia = await _speakerManager.GetUserSocialMediaForUserAsync(currentUser.Id);
+        ProfileUser = await _userManager.GetAsync(currentUser.Id);
+        UserExpertise = await _userManager.GetUserExpertisesForUserAsync(currentUser.Id);
+        SocialMedia = await _userManager.GetUserSocialMediaForUserAsync(currentUser.Id);
         CanEdit = true; // User can always edit their own profile
 
         return Page();

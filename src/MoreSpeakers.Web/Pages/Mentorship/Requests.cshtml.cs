@@ -1,9 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-using MoreSpeakers.Domain.Models;
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Web.Models.ViewModels;
 
@@ -13,12 +11,13 @@ namespace MoreSpeakers.Web.Pages.Mentorship;
 [Authorize]
 public class RequestsModel : PageModel
 {
-    private readonly UserManager<User> _userManager;
+    private readonly IUserManager _userManager;
     private readonly IMentoringManager _mentoringManager;
 
     public RequestsModel(
         IMentoringManager mentoringManager,
-        UserManager<User> userManager)
+        IUserManager userManager
+        )
     {
         _mentoringManager = mentoringManager;       
         _userManager = userManager;

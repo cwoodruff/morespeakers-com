@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
@@ -11,19 +10,16 @@ namespace MoreSpeakers.Web.Pages.Account;
 [Authorize]
 public partial class IndexModel : PageModel
 {
-    private readonly ISpeakerManager _speakerManager;
+    private readonly IUserManager _userManager;
     private readonly IExpertiseManager _expertiseManager;
-    private readonly UserManager<User> _userManager;
 
     public IndexModel(
-        ISpeakerManager speakerManager,
-        IExpertiseManager expertiseManager,
-        UserManager<User> userManager
+        IUserManager userManager,
+        IExpertiseManager expertiseManager
         )
     {
-        _speakerManager = speakerManager;
-        _expertiseManager = expertiseManager;
         _userManager = userManager;
+        _expertiseManager = expertiseManager;
     }
 
     [BindProperty] public EditAccountModel Input { get; set; } = new();
@@ -119,16 +115,13 @@ public partial class IndexModel : PageModel
 
     private async Task LoadUserDataAsync()
     {
-        var userIdString = _userManager.GetUserId(User);
-        if (string.IsNullOrEmpty(userIdString) || !Guid.TryParse(userIdString, out var userId))
-            throw new InvalidOperationException("Invalid user ID");
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null)
+            throw new InvalidOperationException("Invalid user");
 
-        CurrentUser = await _speakerManager.GetAsync(userId);
-
-        UserExpertise = await _speakerManager.GetUserExpertisesForUserAsync(userId);
-
-        SocialMedia = await _speakerManager.GetUserSocialMediaForUserAsync(userId);
-
+        CurrentUser = user;
+        UserExpertise = await _userManager.GetUserExpertisesForUserAsync(user.Id);
+        SocialMedia = await _userManager.GetUserSocialMediaForUserAsync(user.Id);
         AvailableExpertise = await _expertiseManager.GetAllAsync();
         SpeakerType = CurrentUser.SpeakerType;
 
