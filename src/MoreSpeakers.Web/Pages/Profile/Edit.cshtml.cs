@@ -113,7 +113,8 @@ public class EditModel(
             ProfileUser.UpdatedDate = DateTime.UtcNow;
             
             // Change this to use UserManager UpdateAsync() method
-            var identityResult = await _userManager.UpdateAsync(ProfileUser);
+            //var identityResult = await _userManager.UpdateAsync(ProfileUser);
+            var saveResult = await _userManager.SaveAsync(ProfileUser);
 
             // Update expertise
             await UpdateUserExpertiseAsync();
@@ -289,7 +290,7 @@ public class EditModel(
             return Challenge();
         }
 
-        ProfileUser = await _userManager.GetAsync(currentUser.Id);
+        ProfileUser = currentUser;
         
         AvailableExpertise = await _expertiseManager.GetAllAsync();
         
