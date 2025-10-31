@@ -113,7 +113,7 @@ public class EditModel(
             ProfileUser.UpdatedDate = DateTime.UtcNow;
             
             // Change this to use UserManager UpdateAsync() method
-            await _userManager.SaveAsync(ProfileUser);
+            var identityResult = await _userManager.UpdateAsync(ProfileUser);
 
             // Update expertise
             await UpdateUserExpertiseAsync();

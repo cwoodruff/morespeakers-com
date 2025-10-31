@@ -68,10 +68,10 @@ public class UserDataStore : IUserDataStore
         return await _userManager.GenerateEmailConfirmationTokenAsync(identityUser);
     }
 
-    public Task<IdentityResult> UpdateAsync(User user)
+    public async Task<IdentityResult> UpdateAsync(User user)
     {
         var identityUser = _mapper.Map<Data.Models.User>(user);
-        return _userManager.UpdateAsync(identityUser);
+        return await _userManager.UpdateAsync(identityUser);
     }
 
     // ------------------------------------------
