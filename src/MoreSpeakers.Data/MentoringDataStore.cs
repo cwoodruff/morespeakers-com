@@ -231,9 +231,10 @@ public class MentoringDataStore: IMentoringDataStore
     public async Task<List<User>> GetMentorsExceptForUserAsync(Guid userId, MentorshipType mentorshipType, List<string>? expertiseNames, bool? availability = true)
     {
         var query = _context.Users
+            .Include(u => u.SpeakerType)
             .Include(u => u.UserExpertise)
             .ThenInclude(ue => ue.Expertise)
-            .Where(u => u.Id != userId);
+            .Where(u => u.Id != userId && u.SpeakerTypeId == 2); // Need to fix this to be dynamic
 
         if (expertiseNames is not null && expertiseNames.Count > 0)
         {
@@ -242,11 +243,19 @@ public class MentoringDataStore: IMentoringDataStore
                 .Select(e => e.Id)
                 .ToListAsync();
 
-            query = query.Where(u => u.UserExpertise.Any(ue => expertiseIds.Contains(ue.ExpertiseId)));
+            // User must have all selected expertise areas
+            foreach (var expertiseId in expertiseIds)
+            {
+                query = query.Where(u => u.UserExpertise.Any(ue => ue.ExpertiseId == expertiseId));
+            }
+        }
+        
+        // Filter by availability
+        if (availability == true)
+        {
+            query = query.Where(u => u.IsAvailableForMentoring);
         }
 
-        query = query.Where(u => u.IsAvailableForMentoring == availability);
-        
         var mentors = await query
             .OrderBy(u => u.LastName)
             .ThenBy(u => u.FirstName)
