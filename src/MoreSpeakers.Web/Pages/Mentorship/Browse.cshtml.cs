@@ -77,7 +77,7 @@ public class BrowseModel : PageModel
             var currentUser = await _userManager.GetUserAsync(User);
             if (currentUser == null) return Unauthorized();
 
-            var targetUser = await _mentoringManager.GetMentorAsync(currentUser.Id);
+            var targetUser = await _mentoringManager.GetMentorAsync(mentorId);
 
             if (targetUser == null) return NotFound();
 
@@ -135,7 +135,7 @@ public class BrowseModel : PageModel
     }
 
     public async Task<IActionResult> OnPostSubmitRequestAsync(Guid targetId, MentorshipType type,
-        string? requestMessage, List<int>? focusAreaIds, string? preferredFrequency)
+        string? requestMessage, List<int>? selectedExpertiseIds, string? preferredFrequency)
     {
         var currentUser = await _userManager.GetUserAsync(User);
         if (currentUser == null) return Unauthorized();
@@ -151,7 +151,7 @@ public class BrowseModel : PageModel
         }
 
         var mentorship = await _mentoringManager.RequestMentorshipWithDetailsAsync(
-            currentUser.Id, targetId, type, requestMessage, focusAreaIds, preferredFrequency);
+            currentUser.Id, targetId, type, requestMessage, selectedExpertiseIds, preferredFrequency);
 
         if (mentorship == null)
         {
