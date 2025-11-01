@@ -15,29 +15,27 @@ namespace MoreSpeakers.Web.Areas.Identity.Pages.Account;
 
 public partial class RegisterModel : PageModel
 {
-    private readonly IEmailSender _emailSender;
+    private readonly SignInManager<Data.Models.User> _signInManager;
     private readonly IExpertiseManager _expertiseManager;
-    private readonly ILogger<RegisterModel> _logger;
-    private readonly SignInManager<User> _signInManager;
     private readonly IUserManager _userManager;
+    private readonly IEmailSender _emailSender;
     private readonly TelemetryClient _telemetryClient;
-
+    private readonly ILogger<RegisterModel> _logger;
+    
     public RegisterModel(
-        IUserStore<User> userStore,
-        SignInManager<User> signInManager,
-        ILogger<RegisterModel> logger,
-        IEmailSender emailSender,
+        SignInManager<Data.Models.User> signInManager,
         IExpertiseManager expertiseManager,
         IUserManager userManager,
-        TelemetryClient telemetryClient)
+        IEmailSender emailSender,
+        TelemetryClient telemetryClient,
+        ILogger<RegisterModel> logger)
     {
-        _userManager = userManager;
         _signInManager = signInManager;
-        _logger = logger;
-        _emailSender = emailSender;
         _expertiseManager = expertiseManager;
         _userManager = userManager;
+        _emailSender = emailSender;
         _telemetryClient = telemetryClient;
+        _logger = logger;
     }
 
     /// <summary>
@@ -390,72 +388,105 @@ public partial class RegisterModel : PageModel
                 SpeakerTypeId = Input.SpeakerTypeId,    
             };
 
-            var result = await _userManager.CreateAsync(user, Input.Password);
-
-            if (result.Succeeded)
+            IdentityResult saveResult;
+            try
             {
-                _logger.LogInformation("User created a new account with password");
-
-                // Add expertise relationships
-                await _userManager.EmptyAndAddExpertiseForUserAsync(user.Id, Input.SelectedExpertiseIds);
-                
-                // Add custom expertise
-                foreach (var customExpertise in Input.CustomExpertise.Where(ce => !string.IsNullOrWhiteSpace(ce)))
-                {
-                    var expertiseId = await _expertiseManager.CreateExpertiseAsync(customExpertise.Trim(),
-                        $"Custom expertise: {customExpertise.Trim()}");
-                    await _userManager.AddExpertiseToUserAsync(user.Id, expertiseId);
-                }
-
-                // Add social media links
-                var socialMediaLinks = new List<SocialMedia>();
-                for (var i = 0; i < Input.SocialMediaPlatforms.Length && i < Input.SocialMediaUrls.Length; i++)
-                    if (!string.IsNullOrWhiteSpace(Input.SocialMediaPlatforms[i]) &&
-                        !string.IsNullOrWhiteSpace(Input.SocialMediaUrls[i]))
-                        socialMediaLinks.Add(new SocialMedia
-                        {
-                            UserId = user.Id,
-                            Platform = Input.SocialMediaPlatforms[i],
-                            Url = Input.SocialMediaUrls[i],
-                            CreatedDate = DateTime.UtcNow
-                        });
-
-                await _userManager.EmptyAndAddSocialMediaForUserAsync(user.Id, socialMediaLinks);
-
-                // Send welcome email (mock implementation)
-                await SendWelcomeEmailAsync(user);
-
-                var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-                var callbackUrl = Url.Page(
-                    "/Account/ConfirmEmail",
-                    null,
-                    new { area = "Identity", user.Id, code, S = "~//" },
-                    Request.Scheme)!;
-
-                await _emailSender.QueueEmail(new System.Net.Mail.MailAddress(user.Email!, $"{user.FirstName} {user.LastName}"),
-                    "Confirm your email",
-                    $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
-
-                _telemetryClient.TrackEvent("ConfirmationEmailSent", new Dictionary<string, string>
-                {
-                    { "UserId", user.Id.ToString() },
-                    { "Email", user.Email }
-                });
-
-                // Load data needed for registration completion (step 5) display
+                saveResult = await _userManager.CreateAsync(user, Input.Password);
+            }
+            catch (Exception ex)
+            {
                 await LoadFormDataAsync();
-
-                CurrentStep = Models.RegistrationProgressions.Complete;
-                HasValidationErrors = false;
-                ValidationMessage = string.Empty;
-                SuccessMessage = "Registration completed successfully!";
-
-                // Return step 5 (confirmation) instead of redirecting away
-                return Partial("_RegistrationContainer", this);
+                CurrentStep = Models.RegistrationProgressions.SpeakerProfileNeeded; // Reset to first step on major failure
+                HasValidationErrors = true;
+                ValidationMessage = "The saving of registration failed. Please check the errors and try again.";
+                return Page();
             }
 
-            foreach (var error in result.Errors) ModelState.AddModelError(string.Empty, error.Description);
+            if (!saveResult.Succeeded)
+            {
+                foreach (var error in saveResult.Errors)
+                {
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
+                CurrentStep = Models.RegistrationProgressions.SpeakerProfileNeeded; // Reset to first step on major failure
+                HasValidationErrors = true;
+                ValidationMessage = "The saving of registration failed. Please check the errors and try again.";
+                return Page();
+            }
+
+            _logger.LogInformation("User created a new account with password");
+
+            // Load the user from the identity store
+            user = await _userManager.FindByEmailAsync(Input.Email);
+            if (user == null)
+            {
+                await LoadFormDataAsync();
+                CurrentStep = Models.RegistrationProgressions.SpeakerProfileNeeded; // Reset to first step on major failure
+                HasValidationErrors = true;
+                ValidationMessage = "Could not find user after saving registration. Please try again.";
+                return Page();
+            }
+            
+            // Add expertise relationships
+            await _userManager.EmptyAndAddExpertiseForUserAsync(user.Id, Input.SelectedExpertiseIds);
+            
+            // Add custom expertise
+            foreach (var customExpertise in Input.CustomExpertise.Where(ce => !string.IsNullOrWhiteSpace(ce)))
+            {
+                var expertiseId = await _expertiseManager.CreateExpertiseAsync(customExpertise.Trim(),
+                    $"Custom expertise: {customExpertise.Trim()}");
+                await _userManager.AddExpertiseToUserAsync(user.Id, expertiseId);
+            }
+
+            // Add social media links
+            var socialMediaLinks = new List<SocialMedia>();
+            for (var i = 0; i < Input.SocialMediaPlatforms.Length && i < Input.SocialMediaUrls.Length; i++)
+            {
+                if (!string.IsNullOrWhiteSpace(Input.SocialMediaPlatforms[i]) &&
+                    !string.IsNullOrWhiteSpace(Input.SocialMediaUrls[i]))
+                    socialMediaLinks.Add(new SocialMedia
+                    {
+                        UserId = user.Id,
+                        Platform = Input.SocialMediaPlatforms[i],
+                        Url = Input.SocialMediaUrls[i],
+                        CreatedDate = DateTime.UtcNow
+                    });
+            }
+
+            await _userManager.EmptyAndAddSocialMediaForUserAsync(user.Id, socialMediaLinks);
+
+            // Send welcome email (mock implementation)
+            await SendWelcomeEmailAsync(user);
+
+            var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+            var callbackUrl = Url.Page(
+                "/Account/ConfirmEmail",
+                null,
+                new { area = "Identity", user.Id, code, S = "~//" },
+                Request.Scheme)!;
+
+            await _emailSender.QueueEmail(new System.Net.Mail.MailAddress(user.Email!, $"{user.FirstName} {user.LastName}"),
+                "Confirm your email",
+                $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
+
+            _telemetryClient.TrackEvent("ConfirmationEmailSent", new Dictionary<string, string>
+            {
+                { "UserId", user.Id.ToString() },
+                { "Email", user.Email }
+            });
+
+            // Load data needed for registration completion (step 5) display
+            await LoadFormDataAsync();
+
+            CurrentStep = Models.RegistrationProgressions.Complete;
+            HasValidationErrors = false;
+            ValidationMessage = string.Empty;
+            SuccessMessage = "Registration completed successfully!";
+
+            // Return step 5 (confirmation) instead of redirecting away
+            return Partial("_RegistrationContainer", this);
+            
         }
 
         // If we got this far, something failed, redisplay form with current state
