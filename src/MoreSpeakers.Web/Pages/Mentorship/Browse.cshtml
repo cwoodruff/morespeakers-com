@@ -22,7 +22,7 @@
                         <div role="group">
                             <input type="radio" name="mentorshipType" value="NewToExperienced"
                                    class="btn-check" id="type-new"
-                                   @(Model.MentorshipType == MentorshipType.NewToExperienced ? "checked" : "")
+                                   @(Model.MentorshipType == Domain.Models.MentorshipType.NewToExperienced ? "checked" : "")
                                    hx-get="/Mentorship/Browse?handler=SearchMentors"
                                    hx-target="#mentor-results"
                                    hx-include="[name='expertise']:checked,[name='availability']:checked"
@@ -37,7 +37,7 @@
 
                             <input type="radio" name="mentorshipType" value="ExperiencedToExperienced"
                                    class="btn-check" id="type-peer"
-                                   @(Model.MentorshipType == MentorshipType.ExperiencedToExperienced ? "checked" : "")
+                                   @(Model.MentorshipType == Domain.Models.MentorshipType.ExperiencedToExperienced ? "checked" : "")
                                    hx-get="/Mentorship/Browse?handler=SearchMentors"
                                    hx-target="#mentor-results"
                                    hx-include="[name='expertise']:checked,[name='availability']:checked"

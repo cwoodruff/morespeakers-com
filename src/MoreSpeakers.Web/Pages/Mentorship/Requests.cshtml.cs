@@ -1,12 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.EntityFrameworkCore;
-using MoreSpeakers.Web.Data;
-using MoreSpeakers.Web.Models;
+
+using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Web.Models.ViewModels;
-using MoreSpeakers.Web.Services;
 
 namespace MoreSpeakers.Web.Pages.Mentorship;
 
@@ -14,27 +11,28 @@ namespace MoreSpeakers.Web.Pages.Mentorship;
 [Authorize]
 public class RequestsModel : PageModel
 {
-    private readonly ApplicationDbContext _context;
-    private readonly UserManager<User> _userManager;
-    private readonly IMentorshipService _mentorshipService;
+    private readonly IUserManager _userManager;
+    private readonly IMentoringManager _mentoringManager;
 
-    public RequestsModel(ApplicationDbContext context, UserManager<User> userManager, IMentorshipService mentorshipService)
+    public RequestsModel(
+        IMentoringManager mentoringManager,
+        IUserManager userManager
+        )
     {
-        _context = context;
+        _mentoringManager = mentoringManager;       
         _userManager = userManager;
-        _mentorshipService = mentorshipService;
     }
 
-    public List<Models.Mentorship> IncomingRequests { get; set; } = new();
-    public List<Models.Mentorship> OutgoingRequests { get; set; } = new();
+    public List<Domain.Models.Mentorship> IncomingRequests { get; set; } = new();
+    public List<Domain.Models.Mentorship> OutgoingRequests { get; set; } = new();
 
     public async Task<IActionResult> OnGetAsync()
     {
         var currentUser = await _userManager.GetUserAsync(User);
         if (currentUser == null) return Unauthorized();
 
-        IncomingRequests = await GetIncomingRequests(currentUser.Id);
-        OutgoingRequests = await GetOutgoingRequests(currentUser.Id);
+        IncomingRequests = await _mentoringManager.GetIncomingMentorshipRequests(currentUser.Id);
+        OutgoingRequests = await _mentoringManager.GetOutgoingMentorshipRequests(currentUser.Id);
 
         return Page();
     }
@@ -44,8 +42,8 @@ public class RequestsModel : PageModel
         var currentUser = await _userManager.GetUserAsync(User);
         if (currentUser == null) return Unauthorized();
 
-        var mentorship = await _mentorshipService.GetMentorshipByIdAsync(mentorshipId);
-        if (mentorship == null || mentorship.MentorId != currentUser.Id)
+        var mentorship = await _mentoringManager.GetAsync(mentorshipId);
+        if (mentorship.MentorId != currentUser.Id)
             return NotFound();
 
         var viewModel = new DeclineMentorshipViewModel
@@ -61,19 +59,15 @@ public class RequestsModel : PageModel
         var currentUser = await _userManager.GetUserAsync(User);
         if (currentUser == null) return Unauthorized();
 
-        var mentorship = await _mentorshipService.GetMentorshipByIdAsync(mentorshipId);
-        if (mentorship == null || mentorship.MentorId != currentUser.Id)
-            return NotFound();
+        var mentorship = await _mentoringManager.RespondToRequestAsync(mentorshipId, currentUser.Id, true, string.Empty);
+        
 
-        var success = await _mentorshipService.AcceptMentorshipAsync(mentorshipId);
-
-        if (success)
+        if (mentorship != null)
         {
-            var updatedMentorship = await _mentorshipService.GetMentorshipByIdAsync(mentorshipId);
             // Notify the client via HTMX events so both lists can refresh and any listeners can react
             Response.Headers["HX-Trigger"] = "{\"mentorship:accepted\":{\"id\":\"" + mentorshipId + "\"},\"mentorship:updated\":true}";
             // Return an OOB toast (partial renders as OOB) and remove the card by swapping empty content
-            return Partial("_AcceptSuccess", updatedMentorship);
+            return Partial("_AcceptSuccess", mentorship);
         }
 
         return BadRequest();
@@ -84,17 +78,12 @@ public class RequestsModel : PageModel
         var currentUser = await _userManager.GetUserAsync(User);
         if (currentUser == null) return Unauthorized();
 
-        var mentorship = await _mentorshipService.GetMentorshipByIdAsync(mentorshipId);
-        if (mentorship == null || mentorship.MentorId != currentUser.Id)
-            return NotFound();
-
-        var success = await _mentorshipService.DeclineMentorshipAsync(mentorshipId, declineReason);
-
-        if (success)
+        var mentorship = await _mentoringManager.RespondToRequestAsync(mentorshipId, currentUser.Id, false, declineReason);
+        
+        if (mentorship != null)
         {
-            var updatedMentorship = await _mentorshipService.GetMentorshipByIdAsync(mentorshipId);
             Response.Headers["HX-Trigger"] = "{\"mentorship:declined\":{\"id\":\"" + mentorshipId + "\"},\"mentorship:updated\":true}";
-            return Partial("_DeclineSuccess", updatedMentorship);
+            return Partial("_DeclineSuccess", mentorship);
         }
 
         return BadRequest();
@@ -105,7 +94,7 @@ public class RequestsModel : PageModel
         var currentUser = await _userManager.GetUserAsync(User);
         if (currentUser == null) return Content(string.Empty);
 
-        var (incoming, outgoing) = await _mentorshipService.GetPendingCountsAsync(currentUser.Id);
+        var (incoming, outgoing) = await _mentoringManager.GetNumberOfMentorshipsPending(currentUser.Id);
 
         if (incoming > 0)
         {
@@ -120,7 +109,7 @@ public class RequestsModel : PageModel
         var currentUser = await _userManager.GetUserAsync(User);
         if (currentUser == null) return Unauthorized();
 
-        IncomingRequests = await GetIncomingRequests(currentUser.Id);
+        IncomingRequests = await _mentoringManager.GetIncomingMentorshipRequests(currentUser.Id);
 
         if (!IncomingRequests.Any())
         {
@@ -140,7 +129,7 @@ public class RequestsModel : PageModel
         var currentUser = await _userManager.GetUserAsync(User);
         if (currentUser == null) return Unauthorized();
 
-        OutgoingRequests = await GetOutgoingRequests(currentUser.Id);
+        OutgoingRequests = await _mentoringManager.GetOutgoingMentorshipRequests(currentUser.Id);
 
         if (!OutgoingRequests.Any())
         {
@@ -158,50 +147,15 @@ public class RequestsModel : PageModel
         return Partial("_OutgoingRequests", OutgoingRequests);
     }
 
-    private async Task<List<Models.Mentorship>> GetIncomingRequests(Guid userId)
-    {
-        return await _context.Mentorship
-            .Include(m => m.Mentee)
-                .ThenInclude(m => m.SpeakerType)
-            .Include(m => m.FocusAreas)
-                .ThenInclude(fa => fa.Expertise)
-            .Where(m => m.MentorId == userId && m.Status == MentorshipStatus.Pending)
-            .OrderByDescending(m => m.RequestedAt)
-            .ToListAsync();
-    }
-
-    private async Task<List<Models.Mentorship>> GetOutgoingRequests(Guid userId)
-    {
-        return await _context.Mentorship
-            .Include(m => m.Mentor)
-                .ThenInclude(m => m.SpeakerType)
-            .Include(m => m.FocusAreas)
-                .ThenInclude(fa => fa.Expertise)
-            .Where(m => m.MenteeId == userId)
-            .Where(m => m.Status == MentorshipStatus.Pending)
-            .OrderByDescending(m => m.RequestedAt)
-            .ToListAsync();
-    }
-
     public async Task<IActionResult> OnPostCancelRequestAsync(Guid mentorshipId)
     {
         var currentUser = await _userManager.GetUserAsync(User);
         if (currentUser == null) return Unauthorized();
 
         // Ensure the current user is the mentee who created the request
-        var mentorship = await _context.Mentorship.FirstOrDefaultAsync(m => m.Id == mentorshipId);
-        if (mentorship == null || mentorship.MenteeId != currentUser.Id)
-        {
-            return NotFound();
-        }
-
-        if (mentorship.Status != MentorshipStatus.Pending)
-        {
-            return BadRequest("Only pending requests can be cancelled.");
-        }
-
-        var success = await _mentorshipService.CancelMentorshipAsync(mentorshipId);
-        if (!success)
+        var wasCanceled = await _mentoringManager.CancelMentorshipRequestAsync(mentorshipId, currentUser.Id);
+        
+        if (!wasCanceled)
         {
             return BadRequest();
         }

@@ -73,6 +73,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\MoreSpeakers.Data\MoreSpeakers.Data.csproj" />
         <ProjectReference Include="..\MoreSpeakers.Domain\MoreSpeakers.Domain.csproj" />
         <ProjectReference Include="..\MoreSpeakers.Managers\MoreSpeakers.Managers.csproj" />
         <ProjectReference Include="..\MoreSpeakers.ServiceDefaults\MoreSpeakers.ServiceDefaults.csproj" />

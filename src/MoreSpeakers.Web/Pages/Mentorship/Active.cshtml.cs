@@ -2,25 +2,27 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.EntityFrameworkCore;
-using MoreSpeakers.Web.Data;
-using MoreSpeakers.Web.Models;
+
+using MoreSpeakers.Domain.Interfaces;
+using MoreSpeakers.Domain.Models;
 
 namespace MoreSpeakers.Web.Pages.Mentorship;
 
 [Authorize]
 public class ActiveModel : PageModel
 {
-    private readonly ApplicationDbContext _context;
-    private readonly UserManager<User> _userManager;
+    private readonly IUserManager _userManager;
+    private readonly IMentoringManager _mentoringManager;
 
-    public ActiveModel(ApplicationDbContext context, UserManager<User> userManager)
+    public ActiveModel(
+        IUserManager userManager,
+        IMentoringManager mentorshipManager)
     {
-        _context = context;
         _userManager = userManager;
+        _mentoringManager = mentorshipManager;       
     }
 
-    public List<Models.Mentorship> ActiveMentorships { get; set; } = new();
+    public List<Domain.Models.Mentorship> ActiveMentorships { get; set; } = new();
     public Guid CurrentUserId { get; set; }
 
     public async Task<IActionResult> OnGetAsync()
@@ -30,17 +32,7 @@ public class ActiveModel : PageModel
 
         CurrentUserId = currentUser.Id;
 
-        ActiveMentorships = await _context.Mentorship
-            .Include(m => m.Mentor)
-            .ThenInclude(m => m.SpeakerType)
-            .Include(m => m.Mentee)
-            .ThenInclude(m => m.SpeakerType)
-            .Include(m => m.FocusAreas)
-            .ThenInclude(fa => fa.Expertise)
-            .Where(m => (m.MentorId == currentUser.Id || m.MenteeId == currentUser.Id) && 
-                       m.Status == MentorshipStatus.Active)
-            .OrderBy(m => m.StartedAt)
-            .ToListAsync();
+        ActiveMentorships = await _mentoringManager.GetActiveMentorshipsForUserAsync(CurrentUserId);
 
         return Page();
     }
@@ -50,17 +42,8 @@ public class ActiveModel : PageModel
         var currentUser = await _userManager.GetUserAsync(User);
         if (currentUser == null) return Unauthorized();
 
-        var mentorship = await _context.Mentorship
-            .FirstOrDefaultAsync(m => m.Id == mentorshipId &&
-                                      (m.MentorId == currentUser.Id || m.MenteeId == currentUser.Id));
-
-        if (mentorship == null) return NotFound();
-
-        mentorship.Status = MentorshipStatus.Completed;
-        mentorship.CompletedAt = DateTime.UtcNow;
-        mentorship.UpdatedAt = DateTime.UtcNow;
-        await _context.SaveChangesAsync();
-
+        await _mentoringManager.CompleteMentorshipRequestAsync(mentorshipId, currentUser.Id);
+        
         // Let the client know lists/pages can refresh if listening
         Response.Headers["HX-Trigger"] = "{\"mentorship:completed\":{\"id\":\"" + mentorshipId + "\"},\"mentorship:updated\":true}";
 
@@ -73,15 +56,7 @@ public class ActiveModel : PageModel
         var currentUser = await _userManager.GetUserAsync(User);
         if (currentUser == null) return Unauthorized();
 
-        var mentorship = await _context.Mentorship
-            .FirstOrDefaultAsync(m => m.Id == mentorshipId &&
-                                      (m.MentorId == currentUser.Id || m.MenteeId == currentUser.Id));
-
-        if (mentorship == null) return NotFound();
-
-        mentorship.Status = MentorshipStatus.Cancelled;
-        mentorship.UpdatedAt = DateTime.UtcNow;
-        await _context.SaveChangesAsync();
+        await _mentoringManager.CancelMentorshipRequestAsync(mentorshipId, currentUser.Id);
 
         Response.Headers["HX-Trigger"] = "{\"mentorship:cancelled\":{\"id\":\"" + mentorshipId + "\"},\"mentorship:updated\":true}";
 

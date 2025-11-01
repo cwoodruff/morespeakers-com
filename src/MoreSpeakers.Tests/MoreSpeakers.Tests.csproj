@@ -52,7 +52,7 @@
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="FluentAssertions" Version="8.8.0" />
-        <PackageReference Include="Bogus" Version="35.6.4" />
+        <PackageReference Include="Bogus" Version="35.6.5" />
     </ItemGroup>
 
     <ItemGroup>

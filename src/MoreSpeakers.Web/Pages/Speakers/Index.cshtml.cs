@@ -1,21 +1,24 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using MoreSpeakers.Web.Models;
-using MoreSpeakers.Web.Services;
+
+using MoreSpeakers.Domain.Interfaces;
+using MoreSpeakers.Domain.Models;
 
 namespace MoreSpeakers.Web.Pages.Speakers;
 
 public class IndexModel : PageModel
 {
     private const int PageSize = 12;
-    private readonly IExpertiseService _expertiseService;
-    private readonly ISpeakerService _speakerService;
+    private readonly IExpertiseManager _expertiseManager;
+    private readonly IUserManager _userManager;
+    private readonly ILogger<IndexModel> _logger;
 
-    public IndexModel(ISpeakerService speakerService, IExpertiseService expertiseService)
+    public IndexModel(IExpertiseManager expertiseManager, IUserManager userManager, ILogger<IndexModel> logger)
     {
-        _speakerService = speakerService;
-        _expertiseService = expertiseService;
+        _expertiseManager = expertiseManager;
+        _userManager = userManager;
+        _logger = logger;
     }
 
     public IEnumerable<User> Speakers { get; set; } = new List<User>();
@@ -63,19 +66,19 @@ public class IndexModel : PageModel
     private async Task LoadSpeakersAsync()
     {
         // Load all expertise for filter dropdown
-        AllExpertise = await _expertiseService.GetAllExpertiseAsync();
+        AllExpertise = await _expertiseManager.GetAllAsync();
 
         // Start with all speakers
-        var newSpeakers = await _speakerService.GetNewSpeakersAsync();
+        var newSpeakers = await _userManager.GetNewSpeakersAsync();
         IEnumerable<User> experiencedSpeakers;
         // Apply expertise filter
 		if (ExpertiseFilter.HasValue)
         {
-	        experiencedSpeakers = await _speakerService.GetSpeakersByExpertiseAsync(ExpertiseFilter.Value);
+	        experiencedSpeakers = await _userManager.GetSpeakersByExpertiseAsync(ExpertiseFilter.Value);
         }
 		else
 		{
-			experiencedSpeakers = await _speakerService.GetExperiencedSpeakersAsync();
+			experiencedSpeakers = await _userManager.GetExperiencedSpeakersAsync();
 		}
 
 		IEnumerable<User> allSpeakers = newSpeakers.Concat(experiencedSpeakers);
@@ -83,7 +86,7 @@ public class IndexModel : PageModel
         // Apply search filter
         if (!string.IsNullOrWhiteSpace(SearchTerm))
         {
-			allSpeakers = await _speakerService.SearchSpeakersAsync(SearchTerm, SpeakerTypeFilter);
+			allSpeakers = await _userManager.SearchSpeakersAsync(SearchTerm, SpeakerTypeFilter);
         }
 
         // Apply speaker type filter

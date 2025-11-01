@@ -1,33 +1,35 @@
 using Microsoft.ApplicationInsights;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.EntityFrameworkCore;
-using MoreSpeakers.Web.Data;
-using MoreSpeakers.Web.Models;
+
+using MoreSpeakers.Domain.Interfaces;
+using MoreSpeakers.Domain.Models;
+
 using MoreSpeakers.Web.Models.ViewModels;
-using MoreSpeakers.Web.Services;
 
 namespace MoreSpeakers.Web.Pages.Mentorship;
 
 [Authorize]
 public class BrowseModel : PageModel
 {
-    private readonly ApplicationDbContext _context;
-    private readonly UserManager<User> _userManager;
-    private readonly IMentorshipService _mentorshipService;
-    private readonly Domain.Interfaces.IEmailSender _emailSender;
+    private readonly IUserManager _userManager;
+    private readonly IExpertiseManager _expertiseManager;
+    private readonly IMentoringManager _mentoringManager;
+    private readonly IEmailSender _emailSender;
     private readonly ILogger<BrowseModel> _logger;
     private readonly TelemetryClient _telemetryClient;
 
-    public BrowseModel(ApplicationDbContext context, UserManager<User> userManager,
-        IMentorshipService mentorshipService, Domain.Interfaces.IEmailSender emailSender,
+    public BrowseModel(
+        IUserManager userManager,
+        IExpertiseManager expertiseManager,
+        IMentoringManager mentorshipService,
+        IEmailSender emailSender,
         TelemetryClient telemetryClient, ILogger<BrowseModel> logger)
     {
-        _context = context;
         _userManager = userManager;
-        _mentorshipService = mentorshipService;
+        _expertiseManager = expertiseManager;       
+        _mentoringManager = mentorshipService;
         _emailSender = emailSender;
         _telemetryClient = telemetryClient;
         _logger = logger;
@@ -50,7 +52,7 @@ public class BrowseModel : PageModel
         MentorshipType = type;
         SelectedExpertise = expertise?.Split(',').ToList() ?? new List<string>();
         AvailableNow = availableNow;
-        AvailableExpertise = await _context.Expertise.OrderBy(e => e.Name).ToListAsync();
+        AvailableExpertise = await _expertiseManager.GetAllAsync();
 
         ViewModel = new BrowseMentorsViewModel
         {
@@ -75,11 +77,7 @@ public class BrowseModel : PageModel
             var currentUser = await _userManager.GetUserAsync(User);
             if (currentUser == null) return Unauthorized();
 
-            var targetUser = await _context.Users
-                .Include(u => u.SpeakerType)
-                .Include(u => u.UserExpertise)
-                .ThenInclude(ue => ue.Expertise)
-                .FirstOrDefaultAsync(u => u.Id == mentorId);
+            var targetUser = await _mentoringManager.GetMentorAsync(currentUser.Id);
 
             if (targetUser == null) return NotFound();
 
@@ -119,7 +117,7 @@ public class BrowseModel : PageModel
         MentorshipType = mentorshipType;
         SelectedExpertise = expertise ?? new List<string>();
         AvailableNow = availability;
-        AvailableExpertise = await _context.Expertise.OrderBy(e => e.Name).ToListAsync();
+        AvailableExpertise = await _expertiseManager.GetAllAsync();
 
         var viewModel = new BrowseMentorsViewModel
         {
@@ -142,18 +140,17 @@ public class BrowseModel : PageModel
         var currentUser = await _userManager.GetUserAsync(User);
         if (currentUser == null) return Unauthorized();
 
-        var targetMentorUser = await _userManager.FindByIdAsync(targetId.ToString());
-        if (targetMentorUser == null) return Unauthorized();
+        var targetMentorUser = await _userManager.GetAsync(targetId);
 
         // Check if can request
-        var canRequest = await _mentorshipService.CanRequestMentorshipAsync(currentUser.Id, targetId);
+        var canRequest = await _mentoringManager.CanRequestMentorshipAsync(currentUser.Id, targetId);
         if (!canRequest)
         {
             return Content(
                 "<div class='alert alert-warning'>You already have a pending or active connection with this person.</div>");
         }
 
-        var mentorship = await _mentorshipService.RequestMentorshipWithDetailsAsync(
+        var mentorship = await _mentoringManager.RequestMentorshipWithDetailsAsync(
             currentUser.Id, targetId, type, requestMessage, focusAreaIds, preferredFrequency);
 
         if (mentorship == null)
@@ -164,7 +161,7 @@ public class BrowseModel : PageModel
         //var requestUrl = Url.Page("/Mentorship/Requests/");
 
         await _emailSender.QueueEmail(
-            new System.Net.Mail.MailAddress(targetMentorUser.Email!,
+            new System.Net.Mail.MailAddress(targetMentorUser.Email,
                 $"{targetMentorUser.FirstName} {targetMentorUser.LastName}"),
             "You have a new MoreSpeaker.com Mentorship Request",
             $"Please review and confirm the mentoring request at MoreSpeakers.com.");
@@ -172,7 +169,7 @@ public class BrowseModel : PageModel
         _telemetryClient.TrackEvent("MentorRequestEmailSent", new Dictionary<string, string>
         {
             { "UserId", targetMentorUser.Id.ToString() },
-            { "Email", targetMentorUser.Email ?? string.Empty }
+            { "Email", targetMentorUser.Email }
         });
 
         return Partial("_RequestSuccess", mentorship);
@@ -180,46 +177,8 @@ public class BrowseModel : PageModel
 
     private async Task LoadMentors(BrowseMentorsViewModel model)
     {
-        var query = _context.Users
-            .Include(u => u.SpeakerType)
-            .Include(u => u.UserExpertise)
-            .ThenInclude(ue => ue.Expertise)
-            .Where(u => u.Id != model.CurrentUser.Id); // Exclude current user
-
-        // Filter by speaker type based on mentorship type
-        if (model.MentorshipType == MentorshipType.NewToExperienced)
-        {
-            query = query.Where(u => u.SpeakerTypeId == 2); // Experienced speakers only
-        }
-        else
-        {
-            query = query.Where(u => u.SpeakerTypeId == 2); // Both can mentor each other, but for now experienced only
-        }
-
-        // Filter by expertise - users must have ALL selected expertise areas
-        if (model.SelectedExpertise.Any())
-        {
-            var expertiseIds = await _context.Expertise
-                .Where(e => model.SelectedExpertise.Contains(e.Name))
-                .Select(e => e.Id)
-                .ToListAsync();
-
-            // User must have all selected expertise areas
-            foreach (var expertiseId in expertiseIds)
-            {
-                query = query.Where(u => u.UserExpertise.Any(ue => ue.ExpertiseId == expertiseId));
-            }
-        }
-
-        // Filter by availability
-        if (model.AvailableNow == true)
-        {
-            query = query.Where(u => u.IsAvailableForMentoring);
-        }
-
-        model.Mentors = await query
-            .OrderBy(u => u.LastName)
-            .ThenBy(u => u.FirstName)
-            .ToListAsync();
+        var mentors = await _mentoringManager.GetMentorsExceptForUserAsync(model.CurrentUser.Id, model.MentorshipType,
+            model.SelectedExpertise, model.AvailableNow);
+        model.Mentors = mentors;
     }
 }

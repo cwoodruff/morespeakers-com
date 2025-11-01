@@ -1,23 +1,25 @@
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using MoreSpeakers.Web.Models;
-using MoreSpeakers.Web.Services;
+
+using MoreSpeakers.Domain.Interfaces;
+using MoreSpeakers.Domain.Models;
 
 namespace MoreSpeakers.Web.Pages;
 
 public class IndexModel : PageModel
 {
-    private readonly IExpertiseService _expertiseService;
-    private readonly IMentorshipService _mentorshipService;
-    private readonly ISpeakerService _speakerService;
+    private readonly IExpertiseDataStore _expertiseDataStore;
+    private readonly IMentoringManager _mentoringManager;
+    private readonly IUserDataStore _userDataStore;
 
     public IndexModel(
-        ISpeakerService speakerService,
-        IMentorshipService mentorshipService,
-        IExpertiseService expertiseService)
+        IExpertiseDataStore expertiseDataStore,
+        IMentoringManager mentoringManager,
+        IUserDataStore userDataStore
+        )
     {
-        _speakerService = speakerService;
-        _mentorshipService = mentorshipService;
-        _expertiseService = expertiseService;
+        _expertiseDataStore = expertiseDataStore;
+        _mentoringManager = mentoringManager;      
+        _userDataStore = userDataStore;   
     }
 
     public int NewSpeakersCount { get; set; }
@@ -29,22 +31,16 @@ public class IndexModel : PageModel
     public async Task OnGetAsync()
     {
         // Get statistics
-        var newSpeakers = await _speakerService.GetNewSpeakersAsync();
-        var experiencedSpeakers = await _speakerService.GetExperiencedSpeakersAsync();
-        var activeMentorships = await _mentorshipService.GetActiveMentorshipsAsync();
-
-        NewSpeakersCount = newSpeakers.Count();
-        ExperiencedSpeakersCount = experiencedSpeakers.Count();
-        ActiveMentorshipsCount = activeMentorships.Count();
+        var stats = await _userDataStore.GetStatisticsForApplicationAsync();
+        
+        NewSpeakersCount = stats.newSpeakers;
+        ExperiencedSpeakersCount = stats.experiencedSpeakers;
+        ActiveMentorshipsCount = stats.activeMentorships;
 
         // Get featured speakers (experienced speakers with profiles)
-        FeaturedSpeakers = experiencedSpeakers
-            .Where(s => !string.IsNullOrEmpty(s.Bio) && s.UserExpertise.Any())
-            .OrderByDescending(s => s.UserExpertise.Count)
-            .Take(6)
-            .ToList();
+        FeaturedSpeakers = await _userDataStore.GetFeaturedSpeakersAsync(6);
 
         // Get popular expertise areas
-        PopularExpertise = await _expertiseService.GetPopularExpertiseAsync(8);
+        PopularExpertise = await _expertiseDataStore.GetPopularExpertiseAsync(8);
     }
 }

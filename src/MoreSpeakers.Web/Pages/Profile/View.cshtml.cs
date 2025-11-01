@@ -1,14 +1,16 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.EntityFrameworkCore;
-using MoreSpeakers.Web.Data;
-using MoreSpeakers.Web.Models;
+
+using MoreSpeakers.Domain.Models;
+using MoreSpeakers.Domain.Interfaces;
 
 namespace MoreSpeakers.Web.Pages.Profile;
 
-public class ViewModel(ApplicationDbContext context) : PageModel
+public class ViewModel(
+    IUserManager userManager
+    ) : PageModel
 {
-    private readonly ApplicationDbContext _context = context;
+    private readonly IUserManager _userManager = userManager;
 
     [BindProperty(SupportsGet = true)]
     public Guid Id { get; set; }
@@ -24,23 +26,16 @@ public class ViewModel(ApplicationDbContext context) : PageModel
             return NotFound();
         }
 
-        ProfileUser = await _context.Users
-            .Include(u => u.SpeakerType)
-            .FirstOrDefaultAsync(u => u.Id == Id);
+        ProfileUser = await _userManager.GetAsync(Id);
 
         if (ProfileUser == null)
         {
             return NotFound();
         }
 
-        UserExpertise = await _context.UserExpertise
-            .Include(ue => ue.Expertise)
-            .Where(ue => ue.UserId == Id)
-            .ToListAsync();
+        UserExpertise = await _userManager.GetUserExpertisesForUserAsync(Id);
 
-        SocialMedia = await _context.SocialMedia
-            .Where(sm => sm.UserId == Id)
-            .ToListAsync();
+        SocialMedia = await _userManager.GetUserSocialMediaForUserAsync(Id);
 
         return Page();
     }

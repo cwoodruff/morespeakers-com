@@ -1,12 +1,15 @@
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights.WindowsServer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models;
 using MoreSpeakers.Managers;
-using MoreSpeakers.Web.Data;
-using MoreSpeakers.Web.Models;
 using MoreSpeakers.Web.Services;
+using MoreSpeakers.Data;
+
 using Serilog;
 using Serilog.Exceptions;
 
@@ -33,11 +36,16 @@ builder.Configuration.Bind("Settings", settings);
 builder.Services.AddSingleton<ISettings>(settings);
 
 // Add database context
-builder.AddSqlServerDbContext<ApplicationDbContext>("sqldb");
-builder.EnrichSqlServerDbContext<ApplicationDbContext>();
+builder.AddSqlServerDbContext<MoreSpeakersDbContext>("sqldb");
+builder.EnrichSqlServerDbContext<MoreSpeakersDbContext>(
+    configureSettings: sqlServerSettings =>
+    {
+        sqlServerSettings.DisableRetry = false;
+        sqlServerSettings.CommandTimeout = 30; // seconds
+    });
 
 // Add Identity services
-builder.Services.AddDefaultIdentity<User>(options =>
+builder.Services.AddDefaultIdentity<MoreSpeakers.Data.Models.User>(options =>
     {
         // Password settings
         options.Password.RequireDigit = true;
@@ -61,7 +69,7 @@ builder.Services.AddDefaultIdentity<User>(options =>
         options.SignIn.RequireConfirmedPhoneNumber = false;
     })
     .AddRoles<IdentityRole<Guid>>()
-    .AddEntityFrameworkStores<ApplicationDbContext>();
+    .AddEntityFrameworkStores<MoreSpeakersDbContext>();
 
 // Add Razor Pages
 builder.Services.AddRazorPages(options =>
@@ -74,10 +82,15 @@ builder.Services.AddRazorPages(options =>
 builder.AddAzureBlobServiceClient("AzureStorageBlobs");
 builder.AddAzureTableServiceClient("AzureStorageTables");
 builder.AddAzureQueueServiceClient("AzureStorageQueues");
+
 // Add application services
-builder.Services.AddScoped<ISpeakerService, SpeakerService>();
-builder.Services.AddScoped<IMentorshipService, MentorshipService>();
-builder.Services.AddScoped<IExpertiseService, ExpertiseService>();
+builder.Services.AddScoped<IExpertiseDataStore, ExpertiseDataStore>();
+builder.Services.AddScoped<IMentoringDataStore, MentoringDataStore>();
+builder.Services.AddScoped<IUserDataStore, UserDataStore>();
+builder.Services.AddScoped<IExpertiseManager, ExpertiseManager>();
+builder.Services.AddScoped<IMentoringManager, MentoringManager>();
+builder.Services.AddScoped<IUserManager, UserManager>();
+
 builder.Services.AddScoped<IFileUploadService, FileUploadService>();
 builder.Services.AddScoped<IEmailSender, EmailSender>();
 
@@ -87,7 +100,7 @@ builder.Services.AddHttpContextAccessor();
 // Configure cookie policy
 builder.Services.Configure<CookiePolicyOptions>(options =>
 {
-    options.CheckConsentNeeded = context => true;
+    options.CheckConsentNeeded = _ => true;
     options.MinimumSameSitePolicy = SameSiteMode.None;
 });
 

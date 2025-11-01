@@ -1,18 +1,16 @@
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.EntityFrameworkCore;
-using MoreSpeakers.Web.Data;
-using MoreSpeakers.Web.Models;
+
+using MoreSpeakers.Domain.Interfaces;
+using MoreSpeakers.Domain.Models;
 
 namespace MoreSpeakers.Web.Pages.Profile;
 
 [Authorize]
-public class IndexModel(ApplicationDbContext context, UserManager<User> userManager) : PageModel
+public class IndexModel(IUserManager userManager) : PageModel
 {
-    private readonly ApplicationDbContext _context = context;
-    private readonly UserManager<User> _userManager = userManager;
+    private readonly IUserManager _userManager = userManager;
 
     public User ProfileUser { get; set; } = null!;
     public IEnumerable<UserExpertise> UserExpertise { get; set; } = new List<UserExpertise>();
@@ -27,19 +25,9 @@ public class IndexModel(ApplicationDbContext context, UserManager<User> userMana
             return Challenge();
         }
 
-        ProfileUser = await _context.Users
-            .Include(u => u.SpeakerType)
-            .FirstOrDefaultAsync(u => u.Id == currentUser.Id) ?? currentUser;
-
-        UserExpertise = await _context.UserExpertise
-            .Include(ue => ue.Expertise)
-            .Where(ue => ue.UserId == currentUser.Id)
-            .ToListAsync();
-
-        SocialMedia = await _context.SocialMedia
-            .Where(sm => sm.UserId == currentUser.Id)
-            .ToListAsync();
-
+        ProfileUser = await _userManager.GetAsync(currentUser.Id);
+        UserExpertise = await _userManager.GetUserExpertisesForUserAsync(currentUser.Id);
+        SocialMedia = await _userManager.GetUserSocialMediaForUserAsync(currentUser.Id);
         CanEdit = true; // User can always edit their own profile
 
         return Page();
