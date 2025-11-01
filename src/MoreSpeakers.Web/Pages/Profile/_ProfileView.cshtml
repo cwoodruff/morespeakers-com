@@ -102,11 +102,11 @@
                     </h5>
                 </div>
                 <div class="card-body">
-                    <div class="d-flex flex-column gap-2">
+                    <div class="d-flex flex-wrap gap-2">
                         @foreach (var link in Model.SocialMedia)
                         {
-                            <a href="@link.Url" target="_blank" class="btn btn-outline-primary btn-sm text-start">
-                                <i class="bi bi-box-arrow-up-right me-2"></i>
+                            <a href="@link.Url" target="_blank" class="btn btn-primary btn-sm text-start">
+                                <i class="bi bi-@GetSocialIcon(link.Platform)"></i>
                                 @link.Platform
                             </a>
                         }
@@ -170,4 +170,22 @@
             </a>
         </div>
     </div>
+}
+@functions {
+
+    private string GetSocialIcon(string platform)
+    {
+        return platform.ToLower() switch
+        {
+            "linkedin" => "linkedin",
+            "twitter" => "twitter-x",
+            "github" => "github",
+            "website" => "globe",
+            "blog" => "journal-text",
+            "youtube" => "youtube",
+            "mastodon" => "mastodon",
+            "bluesky" => "bluesky",
+            _ => "link-45deg"
+        };
+    }
 }
