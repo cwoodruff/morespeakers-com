@@ -53,11 +53,6 @@ public class UserManager: IUserManager
         return await _dataStore.GenerateEmailConfirmationTokenAsync(user);
     }
 
-    public async Task<IdentityResult> UpdateAsync(User user)
-    {
-        return await _dataStore.UpdateAsync(user);
-    }
-
 
     // ------------------------------------------
     // Application Methods

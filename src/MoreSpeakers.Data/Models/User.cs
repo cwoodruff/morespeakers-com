@@ -10,8 +10,6 @@ public class User : IdentityUser<Guid>
 
     [Required] [MaxLength(100)] public string LastName { get; set; } = string.Empty;
 
-    [Required] [Phone] public override string? PhoneNumber { get; set; }
-
     [Required]
     [MaxLength(6000)] // Approximately 1000 words
     public string Bio { get; set; } = string.Empty;

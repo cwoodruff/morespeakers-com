@@ -81,7 +81,7 @@ public partial class IndexModel : PageModel
                     break;
             }
 
-            await _userManager.UpdateAsync(CurrentUser);
+            await _userManager.SaveAsync(CurrentUser);
             await LoadUserDataAsync(); // Reload to get updated data
 
             ViewData["Field"] = field;

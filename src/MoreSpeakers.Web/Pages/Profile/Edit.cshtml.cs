@@ -1,7 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
@@ -112,9 +111,8 @@ public class EditModel(
             ProfileUser.SpeakerTypeId = Input.SpeakerTypeId;
             ProfileUser.UpdatedDate = DateTime.UtcNow;
             
-            // Change this to use UserManager UpdateAsync() method
-            //var identityResult = await _userManager.UpdateAsync(ProfileUser);
-            var saveResult = await _userManager.SaveAsync(ProfileUser);
+            // Save the profile (user information)
+            await _userManager.SaveAsync(ProfileUser);
 
             // Update expertise
             await UpdateUserExpertiseAsync();

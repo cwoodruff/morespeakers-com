@@ -17,7 +17,6 @@ public interface IUserManager
     Task<User?> FindByEmailAsync(string email);
     Task<User?> GetUserIdAsync(ClaimsPrincipal user);
     Task<string> GenerateEmailConfirmationTokenAsync(User user);
-    Task<IdentityResult> UpdateAsync(User user);
     
     // ------------------------------------------
     // Application Methods

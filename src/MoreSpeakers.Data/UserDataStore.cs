@@ -33,14 +33,19 @@ public class UserDataStore : IUserDataStore
     
     public async Task<User?> GetUserAsync(ClaimsPrincipal user)
     {
-        var identityUser = await _userManager.GetUserAsync(user);
-        
-        return _mapper.Map<User>(identityUser);
+        var identityUserByClaim = await _userManager.GetUserAsync(user);
+        return _mapper.Map<User>(identityUserByClaim);
     }
 
     public async Task<IdentityResult> ChangePasswordAsync(User user, string currentPassword, string newPassword)
     {
-        var identityUser = _mapper.Map<Data.Models.User>(user);
+        // Need to load the user from the "Identity" manager to change the password
+        var identityUser = await _userManager.FindByIdAsync(user.Id.ToString());
+        if (identityUser == null)
+        {
+            throw new InvalidOperationException($"Could not find user with id: {user.Id} in the Identity database.");
+        }
+        
         return await _userManager.ChangePasswordAsync(identityUser, currentPassword, newPassword);
     }
 
@@ -68,11 +73,6 @@ public class UserDataStore : IUserDataStore
         return await _userManager.GenerateEmailConfirmationTokenAsync(identityUser);
     }
 
-    public async Task<IdentityResult> UpdateAsync(User user)
-    {
-        var identityUser = _mapper.Map<Data.Models.User>(user);
-        return await _userManager.UpdateAsync(identityUser);
-    }
 
     // ------------------------------------------
     // Application Methods
@@ -91,9 +91,12 @@ public class UserDataStore : IUserDataStore
 
     public async Task<User> SaveAsync(User user)
     {
-        var dbUser = _mapper.Map<Models.User>(user);
-        _context.Entry(dbUser).State = EntityState.Detached;
-        _context.Update(dbUser);
+        var dbUser = await _context.Users.FirstOrDefaultAsync(u => u.Id == user.Id) ?? new Models.User();
+
+        _mapper.Map(user, dbUser);
+        //var dbUser = _mapper.Map<Models.User>(user);
+        _context.Entry(dbUser).State = dbUser.Id == Guid.Empty ? EntityState.Added : EntityState.Modified;
+        
         var result = await _context.SaveChangesAsync() != 0;
         if (result)
         {

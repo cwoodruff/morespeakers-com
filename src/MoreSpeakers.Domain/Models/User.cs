@@ -6,13 +6,10 @@ namespace MoreSpeakers.Domain.Models;
 
 public class User: IdentityUser<Guid>
 {
-    //[Required] public Guid Id { get; set; }
+   
     [Required] [MaxLength(100)] public string FirstName { get; set; } = string.Empty;
 
     [Required] [MaxLength(100)] public string LastName { get; set; } = string.Empty;
-
-    [Required] [Phone] public string? PhoneNumber { get; set; }
-    [Required] [EmailAddress] public required string Email { get; set; }
 
     [Required]
     [MaxLength(6000)] // Approximately 1000 words
