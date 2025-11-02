@@ -7,19 +7,16 @@ namespace MoreSpeakers.Web.Pages;
 
 public class IndexModel : PageModel
 {
-    private readonly IExpertiseDataStore _expertiseDataStore;
-    private readonly IMentoringManager _mentoringManager;
-    private readonly IUserDataStore _userDataStore;
-
+    private readonly IExpertiseManager _expertiseManager;
+    private readonly IUserManager _userManager;
+    
     public IndexModel(
-        IExpertiseDataStore expertiseDataStore,
-        IMentoringManager mentoringManager,
-        IUserDataStore userDataStore
+        IExpertiseManager expertiseManager,
+        IUserManager userManager
         )
     {
-        _expertiseDataStore = expertiseDataStore;
-        _mentoringManager = mentoringManager;      
-        _userDataStore = userDataStore;   
+        _expertiseManager = expertiseManager;
+        _userManager = userManager;
     }
 
     public int NewSpeakersCount { get; set; }
@@ -31,16 +28,16 @@ public class IndexModel : PageModel
     public async Task OnGetAsync()
     {
         // Get statistics
-        var stats = await _userDataStore.GetStatisticsForApplicationAsync();
+        var stats = await _userManager.GetStatisticsForApplicationAsync();
         
         NewSpeakersCount = stats.newSpeakers;
         ExperiencedSpeakersCount = stats.experiencedSpeakers;
         ActiveMentorshipsCount = stats.activeMentorships;
 
         // Get featured speakers (experienced speakers with profiles)
-        FeaturedSpeakers = await _userDataStore.GetFeaturedSpeakersAsync(6);
+        FeaturedSpeakers = await _userManager.GetFeaturedSpeakersAsync(6);
 
         // Get popular expertise areas
-        PopularExpertise = await _expertiseDataStore.GetPopularExpertiseAsync(8);
+        PopularExpertise = await _expertiseManager.GetPopularExpertiseAsync(8);
     }
 }
