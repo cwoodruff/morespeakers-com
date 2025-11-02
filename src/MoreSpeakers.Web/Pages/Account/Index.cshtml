@@ -150,7 +150,7 @@
                         <div class="d-flex flex-wrap gap-2">
                             @foreach (var expertise in Model.UserExpertise)
                             {
-                                <span class="expertise-tag">@expertise.Expertise.Name</span>
+                                <span class="badge rounded-pill text-bg-primary fw-light">@expertise.Expertise.Name</span>
                             }
                         </div>
                     }
@@ -171,10 +171,10 @@
                 <div class="card-body">
                     @if (Model.SocialMedia.Any())
                     {
-                        <div class="social-links">
+                        <div class="d-flex flex-wrap gap-2">
                             @foreach (var social in Model.SocialMedia)
                             {
-                                <a href="@social.Url" target="_blank" class="social-link">
+                                <a href="@social.Url" target="_blank" class="btn btn-primary btn-sm text-start">
                                     <i class="bi @GetSocialIcon(social.Platform)"></i>
                                     @social.Platform
                                 </a>
@@ -191,10 +191,7 @@
             <!-- Action Buttons -->
             <div class="d-flex gap-2 mt-4">
                 <a asp-page="/Profile/Edit" class="btn btn-outline-primary">
-                    <i class="bi bi-pencil me-2"></i>Advanced Edit
-                </a>
-                <a asp-page="/Privacy" class="btn btn-outline-secondary">
-                    <i class="bi bi-shield-check me-2"></i>Privacy Settings
+                    <i class="bi bi-pencil me-2"></i>Edit
                 </a>
             </div>
         </div>
