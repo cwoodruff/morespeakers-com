@@ -147,7 +147,7 @@
                         <strong>@Model.ProfileUser.FirstName</strong> is an experienced speaker who can provide mentorship and guidance for your speaking journey.
                     </p>
                     <button class="btn btn-primary"
-                            hx-post="/Mentorship/Request"
+                            hx-post="/Mentorship/Requests"
                             hx-vals='{"mentorId": "@Model.ProfileUser.Id"}'
                             hx-confirm="Request mentorship from @Model.ProfileUser.FullName?"
                             hx-target="#mentorship-result"

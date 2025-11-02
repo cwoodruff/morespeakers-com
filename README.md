@@ -74,12 +74,10 @@ MoreSpeakers/
 │   ├── MoreSpeakers.Tests/           # Automated tests
 │   └── MoreSpeakers.Web/             # Main web application
 │       ├── Areas/                    # Feature areas (e.g., Identity)
-│       ├── Controllers/              # MVC controllers
 │       ├── Data/                     # EF Core DbContext and Migrations
 │       ├── Models/                   # View models and data models
 │       ├── Pages/                    # Razor Pages
 │       ├── Services/                 # App-level services used by the web app
-│       ├── Views/                    # MVC Views
 │       ├── wwwroot/                  # Static files (CSS, JS, images, libs)
 │       └── Properties/               # Launch settings and config
 ├── docs/                             # Documentation
