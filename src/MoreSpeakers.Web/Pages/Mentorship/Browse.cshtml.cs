@@ -77,7 +77,7 @@ public class BrowseModel : PageModel
             var currentUser = await _userManager.GetUserAsync(User);
             if (currentUser == null) return Unauthorized();
 
-            var targetUser = await _mentoringManager.GetMentorAsync(currentUser.Id);
+            var targetUser = await _mentoringManager.GetMentorAsync(mentorId);
 
             if (targetUser == null) return NotFound();
 
@@ -95,7 +95,7 @@ public class BrowseModel : PageModel
                 AvailableExpertise = expertise
             };
 
-            return Partial("/Views/Mentorship/_RequestModal.cshtml", viewModel);
+            return Partial("_RequestModal", viewModel);
         }
         catch (Exception e)
         {
@@ -131,11 +131,11 @@ public class BrowseModel : PageModel
         // Load mentors based on filters
         await LoadMentors(viewModel);
 
-        return Partial("~/Views/Mentorship/_MentorResults.cshtml", viewModel);
+        return Partial("_MentorResults", viewModel);
     }
 
     public async Task<IActionResult> OnPostSubmitRequestAsync(Guid targetId, MentorshipType type,
-        string? requestMessage, List<int>? focusAreaIds, string? preferredFrequency)
+        string? requestMessage, List<int>? selectedExpertiseIds, string? preferredFrequency)
     {
         var currentUser = await _userManager.GetUserAsync(User);
         if (currentUser == null) return Unauthorized();
@@ -151,14 +151,12 @@ public class BrowseModel : PageModel
         }
 
         var mentorship = await _mentoringManager.RequestMentorshipWithDetailsAsync(
-            currentUser.Id, targetId, type, requestMessage, focusAreaIds, preferredFrequency);
+            currentUser.Id, targetId, type, requestMessage, selectedExpertiseIds, preferredFrequency);
 
         if (mentorship == null)
         {
             return Content("<div class='alert alert-danger'>Failed to send request. Please try again.</div>");
         }
-
-        //var requestUrl = Url.Page("/Mentorship/Requests/");
 
         await _emailSender.QueueEmail(
             new System.Net.Mail.MailAddress(targetMentorUser.Email,
@@ -173,6 +171,18 @@ public class BrowseModel : PageModel
         });
 
         return Partial("_RequestSuccess", mentorship);
+    }
+    
+    public async Task<IActionResult> OnPostCancelRequestAsync(Guid mentorshipId)
+    {
+        var currentUser = await _userManager.GetUserAsync(User);
+        if (currentUser == null) return Unauthorized();
+
+        var mentorshipCancelled = await _mentoringManager.CancelMentorshipRequestAsync(mentorshipId, currentUser.Id);
+
+        if (!mentorshipCancelled) return NotFound();
+
+        return Content("<div class='alert alert-info'>Request cancelled successfully.</div>");
     }
 
     private async Task LoadMentors(BrowseMentorsViewModel model)

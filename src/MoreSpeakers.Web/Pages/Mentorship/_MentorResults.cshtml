@@ -22,16 +22,16 @@ else
                 <div class="card p-2">
                     <!-- Header with Avatar and Basic Info -->
                     <div class="d-flex align-items-center mb-3">
-                        <div class="">
+                        <div>
                             @if (!string.IsNullOrEmpty(mentor.HeadshotUrl))
                             {
                                 <img hx-preserve src="@mentor.HeadshotUrl" alt="@mentor.FullName"
-                                     class="object-fit-contain border image-thumbnail rounded float-start" style="width:10rem; height:10rem;">
+                                     class="object-fit-contain border image-thumbnail rounded float-start" style="width:8rem; height:8rem;">
                             }
                             else
                             {
                                 <div class="align-items-center justify-content-center">
-                                    <i class="bi bi-person-fill text-muted d-flex justify-content-center align-items-center" style="font-size: 10rem;"></i>
+                                    <i class="bi bi-person-fill text-muted d-flex justify-content-center align-items-center" style="font-size: 8rem;"></i>
                                 </div>
                             }
                         </div>
