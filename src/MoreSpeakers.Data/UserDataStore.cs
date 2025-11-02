@@ -169,26 +169,76 @@ public class UserDataStore : IUserDataStore
         return _mapper.Map<IEnumerable<User>>(users);
     }
 
-    public async Task<IEnumerable<User>> SearchSpeakersAsync(string searchTerm, int? speakerTypeId = null)
+    public async Task<SpeakerSearchResult> SearchSpeakersAsync(string? searchTerm, int? speakerTypeId = null, int? expertiseId = null, SpeakerSearchOrderBy sortOrder = SpeakerSearchOrderBy.Name, int? page = null, int? pageSize = null)
     {
+
         var query = _context.Users
             .Include(u => u.SpeakerType)
             .Include(u => u.UserExpertise)
             .ThenInclude(ue => ue.Expertise)
             .AsQueryable();
 
+        // Search term
         if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
             query = query.Where(u =>
                 u.FirstName.Contains(searchTerm) ||
                 u.LastName.Contains(searchTerm) ||
                 u.Bio.Contains(searchTerm) ||
                 u.UserExpertise.Any(ue => ue.Expertise.Name.Contains(searchTerm)));
+        }
 
-        if (speakerTypeId.HasValue) query = query.Where(u => u.SpeakerTypeId == speakerTypeId.Value);
-
-        var users = await query.OrderBy(u => u.FirstName).ToListAsync();
+        // Speaker type
+        if (speakerTypeId.HasValue)
+        {
+            query = query.Where(u => u.SpeakerTypeId == speakerTypeId.Value);
+        }
         
-        return _mapper.Map<IEnumerable<User>>(users);
+        // Expertise
+        if (expertiseId.HasValue)
+        {
+            query = query.Where(u => u.UserExpertise.Any(ue => ue.ExpertiseId == expertiseId.Value));
+        }
+
+        // Sort Order
+        switch (sortOrder)
+        {
+            case SpeakerSearchOrderBy.Newest:
+                query = query.OrderByDescending(u => u.CreatedDate);
+                break;
+            
+            case SpeakerSearchOrderBy.Expertise:
+                query = query.OrderBy(u => u.UserExpertise.Count).ThenBy(u => u.LastName).ThenBy(u => u.FirstName);
+                break;
+            
+            case SpeakerSearchOrderBy.Name:
+            default:
+                query = query.OrderBy(u => u.LastName).ThenBy(u => u.FirstName);
+                break;
+        }
+
+        var users = await query.ToListAsync();
+        var totalCount = users.Count;
+        
+        if (page.HasValue && pageSize.HasValue)
+        {
+            users = users.Skip((page.Value - 1) * pageSize.Value).Take(pageSize.Value).ToList();
+        }
+
+        if (page.HasValue)
+        {
+            
+        }
+        var results = new SpeakerSearchResult
+        {
+            RowCount = totalCount,
+            Speakers = _mapper.Map<IEnumerable<User>>(users),
+            PageSize = pageSize ?? totalCount,
+            CurrentPage = page ?? 1,
+            TotalPages = page.HasValue ? (totalCount / (pageSize ?? totalCount)) : 1
+        };
+        
+        return results;
     }
 
     public async Task<IEnumerable<User>> GetSpeakersByExpertiseAsync(int expertiseId)
@@ -335,7 +385,7 @@ public class UserDataStore : IUserDataStore
         }
     }
 
-    public async Task<List<UserExpertise>> GetUserExpertisesForUserAsync(Guid userId)
+    public async Task<IEnumerable<UserExpertise>> GetUserExpertisesForUserAsync(Guid userId)
     {
         var userExpertises = await _context.UserExpertise
             .Include(ue => ue.Expertise)
@@ -344,7 +394,7 @@ public class UserDataStore : IUserDataStore
         return _mapper.Map<List<UserExpertise>>(userExpertises);
     }
 
-    public async Task<List<SocialMedia>> GetUserSocialMediaForUserAsync(Guid userId)
+    public async Task<IEnumerable<SocialMedia>> GetUserSocialMediaForUserAsync(Guid userId)
     {
         var socialMedias = await _context.SocialMedia
             .Where(sm => sm.UserId == userId)
@@ -364,7 +414,7 @@ public class UserDataStore : IUserDataStore
 
     }
 
-    public async Task<List<User>> GetFeaturedSpeakersAsync(int count)
+    public async Task<IEnumerable<User>> GetFeaturedSpeakersAsync(int count)
     {
         var speakers = await _context.Users
             .Where(s => !string.IsNullOrEmpty(s.Bio) && s.UserExpertise.Any() && s.SpeakerType.Name == "ExperiencedSpeaker")

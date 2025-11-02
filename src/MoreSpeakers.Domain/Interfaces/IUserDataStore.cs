@@ -24,7 +24,7 @@ public interface IUserDataStore: IDataStorePrimaryKeyGuid<User>
     
     Task<IEnumerable<User>> GetNewSpeakersAsync();
     Task<IEnumerable<User>> GetExperiencedSpeakersAsync();
-    Task<IEnumerable<User>> SearchSpeakersAsync(string searchTerm, int? speakerTypeId = null);
+    Task<SpeakerSearchResult> SearchSpeakersAsync(string? searchTerm, int? speakerTypeId = null, int? expertiseId = null, SpeakerSearchOrderBy sortOrder = SpeakerSearchOrderBy.Name, int? page = null, int? pageSize = null);
     Task<IEnumerable<User>> GetSpeakersByExpertiseAsync(int expertiseId);
     Task<bool> AddSocialMediaLinkAsync(Guid userId, string platform, string url);
     Task<bool> RemoveSocialMediaLinkAsync(int socialMediaId);
@@ -32,8 +32,8 @@ public interface IUserDataStore: IDataStorePrimaryKeyGuid<User>
     Task<bool> RemoveExpertiseFromUserAsync(Guid userId, int expertiseId);
     Task<bool> EmptyAndAddExpertiseForUserAsync (Guid userId, int[] expertises);
     Task<bool> EmptyAndAddSocialMediaForUserAsync(Guid userId, List<SocialMedia> socialMedias);
-    Task<List<UserExpertise>> GetUserExpertisesForUserAsync(Guid userId);
-    Task<List<SocialMedia>> GetUserSocialMediaForUserAsync(Guid userId);
+    Task<IEnumerable<UserExpertise>> GetUserExpertisesForUserAsync(Guid userId);
+    Task<IEnumerable<SocialMedia>> GetUserSocialMediaForUserAsync(Guid userId);
     Task<(int newSpeakers, int experiencedSpeakers, int activeMentorships)> GetStatisticsForApplicationAsync();
-    Task<List<User>> GetFeaturedSpeakersAsync(int count);
+    Task<IEnumerable<User>> GetFeaturedSpeakersAsync(int count);
 }

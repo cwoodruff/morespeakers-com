@@ -4,84 +4,90 @@
         <div class="row">
             @foreach (var speaker in Model.Speakers)
             {
-                <div id="speaker-@speaker.Id" class="col-md-6 col-lg-4 mb-4">
-                    <div class="card">
-                        <div class="card">
-                            @if (!string.IsNullOrEmpty(speaker.HeadshotUrl))
-                            {
+            <div class="card col-md-4 col-sm-2 p-2">
+                <!-- Header with Avatar and Basic Info -->
+                <div class="d-flex align-items-center mb-3">
+                    <div>
+                        @if (!string.IsNullOrEmpty(speaker.HeadshotUrl))
+                        {
                             <img hx-preserve src="@speaker.HeadshotUrl" alt="@speaker.FullName"
-                                class="object-fit-contain border image-thumbnail rounded float-start" style="width:8rem; height:8rem;">
-                            }
-                            else
-                            {
-                                <div class="align-items-center justify-content-center">
-                                    <i class="bi bi-person-fill text-muted d-flex justify-content-center align-items-center" style="font-size: 8rem;"></i>
-                                </div>
-                            }
-                            <div class="card-body">
-                                <h5 class="card-title">@speaker.FullName</h5>
-                                <span class="badge @(speaker.IsNewSpeaker ? "bg-primary" : "bg-success") mb-2">
-                                    @(speaker.IsNewSpeaker ? "New Speaker" : "Experienced Speaker")
-                                </span>
-                                
-                                <p class="card-text">
-                                    @{
-                                        var bioPreview = speaker.Bio.Length > 120 ? speaker.Bio.Substring(0, 120) + "..." : speaker.Bio;
-                                    }
-                                    @bioPreview    
-                                </p>
-                                <p>
-                                    @foreach (var userExpertise in speaker.UserExpertise.Take(4))
-                                    {
-                                        <span class="badge rounded-pill text-bg-primary fw-light">@userExpertise.Expertise.Name</span>
-                                    }
-                                    @if (speaker.UserExpertise.Count > 4)
-                                    {
-                                        <span class="text-muted small">+@(speaker.UserExpertise.Count - 4) more</span>
-                                    }
-                                </p>
-                                <!-- Social Media Links -->
-                                @if (speaker.SocialMediaLinks.Any())
-                                {
-                                    <div class="d-grid gap-2 mx-auto">
-                                        @foreach (var social in speaker.SocialMediaLinks.Take(3))
-                                        {
-                                            <a href="@social.Url" target="_blank" class="btn btn-secondary">
-                                                <i class="bi bi-@GetSocialIcon(social.Platform)"></i>
-                                                @social.Platform
-                                            </a>
-                                        }
-                                    </div>
-                                }
+                                 class="object-fit-contain border image-thumbnail rounded float-start" style="width:8rem; height:8rem;">
+                        }
+                        else
+                        {
+                            <div class="align-items-center justify-content-center">
+                                <i class="bi bi-person-fill text-muted d-flex justify-content-center align-items-center" style="font-size: 8rem;"></i>
                             </div>
-                            <div class="card-footer">
-                                <div class="d-grid gap-2 mx-auto">
-                                   
-                                    <a asp-page="/Profile/View" asp-route-id="@speaker.Id"
-                                       class="btn btn-primary">
-                                        <i class="bi bi-eye"></i>View Profile
-                                    </a>
-
-                                    @if (User.Identity?.IsAuthenticated == true && User.Identity.Name != speaker.Email)
-                                    {
-                                        @if (speaker.IsExperiencedSpeaker)
-                                        {
-                                        <button class="btn btn-primary"
-                                                hx-post="/Mentorship/Requests"
-                                                hx-vals='{"mentorId": "@speaker.Id"}'
-                                                hx-confirm="Request mentorship from @speaker.FullName?"
-                                                hx-target="#mentorship-status-@(speaker.Id)">
-                                            <i class="bi bi-person-plus"></i>Request Mentor
-                                        </button>
-                                        }
-                                    }
-
-                                </div>
-                                <div id="mentorship-status-@speaker.Id" class="mt-2"></div>
-                            </div>
-                        </div>
+                        }
+                    </div>
+                    <div class="card-body">
+                        <h5>@speaker.FullName</h5>
+                        @if (speaker.IsAvailableForMentoring)
+                        {
+                            <span class="badge text-bg-success">
+                                <i class="bi bi-check-circle me-1"></i>Available
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="badge text-bg-danger">
+                                <i class="bi bi-clock me-1"></i>Busy
+                            </span>
+                        }
+                        <span class="badge bg-success">@speaker.SpeakerType.Name</span>
                     </div>
                 </div>
+
+                <!-- Bio Preview -->
+                <p class="card-text small">
+                    @(speaker.Bio.Length > 120 ? speaker.Bio.Substring(0, 120) + "..." : speaker.Bio)
+                </p>
+
+                <!-- Mentorship Focus -->
+                @if (!string.IsNullOrEmpty(speaker.MentorshipFocus))
+                {
+                    <div class="mb-3">
+                        <strong class="small text-muted">Mentorship Focus:</strong>
+                        <p class="small mb-0">@speaker.MentorshipFocus</p>
+                    </div>
+                }
+
+                <!-- Expertise Tags -->
+                <div class="mb-3">
+                    @foreach (var userExpertise in speaker.UserExpertise.Take(4))
+                    {
+                        <span class="badge rounded-pill text-bg-primary fw-light">@userExpertise.Expertise.Name</span>
+                    }
+                    @if (speaker.UserExpertise.Count > 4)
+                    {
+                        <span class="text-muted small">+@(speaker.UserExpertise.Count - 4) more</span>
+                    }
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="d-grid gap-2">
+                           
+                    <a asp-page="/Profile/View" asp-route-id="@speaker.Id"
+                       class="btn btn-primary">
+                        <i class="bi bi-eye"></i>View Profile
+                    </a>
+
+                    @if (User.Identity?.IsAuthenticated == true && User.Identity.Name != speaker.Email)
+                    {
+                        @if (speaker.IsExperiencedSpeaker)
+                        {
+                            <button class="btn btn-primary"
+                                    hx-post="/Mentorship/Requests"
+                                    hx-vals='{"mentorId": "@speaker.Id"}'
+                                    hx-confirm="Request mentorship from @speaker.FullName?"
+                                    hx-target="#mentorship-status-@(speaker.Id)">
+                                <i class="bi bi-person-plus"></i>Request Mentor
+                            </button>
+                        }
+                    }
+                    <div id="mentorship-status-@speaker.Id" class="mt-2"></div>
+                </div>
+            </div>
             }
         </div>
 
@@ -173,8 +179,7 @@
         if (Model.ExpertiseFilter.HasValue)
             queryParams.Add($"ExpertiseFilter={Model.ExpertiseFilter}");
 
-        if (!string.IsNullOrEmpty(Model.SortBy))
-            queryParams.Add($"SortBy={Model.SortBy}");
+        queryParams.Add($"SortBy={Model.SortBy}");
 
         return $"/Speakers/Index?{string.Join("&", queryParams)}";
     }

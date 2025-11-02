@@ -30,7 +30,7 @@ public class IndexModel : PageModel
 
     [BindProperty(SupportsGet = true)] public int? ExpertiseFilter { get; set; }
 
-    [BindProperty(SupportsGet = true)] public string SortBy { get; set; } = "name";
+    [BindProperty(SupportsGet = true)] public SpeakerSearchOrderBy SortBy { get; set; } = SpeakerSearchOrderBy.Name;
 
     [BindProperty(SupportsGet = true)] public int CurrentPage { get; set; } = 1;
 
@@ -39,6 +39,9 @@ public class IndexModel : PageModel
 
     public async Task<IActionResult> OnGetAsync()
     {
+        // Load all expertise for filter dropdown
+        AllExpertise = await _expertiseManager.GetAllAsync();
+        
         await LoadSpeakersAsync();
 
         // Check if this is an HTMX request for just the speakers container
@@ -52,6 +55,9 @@ public class IndexModel : PageModel
     
     private async Task<IActionResult> OnGetBrowseSpeakersAsync()
     {
+        // Load all expertise for filter dropdown
+        AllExpertise = await _expertiseManager.GetAllAsync();
+        
         await LoadSpeakersAsync();
         
         // Check if this is an HTMX request for just the speakers container
@@ -65,56 +71,12 @@ public class IndexModel : PageModel
 
     private async Task LoadSpeakersAsync()
     {
-        // Load all expertise for filter dropdown
-        AllExpertise = await _expertiseManager.GetAllAsync();
+        var searchResults = await _userManager.SearchSpeakersAsync(SearchTerm, SpeakerTypeFilter, ExpertiseFilter, SortBy, CurrentPage, PageSize);
 
-        // Start with all speakers
-        var newSpeakers = await _userManager.GetNewSpeakersAsync();
-        IEnumerable<User> experiencedSpeakers;
-        // Apply expertise filter
-		if (ExpertiseFilter.HasValue)
-        {
-	        experiencedSpeakers = await _userManager.GetSpeakersByExpertiseAsync(ExpertiseFilter.Value);
-        }
-		else
-		{
-			experiencedSpeakers = await _userManager.GetExperiencedSpeakersAsync();
-		}
-
-		IEnumerable<User> allSpeakers = newSpeakers.Concat(experiencedSpeakers);
-
-        // Apply search filter
-        if (!string.IsNullOrWhiteSpace(SearchTerm))
-        {
-			allSpeakers = await _userManager.SearchSpeakersAsync(SearchTerm, SpeakerTypeFilter);
-        }
-
-        // Apply speaker type filter
-        if (SpeakerTypeFilter.HasValue)
-        {
-            allSpeakers = SpeakerTypeFilter == 1
-                ? allSpeakers.Where(s => s.SpeakerTypeId == 1)
-                : allSpeakers.Where(s => s.SpeakerTypeId == 2);
-        }
-
-        // Apply sorting
-        allSpeakers = SortBy switch
-        {
-            "newest" => allSpeakers.OrderByDescending(s => s.CreatedDate),
-            "expertise" => allSpeakers.OrderByDescending(s => s.UserExpertise.Count),
-            _ => allSpeakers.OrderBy(s => s.FirstName).ThenBy(s => s.LastName)
-        };
-
-        // Calculate pagination
-        TotalCount = allSpeakers.Count();
-        TotalPages = (int)Math.Ceiling(TotalCount / (double)PageSize);
-        CurrentPage = Math.Max(1, Math.Min(CurrentPage, TotalPages == 0 ? 1 : TotalPages));
-
-        // Apply pagination
-        Speakers = allSpeakers
-            .Skip((CurrentPage - 1) * PageSize)
-            .Take(PageSize)
-            .ToList();
+        TotalCount = searchResults.RowCount;
+        TotalPages = searchResults.TotalPages;
+        CurrentPage = searchResults.CurrentPage;
+        Speakers = searchResults.Speakers;
     }
 
     public async Task<IActionResult> OnPostRequestMentorshipAsync(Guid mentorId)
