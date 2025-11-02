@@ -178,6 +178,7 @@ public class MentoringDataStore: IMentoringDataStore
     {
         var mentorships = await _context.Mentorship
             .Include(m => m.Mentee)
+            .ThenInclude(m => m.SpeakerType)
             .Include(m => m.FocusAreas)
             .ThenInclude(fa => fa.Expertise)
             .Where(m => m.MentorId == userId && m.Status == Models.MentorshipStatus.Pending)
@@ -190,6 +191,7 @@ public class MentoringDataStore: IMentoringDataStore
     {
         var mentorships = await _context.Mentorship
             .Include(m => m.Mentor)
+            .ThenInclude(m => m.SpeakerType)
             .Include(m => m.FocusAreas)
             .ThenInclude(fa => fa.Expertise)
             .Where(m => m.MenteeId == userId)
@@ -324,7 +326,7 @@ public class MentoringDataStore: IMentoringDataStore
             {
                 foreach (var expertiseId in focusAreaIds)
                 {
-                    _context.Set<MentorshipExpertise>().Add(new MentorshipExpertise
+                    _context.Set<Data.Models.MentorshipExpertise>().Add(new Data.Models.MentorshipExpertise
                     {
                         MentorshipId = mentorship.Id,
                         ExpertiseId = expertiseId
@@ -342,7 +344,7 @@ public class MentoringDataStore: IMentoringDataStore
                 .FirstOrDefaultAsync(m => m.Id == mentorship.Id);
             return _mapper.Map<Mentorship>(dbMentorship);
         }
-        catch
+        catch (Exception e)
         {
             return null;
         }
