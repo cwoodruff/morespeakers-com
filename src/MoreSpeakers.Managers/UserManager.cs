@@ -95,9 +95,9 @@ public class UserManager: IUserManager
     }
 
 
-    public async Task<IEnumerable<User>> SearchSpeakersAsync(string searchTerm, int? speakerTypeId = null)
+    public async Task<SpeakerSearchResult> SearchSpeakersAsync(string? searchTerm, int? speakerTypeId = null, int? expertiseId = null, SpeakerSearchOrderBy sortOrder = SpeakerSearchOrderBy.Name, int? page = null, int? pageSize = null)
     {
-        return await _dataStore.SearchSpeakersAsync(searchTerm, speakerTypeId);
+        return await _dataStore.SearchSpeakersAsync(searchTerm, speakerTypeId, expertiseId, sortOrder, page, pageSize);
     }
 
     public async Task<IEnumerable<User>> GetSpeakersByExpertiseAsync(int expertiseId)
@@ -143,12 +143,12 @@ public class UserManager: IUserManager
         return await _dataStore.EmptyAndAddSocialMediaForUserAsync(userId, socialMedias);
     }
 
-    public async Task<List<UserExpertise>> GetUserExpertisesForUserAsync(Guid userId)
+    public async Task<IEnumerable<UserExpertise>> GetUserExpertisesForUserAsync(Guid userId)
     {
         return await _dataStore.GetUserExpertisesForUserAsync(userId);
     }
 
-    public async Task<List<SocialMedia>> GetUserSocialMediaForUserAsync(Guid userId)
+    public async Task<IEnumerable<SocialMedia>> GetUserSocialMediaForUserAsync(Guid userId)
     {
         return await _dataStore.GetUserSocialMediaForUserAsync(userId);
     }
@@ -158,7 +158,7 @@ public class UserManager: IUserManager
         return await _dataStore.GetStatisticsForApplicationAsync();
     }
 
-    public async Task<List<User>> GetFeaturedSpeakersAsync(int count)
+    public async Task<IEnumerable<User>> GetFeaturedSpeakersAsync(int count)
     {
         // TODO: Need to improve this logic and just not pick the count with most expertise
         return await _dataStore.GetFeaturedSpeakersAsync(count);

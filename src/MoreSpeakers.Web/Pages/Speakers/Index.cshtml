@@ -78,10 +78,7 @@
                     </div>
                     <div class="mb-2">
                         <label for="sortBy" class="form-label me-2">Sort by:</label>
-                        <select id="sortBy" name="sortBy" class="form-select d-inline-block w-auto">
-                            <option value="name" selected="@(Model.SortBy == "name")">Name</option>
-                            <option value="newest" selected="@(Model.SortBy == "newest")">Newest First</option>
-                            <option value="expertise" selected="@(Model.SortBy == "expertise")">Most Expertise</option>
+                        <select id="sortBy" name="sortBy" class="form-select d-inline-block w-auto" asp-for="@Model.SortBy" asp-items="Html.GetEnumSelectList<Domain.Models.SpeakerSearchOrderBy>()">
                         </select>
                     </div>
                 </div>
@@ -104,45 +101,3 @@
 </div>
 
 </div>
-
-@functions {
-
-    private string GetSocialIcon(string platform)
-    {
-        return platform.ToLower() switch
-        {
-            "linkedin" => "linkedin",
-            "twitter" => "twitter-x",
-            "github" => "github",
-            "website" => "globe",
-            "blog" => "journal-text",
-            "youtube" => "youtube",
-            "mastodon" => "mastodon",
-            _ => "link-45deg"
-        };
-    }
-
-    private string GetPageUrl(int page)
-    {
-        var queryParams = new List<string> { $"CurrentPage={page}" };
-
-        if (!string.IsNullOrEmpty(Model.SearchTerm))
-            queryParams.Add($"SearchTerm={Uri.EscapeDataString(Model.SearchTerm)}");
-
-        if (Model.SpeakerTypeFilter.HasValue)
-            queryParams.Add($"SpeakerTypeFilter={Model.SpeakerTypeFilter}");
-
-        if (Model.ExpertiseFilter.HasValue)
-            queryParams.Add($"ExpertiseFilter={Model.ExpertiseFilter}");
-
-        if (!string.IsNullOrEmpty(Model.SortBy))
-            queryParams.Add($"SortBy={Model.SortBy}");
-
-        return $"/Speakers/Index?{string.Join("&", queryParams)}";
-    }
-
-}
-
-@section Scripts {
-
-}

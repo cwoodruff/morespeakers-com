@@ -36,16 +36,16 @@ else
                             }
                         </div>
                         <div class="card-body">
-                            <h5 class="card-title mb-1">@mentor.FullName</h5>
+                            <h5>@mentor.FullName</h5>
                             @if (mentor.IsAvailableForMentoring)
                             {
-                                <span class="badge status-available">
+                                <span class="badge text-bg-success">
                                     <i class="bi bi-check-circle me-1"></i>Available
                                 </span>
                             }
                             else
                             {
-                                <span class="badge status-busy">
+                                <span class="badge text-bg-danger">
                                     <i class="bi bi-clock me-1"></i>Busy
                                 </span>
                             }
