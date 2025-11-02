@@ -367,7 +367,7 @@ public class UserDataStore : IUserDataStore
     public async Task<List<User>> GetFeaturedSpeakersAsync(int count)
     {
         var speakers = await _context.Users
-            .Where(s => !string.IsNullOrEmpty(s.Bio) && s.UserExpertise.Any())
+            .Where(s => !string.IsNullOrEmpty(s.Bio) && s.UserExpertise.Any() && s.SpeakerType.Name == "ExperiencedSpeaker")
             .OrderByDescending(s => s.UserExpertise.Count)
             .Take(count)
             .ToListAsync();
