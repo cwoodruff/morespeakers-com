@@ -58,7 +58,6 @@ public class UserManager: IUserManager
     // Application Methods
     // ------------------------------------------
     
-    
     public async Task<User> GetAsync(Guid primaryKey)
     {
         return await _dataStore.GetAsync(primaryKey);
@@ -162,5 +161,10 @@ public class UserManager: IUserManager
     {
         // TODO: Need to improve this logic and just not pick the count with most expertise
         return await _dataStore.GetFeaturedSpeakersAsync(count);
+    }
+
+    public async Task<IEnumerable<SpeakerType>> GetSpeakerTypesAsync()
+    {
+        return await _dataStore.GetSpeakerTypesAsync();
     }
 }

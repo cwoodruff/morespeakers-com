@@ -1,4 +1,6 @@
 @page
+@using MoreSpeakers.Domain.Extensions
+@using MoreSpeakers.Domain.Models
 @model MoreSpeakers.Web.Pages.Speakers.IndexModel
 @{
     ViewData["Title"] = "Browse Speakers";
@@ -46,8 +48,8 @@
                 <label for="speakerTypeFilter" class="form-label">Speaker Type</label>
                 <select id="speakerTypeFilter" name="speakerTypeFilter" class="form-select">
                     <option value="">All Speakers</option>
-                    <option value="1" selected="@(Model.SpeakerTypeFilter == 1)">New Speakers</option>
-                    <option value="2" selected="@(Model.SpeakerTypeFilter == 2)">Experienced Speakers</option>
+                    <option value="1" selected="@(Model.SpeakerTypeFilter == (int) SpeakerTypeEnum.NewSpeaker)">@SpeakerTypeEnum.NewSpeaker.GetDescription()</option>
+                    <option value="2" selected="@(Model.SpeakerTypeFilter == (int) SpeakerTypeEnum.ExperiencedSpeaker)">@SpeakerTypeEnum.ExperiencedSpeaker.GetDescription()</option>
                 </select>
             </div>
             <div class="col-md-3 mb-3">

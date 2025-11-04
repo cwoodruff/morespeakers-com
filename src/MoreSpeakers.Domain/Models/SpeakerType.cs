@@ -1,5 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 
+using MoreSpeakers.Domain.Extensions;
+
 namespace MoreSpeakers.Domain.Models;
 
 public class SpeakerType
@@ -12,4 +14,11 @@ public class SpeakerType
 
     // Navigation properties
     public ICollection<User> Users { get; set; } = new List<User>();
+
+    public string ToFriendlyName()
+    {
+        return Enum.TryParse(Id.ToString(), out SpeakerTypeEnum parsedValue)
+            ? parsedValue.GetDescription()
+            : string.Empty;
+    }
 }

@@ -36,4 +36,5 @@ public interface IUserDataStore: IDataStorePrimaryKeyGuid<User>
     Task<IEnumerable<SocialMedia>> GetUserSocialMediaForUserAsync(Guid userId);
     Task<(int newSpeakers, int experiencedSpeakers, int activeMentorships)> GetStatisticsForApplicationAsync();
     Task<IEnumerable<User>> GetFeaturedSpeakersAsync(int count);
+    Task<IEnumerable<SpeakerType>> GetSpeakerTypesAsync();
 }
