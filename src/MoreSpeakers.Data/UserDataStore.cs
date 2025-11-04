@@ -148,7 +148,7 @@ public class UserDataStore : IUserDataStore
             .Include(u => u.UserExpertise)
             .ThenInclude(ue => ue.Expertise)
             .Include(u => u.SocialMediaLinks)
-            .Where(u => u.SpeakerType.Name == "NewSpeaker")
+            .Where(u => u.SpeakerType.Id == (int)SpeakerTypeEnum.NewSpeaker)
             .OrderBy(u => u.FirstName)
             .ToListAsync();
             
@@ -162,7 +162,7 @@ public class UserDataStore : IUserDataStore
             .Include(u => u.UserExpertise)
             .ThenInclude(ue => ue.Expertise)
             .Include(u => u.SocialMediaLinks)
-            .Where(u => u.SpeakerType.Name == "ExperiencedSpeaker")
+            .Where(u => u.SpeakerType.Id == (int)SpeakerTypeEnum.ExperiencedSpeaker)
             .OrderBy(u => u.FirstName)
             .ToListAsync();
         
@@ -404,9 +404,9 @@ public class UserDataStore : IUserDataStore
 
     public async Task<(int newSpeakers, int experiencedSpeakers, int activeMentorships)> GetStatisticsForApplicationAsync()
     {
-        var newSpeakers = await _context.Users.CountAsync(u => u.SpeakerType.Name == "NewSpeaker");
+        var newSpeakers = await _context.Users.CountAsync(u => u.SpeakerType.Id == (int) SpeakerTypeEnum.NewSpeaker);
 
-        var experiencedSpeakers = await _context.Users.CountAsync(u => u.SpeakerType.Name == "ExperiencedSpeaker");;
+        var experiencedSpeakers = await _context.Users.CountAsync(u => u.SpeakerType.Id == (int) SpeakerTypeEnum.ExperiencedSpeaker);
 
         var activeMentorships = await _context.Mentorship.CountAsync(m => m.Status == Models.MentorshipStatus.Active);
         
@@ -417,11 +417,17 @@ public class UserDataStore : IUserDataStore
     public async Task<IEnumerable<User>> GetFeaturedSpeakersAsync(int count)
     {
         var speakers = await _context.Users
-            .Where(s => !string.IsNullOrEmpty(s.Bio) && s.UserExpertise.Any() && s.SpeakerType.Name == "ExperiencedSpeaker")
+            .Where(s => !string.IsNullOrEmpty(s.Bio) && s.UserExpertise.Any() && s.SpeakerType.Id == (int) SpeakerTypeEnum.ExperiencedSpeaker)
             .OrderByDescending(s => s.UserExpertise.Count)
             .Take(count)
             .ToListAsync();
         
         return _mapper.Map<List<User>>(speakers);
+    }
+
+    public async Task<IEnumerable<SpeakerType>> GetSpeakerTypesAsync()
+    {
+        var speakerTypes = await _context.SpeakerType.ToListAsync();
+        return _mapper.Map<List<SpeakerType>>(speakerTypes);
     }
 }

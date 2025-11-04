@@ -18,7 +18,7 @@ public partial class RegisterModel : PageModel
     private readonly SignInManager<Data.Models.User> _signInManager;
     private readonly IExpertiseManager _expertiseManager;
     private readonly IUserManager _userManager;
-    private readonly IEmailSender _emailSender;
+        private readonly IEmailSender _emailSender;
     private readonly TelemetryClient _telemetryClient;
     private readonly ILogger<RegisterModel> _logger;
     
@@ -262,14 +262,7 @@ public partial class RegisterModel : PageModel
     {
         AvailableExpertise = await _expertiseManager.GetAllAsync();
         AllExpertise = AvailableExpertise; // Same data, different property name for registration completion (step 5)
-        SpeakerTypes = new List<SpeakerType>
-        {
-            new() { Id = 1, Name = "NewSpeaker", Description = "I'm new to speaking and looking for mentorship" },
-            new()
-            {
-                Id = 2, Name = "ExperiencedSpeaker", Description = "I'm an experienced speaker willing to mentor others"
-            }
-        };
+        SpeakerTypes = await _userManager.GetSpeakerTypesAsync();
     }
 
     private bool ValidateStep(int step)

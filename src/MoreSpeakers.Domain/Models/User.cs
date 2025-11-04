@@ -40,6 +40,6 @@ public class User: IdentityUser<Guid>
 
     // Computed properties
     public string FullName => $"{FirstName} {LastName}";
-    public bool IsNewSpeaker => SpeakerType?.Name == "NewSpeaker";
-    public bool IsExperiencedSpeaker => SpeakerType?.Name == "ExperiencedSpeaker";
+    public bool IsNewSpeaker => SpeakerType.Id == (int) SpeakerTypeEnum.NewSpeaker;
+    public bool IsExperiencedSpeaker => SpeakerType.Id == (int) SpeakerTypeEnum.ExperiencedSpeaker;
 }

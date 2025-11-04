@@ -1,4 +1,5 @@
 @page
+@using MoreSpeakers.Domain.Extensions
 @model AboutModel
 @{
     ViewData["Title"] = "About";
@@ -161,11 +162,11 @@
                     <div class="d-flex gap-3 justify-content-center flex-wrap">
                         @if (!User.Identity.IsAuthenticated)
                         {
-                            <a href="@Url.Page("/Account/Register", new { area = "Identity", speakerType = "NewSpeaker" })"
+                            <a href="@Url.Page("/Account/Register", new { area = "Identity", speakerType = Domain.Models.SpeakerTypeEnum.NewSpeaker.GetDescription() })"
                                class="btn btn-light btn-lg">
                                 <i class="bi bi-person-plus me-2"></i>Join as New Speaker
                             </a>
-                            <a href="@Url.Page("/Account/Register", new { area = "Identity", speakerType = "ExperiencedSpeaker" })"
+                            <a href="@Url.Page("/Account/Register", new { area = "Identity", speakerType = Domain.Models.SpeakerTypeEnum.ExperiencedSpeaker.GetDescription() })"
                                class="btn btn-outline-light btn-lg">
                                 <i class="bi bi-award me-2"></i>Become a Mentor
                             </a>
