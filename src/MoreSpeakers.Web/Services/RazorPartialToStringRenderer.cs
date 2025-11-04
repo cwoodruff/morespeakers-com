@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Razor;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
@@ -10,41 +11,36 @@ namespace MoreSpeakers.Web.Services;
 
 public class RazorPartialToStringRenderer : IRazorPartialToStringRenderer
 {
-    private IRazorViewEngine _viewEngine;
-    private ITempDataProvider _tempDataProvider;
-    private IServiceProvider _serviceProvider;
+    private readonly IRazorViewEngine _viewEngine;
+    private readonly ITempDataProvider _tempDataProvider;
 
     public RazorPartialToStringRenderer(
         IRazorViewEngine viewEngine,
-        ITempDataProvider tempDataProvider,
-        IServiceProvider serviceProvider)
+        ITempDataProvider tempDataProvider)
     {
         _viewEngine = viewEngine;
         _tempDataProvider = tempDataProvider;
-        _serviceProvider = serviceProvider;
     }
 
-    public async Task<string> RenderPartialToStringAsync<TModel>(string partialName, TModel model)
+    public async Task<string> RenderPartialToStringAsync<TModel>(HttpContext httpContext, string partialName, TModel model)
     {
-        var actionContext = GetActionContext();
+        var actionContext = new ActionContext(httpContext, new RouteData(), new PageActionDescriptor());
         var partial = FindView(actionContext, partialName);
-        using (var output = new StringWriter())
-        {
-            var viewContext = new ViewContext(
-                actionContext,
-                partial,
-                new ViewDataDictionary<TModel>(
-                    metadataProvider: new EmptyModelMetadataProvider(),
-                    modelState: new ModelStateDictionary()) { Model = model },
-                new TempDataDictionary(
-                    actionContext.HttpContext,
-                    _tempDataProvider),
-                output,
-                new HtmlHelperOptions()
-            );
-            await partial.RenderAsync(viewContext);
-            return output.ToString();
-        }
+        await using var output = new StringWriter();
+        var viewContext = new ViewContext(
+            actionContext,
+            partial,
+            new ViewDataDictionary<TModel>(
+                metadataProvider: new EmptyModelMetadataProvider(),
+                modelState: new ModelStateDictionary()) { Model = model },
+            new TempDataDictionary(
+                actionContext.HttpContext,
+                _tempDataProvider),
+            output,
+            new HtmlHelperOptions()
+        );
+        await partial.RenderAsync(viewContext);
+        return output.ToString();
     }
 
     private IView FindView(ActionContext actionContext, string partialName)
@@ -68,11 +64,5 @@ public class RazorPartialToStringRenderer : IRazorPartialToStringRenderer
                 searchedLocations));
         ;
         throw new InvalidOperationException(errorMessage);
-    }
-
-    private ActionContext GetActionContext()
-    {
-        var httpContext = new DefaultHttpContext { RequestServices = _serviceProvider };
-        return new ActionContext(httpContext, new RouteData(), new ActionDescriptor());
     }
 }

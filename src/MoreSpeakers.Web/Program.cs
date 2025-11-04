@@ -71,7 +71,6 @@ builder.Services.AddDefaultIdentity<MoreSpeakers.Data.Models.User>(options =>
     .AddRoles<IdentityRole<Guid>>()
     .AddEntityFrameworkStores<MoreSpeakersDbContext>();
 
-builder.Services.AddControllersWithViews();
 // Add Razor Pages
 builder.Services.AddRazorPages(options =>
 {

@@ -58,13 +58,11 @@ public class IndexModel : PageModel
         // Check if this is an HTMX request for just the speakers container
         if (Request.Headers.ContainsKey("HX-Request"))
         {
-            var html = new StringWriter();
-            await html.WriteAsync(await RazorPartialToString.RenderPartialViewToString(HttpContext, "_SpeakersContainer", this));
-            await html.WriteAsync(await RazorPartialToString.RenderPartialViewToString(HttpContext, "_SearchResultCountPartial", searchResults.RowCount));
+            var searchResultContainerHtml =
+                await _partialRenderer.RenderPartialToStringAsync(HttpContext,"~/Pages/Speakers/_SearchResultCountPartial.cshtml", searchResults.RowCount);
+            var speakerContainerHtml = await _partialRenderer.RenderPartialToStringAsync( HttpContext,"_SpeakersContainer", this);
             
-            return Content(html.ToString(), "text/html");
-
-            //return Partial("_SpeakersContainer", this);
+            return Content(searchResultContainerHtml + speakerContainerHtml, "text/html");
         }
 
         return Page();
