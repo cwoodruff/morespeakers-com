@@ -41,6 +41,8 @@ public class IndexModel : PageModel
     [BindProperty(SupportsGet = true)] public int TotalCount { get; set; }
     
     [BindProperty(SupportsGet = true)] public int TotalPages { get; set; }
+    
+    [BindProperty(SupportsGet = true)] public Models.ViewModels.SearchResultCountViewModel SearchResultsCount { get; set; } = new Models.ViewModels.SearchResultCountViewModel();
 
     public async Task<IActionResult> OnGetAsync()
     {
@@ -54,12 +56,21 @@ public class IndexModel : PageModel
         TotalPages = searchResults.TotalPages;
         CurrentPage = searchResults.CurrentPage;
         Speakers = searchResults.Speakers;
+        
+        var searchResultsModel = new Models.ViewModels.SearchResultCountViewModel
+        {
+            AreFiltersApplied =
+                !string.IsNullOrEmpty(SearchTerm) || ExpertiseFilter.HasValue || SpeakerTypeFilter.HasValue,
+            TotalResults = searchResults.RowCount
+        };
+        SearchResultsCount = searchResultsModel;
 
         // Check if this is an HTMX request for just the speakers container
         if (Request.Headers.ContainsKey("HX-Request"))
         {
+           
             var searchResultContainerHtml =
-                await _partialRenderer.RenderPartialToStringAsync(HttpContext,"~/Pages/Speakers/_SearchResultCountPartial.cshtml", searchResults.RowCount);
+                await _partialRenderer.RenderPartialToStringAsync(HttpContext,"~/Pages/Speakers/_SearchResultCountPartial.cshtml", SearchResultsCount);
             var speakerContainerHtml = await _partialRenderer.RenderPartialToStringAsync( HttpContext,"_SpeakersContainer", this);
             
             return Content(searchResultContainerHtml + speakerContainerHtml, "text/html");

@@ -1,15 +1,25 @@
-@model int
-<div id="total-count" hx-swap-oob="true" hx-swap="outerHTML">
-    @switch (Model)
-    {
-        case 0:
-            <p>No speakers were found</p>
-            break;
-        case 1:
-            <p><strong>1</strong> speaker found</p>
-            break;
-        default:
-            <p><strong>@Model</strong> speakers found</p>
-            break;
-    }
+@model MoreSpeakers.Web.Models.ViewModels.SearchResultCountViewModel
+<div class="row">
+    <div id="total-count" hx-swap-oob="true" hx-swap="outerHTML" class="col">
+        @switch (Model.TotalResults)
+        {
+            case 0:
+                <p>No speakers were found</p>
+                break;
+            case 1:
+                <p><strong>1</strong> speaker found</p>
+                break;
+            default:
+                <p><strong>@Model.TotalResults</strong> speakers found</p>
+                break;
+        }
+    </div>
+    <div id="clear-filters" hx-swap-oob="true" hx-swap="outerHTML" class="col">
+        @{
+            var isVisible = Model.AreFiltersApplied ? "" : "d-none";   
+        }
+        <a asp-page="/Speakers/Index" class="btn btn-secondary btn-sm ms-2 @isVisible">
+            <i class="bi bi-x-circle"></i> Clear Filters
+        </a>
+    </div>
 </div>
