@@ -71,6 +71,7 @@ builder.Services.AddDefaultIdentity<MoreSpeakers.Data.Models.User>(options =>
     .AddRoles<IdentityRole<Guid>>()
     .AddEntityFrameworkStores<MoreSpeakersDbContext>();
 
+builder.Services.AddControllersWithViews();
 // Add Razor Pages
 builder.Services.AddRazorPages(options =>
 {
@@ -93,6 +94,8 @@ builder.Services.AddScoped<IUserManager, UserManager>();
 
 builder.Services.AddScoped<IFileUploadService, FileUploadService>();
 builder.Services.AddScoped<IEmailSender, EmailSender>();
+
+builder.Services.AddScoped<IRazorPartialToStringRenderer, RazorPartialToStringRenderer>();
 
 // Add HTTP context accessor for services
 builder.Services.AddHttpContextAccessor();

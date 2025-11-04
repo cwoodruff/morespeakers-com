@@ -1,0 +1,15 @@
+@model int
+<div id="total-count" hx-swap-oob="true" hx-swap="outerHTML">
+    @switch (Model)
+    {
+        case 0:
+            <p>No speakers were found</p>
+            break;
+        case 1:
+            <p><strong>1</strong> speaker found</p>
+            break;
+        default:
+            <p><strong>@Model</strong> speakers found</p>
+            break;
+    }
+</div>

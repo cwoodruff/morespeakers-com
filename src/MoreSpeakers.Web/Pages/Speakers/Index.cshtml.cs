@@ -1,9 +1,11 @@
 using System.Security.Claims;
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models;
+using MoreSpeakers.Web.Services;
 
 namespace MoreSpeakers.Web.Pages.Speakers;
 
@@ -12,12 +14,14 @@ public class IndexModel : PageModel
     private const int PageSize = 12;
     private readonly IExpertiseManager _expertiseManager;
     private readonly IUserManager _userManager;
+    private readonly IRazorPartialToStringRenderer _partialRenderer;
     private readonly ILogger<IndexModel> _logger;
 
-    public IndexModel(IExpertiseManager expertiseManager, IUserManager userManager, ILogger<IndexModel> logger)
+    public IndexModel(IExpertiseManager expertiseManager, IUserManager userManager, IRazorPartialToStringRenderer partialRenderer, ILogger<IndexModel> logger)
     {
         _expertiseManager = expertiseManager;
         _userManager = userManager;
+        _partialRenderer = partialRenderer;       
         _logger = logger;
     }
 
@@ -34,49 +38,36 @@ public class IndexModel : PageModel
 
     [BindProperty(SupportsGet = true)] public int CurrentPage { get; set; } = 1;
 
-    public int TotalCount { get; set; }
-    public int TotalPages { get; set; }
+    [BindProperty(SupportsGet = true)] public int TotalCount { get; set; }
+    
+    [BindProperty(SupportsGet = true)] public int TotalPages { get; set; }
 
     public async Task<IActionResult> OnGetAsync()
     {
         // Load all expertise for filter dropdown
         AllExpertise = await _expertiseManager.GetAllAsync();
         
-        await LoadSpeakersAsync();
-
-        // Check if this is an HTMX request for just the speakers container
-        if (Request.Headers.ContainsKey("HX-Request"))
-        {
-            return Partial("_SpeakersContainer", this);
-        }
-
-        return Page();
-    }
-    
-    private async Task<IActionResult> OnGetBrowseSpeakersAsync()
-    {
-        // Load all expertise for filter dropdown
-        AllExpertise = await _expertiseManager.GetAllAsync();
-        
-        await LoadSpeakersAsync();
-        
-        // Check if this is an HTMX request for just the speakers container
-        if (Request.Headers.ContainsKey("HX-Request"))
-        {
-            return Partial("_SpeakersContainer", this);
-        }
-
-        return Page();
-    }
-
-    private async Task LoadSpeakersAsync()
-    {
+        // Search for the speakers
         var searchResults = await _userManager.SearchSpeakersAsync(SearchTerm, SpeakerTypeFilter, ExpertiseFilter, SortBy, CurrentPage, PageSize);
 
         TotalCount = searchResults.RowCount;
         TotalPages = searchResults.TotalPages;
         CurrentPage = searchResults.CurrentPage;
         Speakers = searchResults.Speakers;
+
+        // Check if this is an HTMX request for just the speakers container
+        if (Request.Headers.ContainsKey("HX-Request"))
+        {
+            var html = new StringWriter();
+            await html.WriteAsync(await RazorPartialToString.RenderPartialViewToString(HttpContext, "_SpeakersContainer", this));
+            await html.WriteAsync(await RazorPartialToString.RenderPartialViewToString(HttpContext, "_SearchResultCountPartial", searchResults.RowCount));
+            
+            return Content(html.ToString(), "text/html");
+
+            //return Partial("_SpeakersContainer", this);
+        }
+
+        return Page();
     }
 
     public async Task<IActionResult> OnPostRequestMentorshipAsync(Guid mentorId)
@@ -84,6 +75,8 @@ public class IndexModel : PageModel
         if (!User.Identity?.IsAuthenticated == true)
             return new JsonResult(new { error = "Please log in to request mentorship." });
 
+        // TODO: Implement Request Membership logic here
+        
         try
         {
             // Get current user ID (you'll need to implement this)
