@@ -467,10 +467,10 @@ public partial class RegisterModel : PageModel
                 "Confirm your email",
                 $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
 
-            _telemetryClient.TrackEvent("ConfirmationEmailSent", new Dictionary<string, string>
+            _telemetryClient.TrackEvent(Domain.Constants.TelemetryEvents.EmailConfirmation, new Dictionary<string, string>
             {
                 { "UserId", user.Id.ToString() },
-                { "Email", user.Email }
+                { "Email", user.Email! }
             });
 
             // Load data needed for registration completion (step 5) display

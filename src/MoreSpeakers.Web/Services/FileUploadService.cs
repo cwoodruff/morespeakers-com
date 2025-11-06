@@ -1,16 +1,19 @@
 namespace MoreSpeakers.Web.Services;
 
 
-public class FileUploadService(IWebHostEnvironment environment) : IFileUploadService
+public class FileUploadService(IWebHostEnvironment environment, ILogger<FileUploadService> logger) : IFileUploadService
 {
     private const long MaxFileSize = 5 * 1024 * 1024; // 5MB
-    private readonly string[] _allowedExtensions = { ".jpg", ".jpeg", ".png", ".gif" };
+    private readonly string[] _allowedExtensions = [".jpg", ".jpeg", ".png", ".gif"];
 
     public async Task<string?> UploadHeadshotAsync(IFormFile file, Guid userId)
     {
         if (!IsValidImageFile(file))
+        {
             return null;
+        }
 
+        var filePath = string.Empty;
         try
         {
             var uploadsFolder = Path.Combine(environment.WebRootPath, "uploads", "headshots");
@@ -18,48 +21,54 @@ public class FileUploadService(IWebHostEnvironment environment) : IFileUploadSer
 
             var fileExtension = Path.GetExtension(file.FileName).ToLowerInvariant();
             var fileName = $"{userId}{fileExtension}";
-            var filePath = Path.Combine(uploadsFolder, fileName);
+            filePath = Path.Combine(uploadsFolder, fileName);
 
-            using var stream = new FileStream(filePath, FileMode.Create);
+            await using var stream = new FileStream(filePath, FileMode.Create);
             await file.CopyToAsync(stream);
 
             return fileName;
         }
-        catch
+        catch (Exception ex)
         {
+            logger.LogError(ex, "An error occured while uploading headshots. FilePath: '{FilePath}' User: '{UserId}'", filePath, userId);
             return null;
         }
     }
 
-    public async Task<bool> DeleteHeadshotAsync(string fileName)
+    public bool DeleteHeadshotAsync(string fileName)
     {
         try
         {
             var filePath = Path.Combine(environment.WebRootPath, "uploads", "headshots", fileName);
-            if (File.Exists(filePath))
+            if (!File.Exists(filePath))
             {
-                File.Delete(filePath);
-                return true;
+                return false;
             }
 
-            return false;
+            File.Delete(filePath);
+            return true;
+
         }
-        catch
+        catch (Exception ex)
         {
+            logger.LogError(ex, "Failed to delete the headshot. Filename: '{Filename}'", fileName );
             return false;
         }
     }
 
     public bool IsValidImageFile(IFormFile file)
     {
-        if (file == null || file.Length == 0)
-            return false;
-
-        if (file.Length > MaxFileSize)
-            return false;
-
-        var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
-        return _allowedExtensions.Contains(extension);
+        switch (file.Length)
+        {
+            case 0:
+            case > MaxFileSize:
+                return false;
+            default:
+                {
+                    var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
+                    return _allowedExtensions.Contains(extension);
+                }
+        }
     }
 
     public string GetHeadshotPath(string fileName)
