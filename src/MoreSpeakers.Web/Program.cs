@@ -93,6 +93,7 @@ builder.Services.AddScoped<IUserManager, UserManager>();
 
 builder.Services.AddScoped<IFileUploadService, FileUploadService>();
 builder.Services.AddScoped<IEmailSender, EmailSender>();
+builder.Services.AddScoped<Microsoft.AspNetCore.Identity.UI.Services.IEmailSender, EmailSender>();
 
 builder.Services.AddScoped<IRazorPartialToStringRenderer, RazorPartialToStringRenderer>();
 

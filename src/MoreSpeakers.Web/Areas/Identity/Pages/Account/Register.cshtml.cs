@@ -10,6 +10,7 @@ using System.Text;
 using System.Text.Encodings.Web;
 
 using MoreSpeakers.Domain.Interfaces;
+using MoreSpeakers.Web.Services;
 
 namespace MoreSpeakers.Web.Areas.Identity.Pages.Account;
 
@@ -18,7 +19,8 @@ public partial class RegisterModel : PageModel
     private readonly SignInManager<Data.Models.User> _signInManager;
     private readonly IExpertiseManager _expertiseManager;
     private readonly IUserManager _userManager;
-        private readonly IEmailSender _emailSender;
+    private readonly IEmailSender _emailSender;
+    private readonly IRazorPartialToStringRenderer _stringRenderer;
     private readonly TelemetryClient _telemetryClient;
     private readonly ILogger<RegisterModel> _logger;
     
@@ -27,6 +29,7 @@ public partial class RegisterModel : PageModel
         IExpertiseManager expertiseManager,
         IUserManager userManager,
         IEmailSender emailSender,
+        IRazorPartialToStringRenderer stringRenderer,
         TelemetryClient telemetryClient,
         ILogger<RegisterModel> logger)
     {
@@ -34,6 +37,7 @@ public partial class RegisterModel : PageModel
         _expertiseManager = expertiseManager;
         _userManager = userManager;
         _emailSender = emailSender;
+        _stringRenderer = stringRenderer;
         _telemetryClient = telemetryClient;
         _logger = logger;
     }
@@ -491,124 +495,22 @@ public partial class RegisterModel : PageModel
     }
 
     /// <summary>
-    /// Sends a welcome email to the newly registered user (mock implementation)
+    /// Sends a welcome email to the newly registered user
     /// </summary>
     private async Task SendWelcomeEmailAsync(User user)
     {
-        var speakerType = user.SpeakerTypeId == 1 ? "New Speaker" : "Experienced Speaker";
-        var emailSubject = "Welcome to MoreSpeakers.com - Your Speaking Journey Begins!";
-
-        var emailBody = $@"
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset='utf-8'>
-    <title>Welcome to MoreSpeakers.com</title>
-    <style>
-        body {{ font-family: 'Inter', Arial, sans-serif; line-height: 1.6; color: #333; }}
-        .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
-        .header {{ background: linear-gradient(135deg, #fd7e14 0%, #e55d0e 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }}
-        .content {{ background: white; padding: 30px; border-radius: 0 0 8px 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }}
-        .badge {{ background: #fd7e14; color: white; padding: 8px 16px; border-radius: 20px; display: inline-block; font-size: 14px; font-weight: bold; }}
-        .next-steps {{ background: #f8f9fa; padding: 20px; border-radius: 6px; margin: 20px 0; }}
-        .step {{ display: flex; align-items: center; margin: 15px 0; }}
-        .step-number {{ background: #fd7e14; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px; font-weight: bold; }}
-        .btn {{ background: #fd7e14; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold; }}
-        .footer {{ text-align: center; margin-top: 30px; color: #666; font-size: 14px; }}
-    </style>
-</head>
-<body>
-    <div class='container'>
-        <div class='header'>
-            <h1>🎤 Welcome to MoreSpeakers.com!</h1>
-            <p>Your speaking journey starts here</p>
-        </div>
-        
-        <div class='content'>
-            <h2>Hello {user.FirstName}!</h2>
-            
-            <p>Congratulations on joining the MoreSpeakers.com community! We're thrilled to have you as a <span class='badge'>{speakerType}</span> in our growing network of passionate speakers.</p>
-            
-            <h3>Your Registration Details:</h3>
-            <ul>
-                <li><strong>Name:</strong> {user.FirstName} {user.LastName}</li>
-                <li><strong>Email:</strong> {user.Email}</li>
-                <li><strong>Speaker Type:</strong> {speakerType}</li>
-                <li><strong>Registration Date:</strong> {DateTime.UtcNow:MMMM dd, yyyy}</li>
-            </ul>
-            
-            <div class='next-steps'>
-                <h3>🚀 What's Next?</h3>
-                
-                <div class='step'>
-                    <div class='step-number'>1</div>
-                    <div>
-                        <strong>Complete Your Profile</strong><br>
-                        <small>Add more details, upload a headshot, and showcase your expertise to help others find and connect with you.</small>
-                    </div>
-                </div>
-                
-                <div class='step'>
-                    <div class='step-number'>2</div>
-                    <div>
-                        <strong>{(user.SpeakerTypeId == 1 ? "Find Mentors" : "Connect with New Speakers")}</strong><br>
-                        <small>{(user.SpeakerTypeId == 1
-                            ? "Browse our community of experienced speakers and find mentors who can guide your speaking journey."
-                            : "Discover new speakers who could benefit from your experience and mentorship.")}</small>
-                    </div>
-                </div>
-
-                <div class='step'>
-                    <div class='step-number'>3</div>
-                    <div>
-                        <strong>Join the Community</strong><br>
-                        <small>Participate in discussions, share your experiences, and connect with fellow speakers from around the world.</small>
-                    </div>
-                </div>
-            </div>
-
-            <div style='text-align: center; margin: 30px 0;'>
-                <a href='https://localhost:5001/Profile/Edit' class='btn'>Complete My Profile →</a>
-            </div>
-
-            <h3>📧 Email Confirmation Required</h3>
-            <p>To activate your account and access all features, please check your email for a confirmation link. If you don't see it in your inbox, don't forget to check your spam folder.</p>
-
-            <h3>🤝 Community Guidelines</h3>
-            <p>We're building a supportive and inclusive community. Please be respectful, helpful, and authentic in all your interactions.</p>
-
-        </div>
-
-        <div class='footer'>
-            <p>
-                <strong>MoreSpeakers.com</strong><br>
-                Connecting speakers, sharing knowledge, building community<br>
-                <a href='mailto:support@morespeakers.com'>support@morespeakers.com</a>
-            </p>
-            <p style='font-size: 12px; color: #999;'>
-                You received this email because you registered an account at MoreSpeakers.com.<br>
-                If you have any questions, please contact our support team.
-            </p>
-        </div>
-    </div>
-</body>
-</html>";
+        const string emailSubject = "Welcome to MoreSpeakers.com - Your Speaking Journey Begins!";
 
         try
         {
-            // Mock implementation - log the email instead of actually sending it
-            _logger.LogInformation("MOCK EMAIL SENT");
-            _logger.LogInformation("To: {Email}", user.Email);
-            _logger.LogInformation("Subject: {Subject}", emailSubject);
-            _logger.LogInformation("Body: {Body}", emailBody);
-
-            await _emailSender.QueueEmail(new System.Net.Mail.MailAddress(user.Email, $"{user.FirstName} {user.LastName}"),
+            var emailBody = await _stringRenderer.RenderPartialToStringAsync(HttpContext, "~/EmailTemplates/WelcomeEmail.cshtml", user);
+            await _emailSender.QueueEmail(new System.Net.Mail.MailAddress(user.Email!, $"{user.FirstName} {user.LastName}"),
                 emailSubject, emailBody);
 
-            _telemetryClient.TrackEvent("WelcomeEmailSent", new Dictionary<string, string>
+            _telemetryClient.TrackEvent(Domain.Constants.TelemetryEvents.WelcomeEmail, new Dictionary<string, string>
             {
                 { "UserId", user.Id.ToString() },
-                { "Email", user.Email }
+                { "Email", user.Email! }
             });
             _logger.LogInformation("Welcome email successfully sent to {Email}", user.Email);
         }

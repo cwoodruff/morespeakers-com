@@ -11,7 +11,7 @@ namespace MoreSpeakers.Managers;
 /// <summary>
 /// Sends emails
 /// </summary>
-public class EmailSender: IEmailSender
+public class EmailSender: IEmailSender, Microsoft.AspNetCore.Identity.UI.Services.IEmailSender
 {
     private readonly QueueServiceClient _queueServiceClient;
     private readonly ISettings _settings;
@@ -68,5 +68,10 @@ public class EmailSender: IEmailSender
 
         var queue = new Queue(_queueServiceClient, Queues.SendEmail);
         await queue.AddMessageAsync(emailMessage);
+    }
+
+    public async Task SendEmailAsync(string email, string subject, string htmlMessage)
+    {
+        await QueueEmail(new MailAddress(email), subject, htmlMessage);
     }
 }
