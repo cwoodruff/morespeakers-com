@@ -113,4 +113,9 @@ public class MentoringManager: IMentoringManager
     {
         return await _dataStore.RequestMentorshipWithDetailsAsync(requesterId, targetId, type, requestMessage, focusAreaIds, preferredFrequency);
     }
+
+    public async Task<Mentorship?> GetMentorshipWithRelationships(Guid mentorshipId)
+    {
+        return await _dataStore.GetMentorshipWithRelationships(mentorshipId);
+    }
 }

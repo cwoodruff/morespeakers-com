@@ -18,7 +18,7 @@ public interface IMentoringDataStore: IDataStorePrimaryKeyGuid<Mentorship>
         List<string>? expertiseNames, bool? availability = true);
     public Task<User?> GetMentorAsync (Guid userId);
     public Task<bool> CanRequestMentorshipAsync(Guid menteeId, Guid mentorId);
-
     public Task<Mentorship?> RequestMentorshipWithDetailsAsync(Guid requesterId, Guid targetId,
         MentorshipType type, string? requestMessage, List<int>? focusAreaIds, string? preferredFrequency);
+    public Task<Mentorship?> GetMentorshipWithRelationships(Guid mentorshipId);
 }

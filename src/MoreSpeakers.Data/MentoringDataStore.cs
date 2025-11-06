@@ -120,6 +120,7 @@ public class MentoringDataStore: IMentoringDataStore
     public async Task<Mentorship?> RespondToRequestAsync(Guid mentorshipId, Guid userId, bool accepted, string? message = null)
     {
         var mentorship = await _context.Mentorship
+            .Include(m => m.Mentor)
             .Include(m => m.Mentee)
             .Include(m => m.FocusAreas)
             .ThenInclude(fa => fa.Expertise)
@@ -348,5 +349,16 @@ public class MentoringDataStore: IMentoringDataStore
         {
             return null;
         }
+    }
+
+    public async Task<Mentorship?> GetMentorshipWithRelationships(Guid mentorshipId)
+    {
+        var mentorship = await _context.Mentorship
+            .Include(m => m.Mentor)
+            .Include(m => m.Mentee)
+            .Include(m => m.FocusAreas)
+                .ThenInclude(fa => fa.Expertise)
+            .FirstOrDefaultAsync(m => m.Id == mentorshipId);
+        return _mapper.Map<Mentorship>(mentorship);
     }
 }
