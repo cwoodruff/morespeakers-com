@@ -1,4 +1,3 @@
-using Microsoft.ApplicationInsights;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -15,26 +14,20 @@ public class RequestsModel : PageModel
 {
     private readonly IUserManager _userManager;
     private readonly IMentoringManager _mentoringManager;
-    private readonly IEmailSender _emailSender;
-    private readonly IRazorPartialToStringRenderer _stringRenderer;
+    private readonly ITemplatedEmailSender _templatedEmailSender;
     private readonly ILogger<RequestsModel> _logger;
-    private readonly TelemetryClient _telemetryClient;
 
     public RequestsModel(
         IMentoringManager mentoringManager,
         IUserManager userManager,
-        IEmailSender emailSender,
-        IRazorPartialToStringRenderer stringRenderer,
-        ILogger<RequestsModel> logger,
-        TelemetryClient telemetryClient       
+        ITemplatedEmailSender  templatedEmailSender,
+        ILogger<RequestsModel> logger       
         )
     {
         _mentoringManager = mentoringManager;       
         _userManager = userManager;
-        _emailSender = emailSender;
-        _stringRenderer = stringRenderer;       
+        _templatedEmailSender = templatedEmailSender;               
         _logger = logger;
-        _telemetryClient = telemetryClient;       
     }
 
     public List<Domain.Models.Mentorship> IncomingRequests { get; set; } = [];
@@ -118,18 +111,20 @@ public class RequestsModel : PageModel
             return BadRequest();
         }
 
-        var emailSent = await SendEmail("~/EmailTemplates/MentorshipRequestAccepted-FromMentee.cshtml",
-            "Your mentorship request was accepted", mentorship.Mentee, mentorship,
-            Domain.Constants.TelemetryEvents.MentorshipAccepted);
+        var emailSent = await _templatedEmailSender.SendTemplatedEmail("~/EmailTemplates/MentorshipRequestAccepted-FromMentee.cshtml",
+            Domain.Constants.TelemetryEvents.MentorshipAccepted,
+            "Your mentorship request was accepted", mentorship.Mentee, mentorship
+            );
         if (!emailSent)
         {
             _logger.LogError("Failed to send mentorship accepted email to mentee");
             // TODO: Create a visual indicator that the email was not sent
         }
 
-        emailSent = await SendEmail("~/EmailTemplates/MentorshipRequestAccepted-ToMentor.cshtml",
-            "A mentorship was accepted", mentorship.Mentor, mentorship,
-            Domain.Constants.TelemetryEvents.MentorshipAccepted);
+        emailSent = await _templatedEmailSender.SendTemplatedEmail("~/EmailTemplates/MentorshipRequestAccepted-ToMentor.cshtml",
+            Domain.Constants.TelemetryEvents.MentorshipAccepted,
+            "A mentorship was accepted", mentorship.Mentor, mentorship
+            );
         if (!emailSent)
         {
             _logger.LogError("Failed to send mentorship accepted email to mentor");
@@ -162,18 +157,20 @@ public class RequestsModel : PageModel
                 return BadRequest();
             }
 
-            var emailSent = await SendEmail("~/EmailTemplates/MentorshipRequestDeclined-FromMentee.cshtml",
-                "Your mentorship request was declined", mentorship.Mentee, mentorship,
-                Domain.Constants.TelemetryEvents.MentorshipDeclined);
+            var emailSent = await _templatedEmailSender.SendTemplatedEmail("~/EmailTemplates/MentorshipRequestDeclined-FromMentee.cshtml",
+                Domain.Constants.TelemetryEvents.MentorshipDeclined,
+                "Your mentorship request was declined", mentorship.Mentee, mentorship
+                );
             if (!emailSent)
             {
                 _logger.LogError("Failed to send mentorship declined email to mentee");
                 // TODO: Create a visual indicator that the email was not sent
             }
 
-            emailSent = await SendEmail("~/EmailTemplates/MentorshipRequestDeclined-ToMentor.cshtml",
-                "A mentorship request was declined", mentorship.Mentor, mentorship,
-                Domain.Constants.TelemetryEvents.MentorshipDeclined);
+            emailSent = await _templatedEmailSender.SendTemplatedEmail("~/EmailTemplates/MentorshipRequestDeclined-ToMentor.cshtml",
+                Domain.Constants.TelemetryEvents.MentorshipDeclined,
+                "A mentorship request was declined", mentorship.Mentor, mentorship
+                );
             if (!emailSent)
             {
                 _logger.LogError("Failed to send mentorship declined email to mentor");
@@ -321,18 +318,18 @@ public class RequestsModel : PageModel
         }
 
         // Send emails to both mentee and mentor
-        var emailSent = await SendEmail("~/EmailTemplates/MentorshipRequestCancelled-FromMentee.cshtml",
-            "Your mentorship request was cancelled", mentorship.Mentee, mentorship,
-            Domain.Constants.TelemetryEvents.MentorshipCancelled);
+        var emailSent = await _templatedEmailSender.SendTemplatedEmail("~/EmailTemplates/MentorshipRequestCancelled-FromMentee.cshtml",
+            Domain.Constants.TelemetryEvents.MentorshipCancelled,
+            "Your mentorship request was cancelled", mentorship.Mentee, mentorship);
         if (!emailSent)
         {
             _logger.LogError("Failed to send mentorship cancelled email to mentee");
             // TODO: Create a visual indicator that the email was not sent
         }
 
-        emailSent = await SendEmail("~/EmailTemplates/MentorshipRequestCancelled-ToMentor.cshtml",
-            "A mentorship request was cancelled", mentorship.Mentor, mentorship,
-            Domain.Constants.TelemetryEvents.MentorshipCancelled);
+        emailSent = await _templatedEmailSender.SendTemplatedEmail("~/EmailTemplates/MentorshipRequestCancelled-ToMentor.cshtml",
+            Domain.Constants.TelemetryEvents.MentorshipCancelled,
+            "A mentorship request was cancelled", mentorship.Mentor, mentorship);
         if (!emailSent)
         {
             _logger.LogError("Failed to send mentorship cancelled email to mentor");
@@ -345,49 +342,5 @@ public class RequestsModel : PageModel
 
         // Return empty content so hx-swap=\"outerHTML\" removes the card from the DOM
         return Content(string.Empty);
-    }
-
-    private async Task<bool> SendEmail(string emailTemplate, string subject, User toUser, Domain.Models.Mentorship mentorship, string eventName)
-    {
-
-        if (string.IsNullOrWhiteSpace(emailTemplate))
-        {
-            throw new ArgumentException("Email template cannot be null or whitespace", nameof(emailTemplate));
-        }
-        if (string.IsNullOrWhiteSpace(subject))
-        {
-            throw new ArgumentException("Email subject cannot be null or whitespace", nameof(subject));
-        }
-
-        if (string.IsNullOrWhiteSpace(eventName))
-        {
-            throw new ArgumentException("Event name cannot be null or whitespace", nameof(eventName));
-        }
-        
-        if (mentorship == null)
-        {
-            throw new ArgumentException("Mentorship cannot be null", nameof(mentorship));       
-        }
-
-        try
-        {
-            var emailBody = await _stringRenderer.RenderPartialToStringAsync(HttpContext, emailTemplate, mentorship);
-            await _emailSender.QueueEmail(new System.Net.Mail.MailAddress(toUser.Email!, $"{toUser.FirstName} {toUser.LastName}"),
-                subject, emailBody);
-
-            _telemetryClient.TrackEvent(eventName, new Dictionary<string, string>
-            {
-                { "UserId", toUser.Id.ToString() },
-                { "Email", toUser.Email! }
-            });
-            _logger.LogInformation("{EventName} email was successfully sent to {Email}", eventName, toUser.Email);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to send {EventName} email to {Email}", eventName, toUser.Email);
-            return false;
-        }
-
-        return true;
     }
 }

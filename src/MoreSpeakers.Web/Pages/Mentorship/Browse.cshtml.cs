@@ -7,6 +7,7 @@ using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models;
 
 using MoreSpeakers.Web.Models.ViewModels;
+using MoreSpeakers.Web.Services;
 
 namespace MoreSpeakers.Web.Pages.Mentorship;
 
@@ -16,7 +17,7 @@ public class BrowseModel : PageModel
     private readonly IUserManager _userManager;
     private readonly IExpertiseManager _expertiseManager;
     private readonly IMentoringManager _mentoringManager;
-    private readonly IEmailSender _emailSender;
+    private readonly ITemplatedEmailSender _templatedEmailSender;
     private readonly ILogger<BrowseModel> _logger;
     private readonly TelemetryClient _telemetryClient;
 
@@ -24,14 +25,14 @@ public class BrowseModel : PageModel
         IUserManager userManager,
         IExpertiseManager expertiseManager,
         IMentoringManager mentorshipService,
-        IEmailSender emailSender,
+        ITemplatedEmailSender templatedEmailSender,
         ILogger<BrowseModel> logger,
         TelemetryClient telemetryClient)
     {
         _userManager = userManager;
         _expertiseManager = expertiseManager;       
         _mentoringManager = mentorshipService;
-        _emailSender = emailSender;
+        _templatedEmailSender = templatedEmailSender;
         _logger = logger;
         _telemetryClient = telemetryClient;
     }
@@ -168,7 +169,6 @@ public class BrowseModel : PageModel
         string? requestMessage, List<int>? selectedExpertiseIds, string? preferredFrequency)
     {
         User? currentUser = null;
-        User targetMentorUser;
         Domain.Models.Mentorship? mentorship;
 
         try
@@ -178,8 +178,6 @@ public class BrowseModel : PageModel
             {
                 return Unauthorized();
             }
-
-            targetMentorUser = await _userManager.GetAsync(targetId);
 
             // Check if can request
             var canRequest = await _mentoringManager.CanRequestMentorshipAsync(currentUser.Id, targetId);
@@ -202,19 +200,25 @@ public class BrowseModel : PageModel
             _logger.LogError(ex, "Error sending mentorship request for user '{User}'", currentUser?.Id);
             throw;
         }
-
         
-        await _emailSender.QueueEmail(
-            new System.Net.Mail.MailAddress(targetMentorUser.Email!,
-                $"{targetMentorUser.FirstName} {targetMentorUser.LastName}"),
-            "You have a new MoreSpeaker.com Mentorship Request",
-            $"Please review and confirm the mentoring request at MoreSpeakers.com.");
+        // Send emails to both mentee and mentor
+        var emailSent = await _templatedEmailSender.SendTemplatedEmail("~/EmailTemplates/MentorshipRequest-FromMentee.cshtml",
+            Domain.Constants.TelemetryEvents.MentorshipRequested,
+            "Your mentorship request was sent", mentorship.Mentee, mentorship);
+        if (!emailSent)
+        {
+            _logger.LogError("Failed to send mentorship request email to mentee");
+            // TODO: Create a visual indicator that the email was not sent
+        }
 
-        _telemetryClient.TrackEvent("MentorRequestEmailSent",
-            new Dictionary<string, string>
-            {
-                { "UserId", targetMentorUser.Id.ToString() }, { "Email", targetMentorUser.Email! }
-            });
+        emailSent = await _templatedEmailSender.SendTemplatedEmail("~/EmailTemplates/MentorshipRequest-ToMentor.cshtml",
+            Domain.Constants.TelemetryEvents.MentorshipRequested,
+            "A mentorship was requested", mentorship.Mentor, mentorship);
+        if (!emailSent)
+        {
+            _logger.LogError("Failed to send mentorship request email to mentor");
+            // TODO: Create a visual indicator that the email was not sent
+        }
 
         return Partial("_RequestSuccess", mentorship);
 

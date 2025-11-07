@@ -72,10 +72,10 @@ public class IndexModel : PageModel
             if (Request.Headers.ContainsKey("HX-Request"))
             {
                 var searchResultContainerHtml =
-                    await _partialRenderer.RenderPartialToStringAsync(HttpContext,
+                    await _partialRenderer.RenderPartialToStringAsync(
                         "~/Pages/Speakers/_SearchResultCountPartial.cshtml", SearchResultsCount);
                 var speakerContainerHtml =
-                    await _partialRenderer.RenderPartialToStringAsync(HttpContext, "_SpeakersContainer", this);
+                    await _partialRenderer.RenderPartialToStringAsync("_SpeakersContainer", this);
 
                 return Content(searchResultContainerHtml + speakerContainerHtml, "text/html");
             }

@@ -10,19 +10,28 @@ namespace MoreSpeakers.Web.Services;
 
 public class RazorPartialToStringRenderer : IRazorPartialToStringRenderer
 {
+    private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IRazorViewEngine _viewEngine;
     private readonly ITempDataProvider _tempDataProvider;
 
     public RazorPartialToStringRenderer(
+        IHttpContextAccessor httpContextAccessor,
         IRazorViewEngine viewEngine,
         ITempDataProvider tempDataProvider)
     {
+        _httpContextAccessor = httpContextAccessor;
         _viewEngine = viewEngine;
         _tempDataProvider = tempDataProvider;
     }
 
-    public async Task<string> RenderPartialToStringAsync<TModel>(HttpContext httpContext, string partialName, TModel model)
+    public async Task<string> RenderPartialToStringAsync<TModel>(string partialName, TModel model)
     {
+        var httpContext = _httpContextAccessor.HttpContext;
+        if (httpContext == null)
+        {
+            throw new InvalidOperationException("HttpContext is null");
+        }
+        
         var actionContext = new ActionContext(httpContext, new RouteData(), new PageActionDescriptor());
         var partial = FindView(actionContext, partialName);
         await using var output = new StringWriter();
