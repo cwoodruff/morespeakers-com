@@ -227,9 +227,6 @@ public class EditModel(
     // Note implemented yet, but will be used in the future for uploading headshots
     public async Task<IActionResult> OnPostUploadHeadshotAsync()
     {
-        //var result = await LoadUserDataAsync();
-        //if (result != null) return result;
-
         ActiveTab = "profile";
 
         if (Input.HeadshotFile == null || Input.HeadshotFile.Length == 0)

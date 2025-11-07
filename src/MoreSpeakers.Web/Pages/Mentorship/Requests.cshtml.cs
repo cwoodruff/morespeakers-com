@@ -92,6 +92,7 @@ public class RequestsModel : PageModel
     public async Task<IActionResult> OnPostAcceptAsync(Guid mentorshipId)
     {
         User? currentUser = null;
+        Domain.Models.Mentorship? mentorship;
 
         try
         {
@@ -101,7 +102,7 @@ public class RequestsModel : PageModel
                 return Unauthorized();
             }
 
-            var mentorship =
+            mentorship =
                 await _mentoringManager.RespondToRequestAsync(mentorshipId, currentUser.Id, true, string.Empty);
 
             // Send emails to both mentee and mentor
@@ -110,36 +111,36 @@ public class RequestsModel : PageModel
                 _logger.LogError("Could not find mentorship with ID {MentorshipId}", mentorshipId);
                 return BadRequest();
             }
-
-            var emailSent = await SendEmail("~/EmailTemplates/MentorshipRequestAccepted-FromMentee.cshtml",
-                "Your mentorship request was accepted", mentorship.Mentee, mentorship,
-                Domain.Constants.TelemetryEvents.MentorshipAccepted);
-            if (!emailSent)
-            {
-                _logger.LogError("Failed to send mentorship accepted email to mentee");
-                // TODO: Create a visual indicator that the email was not sent
-            }
-
-            emailSent = await SendEmail("~/EmailTemplates/MentorshipRequestAccepted-ToMentor.cshtml",
-                "A mentorship was accepted", mentorship.Mentor, mentorship,
-                Domain.Constants.TelemetryEvents.MentorshipAccepted);
-            if (!emailSent)
-            {
-                _logger.LogError("Failed to send mentorship accepted email to mentor");
-                // TODO: Create a visual indicator that the email was not sent
-            }
-
-            // Notify the client via HTMX events so both lists can refresh and any listeners can react
-            Response.Headers["HX-Trigger"] = "{\"mentorship:accepted\":{\"id\":\"" + mentorshipId +
-                                             "\"},\"mentorship:updated\":true}";
-            // Return an OOB toast (partial renders as OOB) and remove the card by swapping empty content
-            return Partial("_AcceptSuccess", mentorship);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error accepting mentorship request for user '{User}'", currentUser?.Id);
             return BadRequest();
         }
+
+        var emailSent = await SendEmail("~/EmailTemplates/MentorshipRequestAccepted-FromMentee.cshtml",
+            "Your mentorship request was accepted", mentorship.Mentee, mentorship,
+            Domain.Constants.TelemetryEvents.MentorshipAccepted);
+        if (!emailSent)
+        {
+            _logger.LogError("Failed to send mentorship accepted email to mentee");
+            // TODO: Create a visual indicator that the email was not sent
+        }
+
+        emailSent = await SendEmail("~/EmailTemplates/MentorshipRequestAccepted-ToMentor.cshtml",
+            "A mentorship was accepted", mentorship.Mentor, mentorship,
+            Domain.Constants.TelemetryEvents.MentorshipAccepted);
+        if (!emailSent)
+        {
+            _logger.LogError("Failed to send mentorship accepted email to mentor");
+            // TODO: Create a visual indicator that the email was not sent
+        }
+
+        // Notify the client via HTMX events so both lists can refresh and any listeners can react
+        Response.Headers["HX-Trigger"] = "{\"mentorship:accepted\":{\"id\":\"" + mentorshipId +
+                                         "\"},\"mentorship:updated\":true}";
+        // Return an OOB toast (partial renders as OOB) and remove the card by swapping empty content
+        return Partial("_AcceptSuccess", mentorship);
     }
 
     public async Task<IActionResult> OnPostDeclineAsync(Guid mentorshipId, string? declineReason)
@@ -162,7 +163,7 @@ public class RequestsModel : PageModel
             }
 
             var emailSent = await SendEmail("~/EmailTemplates/MentorshipRequestDeclined-FromMentee.cshtml",
-                "Your mentorship request was cancelled", mentorship.Mentee, mentorship,
+                "Your mentorship request was declined", mentorship.Mentee, mentorship,
                 Domain.Constants.TelemetryEvents.MentorshipDeclined);
             if (!emailSent)
             {
@@ -171,7 +172,7 @@ public class RequestsModel : PageModel
             }
 
             emailSent = await SendEmail("~/EmailTemplates/MentorshipRequestDeclined-ToMentor.cshtml",
-                "A mentorship request was cancelled", mentorship.Mentor, mentorship,
+                "A mentorship request was declined", mentorship.Mentor, mentorship,
                 Domain.Constants.TelemetryEvents.MentorshipDeclined);
             if (!emailSent)
             {
@@ -287,61 +288,63 @@ public class RequestsModel : PageModel
     public async Task<IActionResult> OnPostCancelRequestAsync(Guid mentorshipId)
     {
         User? currentUser = null;
+        Domain.Models.Mentorship? mentorship;
 
         try
         {
-
             currentUser = await _userManager.GetUserAsync(User);
             if (currentUser == null)
             {
                 return Unauthorized();
             }
 
+            // Since we need to send an email to the mentee and mentor, load the mentorship record first since
+            //  cancel will delete the record.
+            mentorship = await _mentoringManager.GetMentorshipWithRelationships(mentorshipId);
+            if (mentorship == null)
+            {
+                _logger.LogError("Could not find mentorship with ID {MentorshipId}", mentorshipId);
+                return BadRequest();
+            }
+            
             // Ensure the current user is the mentee who created the request
             var wasCanceled = await _mentoringManager.CancelMentorshipRequestAsync(mentorshipId, currentUser.Id);
             if (!wasCanceled)
             {
                 return BadRequest();
             }
-
-            // Send emails to both mentee and mentor
-            var mentorship = await _mentoringManager.GetMentorshipWithRelationships(mentorshipId);
-            if (mentorship == null)
-            {
-                _logger.LogError("Could not find mentorship with ID {MentorshipId}", mentorshipId);
-                return BadRequest();
-            }
-
-            var emailSent = await SendEmail("~/EmailTemplates/MentorshipRequestCancelled-FromMentee.cshtml",
-                "Your mentorship request was cancelled", mentorship.Mentee, mentorship,
-                Domain.Constants.TelemetryEvents.MentorshipCancelled);
-            if (!emailSent)
-            {
-                _logger.LogError("Failed to send mentorship cancelled email to mentee");
-                // TODO: Create a visual indicator that the email was not sent
-            }
-
-            emailSent = await SendEmail("~/EmailTemplates/MentorshipRequestCancelled-ToMentor.cshtml",
-                "A mentorship request was cancelled", mentorship.Mentor, mentorship,
-                Domain.Constants.TelemetryEvents.MentorshipCancelled);
-            if (!emailSent)
-            {
-                _logger.LogError("Failed to send mentorship cancelled email to mentor");
-                // TODO: Create a visual indicator that the email was not sent
-            }
-
-            // Trigger updates so both lists can refresh
-            Response.Headers["HX-Trigger"] = "{\"mentorship:cancelled\":{\"id\":\"" + mentorshipId +
-                                             "\"},\"mentorship:updated\":true}";
-
-            // Return empty content so hx-swap=\"outerHTML\" removes the card from the DOM
-            return Content(string.Empty);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error cancelling mentorship request for user '{User}'", currentUser?.Id);
             return BadRequest();
-        }       
+        }
+
+        // Send emails to both mentee and mentor
+        var emailSent = await SendEmail("~/EmailTemplates/MentorshipRequestCancelled-FromMentee.cshtml",
+            "Your mentorship request was cancelled", mentorship.Mentee, mentorship,
+            Domain.Constants.TelemetryEvents.MentorshipCancelled);
+        if (!emailSent)
+        {
+            _logger.LogError("Failed to send mentorship cancelled email to mentee");
+            // TODO: Create a visual indicator that the email was not sent
+        }
+
+        emailSent = await SendEmail("~/EmailTemplates/MentorshipRequestCancelled-ToMentor.cshtml",
+            "A mentorship request was cancelled", mentorship.Mentor, mentorship,
+            Domain.Constants.TelemetryEvents.MentorshipCancelled);
+        if (!emailSent)
+        {
+            _logger.LogError("Failed to send mentorship cancelled email to mentor");
+            // TODO: Create a visual indicator that the email was not sent
+        }
+
+        // Trigger updates so both lists can refresh
+        Response.Headers["HX-Trigger"] = "{\"mentorship:cancelled\":{\"id\":\"" + mentorshipId +
+                                         "\"},\"mentorship:updated\":true}";
+
+        // Return empty content so hx-swap=\"outerHTML\" removes the card from the DOM
+        return Content(string.Empty);
     }
 
     private async Task<bool> SendEmail(string emailTemplate, string subject, User toUser, Domain.Models.Mentorship mentorship, string eventName)
@@ -368,7 +371,7 @@ public class RequestsModel : PageModel
 
         try
         {
-            var emailBody = await _stringRenderer.RenderPartialToStringAsync(HttpContext, "~/EmailTemplates/WelcomeEmail.cshtml", mentorship);
+            var emailBody = await _stringRenderer.RenderPartialToStringAsync(HttpContext, emailTemplate, mentorship);
             await _emailSender.QueueEmail(new System.Net.Mail.MailAddress(toUser.Email!, $"{toUser.FirstName} {toUser.LastName}"),
                 subject, emailBody);
 

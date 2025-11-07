@@ -1,15 +1,15 @@
 @page
-@model Guid
+@model MoreSpeakers.Web.Pages.Profile.LoadingProblem
 @{
     ViewData["Title"] = "Profile Loading Problem";
 }
 
-<div class="container">
-    <h1 class="display-1">Could not load the Profile</h1>
+<div class="container text-center">
+    <h1 class="display-3">Could not load the Profile</h1>
     <p class="lead">
-        We couldn't load the profile with the id of '@Model'.
+        We couldn't load the profile with the id of '@Model.UserId'.
     </p>
-    <p class="text-center">
-        <i class="fa-solid fa-person-circle-question fa-10x"></i>
+    <p>
+        <i class="fa-solid fa-person-circle-question fa-5x"></i>
     </p>
 </div>

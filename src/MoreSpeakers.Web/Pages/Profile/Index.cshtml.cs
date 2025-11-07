@@ -36,7 +36,8 @@ public class IndexModel(IUserManager userManager, ILogger<IndexModel> logger) : 
         catch (Exception ex)
         {
             logger.LogError(ex, "Error loading profile page. UserId: '{UserId}'", currentUser?.Id);
-            return RedirectToPage("/Profile/LoadingProblem", new { userId = User });
+            return RedirectToPage("/Profile/LoadingProblem",
+                new { UserId = currentUser?.Id ?? Guid.Empty });
         }
 
         return Page();

@@ -23,7 +23,7 @@ public class ViewModel(
     {
         if (Id == Guid.Empty)
         {
-            return NotFound();
+            return RedirectToPage("/Profile/LoadingProblem", new { UserId = Guid.Empty });
         }
 
         try
@@ -32,7 +32,7 @@ public class ViewModel(
 
             if (ProfileUser == null)
             {
-                return NotFound();
+                return RedirectToPage("/Profile/LoadingProblem", new { UserId = Id });
             }
 
             UserExpertise = await userManager.GetUserExpertisesForUserAsync(Id);
@@ -44,7 +44,7 @@ public class ViewModel(
         catch (Exception ex)
         {
             logger.LogError(ex, "An error occured while loading the profile page. UserId: '{UserId}'", Id);
-            return RedirectToPage("/Profile/LoadingProblem", new { userId = Id });
+            return RedirectToPage("/Profile/LoadingProblem", new { UserId = Id });
         }
     }
 }

@@ -168,6 +168,8 @@ public class BrowseModel : PageModel
         string? requestMessage, List<int>? selectedExpertiseIds, string? preferredFrequency)
     {
         User? currentUser = null;
+        User targetMentorUser;
+        Domain.Models.Mentorship? mentorship;
 
         try
         {
@@ -177,7 +179,7 @@ public class BrowseModel : PageModel
                 return Unauthorized();
             }
 
-            var targetMentorUser = await _userManager.GetAsync(targetId);
+            targetMentorUser = await _userManager.GetAsync(targetId);
 
             // Check if can request
             var canRequest = await _mentoringManager.CanRequestMentorshipAsync(currentUser.Id, targetId);
@@ -187,35 +189,37 @@ public class BrowseModel : PageModel
                     "<div class='alert alert-warning'>You already have a pending or active connection with this person.</div>");
             }
 
-            var mentorship = await _mentoringManager.RequestMentorshipWithDetailsAsync(
+            mentorship = await _mentoringManager.RequestMentorshipWithDetailsAsync(
                 currentUser.Id, targetId, type, requestMessage, selectedExpertiseIds, preferredFrequency);
 
             if (mentorship == null)
             {
                 return Content("<div class='alert alert-danger'>Failed to send request. Please try again.</div>");
             }
-
-            await _emailSender.QueueEmail(
-                new System.Net.Mail.MailAddress(targetMentorUser.Email!,
-                    $"{targetMentorUser.FirstName} {targetMentorUser.LastName}"),
-                "You have a new MoreSpeaker.com Mentorship Request",
-                $"Please review and confirm the mentoring request at MoreSpeakers.com.");
-
-            _telemetryClient.TrackEvent("MentorRequestEmailSent",
-                new Dictionary<string, string>
-                {
-                    { "UserId", targetMentorUser.Id.ToString() }, { "Email", targetMentorUser.Email! }
-                });
-
-            return Partial("_RequestSuccess", mentorship);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error sending mentorship request for user '{User}'", currentUser?.Id);
             throw;
-        }       
+        }
+
+        
+        await _emailSender.QueueEmail(
+            new System.Net.Mail.MailAddress(targetMentorUser.Email!,
+                $"{targetMentorUser.FirstName} {targetMentorUser.LastName}"),
+            "You have a new MoreSpeaker.com Mentorship Request",
+            $"Please review and confirm the mentoring request at MoreSpeakers.com.");
+
+        _telemetryClient.TrackEvent("MentorRequestEmailSent",
+            new Dictionary<string, string>
+            {
+                { "UserId", targetMentorUser.Id.ToString() }, { "Email", targetMentorUser.Email! }
+            });
+
+        return Partial("_RequestSuccess", mentorship);
+
     }
-    
+
     public async Task<IActionResult> OnPostCancelRequestAsync(Guid mentorshipId)
     {
         User? currentUser = null;
