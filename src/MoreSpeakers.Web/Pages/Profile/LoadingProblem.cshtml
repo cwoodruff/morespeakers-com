@@ -1,0 +1,15 @@
+@page
+@model Guid
+@{
+    ViewData["Title"] = "Profile Loading Problem";
+}
+
+<div class="container">
+    <h1 class="display-1">Could not load the Profile</h1>
+    <p class="lead">
+        We couldn't load the profile with the id of '@Model'.
+    </p>
+    <p class="text-center">
+        <i class="fa-solid fa-person-circle-question fa-10x"></i>
+    </p>
+</div>

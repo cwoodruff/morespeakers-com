@@ -7,10 +7,10 @@ using MoreSpeakers.Domain.Interfaces;
 namespace MoreSpeakers.Web.Pages.Profile;
 
 public class ViewModel(
-    IUserManager userManager
+    IUserManager userManager,
+    ILogger<ViewModel> logger
     ) : PageModel
 {
-    private readonly IUserManager _userManager = userManager;
 
     [BindProperty(SupportsGet = true)]
     public Guid Id { get; set; }
@@ -26,17 +26,25 @@ public class ViewModel(
             return NotFound();
         }
 
-        ProfileUser = await _userManager.GetAsync(Id);
-
-        if (ProfileUser == null)
+        try
         {
-            return NotFound();
+            ProfileUser = await userManager.GetAsync(Id);
+
+            if (ProfileUser == null)
+            {
+                return NotFound();
+            }
+
+            UserExpertise = await userManager.GetUserExpertisesForUserAsync(Id);
+
+            SocialMedia = await userManager.GetUserSocialMediaForUserAsync(Id);
+
+            return Page();
         }
-
-        UserExpertise = await _userManager.GetUserExpertisesForUserAsync(Id);
-
-        SocialMedia = await _userManager.GetUserSocialMediaForUserAsync(Id);
-
-        return Page();
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "An error occured while loading the profile page. UserId: '{UserId}'", Id);
+            return RedirectToPage("/Profile/LoadingProblem", new { userId = Id });
+        }
     }
 }

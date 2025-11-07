@@ -46,34 +46,44 @@ public class IndexModel : PageModel
 
     public async Task<IActionResult> OnGetAsync()
     {
-        // Load all expertise for filter dropdown
-        AllExpertise = await _expertiseManager.GetAllAsync();
-        
-        // Search for the speakers
-        var searchResults = await _userManager.SearchSpeakersAsync(SearchTerm, SpeakerTypeFilter, ExpertiseFilter, SortBy, CurrentPage, PageSize);
-
-        TotalCount = searchResults.RowCount;
-        TotalPages = searchResults.TotalPages;
-        CurrentPage = searchResults.CurrentPage;
-        Speakers = searchResults.Speakers;
-        
-        var searchResultsModel = new Models.ViewModels.SearchResultCountViewModel
+        try
         {
-            AreFiltersApplied =
-                !string.IsNullOrEmpty(SearchTerm) || ExpertiseFilter.HasValue || SpeakerTypeFilter.HasValue,
-            TotalResults = searchResults.RowCount
-        };
-        SearchResultsCount = searchResultsModel;
+            // Load all expertise for filter dropdown
+            AllExpertise = await _expertiseManager.GetAllAsync();
 
-        // Check if this is an HTMX request for just the speakers container
-        if (Request.Headers.ContainsKey("HX-Request"))
+            // Search for the speakers
+            var searchResults = await _userManager.SearchSpeakersAsync(SearchTerm, SpeakerTypeFilter, ExpertiseFilter,
+                SortBy, CurrentPage, PageSize);
+
+            TotalCount = searchResults.RowCount;
+            TotalPages = searchResults.TotalPages;
+            CurrentPage = searchResults.CurrentPage;
+            Speakers = searchResults.Speakers;
+
+            var searchResultsModel = new Models.ViewModels.SearchResultCountViewModel
+            {
+                AreFiltersApplied =
+                    !string.IsNullOrEmpty(SearchTerm) || ExpertiseFilter.HasValue || SpeakerTypeFilter.HasValue,
+                TotalResults = searchResults.RowCount
+            };
+            SearchResultsCount = searchResultsModel;
+
+            // Check if this is an HTMX request for just the speakers container
+            if (Request.Headers.ContainsKey("HX-Request"))
+            {
+                var searchResultContainerHtml =
+                    await _partialRenderer.RenderPartialToStringAsync(HttpContext,
+                        "~/Pages/Speakers/_SearchResultCountPartial.cshtml", SearchResultsCount);
+                var speakerContainerHtml =
+                    await _partialRenderer.RenderPartialToStringAsync(HttpContext, "_SpeakersContainer", this);
+
+                return Content(searchResultContainerHtml + speakerContainerHtml, "text/html");
+            }
+
+        }
+        catch (Exception ex)
         {
-           
-            var searchResultContainerHtml =
-                await _partialRenderer.RenderPartialToStringAsync(HttpContext,"~/Pages/Speakers/_SearchResultCountPartial.cshtml", SearchResultsCount);
-            var speakerContainerHtml = await _partialRenderer.RenderPartialToStringAsync( HttpContext,"_SpeakersContainer", this);
-            
-            return Content(searchResultContainerHtml + speakerContainerHtml, "text/html");
+            _logger.LogError(ex, "Error loading speakers");
         }
 
         return Page();
@@ -89,8 +99,11 @@ public class IndexModel : PageModel
         try
         {
             // Get current user ID (you'll need to implement this)
-            var currentUserId = GetCurrentUserId();
-            if (currentUserId == Guid.Empty) return new JsonResult(new { error = "Unable to identify current user." });
+            var currentUserId = await _userManager.GetUserIdAsync(User);
+            if (currentUserId == null)
+            {
+                return new JsonResult(new { error = "Unable to identify current user." });
+            }
 
             // Here you would call your mentorship service
             // var success = await _mentorshipService.RequestMentorshipAsync(currentUserId, mentorId);
@@ -102,13 +115,5 @@ public class IndexModel : PageModel
         {
             return new JsonResult(new { error = "An error occurred while sending the mentorship request." });
         }
-    }
-
-    private Guid GetCurrentUserId()
-    {
-        // Implement logic to get current user ID from claims
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-        if (userIdClaim != null && Guid.TryParse(userIdClaim.Value, out var userId)) return userId;
-        return Guid.Empty;
     }
 }
