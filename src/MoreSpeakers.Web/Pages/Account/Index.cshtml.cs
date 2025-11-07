@@ -12,14 +12,16 @@ public partial class IndexModel : PageModel
 {
     private readonly IUserManager _userManager;
     private readonly IExpertiseManager _expertiseManager;
+    private readonly ILogger<IndexModel> _logger;
 
     public IndexModel(
         IUserManager userManager,
-        IExpertiseManager expertiseManager
-        )
+        IExpertiseManager expertiseManager,
+        ILogger<IndexModel> logger)
     {
         _userManager = userManager;
         _expertiseManager = expertiseManager;
+        _logger = logger;      
     }
 
     [BindProperty] public EditAccountModel Input { get; set; } = new();
@@ -86,13 +88,16 @@ public partial class IndexModel : PageModel
 
             ViewData["Field"] = field;
             ViewData["PageModel"] = this;
+
             return Partial("_DisplayField");
         }
-        catch (Exception)
+        catch (Exception ex)
         {
             ModelState.AddModelError("", "An error occurred while updating your information.");
             ViewData["Field"] = field;
             ViewData["PageModel"] = this;
+            
+            _logger.LogError(ex, "Error updating user information for user '{UserId}'", CurrentUser.Id);
             return Partial("_EditField", this);
         }
     }
@@ -115,25 +120,32 @@ public partial class IndexModel : PageModel
 
     private async Task LoadUserDataAsync()
     {
-        var user = await _userManager.GetUserAsync(User);
-        if (user == null)
-            throw new InvalidOperationException("Invalid user");
+        User? user = null;
 
-        CurrentUser = user;
-        UserExpertise = await _userManager.GetUserExpertisesForUserAsync(user.Id);
-        SocialMedia = await _userManager.GetUserSocialMediaForUserAsync(user.Id);
-        AvailableExpertise = await _expertiseManager.GetAllAsync();
-        SpeakerType = CurrentUser.SpeakerType;
+        try
+        {
+            user = await _userManager.GetUserAsync(User);
 
-        // Populate input model with current values
-        Input.FirstName = CurrentUser.FirstName;
-        Input.LastName = CurrentUser.LastName;
-        Input.Email = CurrentUser.Email;
-        Input.PhoneNumber = CurrentUser.PhoneNumber;
-        Input.Bio = CurrentUser.Bio;
-        Input.Goals = CurrentUser.Goals;
-        Input.SessionizeUrl = CurrentUser.SessionizeUrl;
-        Input.HeadshotUrl = CurrentUser.HeadshotUrl;
-        Input.SpeakerTypeId = CurrentUser.SpeakerTypeId;
+            CurrentUser = user ?? throw new InvalidOperationException("Invalid user");
+            UserExpertise = await _userManager.GetUserExpertisesForUserAsync(user.Id);
+            SocialMedia = await _userManager.GetUserSocialMediaForUserAsync(user.Id);
+            AvailableExpertise = await _expertiseManager.GetAllAsync();
+            SpeakerType = CurrentUser.SpeakerType;
+
+            // Populate input model with current values
+            Input.FirstName = CurrentUser.FirstName;
+            Input.LastName = CurrentUser.LastName;
+            Input.Email = CurrentUser.Email!;
+            Input.PhoneNumber = CurrentUser.PhoneNumber;
+            Input.Bio = CurrentUser.Bio;
+            Input.Goals = CurrentUser.Goals;
+            Input.SessionizeUrl = CurrentUser.SessionizeUrl;
+            Input.HeadshotUrl = CurrentUser.HeadshotUrl;
+            Input.SpeakerTypeId = CurrentUser.SpeakerTypeId;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error loading user data for user '{User}'", user?.Id);
+        }       
     }
 }
