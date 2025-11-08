@@ -356,6 +356,8 @@ public class RequestsModel : PageModel
             {
                 return BadRequest();
             }
+            // Refresh the outgoing requests list
+            OutgoingRequests = await _mentoringManager.GetOutgoingMentorshipRequests(currentUser.Id);
         }
         catch (Exception ex)
         {
@@ -382,7 +384,7 @@ public class RequestsModel : PageModel
             // TODO: Create a visual indicator that the email was not sent
         }
 
-        OutgoingRequests = await _mentoringManager.GetOutgoingMentorshipRequests(currentUser.Id);
+        // Update the header count and swap the container        
         var outboundHeaderContainerHtml =
             await _partialRenderer.RenderPartialToStringAsync(
                 "~/Pages/Mentorship/_RequestsNotificationBadge.cshtml",

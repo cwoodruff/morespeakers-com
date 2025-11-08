@@ -45,9 +45,7 @@
                     @await Html.PartialAsync("_RequestsNotificationBadge", new RequestNotificationBadgeViewModel() {Count = Model.OutgoingRequests.Count, NotificationDirection = RequestNotificationDirection.Outbound})
                 </div>
                 <div class="card-body">
-                    <div id="outgoing-requests" hx-swap-oob="true" hx-swap="innerHTML">
-                        @await Html.PartialAsync("_OutgoingRequests", Model.OutgoingRequests)
-                    </div>
+                    @await Html.PartialAsync("_OutgoingRequests", Model.OutgoingRequests)
                 </div>
             </div>
         </div>
