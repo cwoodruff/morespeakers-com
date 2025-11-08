@@ -15,18 +15,21 @@ public class RequestsModel : PageModel
     private readonly IUserManager _userManager;
     private readonly IMentoringManager _mentoringManager;
     private readonly ITemplatedEmailSender _templatedEmailSender;
+    private readonly IRazorPartialToStringRenderer _partialRenderer;
     private readonly ILogger<RequestsModel> _logger;
 
     public RequestsModel(
         IMentoringManager mentoringManager,
         IUserManager userManager,
         ITemplatedEmailSender  templatedEmailSender,
+        IRazorPartialToStringRenderer partialRenderer,       
         ILogger<RequestsModel> logger       
         )
     {
         _mentoringManager = mentoringManager;       
         _userManager = userManager;
-        _templatedEmailSender = templatedEmailSender;               
+        _templatedEmailSender = templatedEmailSender;          
+        _partialRenderer = partialRenderer;      
         _logger = logger;
     }
 
@@ -237,6 +240,14 @@ public class RequestsModel : PageModel
                     <p class='text-muted'>You'll see mentorship requests here when they arrive.</p>
                 </div>");
             }
+            
+            // Check if this is an HTMX request for just the speakers container
+            if (Request.Headers.ContainsKey("HX-Request"))
+            {
+                return await SwapInboundAsync();
+            }
+            
+            // Load the inbound notifications to update the header count
             return Partial("_IncomingRequests", IncomingRequests);
         }
         catch (Exception ex)
@@ -262,6 +273,7 @@ public class RequestsModel : PageModel
 
             if (OutgoingRequests.Count == 0)
             {
+                // TODO: Convert to a partial view
                 return Content(@"
                 <div class='text-center py-4'>
                     <i class='bi bi-send display-4 text-muted'></i>
@@ -273,6 +285,23 @@ public class RequestsModel : PageModel
                 </div>");
             }
 
+            // Check if this is an HTMX request for just the speakers container
+            if (Request.Headers.ContainsKey("HX-Request"))
+            {
+                var outboundHeaderContainerHtml =
+                    await _partialRenderer.RenderPartialToStringAsync(
+                        "~/Pages/Mentorship/_RequestsNotificationBadge.cshtml",
+                        new RequestNotificationBadgeViewModel()
+                        {
+                            Count = OutgoingRequests.Count,
+                            NotificationDirection = RequestNotificationDirection.Outbound
+                        });
+                var outboundContainerHtml =
+                    await _partialRenderer.RenderPartialToStringAsync("~/Pages/Mentorship/_OutgoingRequests.cshtml", OutgoingRequests);
+
+                return Content(outboundHeaderContainerHtml + outboundContainerHtml, "text/html");
+            }
+            
             return Partial("_OutgoingRequests", OutgoingRequests);
         }
         catch (Exception ex)
@@ -280,6 +309,23 @@ public class RequestsModel : PageModel
             _logger.LogError(ex, "Error polling for the outbound request for user '{User}'", currentUser?.Id);
             return BadRequest();
         }
+    }
+
+    
+    private async Task<IActionResult> SwapInboundAsync()
+    {
+        var inboundHeaderContainerHtml =
+            await _partialRenderer.RenderPartialToStringAsync(
+                "~/Pages/Mentorship/_RequestsNotificationBadge.cshtml",
+                new RequestNotificationBadgeViewModel()
+                {
+                    Count = IncomingRequests.Count,
+                    NotificationDirection = RequestNotificationDirection.Inbound
+                });
+        var inboundContainerHtml =
+            await _partialRenderer.RenderPartialToStringAsync("~/Pages/Mentorship/_OutgoingRequests.cshtml", IncomingRequests);
+
+        return Content(inboundHeaderContainerHtml + inboundContainerHtml, "text/html");
     }
 
     public async Task<IActionResult> OnPostCancelRequestAsync(Guid mentorshipId)
@@ -336,11 +382,19 @@ public class RequestsModel : PageModel
             // TODO: Create a visual indicator that the email was not sent
         }
 
-        // Trigger updates so both lists can refresh
-        Response.Headers["HX-Trigger"] = "{\"mentorship:cancelled\":{\"id\":\"" + mentorshipId +
-                                         "\"},\"mentorship:updated\":true}";
-
-        // Return empty content so hx-swap=\"outerHTML\" removes the card from the DOM
-        return Content(string.Empty);
+        OutgoingRequests = await _mentoringManager.GetOutgoingMentorshipRequests(currentUser.Id);
+        var outboundHeaderContainerHtml =
+            await _partialRenderer.RenderPartialToStringAsync(
+                "~/Pages/Mentorship/_RequestsNotificationBadge.cshtml",
+                new RequestNotificationBadgeViewModel()
+                {
+                    Count = OutgoingRequests.Count,
+                    NotificationDirection = RequestNotificationDirection.Outbound   
+                });
+        var outboundContainerHtml =
+            await _partialRenderer.RenderPartialToStringAsync("~/Pages/Mentorship/_OutgoingRequests.cshtml",
+                OutgoingRequests);
+        
+        return Content(outboundHeaderContainerHtml + outboundContainerHtml, "text/html");       
     }
 }

@@ -1,5 +1,6 @@
 @model List<Domain.Models.Mentorship>
 
+
 @if (!Model.Any())
 {
     <div class="text-center py-4">
@@ -57,8 +58,8 @@ else
                             @request.Status
                         </div>
                         <h5 class="card-title mb-1">@request.Mentor.FullName</h5>
-                        <span class="badge bg-success">@request.Mentor.SpeakerType.Name</span>
-                     </div>
+                        <span class="badge bg-success">@request.Mentor.SpeakerType.ToFriendlyName()</span>
+                    </div>
                 </div>
                 <div class="card-body">
 
@@ -67,26 +68,26 @@ else
                         <p class="small text-muted mb-0">@request.RequestMessage</p>
                     </div>
 
-                @if (request.FocusAreas.Any())
-                {
-                    <div class="mb-3">
-                        <strong class="small">Focus areas:</strong>
-                        <div class="mt-1">
-                            @foreach (var focus in request.FocusAreas)
-                            {
-                                <span class="badge rounded-pill text-bg-primary fw-light">@focus.Expertise.Name</span>
-                            }
+                    @if (request.FocusAreas.Any())
+                    {
+                        <div class="mb-3">
+                            <strong class="small">Focus areas:</strong>
+                            <div class="mt-1">
+                                @foreach (var focus in request.FocusAreas)
+                                {
+                                    <span class="badge rounded-pill text-bg-primary fw-light">@focus.Expertise.Name</span>
+                                }
+                            </div>
                         </div>
-                    </div>
-                }
+                    }
 
-                @if (!string.IsNullOrEmpty(request.ResponseMessage))
-                {
-                    <div class="mb-3">
-                        <strong class="small">Response:</strong>
-                        <p class="small text-muted mb-0">@request.ResponseMessage</p>
-                    </div>
-                }
+                    @if (!string.IsNullOrEmpty(request.ResponseMessage))
+                    {
+                        <div class="mb-3">
+                            <strong class="small">Response:</strong>
+                            <p class="small text-muted mb-0">@request.ResponseMessage</p>
+                        </div>
+                    }
 
                     <div class="d-flex justify-content-between align-items-center">
                         <small class="text-muted">
@@ -107,11 +108,11 @@ else
                         {
                             <button class="btn btn-danger"
                                     hx-post="/Mentorship/Requests?handler=CancelRequest&mentorshipId=@request.Id"
-                                    hx-target="closest .request-card"
+                                    hx-target="#outgoing-requests"
                                     hx-swap="outerHTML"
                                     hx-include="#htmx-af input[name='__RequestVerificationToken']"
                                     hx-confirm="Are you sure you want to cancel this request?">
-                                <i class="bi bi-x-circle"></i>Cancel
+                                <i class="bi bi-x-circle me-2"></i>Cancel
                             </button>
                         }
                     </div>

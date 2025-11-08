@@ -1,0 +1,27 @@
+@using MoreSpeakers.Domain.Extensions
+@model MoreSpeakers.Web.Models.ViewModels.RequestNotificationBadgeViewModel
+<h5 class="mb-0" id="@("requests-notification-badge-" + Model.NotificationDirection.GetDescription().ToLowerInvariant())" hx-swap-oob="true" hx-swap="outerHTML">
+    @switch (Model.NotificationDirection)
+    {
+        case RequestNotificationDirection.Inbound:
+        {
+            <i class="bi bi-inbox me-2"></i><span>Incoming Requests</span>    
+            if (Model.Count > 0)
+            {
+                <span class="badge bg-warning ms-2">@Model.Count</span>
+            }
+
+            break;
+        }
+        case RequestNotificationDirection.Outbound:
+        {
+            <i class="bi bi-send me-2"></i><span>Outbound Requests</span>    
+            if (Model.Count > 0)
+            {
+                <span class="badge bg-warning ms-2">@Model.Count</span>
+            }
+
+            break;
+        }
+    }
+</h5>
