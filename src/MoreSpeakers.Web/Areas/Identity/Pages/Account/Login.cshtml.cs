@@ -1,8 +1,6 @@
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#nullable disable
-
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
@@ -48,9 +46,12 @@ public class LoginModel : PageModel
     [TempData]
     public string ErrorMessage { get; set; }
 
-    public async Task OnGetAsync(string returnUrl = null)
+    public async Task OnGetAsync(string? returnUrl = null)
     {
-        if (!string.IsNullOrEmpty(ErrorMessage)) ModelState.AddModelError(string.Empty, ErrorMessage);
+        if (!string.IsNullOrEmpty(ErrorMessage))
+        {
+            ModelState.AddModelError(string.Empty, ErrorMessage);
+        }
 
         returnUrl ??= Url.Content("~/");
 
@@ -62,7 +63,7 @@ public class LoginModel : PageModel
         ReturnUrl = returnUrl;
     }
 
-    public async Task<IActionResult> OnPostAsync(string returnUrl = null)
+    public async Task<IActionResult> OnPostAsync(string? returnUrl = null)
     {
         returnUrl ??= Url.Content("~/");
 
@@ -75,15 +76,18 @@ public class LoginModel : PageModel
             var result = await _signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, false);
             if (result.Succeeded)
             {
-                _logger.LogInformation("User logged in.");
+                _logger.LogInformation("User logged in");
                 return LocalRedirect(returnUrl);
             }
 
             if (result.RequiresTwoFactor)
+            {
                 return RedirectToPage("./LoginWith2fa", new { ReturnUrl = returnUrl, Input.RememberMe });
+            }
+
             if (result.IsLockedOut)
             {
-                _logger.LogWarning("User account locked out.");
+                _logger.LogWarning("User account locked out");
                 return RedirectToPage("./Lockout");
             }
 
@@ -107,7 +111,7 @@ public class LoginModel : PageModel
         /// </summary>
         [Required]
         [EmailAddress]
-        public string Email { get; set; }
+        public string Email { get; init; }
 
         /// <summary>
         ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
@@ -115,13 +119,13 @@ public class LoginModel : PageModel
         /// </summary>
         [Required]
         [DataType(DataType.Password)]
-        public string Password { get; set; }
+        public string Password { get; init; }
 
         /// <summary>
         ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
         ///     directly from your code. This API may change or be removed in future releases.
         /// </summary>
         [Display(Name = "Remember me?")]
-        public bool RememberMe { get; set; }
+        public bool RememberMe { get; init; }
     }
 }

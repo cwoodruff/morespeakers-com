@@ -4,7 +4,6 @@ using Microsoft.Extensions.Logging;
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models.Messages;
 using JosephGuadagno.AzureHelpers.Storage;
-using Queues = MoreSpeakers.Domain.Constants.Queues;
 
 namespace MoreSpeakers.Managers;
 
@@ -66,7 +65,7 @@ public class EmailSender: IEmailSender, Microsoft.AspNetCore.Identity.UI.Service
             ReplyToDisplayName = replyToAddress.DisplayName
         };
 
-        var queue = new Queue(_queueServiceClient, Queues.SendEmail);
+        var queue = new Queue(_queueServiceClient, Domain.Constants.Queues.SendEmail);
         await queue.AddMessageAsync(emailMessage);
     }
 

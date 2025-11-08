@@ -8,9 +8,8 @@ using MoreSpeakers.Domain.Models;
 namespace MoreSpeakers.Web.Pages.Profile;
 
 [Authorize]
-public class IndexModel(IUserManager userManager) : PageModel
+public class IndexModel(IUserManager userManager, ILogger<IndexModel> logger) : PageModel
 {
-    private readonly IUserManager _userManager = userManager;
 
     public User ProfileUser { get; set; } = null!;
     public IEnumerable<UserExpertise> UserExpertise { get; set; } = new List<UserExpertise>();
@@ -19,16 +18,27 @@ public class IndexModel(IUserManager userManager) : PageModel
 
     public async Task<IActionResult> OnGetAsync()
     {
-        var currentUser = await _userManager.GetUserAsync(User);
-        if (currentUser == null)
+        User? currentUser = null;
+        try
         {
-            return Challenge();
-        }
+            currentUser = await userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return Challenge();
+            }
 
-        ProfileUser = await _userManager.GetAsync(currentUser.Id);
-        UserExpertise = await _userManager.GetUserExpertisesForUserAsync(currentUser.Id);
-        SocialMedia = await _userManager.GetUserSocialMediaForUserAsync(currentUser.Id);
-        CanEdit = true; // User can always edit their own profile
+            ProfileUser = await userManager.GetAsync(currentUser.Id);
+            UserExpertise = await userManager.GetUserExpertisesForUserAsync(currentUser.Id);
+            SocialMedia = await userManager.GetUserSocialMediaForUserAsync(currentUser.Id);
+            CanEdit = true; // User can always edit their own profile
+
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error loading profile page. UserId: '{UserId}'", currentUser?.Id);
+            return RedirectToPage("/Profile/LoadingProblem",
+                new { UserId = currentUser?.Id ?? Guid.Empty });
+        }
 
         return Page();
     }

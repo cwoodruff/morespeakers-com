@@ -15,7 +15,7 @@ MoreSpeakers.com is a mentorship platform designed to help aspiring speakers in 
 - Track mentorship relationships
 
 ### For Experienced Speakers
-- Create mentor profiles highlighting expertise and available suppo~~~~rt
+- Create mentor profiles highlighting expertise and available support
 - Browse new speakers seeking mentorship
 - Offer guidance and assign yourself to new speakers
 - Manage multiple mentorship relationships
@@ -122,7 +122,7 @@ Check out the [Developer Startup](docs/developer-startup.md) for detailed instru
 
 ## Architecture Overview
 
-See [architecture_overview.md](docs/architecture_overview.md) for a detailed explanation of the system architecture, design decisions, and patterns used in this project.
+See [architecture.md](docs/architecture.md) for a detailed explanation of the system architecture, design decisions, and patterns used in this project.
 
 ## License
 

@@ -9,14 +9,17 @@ public class IndexModel : PageModel
 {
     private readonly IExpertiseManager _expertiseManager;
     private readonly IUserManager _userManager;
+    private readonly ILogger<IndexModel> _logger;
     
     public IndexModel(
         IExpertiseManager expertiseManager,
-        IUserManager userManager
+        IUserManager userManager,
+        ILogger<IndexModel> logger
         )
     {
         _expertiseManager = expertiseManager;
         _userManager = userManager;
+        _logger = logger;
     }
 
     public int NewSpeakersCount { get; set; }
@@ -27,17 +30,26 @@ public class IndexModel : PageModel
 
     public async Task OnGetAsync()
     {
-        // Get statistics
-        var stats = await _userManager.GetStatisticsForApplicationAsync();
+        try
+        {
+            // Get statistics
+            var stats = await _userManager.GetStatisticsForApplicationAsync();
         
-        NewSpeakersCount = stats.newSpeakers;
-        ExperiencedSpeakersCount = stats.experiencedSpeakers;
-        ActiveMentorshipsCount = stats.activeMentorships;
+            NewSpeakersCount = stats.newSpeakers;
+            ExperiencedSpeakersCount = stats.experiencedSpeakers;
+            ActiveMentorshipsCount = stats.activeMentorships;
 
-        // Get featured speakers (experienced speakers with profiles)
-        FeaturedSpeakers = await _userManager.GetFeaturedSpeakersAsync(6);
+            // Get featured speakers (experienced speakers with profiles)
+            FeaturedSpeakers = await _userManager.GetFeaturedSpeakersAsync(6);
 
-        // Get popular expertise areas
-        PopularExpertise = await _expertiseManager.GetPopularExpertiseAsync(8);
+            // Get popular expertise areas
+            PopularExpertise = await _expertiseManager.GetPopularExpertiseAsync(8);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error loading index page");
+            // TODO: Show toast?
+            throw;
+        }
     }
 }

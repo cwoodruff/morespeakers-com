@@ -19,8 +19,7 @@ public partial class RegisterModel : PageModel
     private readonly SignInManager<Data.Models.User> _signInManager;
     private readonly IExpertiseManager _expertiseManager;
     private readonly IUserManager _userManager;
-    private readonly IEmailSender _emailSender;
-    private readonly IRazorPartialToStringRenderer _stringRenderer;
+    private readonly ITemplatedEmailSender _templatedEmailSender;
     private readonly TelemetryClient _telemetryClient;
     private readonly ILogger<RegisterModel> _logger;
     
@@ -28,16 +27,14 @@ public partial class RegisterModel : PageModel
         SignInManager<Data.Models.User> signInManager,
         IExpertiseManager expertiseManager,
         IUserManager userManager,
-        IEmailSender emailSender,
-        IRazorPartialToStringRenderer stringRenderer,
+        ITemplatedEmailSender templatedEmailSender,
         TelemetryClient telemetryClient,
         ILogger<RegisterModel> logger)
     {
         _signInManager = signInManager;
         _expertiseManager = expertiseManager;
         _userManager = userManager;
-        _emailSender = emailSender;
-        _stringRenderer = stringRenderer;
+        _templatedEmailSender = templatedEmailSender;
         _telemetryClient = telemetryClient;
         _logger = logger;
     }
@@ -452,26 +449,18 @@ public partial class RegisterModel : PageModel
 
             await _userManager.EmptyAndAddSocialMediaForUserAsync(user.Id, socialMediaLinks);
 
-            // Send welcome email (mock implementation)
-            await SendWelcomeEmailAsync(user);
-
-            var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-            code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-            var callbackUrl = Url.Page(
-                "/Account/ConfirmEmail",
-                null,
-                new { area = "Identity", user.Id, code, S = "~//" },
-                Request.Scheme)!;
-
-            await _emailSender.QueueEmail(new System.Net.Mail.MailAddress(user.Email!, $"{user.FirstName} {user.LastName}"),
-                "Confirm your email",
-                $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
-
-            _telemetryClient.TrackEvent("ConfirmationEmailSent", new Dictionary<string, string>
+            // Send welcome email
+            var emailSent = await _templatedEmailSender.SendTemplatedEmail("~/EmailTemplates/WelcomeEmail.cshtml",
+                Domain.Constants.TelemetryEvents.WelcomeEmail,
+                "Welcome to MoreSpeakers.com - Your Speaking Journey Begins!",user, user);
+            if (!emailSent)
             {
-                { "UserId", user.Id.ToString() },
-                { "Email", user.Email }
-            });
+                _logger.LogError("Failed to send mentorship declined email to mentee");
+                // TODO: Create a visual indicator that the email was not sent
+            }
+
+            // TODO: Implement Email Confirmation
+            // Placeholder: Send Email Confirmation
 
             // Load data needed for registration completion (step 5) display
             await LoadFormDataAsync();
@@ -492,32 +481,5 @@ public partial class RegisterModel : PageModel
         HasValidationErrors = true;
         ValidationMessage = "Registration failed. Please check the errors and try again.";
         return Page();
-    }
-
-    /// <summary>
-    /// Sends a welcome email to the newly registered user
-    /// </summary>
-    private async Task SendWelcomeEmailAsync(User user)
-    {
-        const string emailSubject = "Welcome to MoreSpeakers.com - Your Speaking Journey Begins!";
-
-        try
-        {
-            var emailBody = await _stringRenderer.RenderPartialToStringAsync(HttpContext, "~/EmailTemplates/WelcomeEmail.cshtml", user);
-            await _emailSender.QueueEmail(new System.Net.Mail.MailAddress(user.Email!, $"{user.FirstName} {user.LastName}"),
-                emailSubject, emailBody);
-
-            _telemetryClient.TrackEvent(Domain.Constants.TelemetryEvents.WelcomeEmail, new Dictionary<string, string>
-            {
-                { "UserId", user.Id.ToString() },
-                { "Email", user.Email! }
-            });
-            _logger.LogInformation("Welcome email successfully sent to {Email}", user.Email);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to send welcome email to {Email}", user.Email);
-            // Don't throw - registration should still succeed even if email fails
-        }
     }
 }
