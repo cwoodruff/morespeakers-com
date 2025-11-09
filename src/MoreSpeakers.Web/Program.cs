@@ -77,6 +77,7 @@ builder.Services.AddRazorPages(options =>
     options.Conventions.AuthorizeAreaFolder("Identity", "/Account/Manage");
     options.Conventions.AuthorizeAreaPage("Identity", "/Account/Logout");
 });
+builder.Services.AddMvcCore().AddRazorViewEngine();
 builder.Services.AddControllersWithViews();
 
 // Add Azure Storage services

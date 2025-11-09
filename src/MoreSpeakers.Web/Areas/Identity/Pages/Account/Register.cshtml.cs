@@ -459,22 +459,19 @@ public partial class RegisterModel : PageModel
                 // TODO: Create a visual indicator that the email was not sent
             }
 
-            // TODO: Implement Email Confirmation
-            // Placeholder: Send Email Confirmation
-            var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-            code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
-            var callbackUrl = Url.Page(
-                "/Account/ConfirmEmail",
-                pageHandler: null,
-                values: new { area = "Identity", userId = user.Id, code = code },
-                protocol: Request.Scheme);
-            if (callbackUrl == null)
+            // Send Email Confirmation
+            var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            var confirmationLink = Url.Page("/Account/ConfirmEmail",
+                null,
+                new { area = "Identity", token, email = user.Email }, 
+                Request.Scheme);
+            if (confirmationLink == null)
             {
                 _logger.LogWarning("Failed to generate confirmation link for user {UserId}", user.Id);
             }
             else
             {
-                var confirmationModel = new UserConfirmationEmail { ConfirmationUrl = callbackUrl, User = user };
+                var confirmationModel = new UserConfirmationEmail { ConfirmationUrl = confirmationLink, User = user };
                 emailSent = await _templatedEmailSender.SendTemplatedEmail("~/EmailTemplates/ConfirmUserEmail.cshtml",
                     Domain.Constants.TelemetryEvents.EmailConfirmation,
                     "Welcome to MoreSpeakers.com - Let's confirm your email!", user, confirmationModel);

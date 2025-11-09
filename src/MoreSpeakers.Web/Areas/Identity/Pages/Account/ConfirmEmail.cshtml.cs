@@ -30,7 +30,7 @@ public class ConfirmEmail : PageModel
     public async Task OnGet()
     {
         var user = await _userManager.FindByEmailAsync(Email);
-        if (user == null)
+        if (user is null)
         {
             WasSuccessful = false;
             return;

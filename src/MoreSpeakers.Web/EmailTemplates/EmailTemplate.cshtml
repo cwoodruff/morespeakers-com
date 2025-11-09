@@ -1,54 +1,7 @@
-@page
 @model MoreSpeakers.Domain.Models.User
 
 @{
-    Layout = null;
+    Layout = "~/Pages/Shared/_EmailLayout.cshtml";
 }
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <title></title>
-    <style>
-        body { font-family: 'Inter', Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: linear-gradient(135deg, #fd7e14 0%, #e55d0e 100%); color: white; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
-        .content { background: white; padding: 30px; border-radius: 0 0 8px 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-        .badge { background: #fd7e14; color: white; padding: 8px 16px; border-radius: 20px; display: inline-block; font-size: 14px; font-weight: bold; }
-        .next-steps { background: #f8f9fa; padding: 20px; border-radius: 6px; margin: 20px 0; }
-        .step { display: flex; align-items: center; margin: 15px 0; }
-        .step-number { background: #fd7e14; color: white; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px; font-weight: bold; }
-        .btn { background: #fd7e14; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; font-weight: bold; }
-        .footer { text-align: center; margin-top: 30px; color: #666; font-size: 14px; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>🎤 Welcome from MoreSpeakers.com!</h1>
-            <p>Your speaking journey starts here</p>
-        </div>
-        
-        <div class="content">
-            <!-- Content goes here, don't forget to update the model above -->
-            
-            <h3>🤝 Community Guidelines</h3>
-            <p>We're building a supportive and inclusive community. Please be respectful, helpful, and authentic in all your interactions.</p>
-
-        </div>
-
-        <div class="footer">
-            <p>
-                <strong>MoreSpeakers.com</strong><br>
-                Connecting speakers, sharing knowledge, building community<br>
-                <a href="mailto:support@morespeakers.com">support@morespeakers.com</a>
-            </p>
-            <p style="font-size: 12px; color: #999;">
-                You received this email because you registered an account at MoreSpeakers.com.<br>
-                If you have any questions, please contact our support team.
-            </p>
-        </div>
-    </div>
-</body>
-</html>"
+<!-- Content goes here, don't forget to update the model above -->
