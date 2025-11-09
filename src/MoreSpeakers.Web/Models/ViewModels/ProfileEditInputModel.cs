@@ -1,5 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 
+using MoreSpeakers.Domain.Validation;
+
 namespace MoreSpeakers.Web.Models.ViewModels;
 
 public class ProfileEditInputModel
@@ -14,8 +16,9 @@ public class ProfileEditInputModel
     [Display(Name = "Last Name")]
     public string LastName { get; set; } = string.Empty;
 
+    [PhoneWithCountryCode]
     [Phone]
-    [Display(Name = "Phone Number")]
+    [Display(Name = "Country Code + Phone Number")]
     public string PhoneNumber { get; set; } = string.Empty;
 
     [StringLength(6000)]

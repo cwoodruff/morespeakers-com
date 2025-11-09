@@ -1,6 +1,8 @@
 #nullable disable
 using System.ComponentModel.DataAnnotations;
 
+using MoreSpeakers.Domain.Validation;
+
 namespace MoreSpeakers.Web.Areas.Identity.Pages.Account;
 
 public partial class RegisterModel
@@ -36,8 +38,9 @@ public partial class RegisterModel
         public string LastName { get; set; }
 
         [Required]
+        [PhoneWithCountryCode]
         [Phone]
-        [Display(Name = "Phone Number")]
+        [Display(Name = "Country Code + Phone Number")]
         public string PhoneNumber { get; set; }
 
         [Required]

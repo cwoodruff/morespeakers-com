@@ -300,8 +300,8 @@ public partial class RegisterModel : PageModel
                 // Phone required and basic format validation (numbers, spaces, dashes, parentheses, leading +)
                 if (string.IsNullOrWhiteSpace(Input.PhoneNumber))
                 {
-                    ModelState.AddModelError("Input.PhoneNumber", "Phone number is required.");
-                    ModelState.AddModelError("", "Phone number is required.");
+                    ModelState.AddModelError("Input.PhoneNumber", "Phone number with country code is required.");
+                    ModelState.AddModelError("", "Phone number with country code is required.");
                 }
                 else
                 {
@@ -310,17 +310,17 @@ public partial class RegisterModel : PageModel
                     // Reject if contains letters
                     if (phone.Any(char.IsLetter))
                     {
-                        ModelState.AddModelError("Input.PhoneNumber", "Please enter a valid phone number.");
-                        ModelState.AddModelError("", "Please enter a valid phone number.");
+                        ModelState.AddModelError("Input.PhoneNumber", "Please enter a valid phone number with country code.");
+                        ModelState.AddModelError("", "Please enter a valid phone number with country code.");
                     }
                     else
                     {
-                        // Ensure at least 10 digits present
+                        // Ensure at least 11 digits present with country code
                         var digitCount = phone.Count(char.IsDigit);
-                        if (digitCount < 10)
+                        if (digitCount < 11)
                         {
-                            ModelState.AddModelError("Input.PhoneNumber", "Phone number must contain at least 10 digits.");
-                            ModelState.AddModelError("", "Phone number must contain at least 10 digits.");
+                            ModelState.AddModelError("Input.PhoneNumber", "Phone number with country code must contain at least 11 digits.");
+                            ModelState.AddModelError("", "Phone number with country code must contain at least 11 digits.");
                         }
                     }
                 }
