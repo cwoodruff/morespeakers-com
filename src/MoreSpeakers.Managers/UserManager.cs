@@ -53,6 +53,11 @@ public class UserManager: IUserManager
         return await _dataStore.GenerateEmailConfirmationTokenAsync(user);
     }
 
+    public async Task<bool> ConfirmEmailAsync(User user, string token)
+    {
+        var result = await _dataStore.ConfirmEmailAsync(user, token);
+        return result.Succeeded;
+    }
 
     // ------------------------------------------
     // Application Methods

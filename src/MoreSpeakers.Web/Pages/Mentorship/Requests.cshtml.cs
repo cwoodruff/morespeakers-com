@@ -114,7 +114,7 @@ public class RequestsModel : PageModel
             return BadRequest();
         }
 
-        var emailSent = await _templatedEmailSender.SendTemplatedEmail("~/EmailTemplates/MentorshipRequestAccepted-FromMentee.cshtml",
+        var emailSent = await _templatedEmailSender.SendTemplatedEmail("~/EmailTemplates/MentorshipRequestAcceptedFromMentee.cshtml",
             Domain.Constants.TelemetryEvents.MentorshipAccepted,
             "Your mentorship request was accepted", mentorship.Mentee, mentorship
             );
@@ -124,7 +124,7 @@ public class RequestsModel : PageModel
             // TODO: Create a visual indicator that the email was not sent
         }
 
-        emailSent = await _templatedEmailSender.SendTemplatedEmail("~/EmailTemplates/MentorshipRequestAccepted-ToMentor.cshtml",
+        emailSent = await _templatedEmailSender.SendTemplatedEmail("~/EmailTemplates/MentorshipRequestAcceptedToMentor.cshtml",
             Domain.Constants.TelemetryEvents.MentorshipAccepted,
             "A mentorship was accepted", mentorship.Mentor, mentorship
             );
@@ -160,7 +160,7 @@ public class RequestsModel : PageModel
                 return BadRequest();
             }
 
-            var emailSent = await _templatedEmailSender.SendTemplatedEmail("~/EmailTemplates/MentorshipRequestDeclined-FromMentee.cshtml",
+            var emailSent = await _templatedEmailSender.SendTemplatedEmail("~/EmailTemplates/MentorshipRequestDeclinedFromMentee.cshtml",
                 Domain.Constants.TelemetryEvents.MentorshipDeclined,
                 "Your mentorship request was declined", mentorship.Mentee, mentorship
                 );
@@ -170,7 +170,7 @@ public class RequestsModel : PageModel
                 // TODO: Create a visual indicator that the email was not sent
             }
 
-            emailSent = await _templatedEmailSender.SendTemplatedEmail("~/EmailTemplates/MentorshipRequestDeclined-ToMentor.cshtml",
+            emailSent = await _templatedEmailSender.SendTemplatedEmail("~/EmailTemplates/MentorshipRequestDeclinedToMentor.cshtml",
                 Domain.Constants.TelemetryEvents.MentorshipDeclined,
                 "A mentorship request was declined", mentorship.Mentor, mentorship
                 );
@@ -366,7 +366,7 @@ public class RequestsModel : PageModel
         }
 
         // Send emails to both mentee and mentor
-        var emailSent = await _templatedEmailSender.SendTemplatedEmail("~/EmailTemplates/MentorshipRequestCancelled-FromMentee.cshtml",
+        var emailSent = await _templatedEmailSender.SendTemplatedEmail("~/EmailTemplates/MentorshipRequestCancelledFromMentee.cshtml",
             Domain.Constants.TelemetryEvents.MentorshipCancelled,
             "Your mentorship request was cancelled", mentorship.Mentee, mentorship);
         if (!emailSent)
@@ -375,7 +375,7 @@ public class RequestsModel : PageModel
             // TODO: Create a visual indicator that the email was not sent
         }
 
-        emailSent = await _templatedEmailSender.SendTemplatedEmail("~/EmailTemplates/MentorshipRequestCancelled-ToMentor.cshtml",
+        emailSent = await _templatedEmailSender.SendTemplatedEmail("~/EmailTemplates/MentorshipRequestCancelledToMentor.cshtml",
             Domain.Constants.TelemetryEvents.MentorshipCancelled,
             "A mentorship request was cancelled", mentorship.Mentor, mentorship);
         if (!emailSent)

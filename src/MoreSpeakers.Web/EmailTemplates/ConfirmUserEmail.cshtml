@@ -1,5 +1,5 @@
 @page
-@model MoreSpeakers.Domain.Models.Mentorship
+@model MoreSpeakers.Domain.Models.UserConfirmationEmail
 
 @{
     Layout = null;
@@ -32,6 +32,13 @@
         
         <div class="content">
             <!-- Content goes here, don't forget to update the model above -->
+            <h2>Hello @Model.User.FullName!</h2>
+            <p>Thank you for registering with MoreSpeakers.com. We're excited to have you on board.</p>
+            
+            Now that you registered for an account, you can start sharing your knowledge and experiences with the world. 
+            In order to take the next step in your journey, please confirm your email address.  We promise we won't spam you.
+            
+            <a href="@Model.ConfirmationUrl" class="btn">Confirm Email</a>
             
             <h3>🤝 Community Guidelines</h3>
             <p>We're building a supportive and inclusive community. Please be respectful, helpful, and authentic in all your interactions.</p>

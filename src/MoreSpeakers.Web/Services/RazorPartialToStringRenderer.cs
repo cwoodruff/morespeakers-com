@@ -33,21 +33,25 @@ public class RazorPartialToStringRenderer : IRazorPartialToStringRenderer
         }
         
         var actionContext = new ActionContext(httpContext, new RouteData(), new PageActionDescriptor());
-        var partial = FindView(actionContext, partialName);
+        //var partial = FindView(actionContext, partialName);
+        var partial = _viewEngine.FindView(actionContext, partialName, false);
         await using var output = new StringWriter();
+        ViewDataDictionary<TModel> viewDataDictionary =
+            new(new EmptyModelMetadataProvider(), new ModelStateDictionary());
+        TempDataDictionary tempDataDictionary = new(actionContext.HttpContext, _tempDataProvider);
+        viewDataDictionary.Model = model;
+        
+        
         var viewContext = new ViewContext(
             actionContext,
-            partial,
-            new ViewDataDictionary<TModel>(
-                metadataProvider: new EmptyModelMetadataProvider(),
-                modelState: new ModelStateDictionary()) { Model = model },
-            new TempDataDictionary(
-                actionContext.HttpContext,
-                _tempDataProvider),
+            partial.View,
+            viewDataDictionary,
+            tempDataDictionary,
             output,
             new HtmlHelperOptions()
         );
-        await partial.RenderAsync(viewContext);
+        
+        await partial.View.RenderAsync(viewContext);
         return output.ToString();
     }
 

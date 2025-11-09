@@ -452,7 +452,7 @@ public partial class RegisterModel : PageModel
             // Send welcome email
             var emailSent = await _templatedEmailSender.SendTemplatedEmail("~/EmailTemplates/WelcomeEmail.cshtml",
                 Domain.Constants.TelemetryEvents.WelcomeEmail,
-                "Welcome to MoreSpeakers.com - Your Speaking Journey Begins!",user, user);
+                "Welcome to MoreSpeakers.com - Your Speaking Journey Begins!", user, user);
             if (!emailSent)
             {
                 _logger.LogError("Failed to send mentorship declined email to mentee");
@@ -461,6 +461,28 @@ public partial class RegisterModel : PageModel
 
             // TODO: Implement Email Confirmation
             // Placeholder: Send Email Confirmation
+            var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            code = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(code));
+            var callbackUrl = Url.Page(
+                "/Account/ConfirmEmail",
+                pageHandler: null,
+                values: new { area = "Identity", userId = user.Id, code = code },
+                protocol: Request.Scheme);
+            if (callbackUrl == null)
+            {
+                _logger.LogWarning("Failed to generate confirmation link for user {UserId}", user.Id);
+            }
+            else
+            {
+                var confirmationModel = new UserConfirmationEmail { ConfirmationUrl = callbackUrl, User = user };
+                emailSent = await _templatedEmailSender.SendTemplatedEmail("~/EmailTemplates/ConfirmUserEmail.cshtml",
+                    Domain.Constants.TelemetryEvents.EmailConfirmation,
+                    "Welcome to MoreSpeakers.com - Let's confirm your email!", user, confirmationModel);
+                if (!emailSent)
+                {
+                    _logger.LogError("Failed to send email confirmation email to user {UserId}", user.Id);
+                }
+            }
 
             // Load data needed for registration completion (step 5) display
             await LoadFormDataAsync();
@@ -472,7 +494,6 @@ public partial class RegisterModel : PageModel
 
             // Return step 5 (confirmation) instead of redirecting away
             return Partial("_RegistrationContainer", this);
-            
         }
 
         // If we got this far, something failed, redisplay form with current state
