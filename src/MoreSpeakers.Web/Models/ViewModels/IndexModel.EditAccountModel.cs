@@ -1,5 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 
+using MoreSpeakers.Domain.Validation;
+
 namespace MoreSpeakers.Web.Pages.Account;
 
 public partial class IndexModel
@@ -21,8 +23,10 @@ public partial class IndexModel
         [Display(Name = "Email")]
         public string Email { get; set; } = string.Empty;
 
+        [Required]
+        [PhoneWithCountryCode]
         [Phone]
-        [Display(Name = "Phone Number")]
+        [Display(Name = "Country Code + Phone Number")]
         public string? PhoneNumber { get; set; }
 
         [Required]

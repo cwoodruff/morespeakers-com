@@ -43,7 +43,7 @@
             else if (field == "PhoneNumber")
             {
                 <input asp-for="Input.PhoneNumber" type="tel" class="form-control" value="@value"
-                       placeholder="Enter your phone number"/>
+                       placeholder="Enter your phone number with country cod"/>
                 <span asp-validation-for="Input.PhoneNumber" class="text-danger small"></span>
             }
             else if (field == "SessionizeUrl")
@@ -96,7 +96,7 @@
             "FirstName" => "First Name",
             "LastName" => "Last Name",
             "Email" => "Email Address",
-            "PhoneNumber" => "Phone Number",
+            "PhoneNumber" => "Country Code + Phone Number",
             "Bio" => "Biography",
             "Goals" => "Goals",
             "SessionizeUrl" => "Sessionize Profile URL",
