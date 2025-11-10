@@ -75,7 +75,13 @@ public class UserDataStore : IUserDataStore
 
     public async Task<IdentityResult> ConfirmEmailAsync(User user, string token)
     {
-        var identityUser = _mapper.Map<Data.Models.User>(user);
+        var identityUser = await _userManager.FindByIdAsync(user.Id.ToString());
+
+        if (identityUser == null)
+        {
+            return IdentityResult.Failed(new IdentityError { Description = "User not found" });       
+        }
+        
         return await _userManager.ConfirmEmailAsync(identityUser, token);
     }
 

@@ -1,6 +1,9 @@
+using System.Text;
+
 using Microsoft.ApplicationInsights;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.WebUtilities;
 
 using MoreSpeakers.Domain.Interfaces;
 
@@ -36,7 +39,8 @@ public class ConfirmEmail : PageModel
             return;
         }
 
-        var result = await _userManager.ConfirmEmailAsync(user, Token);
+        var decodedToken = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(Token));
+        var result = await _userManager.ConfirmEmailAsync(user, decodedToken);
         WasSuccessful = result;
     }
 }

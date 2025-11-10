@@ -461,9 +461,10 @@ public partial class RegisterModel : PageModel
 
             // Send Email Confirmation
             var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
             var confirmationLink = Url.Page("/Account/ConfirmEmail",
                 null,
-                new { area = "Identity", token, email = user.Email }, 
+                new { area = "Identity", token = encodedToken, email = user.Email }, 
                 Request.Scheme);
             if (confirmationLink == null)
             {
