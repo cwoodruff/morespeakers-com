@@ -17,6 +17,7 @@ public interface IUserDataStore: IDataStorePrimaryKeyGuid<User>
     Task<User?> FindByEmailAsync(string email);
     Task<User?> GetUserIdAsync(ClaimsPrincipal user);
     Task<string> GenerateEmailConfirmationTokenAsync(User user);
+    Task<IdentityResult> ConfirmEmailAsync(User user, string token);
     
     // ------------------------------------------
     // Application Methods

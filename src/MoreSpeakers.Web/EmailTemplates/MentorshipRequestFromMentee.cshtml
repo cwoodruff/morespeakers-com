@@ -1,0 +1,10 @@
+@model MoreSpeakers.Domain.Models.Mentorship
+
+@{
+    Layout = "~/Pages/Shared/_EmailLayout.cshtml";
+}
+
+<!-- Content goes here, don't forget to update the model above -->
+Hey @Model.Mentee.FullName, 
+
+We wanted to let you know that we received your mentorship request. The request has been sent to @Model.Mentor.FullName.

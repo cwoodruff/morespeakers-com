@@ -73,6 +73,18 @@ public class UserDataStore : IUserDataStore
         return await _userManager.GenerateEmailConfirmationTokenAsync(identityUser);
     }
 
+    public async Task<IdentityResult> ConfirmEmailAsync(User user, string token)
+    {
+        var identityUser = await _userManager.FindByIdAsync(user.Id.ToString());
+
+        if (identityUser == null)
+        {
+            return IdentityResult.Failed(new IdentityError { Description = "User not found" });       
+        }
+        
+        return await _userManager.ConfirmEmailAsync(identityUser, token);
+    }
+
 
     // ------------------------------------------
     // Application Methods
@@ -343,7 +355,7 @@ public class UserDataStore : IUserDataStore
     {
         try
         {
-            var userExperiences = await _context.UserExpertise.ToListAsync();
+            var userExperiences = await _context.UserExpertise.Where(u => u.UserId == userId).ToListAsync();
             foreach (var userExpertise in userExperiences)
             {
                 _context.UserExpertise.Remove(userExpertise);
@@ -365,7 +377,7 @@ public class UserDataStore : IUserDataStore
     {
         try
         {
-            var socialMediaLinks = await _context.SocialMedia.ToListAsync();
+            var socialMediaLinks = await _context.SocialMedia.Where(u => u.UserId == userId).ToListAsync();
             foreach (Models.SocialMedia socialMediaLink in socialMediaLinks)
             {
                 _context.SocialMedia.Remove(socialMediaLink);

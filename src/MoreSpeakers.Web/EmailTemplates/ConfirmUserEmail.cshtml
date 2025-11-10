@@ -1,0 +1,14 @@
+@model MoreSpeakers.Domain.Models.UserConfirmationEmail
+
+@{
+    Layout = "~/Pages/Shared/_EmailLayout.cshtml";
+}
+
+<!-- Content goes here, don't forget to update the model above -->
+<h2>Hello @Model.User.FullName!</h2>
+<p>Thank you for registering with MoreSpeakers.com. We're excited to have you on board.</p>
+
+Now that you registered for an account, you can start sharing your knowledge and experiences with the world. 
+In order to take the next step in your journey, please confirm your email address.  We promise we won't spam you.
+
+<a href="@Model.ConfirmationUrl" class="btn">Confirm Email</a>

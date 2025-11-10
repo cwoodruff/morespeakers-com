@@ -38,7 +38,7 @@
                                 </div>
                                 <div>
                                     <h5 class="card-title">@Model.Mentor.FullName</h5>
-                                    <p class="badge bg-success">@Model.Mentor.SpeakerType.Name</p>
+                                    <p class="badge bg-success">@Model.Mentor.SpeakerType.ToFriendlyName()</p>
                                     @if (!string.IsNullOrEmpty(Model.Mentor.MentorshipFocus))
                                     {
                                         <p class="small mb-0"><strong>Focus:</strong> @Model.Mentor.MentorshipFocus</p>

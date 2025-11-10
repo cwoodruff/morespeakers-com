@@ -202,7 +202,7 @@ public class BrowseModel : PageModel
         }
         
         // Send emails to both mentee and mentor
-        var emailSent = await _templatedEmailSender.SendTemplatedEmail("~/EmailTemplates/MentorshipRequest-FromMentee.cshtml",
+        var emailSent = await _templatedEmailSender.SendTemplatedEmail("~/EmailTemplates/MentorshipRequestFromMentee.cshtml",
             Domain.Constants.TelemetryEvents.MentorshipRequested,
             "Your mentorship request was sent", mentorship.Mentee, mentorship);
         if (!emailSent)
@@ -211,7 +211,7 @@ public class BrowseModel : PageModel
             // TODO: Create a visual indicator that the email was not sent
         }
 
-        emailSent = await _templatedEmailSender.SendTemplatedEmail("~/EmailTemplates/MentorshipRequest-ToMentor.cshtml",
+        emailSent = await _templatedEmailSender.SendTemplatedEmail("~/EmailTemplates/MentorshipRequestToMentor.cshtml",
             Domain.Constants.TelemetryEvents.MentorshipRequested,
             "A mentorship was requested", mentorship.Mentor, mentorship);
         if (!emailSent)
