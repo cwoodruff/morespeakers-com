@@ -144,7 +144,11 @@
             </div>
 
             <div id="mentor-results">
-                @await Html.PartialAsync("_MentorResults.cshtml", Model.ViewModel)
+                @await Html.PartialAsync("~/Pages/Shared/_SpeakerResults.cshtml", new SpeakerResultsViewModel
+                {
+                    SearchType = SearchType.Mentors,
+                    Speakers = Model.ViewModel.Mentors
+                })
             </div>
         </div>
     </div>

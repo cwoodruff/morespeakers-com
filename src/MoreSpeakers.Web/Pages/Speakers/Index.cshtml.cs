@@ -1,10 +1,10 @@
-using System.Security.Claims;
-
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models;
+using MoreSpeakers.Web.Models;
+using MoreSpeakers.Web.Models.ViewModels;
 using MoreSpeakers.Web.Services;
 
 namespace MoreSpeakers.Web.Pages.Speakers;
@@ -14,13 +14,19 @@ public class IndexModel : PageModel
     private const int PageSize = 12;
     private readonly IExpertiseManager _expertiseManager;
     private readonly IUserManager _userManager;
+    private readonly IMentoringManager _mentoringManager;
+    private readonly ITemplatedEmailSender _templatedEmailSender;
     private readonly IRazorPartialToStringRenderer _partialRenderer;
     private readonly ILogger<IndexModel> _logger;
 
-    public IndexModel(IExpertiseManager expertiseManager, IUserManager userManager, IRazorPartialToStringRenderer partialRenderer, ILogger<IndexModel> logger)
+    public IndexModel(IExpertiseManager expertiseManager, IUserManager userManager, 
+        IMentoringManager mentoringManager, ITemplatedEmailSender templatedEmailSender,
+        IRazorPartialToStringRenderer partialRenderer, ILogger<IndexModel> logger)
     {
         _expertiseManager = expertiseManager;
         _userManager = userManager;
+        _mentoringManager = mentoringManager;
+        _templatedEmailSender = templatedEmailSender;      
         _partialRenderer = partialRenderer;       
         _logger = logger;
     }
@@ -42,7 +48,7 @@ public class IndexModel : PageModel
     
     [BindProperty(SupportsGet = true)] public int TotalPages { get; set; }
     
-    [BindProperty(SupportsGet = true)] public Models.ViewModels.SearchResultCountViewModel SearchResultsCount { get; set; } = new Models.ViewModels.SearchResultCountViewModel();
+    [BindProperty(SupportsGet = true)] public SearchResultCountViewModel SearchResultsCount { get; set; } = new Models.ViewModels.SearchResultCountViewModel();
 
     public async Task<IActionResult> OnGetAsync()
     {
@@ -60,7 +66,7 @@ public class IndexModel : PageModel
             CurrentPage = searchResults.CurrentPage;
             Speakers = searchResults.Speakers;
 
-            var searchResultsModel = new Models.ViewModels.SearchResultCountViewModel
+            var searchResultsModel = new SearchResultCountViewModel
             {
                 AreFiltersApplied =
                     !string.IsNullOrEmpty(SearchTerm) || ExpertiseFilter.HasValue || SpeakerTypeFilter.HasValue,
@@ -75,7 +81,13 @@ public class IndexModel : PageModel
                     await _partialRenderer.RenderPartialToStringAsync(
                         "~/Pages/Speakers/_SearchResultCountPartial.cshtml", SearchResultsCount);
                 var speakerContainerHtml =
-                    await _partialRenderer.RenderPartialToStringAsync("_SpeakersContainer", this);
+                    await _partialRenderer.RenderPartialToStringAsync("_SpeakerResults", new SpeakerResultsViewModel
+                    {
+                        CurrentPage = CurrentPage,
+                        TotalPages = TotalPages,
+                        SearchType = SearchType.Speakers,
+                        Speakers = Speakers
+                    });
 
                 return Content(searchResultContainerHtml + speakerContainerHtml, "text/html");
             }
@@ -89,31 +101,100 @@ public class IndexModel : PageModel
         return Page();
     }
 
-    public async Task<IActionResult> OnPostRequestMentorshipAsync(Guid mentorId)
+    public async Task<IActionResult> OnGetRequestModalAsync(Guid mentorId, MentorshipType type)
     {
-        if (!User.Identity?.IsAuthenticated == true)
-            return new JsonResult(new { error = "Please log in to request mentorship." });
-
-        // TODO: Implement Request Membership logic here
+        User? currentUser = null;
         
         try
         {
-            // Get current user ID (you'll need to implement this)
-            var currentUserId = await _userManager.GetUserIdAsync(User);
-            if (currentUserId == null)
+            currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
             {
-                return new JsonResult(new { error = "Unable to identify current user." });
+                return Unauthorized();
             }
 
-            // Here you would call your mentorship service
-            // var success = await _mentorshipService.RequestMentorshipAsync(currentUserId, mentorId);
+            var targetUser = await _mentoringManager.GetMentorAsync(mentorId);
 
-            // For now, return success (implement actual logic)
-            return new JsonResult(new { success = "Mentorship request sent successfully!" });
+            if (targetUser == null) return NotFound();
+
+            // Get expertise areas for the target user
+            var expertise = targetUser.UserExpertise
+                .Select(ue => ue.Expertise)
+                .OrderBy(e => e.Name)
+                .ToList();
+
+            var viewModel = new MentorshipRequestViewModel
+            {
+                Mentor = targetUser,
+                Mentee = currentUser,
+                MentorshipType = type,
+                AvailableExpertise = expertise
+            };
+
+            return Partial("~/Pages/Shared/_RequestModal.cshtml", viewModel);
         }
         catch (Exception ex)
         {
-            return new JsonResult(new { error = "An error occurred while sending the mentorship request." });
+            _logger.LogError(ex, "Error loading mentor request modal for user '{User}'", currentUser?.Id);
+            throw;
         }
+    }
+    public async Task<IActionResult> OnPostSubmitRequestAsync(Guid targetId, MentorshipType type,
+        string? requestMessage, List<int>? selectedExpertiseIds, string? preferredFrequency)
+    {
+        User? currentUser = null;
+        Domain.Models.Mentorship? mentorship;
+
+        try
+        {
+            currentUser = await _userManager.GetUserAsync(User);
+            if (currentUser == null)
+            {
+                return Unauthorized();
+            }
+
+            // Check if can request
+            var canRequest = await _mentoringManager.CanRequestMentorshipAsync(currentUser.Id, targetId);
+            if (!canRequest)
+            {
+                return Content(
+                    "<div class='alert alert-warning'>You already have a pending or active connection with this person.</div>");
+            }
+
+            mentorship = await _mentoringManager.RequestMentorshipWithDetailsAsync(
+                currentUser.Id, targetId, type, requestMessage, selectedExpertiseIds, preferredFrequency);
+
+            if (mentorship == null)
+            {
+                return Content("<div class='alert alert-danger'>Failed to send request. Please try again.</div>");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error sending mentorship request for user '{User}'", currentUser?.Id);
+            throw;
+        }
+        
+        // Send emails to both mentee and mentor
+        var emailSent = await _templatedEmailSender.SendTemplatedEmail("~/EmailTemplates/MentorshipRequestFromMentee.cshtml",
+            Domain.Constants.TelemetryEvents.MentorshipRequested,
+            "Your mentorship request was sent", mentorship.Mentee, mentorship);
+        if (!emailSent)
+        {
+            _logger.LogError("Failed to send mentorship request email to mentee");
+            // TODO: Create a visual indicator that the email was not sent
+        }
+
+        emailSent = await _templatedEmailSender.SendTemplatedEmail("~/EmailTemplates/MentorshipRequestToMentor.cshtml",
+            Domain.Constants.TelemetryEvents.MentorshipRequested,
+            "A mentorship was requested", mentorship.Mentor, mentorship);
+        if (!emailSent)
+        {
+            _logger.LogError("Failed to send mentorship request email to mentor");
+            // TODO: Create a visual indicator that the email was not sent
+        }
+
+        return Partial("_RequestSuccess", mentorship);
+
     }
 }
