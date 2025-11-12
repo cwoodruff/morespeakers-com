@@ -113,7 +113,7 @@ public class BrowseModel : PageModel
                 AvailableExpertise = expertise
             };
 
-            return Partial("_RequestModal", viewModel);
+            return Partial("~/Pages/Shared/_RequestModal.cshtml", viewModel);
         }
         catch (Exception ex)
         {
