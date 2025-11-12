@@ -15,81 +15,88 @@
                     put '<div class=&quot;alert alert-success alert-sm&quot;>Mentorship request sent!</div>' into event.detail.target
                 else if event.detail.xhr.responseText.includes('error') then
                     put '<div class=&quot;alert alert-danger alert-sm&quot;>Unable to send request. Please try again.</div>' into event.detail.target">
-<div class="row">
-    <div class="col-12">
-        <h1 class="mb-4">
-            <i class="bi bi-people me-2"></i>
-            Browse Speakers
-        </h1>
-        <p class="lead text-muted">Discover speakers in the technology community and connect with mentors or new
-            speakers.</p>
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">
+                <i class="bi bi-people me-2"></i>
+                Browse Speakers
+            </h1>
+            <p class="lead text-muted">Discover speakers in the technology community and connect with mentors or new
+                speakers.</p>
+        </div>
     </div>
-</div>
 
-<!-- Search and Filter Section -->
-<div class="border my-3 p-3 bg-body-tertiary">
-    <form method="get" hx-get="/Speakers/Index" hx-target="#speakers-container" hx-indicator="#loading" hx-swap="morph" hx-trigger="keyup changed delay:500ms from:#searchTerm, change from:#speakerTypeFilter, change from:#expertiseFilter, change from:#sortBy">
-        <div class="row">
-            <div class="col-md-6 mb-3">
-                <label for="searchTerm" class="form-label">Search</label>
-                <div class="input-group">
-                    <input type="text"
-                           id="searchTerm"
-                           name="searchTerm"
-                           value="@Model.SearchTerm"
-                           class="form-control"
-                           placeholder="Search by name, bio, or expertise...">
-                    <button type="submit" class="btn btn-primary" aria-label="Search">
-                        <i class="bi bi-search"></i>
-                    </button>
+    <!-- Search and Filter Section -->
+    <div class="border my-3 p-3 bg-body-tertiary">
+        <form method="get" hx-get="/Speakers/Index" hx-target="#speakers-container" hx-indicator="#loading" hx-swap="morph" hx-trigger="keyup changed delay:500ms from:#searchTerm, change from:#speakerTypeFilter, change from:#expertiseFilter, change from:#sortBy">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="searchTerm" class="form-label">Search</label>
+                    <div class="input-group">
+                        <input type="text"
+                               id="searchTerm"
+                               name="searchTerm"
+                               value="@Model.SearchTerm"
+                               class="form-control"
+                               placeholder="Search by name, bio, or expertise...">
+                        <button type="submit" class="btn btn-primary" aria-label="Search">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label for="speakerTypeFilter" class="form-label">Speaker Type</label>
+                    <select id="speakerTypeFilter" name="speakerTypeFilter" class="form-select">
+                        <option value="">All Speakers</option>
+                        <option value="1" selected="@(Model.SpeakerTypeFilter == (int) SpeakerTypeEnum.NewSpeaker)">@SpeakerTypeEnum.NewSpeaker.GetDescription()</option>
+                        <option value="2" selected="@(Model.SpeakerTypeFilter == (int) SpeakerTypeEnum.ExperiencedSpeaker)">@SpeakerTypeEnum.ExperiencedSpeaker.GetDescription()</option>
+                    </select>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <label for="expertiseFilter" class="form-label">Expertise Area</label>
+                    <select id="expertiseFilter" name="expertiseFilter" class="form-select">
+                        <option value="">All Expertise</option>
+                        @foreach (var expertise in Model.AllExpertise)
+                        {
+                            <option value="@expertise.Id" selected="@(Model.ExpertiseFilter == expertise.Id)">
+                                @expertise.Name
+                            </option>
+                        }
+                    </select>
                 </div>
             </div>
-            <div class="col-md-3 mb-3">
-                <label for="speakerTypeFilter" class="form-label">Speaker Type</label>
-                <select id="speakerTypeFilter" name="speakerTypeFilter" class="form-select">
-                    <option value="">All Speakers</option>
-                    <option value="1" selected="@(Model.SpeakerTypeFilter == (int) SpeakerTypeEnum.NewSpeaker)">@SpeakerTypeEnum.NewSpeaker.GetDescription()</option>
-                    <option value="2" selected="@(Model.SpeakerTypeFilter == (int) SpeakerTypeEnum.ExperiencedSpeaker)">@SpeakerTypeEnum.ExperiencedSpeaker.GetDescription()</option>
-                </select>
-            </div>
-            <div class="col-md-3 mb-3">
-                <label for="expertiseFilter" class="form-label">Expertise Area</label>
-                <select id="expertiseFilter" name="expertiseFilter" class="form-select">
-                    <option value="">All Expertise</option>
-                    @foreach (var expertise in Model.AllExpertise)
-                    {
-                        <option value="@expertise.Id" selected="@(Model.ExpertiseFilter == expertise.Id)">
-                            @expertise.Name
-                        </option>
-                    }
-                </select>
-            </div>
-        </div>
 
-        <div class="row">
-            <div class="mb-2 col">
-                @await Html.PartialAsync("_SearchResultCountPartial", Model.SearchResultsCount)
+            <div class="row">
+                <div class="mb-2 col">
+                    @await Html.PartialAsync("_SearchResultCountPartial", Model.SearchResultsCount)
+                </div>
+                <div class="mb-2 col-auto">
+                    <label for="sortBy" class="form-label me-2">Sort by:</label>
+                    <select id="sortBy" name="sortBy" class="form-select d-inline-block w-auto" asp-for="@Model.SortBy" asp-items="Html.GetEnumSelectList<Domain.Models.SpeakerSearchOrderBy>()">
+                    </select>
+                </div>
             </div>
-            <div class="mb-2 col-auto">
-                <label for="sortBy" class="form-label me-2">Sort by:</label>
-                <select id="sortBy" name="sortBy" class="form-select d-inline-block w-auto" asp-for="@Model.SortBy" asp-items="Html.GetEnumSelectList<Domain.Models.SpeakerSearchOrderBy>()">
-                </select>
-            </div>
-        </div>
-    </form>
-</div>
-
-<!-- Loading Indicator -->
-<div id="loading" class="text-center my-4" style="display: none;">
-    <div class="spinner-border text-primary" role="status">
-        <span class="visually-hidden">Loading...</span>
+        </form>
     </div>
-    <p class="mt-2 text-muted">Searching speakers...</p>
-</div>
 
-<!-- Speakers Grid -->
-<div id="speakers-container">
-    @await Html.PartialAsync("_SpeakersContainer", Model)
-</div>
+    <!-- Loading Indicator -->
+    <div id="loading" class="text-center my-4" style="display: none;">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-2 text-muted">Searching speakers...</p>
+    </div>
 
+    <!-- Speakers Grid -->
+    <div id="speakers-container">
+        @await Html.PartialAsync("~/Pages/Shared/_SpeakerResults.cshtml", new SpeakerResultsViewModel
+        {
+            CurrentPage = Model.CurrentPage,
+            TotalPages = Model.TotalPages,
+            SearchType = SearchType.Speakers,
+            Speakers = Model.Speakers
+        })
+    </div>
+    <!-- Modal Container -->
+    <div id="modal-container"></div>
 </div>
