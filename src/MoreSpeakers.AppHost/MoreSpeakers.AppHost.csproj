@@ -1,7 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
-
-    <Sdk Name="Aspire.AppHost.Sdk" Version="9.5.2" />
-
+<Project Sdk="Aspire.AppHost.Sdk/13.0.0">
     <PropertyGroup>
         <OutputType>Exe</OutputType>
         <TargetFramework>net10.0</TargetFramework>
@@ -16,6 +13,7 @@
         <Copyright>Copyright ©2014-2025, Woodruff Solutions, LLC</Copyright>
         <Title>More Speakers - Application Hosts</Title>
         <UserSecretsId>b947c459-0334-4920-8005-4e4d658c9169</UserSecretsId>
+        <LangVersion>default</LangVersion>
     </PropertyGroup>
 
     <PropertyGroup>
@@ -46,11 +44,11 @@
         <DocumentationFile>bin\Release\MoreSpeakers.Web.xml</DocumentationFile>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="Aspire.Hosting.AppHost" Version="9.5.2" />
-        <PackageReference Include="Aspire.Hosting.Azure.Functions" Version="9.5.1-preview.1.25502.11" />
-        <PackageReference Include="Aspire.Hosting.Azure.Storage" Version="9.5.2" />
-        <PackageReference Include="Aspire.Hosting.SqlServer" Version="9.5.2" />
-        <PackageReference Include="Aspire.Microsoft.EntityFrameworkCore.SqlServer" Version="9.5.2" />
+        <PackageReference Include="Aspire.Hosting.AppHost" Version="13.0.0" />
+        <PackageReference Include="Aspire.Hosting.Azure.Functions" Version="13.0.0-preview.1.25560.3" />
+        <PackageReference Include="Aspire.Hosting.Azure.Storage" Version="13.0.0" />
+        <PackageReference Include="Aspire.Hosting.SqlServer" Version="13.0.0" />
+        <PackageReference Include="Aspire.Microsoft.EntityFrameworkCore.SqlServer" Version="13.0.0" />
     </ItemGroup>
 
     <ItemGroup>
