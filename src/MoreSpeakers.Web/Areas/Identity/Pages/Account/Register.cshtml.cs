@@ -499,6 +499,6 @@ public partial class RegisterModel : PageModel
         CurrentStep = Models.RegistrationProgressions.SpeakerProfileNeeded; // Reset to first step on major failure
         HasValidationErrors = true;
         ValidationMessage = "Registration failed. Please check the errors and try again.";
-        return Page();
+        return Partial("_RegistrationContainer", this);
     }
 }
