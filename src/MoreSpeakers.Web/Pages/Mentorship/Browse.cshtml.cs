@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models;
-
+using MoreSpeakers.Web.Models;
 using MoreSpeakers.Web.Models.ViewModels;
 using MoreSpeakers.Web.Services;
 
@@ -73,7 +73,8 @@ public class BrowseModel : PageModel
             };
 
             // Load mentors based on filters
-            await LoadMentors(ViewModel);
+            ViewModel.Mentors = await _mentoringManager.GetMentorsExceptForUserAsync(ViewModel.CurrentUser.Id, ViewModel.MentorshipType,
+                ViewModel.SelectedExpertise, ViewModel.AvailableNow);
         }
         catch (Exception ex)
         {
@@ -143,20 +144,18 @@ public class BrowseModel : PageModel
             SelectedExpertise = expertise ?? new List<string>();
             AvailableNow = availability;
             AvailableExpertise = await _expertiseManager.GetAllAsync();
-
-            var viewModel = new BrowseMentorsViewModel
+            
+            var mentors = await _mentoringManager.GetMentorsExceptForUserAsync(currentUser.Id, mentorshipType,
+                SelectedExpertise, AvailableNow);
+            
+            var viewModel = new SpeakerResultsViewModel()
             {
                 CurrentUser = currentUser,
-                MentorshipType = mentorshipType,
-                SelectedExpertise = SelectedExpertise,
-                AvailableNow = availability,
-                AvailableExpertise = AvailableExpertise
+                SearchType = SearchType.Mentors,
+                Speakers = mentors
             };
 
-            // Load mentors based on filters
-            await LoadMentors(viewModel);
-
-            return Partial("_MentorResults", viewModel);
+            return Partial("_SpeakerResults", viewModel);
         }
         catch (Exception ex)
         {
@@ -254,7 +253,7 @@ public class BrowseModel : PageModel
         }
     }
 
-    private async Task LoadMentors(BrowseMentorsViewModel model)
+    private async Task LoadMentorsddd(BrowseMentorsViewModel model)
     {
         var mentors = await _mentoringManager.GetMentorsExceptForUserAsync(model.CurrentUser.Id, model.MentorshipType,
             model.SelectedExpertise, model.AvailableNow);
