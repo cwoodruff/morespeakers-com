@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <TargetFramework>net9.0</TargetFramework>
+        <TargetFramework>net10.0</TargetFramework>
         <Nullable>enable</Nullable>
         <LangVersion>default</LangVersion>
         <ImplicitUsings>enable</ImplicitUsings>
@@ -15,8 +15,8 @@
 
     <PropertyGroup>
         <VersionMajor>1</VersionMajor>
-        <VersionMinor>0</VersionMinor>
-        <VersionBuild>0</VersionBuild>
+        <VersionMinor>2</VersionMinor>
+        <VersionBuild>10</VersionBuild>
     </PropertyGroup>
     <PropertyGroup>
         <VersionPrefix>$(VersionMajor).$(VersionMinor).$(VersionBuild)</VersionPrefix>
@@ -36,7 +36,7 @@
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="AutoMapper" Version="14.0.0" />
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
         <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4">
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
             <PrivateAssets>all</PrivateAssets>
@@ -45,7 +45,7 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
-        <PackageReference Include="xunit.v3" Version="3.0.1" />
+        <PackageReference Include="xunit.v3" Version="3.2.0" />
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\MoreSpeakers.Data\MoreSpeakers.Data.csproj" />

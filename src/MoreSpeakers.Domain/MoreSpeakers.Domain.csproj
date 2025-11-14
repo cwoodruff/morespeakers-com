@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net9.0</TargetFramework>
+        <TargetFramework>net10.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <AssemblyName>MoreSpeakers.Domain</AssemblyName>
@@ -15,8 +15,8 @@
 
     <PropertyGroup>
         <VersionMajor>1</VersionMajor>
-        <VersionMinor>1</VersionMinor>
-        <VersionBuild>0</VersionBuild>
+        <VersionMinor>2</VersionMinor>
+        <VersionBuild>10</VersionBuild>
     </PropertyGroup>
     <PropertyGroup>
         <VersionPrefix>$(VersionMajor).$(VersionMinor).$(VersionBuild)</VersionPrefix>
@@ -41,8 +41,8 @@
         <DocumentationFile>bin\Release\MoreSpeakers.Web.xml</DocumentationFile>
     </PropertyGroup>
     <ItemGroup>
-      <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="9.0.10" />
-      <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="9.0.10" />
+      <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.0" />
+      <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="10.0.0" />
     </ItemGroup>
 
 </Project>
