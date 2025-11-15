@@ -1,6 +1,8 @@
 using AutoMapper;
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+
 using MoreSpeakers.Domain.Models;
 using MoreSpeakers.Domain.Interfaces;
 
@@ -10,8 +12,9 @@ public class ExpertiseDataStore : IExpertiseDataStore
 {
     private readonly MoreSpeakersDbContext _context;
     private readonly Mapper _mapper;
+    private readonly ILogger<ExpertiseDataStore> _logger;
 
-    public ExpertiseDataStore(MoreSpeakersDbContext context)
+    public ExpertiseDataStore(MoreSpeakersDbContext context, ILogger<ExpertiseDataStore> logger)
     {
         _context = context;
         var mappingConfiguration = new MapperConfiguration(cfg =>
@@ -19,6 +22,7 @@ public class ExpertiseDataStore : IExpertiseDataStore
             cfg.AddProfile<MappingProfiles.MoreSpeakersProfile>();
         });
         _mapper = new Mapper(mappingConfiguration);
+        _logger = logger;
     }
 
     public async Task<Expertise> GetAsync(int primaryKey)
@@ -32,12 +36,19 @@ public class ExpertiseDataStore : IExpertiseDataStore
         var dbExpertise = _mapper.Map<Models.Expertise>(expertise);
         _context.Entry(dbExpertise).State = dbExpertise.Id == 0 ? EntityState.Added : EntityState.Modified;
 
-        var result = await _context.SaveChangesAsync() != 0;
-        if (result)
+        try
         {
-            return _mapper.Map<Expertise>(dbExpertise);
+            var result = await _context.SaveChangesAsync() != 0;
+            if (result)
+            {
+                return _mapper.Map<Expertise>(dbExpertise);
+            }
+            _logger.LogError("Failed to save the expertise. Name: '{Name}'", expertise.Name);
         }
-
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to save the expertise. Name: '{Name}'", expertise.Name);
+        }
         throw new ApplicationException("Failed to save the expertise");
     }
 
@@ -68,15 +79,38 @@ public class ExpertiseDataStore : IExpertiseDataStore
         }
         _context.Expertise.Remove(expertise);
 
-        return await _context.SaveChangesAsync() != 0;
+        try
+        {
+            return await _context.SaveChangesAsync() != 0;    
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to delete the expertise. Name: '{Name}'", expertise.Name);
+            return false;
+        }
     }
 
     public async Task<int> CreateExpertiseAsync(string name, string? description = null)
     {
         var expertise = new Data.Models.Expertise { Name = name, Description = description, CreatedDate = DateTime.UtcNow};
         _context.Expertise.Add(expertise);
-        await _context.SaveChangesAsync();
-        return expertise.Id;   
+
+        try
+        {
+            var result = await _context.SaveChangesAsync() != 0;
+            if (result)
+            {
+                return expertise.Id;
+            }
+
+            _logger.LogError("Failed to create the expertise. Name: '{Name}'", name);
+            return 0;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to create the expertise. Name: '{Name}'", name);
+        }
+        return 0;
     }
 
     public async Task<IEnumerable<Expertise>> GetPopularExpertiseAsync(int count = 10)
