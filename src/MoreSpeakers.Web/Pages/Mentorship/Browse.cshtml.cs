@@ -1,4 +1,3 @@
-using Microsoft.ApplicationInsights;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -19,22 +18,19 @@ public class BrowseModel : PageModel
     private readonly IMentoringManager _mentoringManager;
     private readonly ITemplatedEmailSender _templatedEmailSender;
     private readonly ILogger<BrowseModel> _logger;
-    private readonly TelemetryClient _telemetryClient;
 
     public BrowseModel(
         IUserManager userManager,
         IExpertiseManager expertiseManager,
         IMentoringManager mentorshipService,
         ITemplatedEmailSender templatedEmailSender,
-        ILogger<BrowseModel> logger,
-        TelemetryClient telemetryClient)
+        ILogger<BrowseModel> logger)
     {
         _userManager = userManager;
         _expertiseManager = expertiseManager;       
         _mentoringManager = mentorshipService;
         _templatedEmailSender = templatedEmailSender;
         _logger = logger;
-        _telemetryClient = telemetryClient;
     }
 
     public BrowseMentorsViewModel ViewModel { get; set; } = null!;
@@ -202,7 +198,7 @@ public class BrowseModel : PageModel
         
         // Send emails to both mentee and mentor
         var emailSent = await _templatedEmailSender.SendTemplatedEmail("~/EmailTemplates/MentorshipRequestFromMentee.cshtml",
-            Domain.Constants.TelemetryEvents.MentorshipRequested,
+            Domain.Constants.TelemetryEvents.EmailGenerated.MentorshipRequested,
             "Your mentorship request was sent", mentorship.Mentee, mentorship);
         if (!emailSent)
         {
@@ -211,7 +207,7 @@ public class BrowseModel : PageModel
         }
 
         emailSent = await _templatedEmailSender.SendTemplatedEmail("~/EmailTemplates/MentorshipRequestToMentor.cshtml",
-            Domain.Constants.TelemetryEvents.MentorshipRequested,
+            Domain.Constants.TelemetryEvents.EmailGenerated.MentorshipRequested,
             "A mentorship was requested", mentorship.Mentor, mentorship);
         if (!emailSent)
         {

@@ -1,7 +1,6 @@
 using System.Security.Claims;
 
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Logging;
 
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models;
@@ -11,12 +10,10 @@ namespace MoreSpeakers.Managers;
 public class UserManager: IUserManager
 {
     private readonly IUserDataStore _dataStore;
-    private readonly ILogger<UserManager> _logger;
 
-    public UserManager(IUserDataStore dataStore, ILogger<UserManager> logger)
+    public UserManager(IUserDataStore dataStore)
     {
         _dataStore = dataStore;
-        _logger = logger;
     }
     
     // ------------------------------------------

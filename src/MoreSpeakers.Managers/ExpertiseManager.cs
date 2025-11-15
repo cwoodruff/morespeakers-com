@@ -55,8 +55,9 @@ public class ExpertiseManager: IExpertiseManager
             await _dataStore.SaveAsync(expertise);
             return expertise.Id;  
         }
-        catch
+        catch(Exception ex)
         {
+            _logger.LogError(ex, "Failed to create expertise '{Name}'", name);
             return 0;
         }
     }
@@ -72,6 +73,9 @@ public class ExpertiseManager: IExpertiseManager
         }
         catch
         {
+            _logger.LogError(
+                "Failed to update expertise with the id of '{Id}'. Name:'{Name}', Description:'{Description}", id, name,
+                description);
             return false;
         }
     }

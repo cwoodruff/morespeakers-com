@@ -177,7 +177,7 @@ public class IndexModel : PageModel
         
         // Send emails to both mentee and mentor
         var emailSent = await _templatedEmailSender.SendTemplatedEmail("~/EmailTemplates/MentorshipRequestFromMentee.cshtml",
-            Domain.Constants.TelemetryEvents.MentorshipRequested,
+            Domain.Constants.TelemetryEvents.EmailGenerated.MentorshipRequested,
             "Your mentorship request was sent", mentorship.Mentee, mentorship);
         if (!emailSent)
         {
@@ -186,7 +186,7 @@ public class IndexModel : PageModel
         }
 
         emailSent = await _templatedEmailSender.SendTemplatedEmail("~/EmailTemplates/MentorshipRequestToMentor.cshtml",
-            Domain.Constants.TelemetryEvents.MentorshipRequested,
+            Domain.Constants.TelemetryEvents.EmailGenerated.MentorshipRequested,
             "A mentorship was requested", mentorship.Mentor, mentorship);
         if (!emailSent)
         {
