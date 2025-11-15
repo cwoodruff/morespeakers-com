@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.WebUtilities;
 using MoreSpeakers.Domain.Models;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
-using System.Text.Encodings.Web;
 
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Web.Services;
@@ -389,11 +388,12 @@ public partial class RegisterModel : PageModel
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Failed to save new user account");
                 await LoadFormDataAsync();
                 CurrentStep = Models.RegistrationProgressions.SpeakerProfileNeeded; // Reset to first step on major failure
                 HasValidationErrors = true;
                 ValidationMessage = "The saving of registration failed. Please check the errors and try again.";
-                return Page();
+                return Partial("_RegistrationContainer", this);
             }
 
             if (!saveResult.Succeeded)
@@ -402,10 +402,10 @@ public partial class RegisterModel : PageModel
                 {
                     ModelState.AddModelError(string.Empty, error.Description);
                 }
-                CurrentStep = Models.RegistrationProgressions.SpeakerProfileNeeded; // Reset to first step on major failure
+                CurrentStep = Models.RegistrationProgressions.SpeakerProfileNeeded; // Reset to the first step on major failure
                 HasValidationErrors = true;
                 ValidationMessage = "The saving of registration failed. Please check the errors and try again.";
-                return Page();
+                return Partial("_RegistrationContainer", this);
             }
 
             _logger.LogInformation("User created a new account with password");
@@ -414,11 +414,12 @@ public partial class RegisterModel : PageModel
             user = await _userManager.FindByEmailAsync(Input.Email);
             if (user == null)
             {
+                _logger.LogError("Failed to find user after saving registration. Email: '{Email}'", Input.Email);
                 await LoadFormDataAsync();
-                CurrentStep = Models.RegistrationProgressions.SpeakerProfileNeeded; // Reset to first step on major failure
+                CurrentStep = Models.RegistrationProgressions.SpeakerProfileNeeded; // Reset to the first step on major failure
                 HasValidationErrors = true;
                 ValidationMessage = "Could not find user after saving registration. Please try again.";
-                return Page();
+                return Partial("_RegistrationContainer", this);
             }
             
             // Add expertise relationships
@@ -449,9 +450,9 @@ public partial class RegisterModel : PageModel
 
             await _userManager.EmptyAndAddSocialMediaForUserAsync(user.Id, socialMediaLinks);
 
-            // Send welcome email
-            var emailSent = await _templatedEmailSender.SendTemplatedEmail("~/EmailTemplates/WelcomeEmail.cshtml",
-                Domain.Constants.TelemetryEvents.WelcomeEmail,
+            // Send the welcome email
+            var emailSent = await _templatedEmailSender.SendTemplatedEmail("~/EmailTemplates/Welcome.cshtml",
+                Domain.Constants.TelemetryEvents.EmailGenerated.Welcome,
                 "Welcome to MoreSpeakers.com - Your Speaking Journey Begins!", user, user);
             if (!emailSent)
             {
@@ -474,7 +475,7 @@ public partial class RegisterModel : PageModel
             {
                 var confirmationModel = new UserConfirmationEmail { ConfirmationUrl = confirmationLink, User = user };
                 emailSent = await _templatedEmailSender.SendTemplatedEmail("~/EmailTemplates/ConfirmUserEmail.cshtml",
-                    Domain.Constants.TelemetryEvents.EmailConfirmation,
+                    Domain.Constants.TelemetryEvents.EmailGenerated.Confirmation,
                     "Welcome to MoreSpeakers.com - Let's confirm your email!", user, confirmationModel);
                 if (!emailSent)
                 {
@@ -494,9 +495,9 @@ public partial class RegisterModel : PageModel
             return Partial("_RegistrationContainer", this);
         }
 
-        // If we got this far, something failed, redisplay form with current state
+        // If we got this far, something failed, redisplay form with the current state
         await LoadFormDataAsync();
-        CurrentStep = Models.RegistrationProgressions.SpeakerProfileNeeded; // Reset to first step on major failure
+        CurrentStep = Models.RegistrationProgressions.SpeakerProfileNeeded; // Reset to the first step on major failure
         HasValidationErrors = true;
         ValidationMessage = "Registration failed. Please check the errors and try again.";
         return Partial("_RegistrationContainer", this);

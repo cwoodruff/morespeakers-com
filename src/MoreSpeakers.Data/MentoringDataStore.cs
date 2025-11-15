@@ -1,6 +1,8 @@
 using AutoMapper;
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models;
 
@@ -12,8 +14,9 @@ public class MentoringDataStore: IMentoringDataStore
 {
     private readonly MoreSpeakersDbContext _context;
     private readonly Mapper _mapper;
+    private readonly ILogger<MentoringDataStore> _logger;
 
-    public MentoringDataStore(MoreSpeakersDbContext context)
+    public MentoringDataStore(MoreSpeakersDbContext context, ILogger<MentoringDataStore> logger)
     {
         _context = context;
         var mappingConfiguration = new MapperConfiguration(cfg =>
@@ -21,6 +24,7 @@ public class MentoringDataStore: IMentoringDataStore
             cfg.AddProfile<MappingProfiles.MoreSpeakersProfile>();
         });
         _mapper = new Mapper(mappingConfiguration);
+        _logger = logger;
     }
 
     public async Task<Mentorship> GetAsync(Guid primaryKey)
@@ -34,13 +38,21 @@ public class MentoringDataStore: IMentoringDataStore
         var dbMentorship = _mapper.Map<Models.Mentorship>(mentorship);
         _context.Entry(dbMentorship).State = dbMentorship.Id == Guid.Empty ? EntityState.Added : EntityState.Modified;
 
-        var result = await _context.SaveChangesAsync() != 0;
-        if (result)
+        try
         {
-            return _mapper.Map<Mentorship>(dbMentorship);
+            var result = await _context.SaveChangesAsync() != 0;
+            if (result)
+            {
+                return _mapper.Map<Mentorship>(dbMentorship);
+            }
+            _logger.LogError("Failed to save the mentorship. Id: '{Id}'", mentorship.Id);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to save the mentorship. Id: '{Id}'", mentorship.Id);
         }
 
-        throw new ApplicationException("Failed to save the expertise");
+        throw new ApplicationException("Failed to save the mentorship.");
     }
 
     public async Task<List<Mentorship>> GetAllAsync()
@@ -58,14 +70,28 @@ public class MentoringDataStore: IMentoringDataStore
     {
         var mentorship = await _context.Mentorship
             .FirstOrDefaultAsync(e => e.Id == primaryKey);
-
+        
         if (mentorship is null)
         {
             return true;
         }
 
         _context.Mentorship.Remove(mentorship);
-        return await _context.SaveChangesAsync() != 0;
+
+        try
+        {
+            var result = await _context.SaveChangesAsync() !=0;
+            if (result)
+            {
+                return true;
+            }
+            _logger.LogError("Failed to delete mentorship with id: '{Id}'", primaryKey);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to delete mentorship with id: '{Id}'", primaryKey);
+        }
+        return false;
     }
 
     public async Task<List<Expertise>> GetSharedExpertisesAsync(User mentor, User mentee)
@@ -98,23 +124,41 @@ public class MentoringDataStore: IMentoringDataStore
         var dbMentorship = _mapper.Map<Data.Models.Mentorship>(mentorship);
         
         _context.Mentorship.Add(dbMentorship);
-        var created = await _context.SaveChangesAsync();
-        if (created == 0)
+
+        try
         {
-            return false;
-        }
-        
-        foreach (var expertiseId in expertiseIds)
-        {
-            await _context.UserExpertise.AddAsync(new Data.Models.UserExpertise
+            var created = await _context.SaveChangesAsync();
+            if (created == 0)
             {
-                UserId = mentorship.MentorId,
-                ExpertiseId = expertiseId
-            });
+                _logger.LogError("Failed to create mentorship request. MentorId: '{MentorId}', MenteeId: '{MenteeId}'",
+                    mentorship.MentorId, mentorship.MenteeId);
+                return false;
+            }
+
+            foreach (var expertiseId in expertiseIds)
+            {
+                await _context.UserExpertise.AddAsync(new Data.Models.UserExpertise
+                {
+                    UserId = mentorship.MentorId, ExpertiseId = expertiseId
+                });
+            }
+
+            var expertiseResult = await _context.SaveChangesAsync() != 0;
+            if (!expertiseResult)
+            {
+                _logger.LogError("Failed to create mentorship request - Adding expertises. MentorId: '{MentorId}', MenteeId: '{MenteeId}'",
+                    mentorship.MentorId, mentorship.MenteeId);
+                return false;
+            }
+            
+            return true;
         }
-        
-        return await _context.SaveChangesAsync() != 0;
-        
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to create mentorship request. MentorId: '{MentorId}', MenteeId: '{MenteeId}'",
+                mentorship.MentorId, mentorship.MenteeId);
+        }
+        return false;
     }
 
     public async Task<Mentorship?> RespondToRequestAsync(Guid mentorshipId, Guid userId, bool accepted, string? message = null)
@@ -141,13 +185,23 @@ public class MentoringDataStore: IMentoringDataStore
             mentorship.StartedAt = DateTime.UtcNow;
         }
 
-        var saved = await _context.SaveChangesAsync();
-        if (saved == 0)
+        try
         {
+            var saved = await _context.SaveChangesAsync();
+            if (saved != 0)
+            {
+                return _mapper.Map<Mentorship>(mentorship);
+            }
+
+            _logger.LogError("Failed to respond to mentorship request. MentorshipId: '{MentorshipId}', UserId: '{UserId}'", mentorshipId, userId);
+            return null;
+
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to respond to mentorship request. MentorshipId: '{MentorshipId}', UserId: '{UserId}'", mentorshipId, userId);
             return null;
         }
-        
-        return _mapper.Map<Mentorship>(mentorship);
     }
 
     public async Task<List<Mentorship>> GetActiveMentorshipsForUserAsync(Guid userId)
@@ -213,7 +267,21 @@ public class MentoringDataStore: IMentoringDataStore
         mentorship.Status = Models.MentorshipStatus.Cancelled;
         mentorship.UpdatedAt = DateTime.UtcNow;
         _context.Mentorship.Remove(mentorship);
-        return await _context.SaveChangesAsync() != 0;
+
+        try
+        {
+            var result = await _context.SaveChangesAsync() != 0;
+            if (result)
+            {
+                return true;
+            }
+            _logger.LogError("Failed to cancel mentorship request. MentorshipId: '{MentorshipId}', UserId: '{UserId}'", mentorshipId, userId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to cancel mentorship request. MentorshipId: '{MentorshipId}', UserId: '{UserId}'", mentorshipId, userId);
+        }
+        return false;
     }
     
     public async Task<bool> CompleteMentorshipRequestAsync(Guid mentorshipId, Guid userId)
@@ -228,7 +296,21 @@ public class MentoringDataStore: IMentoringDataStore
         mentorship.Status = Models.MentorshipStatus.Completed;
         mentorship.UpdatedAt = DateTime.UtcNow;
         _context.Mentorship.Remove(mentorship);
-        return await _context.SaveChangesAsync() != 0;
+
+        try
+        {
+            var result = await _context.SaveChangesAsync() != 0;
+            if (result)
+            {
+                return true;
+            }
+            _logger.LogError("Failed to complete mentorship request. MentorshipId: '{MentorshipId}', UserId: '{UserId}'", mentorshipId, userId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to complete mentorship request. MentorshipId: '{MentorshipId}', UserId: '{UserId}'", mentorshipId, userId);
+        }
+        return false;
     }
 
     public async Task<List<User>> GetMentorsExceptForUserAsync(Guid userId, MentorshipType mentorshipType, List<string>? expertiseNames, bool? availability = true)
@@ -290,7 +372,7 @@ public class MentoringDataStore: IMentoringDataStore
         return !existingMentorship;
     }
     
-    public async Task<Mentorship?> RequestMentorshipWithDetailsAsync(Guid requesterId, Guid targetId,
+    public async Task<Mentorship?> RequestMentorshipWithDetailsAsync(Guid menteeId, Guid mentorId,
         MentorshipType type, string? requestMessage, List<int>? focusAreaIds, string? preferredFrequency)
     {
         try
@@ -298,20 +380,23 @@ public class MentoringDataStore: IMentoringDataStore
             // Check if there's already a pending or active mentorship between these users
             var existingMentorship = await _context.Mentorship
                 .FirstOrDefaultAsync(m =>
-                    ((m.MenteeId == requesterId && m.MentorId == targetId) ||
-                     (m.MenteeId == targetId && m.MentorId == requesterId)) &&
+                    ((m.MenteeId == menteeId && m.MentorId == mentorId) ||
+                     (m.MenteeId == mentorId && m.MentorId == menteeId)) &&
                     (m.Status == Models.MentorshipStatus.Pending || m.Status == Models.MentorshipStatus.Active));
 
             if (existingMentorship != null)
+            {
+                _logger.LogWarning("User {UserId} already has a mentorship request pending or active with user {TargetId}", menteeId, mentorId);
                 return null;
+            }
 
             var dbMentorshipType = _mapper.Map<Data.Models.MentorshipType>(type);
             
             var mentorship = new Models.Mentorship
             {
                 Id = Guid.NewGuid(),
-                MentorId = targetId,
-                MenteeId = requesterId,
+                MentorId = mentorId,
+                MenteeId = menteeId,
                 Status = Models.MentorshipStatus.Pending,
                 Type = dbMentorshipType,
                 RequestedAt = DateTime.UtcNow,
@@ -320,7 +405,14 @@ public class MentoringDataStore: IMentoringDataStore
             };
 
             _context.Mentorship.Add(mentorship);
-            await _context.SaveChangesAsync();
+            var mentorshipAddResult = await _context.SaveChangesAsync() != 0;
+            {
+                if (!mentorshipAddResult)
+                {
+                    _logger.LogError("Failed to create mentorship request with details. MentorId: '{MentorId}', MenteeId: '{MenteeId}'", mentorId, menteeId);
+                    return null;
+                }
+            }
 
             // Add focus areas if provided
             if (focusAreaIds != null && focusAreaIds.Any())
@@ -333,7 +425,12 @@ public class MentoringDataStore: IMentoringDataStore
                         ExpertiseId = expertiseId
                     });
                 }
-                await _context.SaveChangesAsync();
+                var expertiseResult = await _context.SaveChangesAsync();
+                if (expertiseResult == 0)
+                {
+                    _logger.LogError("Failed to create mentorship request with details - Save Expertises. MentorId: '{MentorId}', MenteeId: '{MenteeId}'", mentorId, menteeId);
+                    return null;
+                }
             }
 
             // Reload with navigation properties
@@ -345,8 +442,9 @@ public class MentoringDataStore: IMentoringDataStore
                 .FirstOrDefaultAsync(m => m.Id == mentorship.Id);
             return _mapper.Map<Mentorship>(dbMentorship);
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
+            _logger.LogError(ex, "Failed to create mentorship request with details. MentorId: '{MentorId}', MenteeId: '{MenteeId}'", menteeId, mentorId);
             return null;
         }
     }

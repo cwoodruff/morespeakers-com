@@ -1,6 +1,7 @@
 using Azure.Provisioning.Storage;
 using Projects;
 
+
 var builder = DistributedApplication.CreateBuilder(args);
 
 // Add Azure Storage

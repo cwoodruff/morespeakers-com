@@ -4,6 +4,8 @@ using AutoMapper;
 
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+
 using MoreSpeakers.Domain.Models;
 using MoreSpeakers.Domain.Interfaces;
 
@@ -14,8 +16,9 @@ public class UserDataStore : IUserDataStore
     private readonly MoreSpeakersDbContext _context;
     private readonly UserManager<Data.Models.User> _userManager;
     private readonly Mapper _mapper;
+    private readonly ILogger<UserDataStore> _logger;
 
-    public UserDataStore(MoreSpeakersDbContext context, UserManager<Data.Models.User> userManager)
+    public UserDataStore(MoreSpeakersDbContext context, UserManager<Data.Models.User> userManager, ILogger<UserDataStore> logger)
     {
         _context = context;
         var mappingConfiguration = new MapperConfiguration(cfg =>
@@ -25,6 +28,7 @@ public class UserDataStore : IUserDataStore
         _mapper = new Mapper(mappingConfiguration);
         
         _userManager = userManager;
+        _logger = logger;
     }
     
     // ------------------------------------------
@@ -39,20 +43,49 @@ public class UserDataStore : IUserDataStore
 
     public async Task<IdentityResult> ChangePasswordAsync(User user, string currentPassword, string newPassword)
     {
-        // Need to load the user from the "Identity" manager to change the password
-        var identityUser = await _userManager.FindByIdAsync(user.Id.ToString());
-        if (identityUser == null)
+        try
         {
-            throw new InvalidOperationException($"Could not find user with id: {user.Id} in the Identity database.");
+            // Need to load the user from the "Identity" manager to change the password
+            var identityUser = await _userManager.FindByIdAsync(user.Id.ToString());
+            if (identityUser == null)
+            {
+                _logger.LogError("Could not find user with id: {UserId} in the Identity database", user.Id);
+                throw new InvalidOperationException(
+                    $"Could not find user with id: {user.Id} in the Identity database.");
+            }
+
+            var result = await _userManager.ChangePasswordAsync(identityUser, currentPassword, newPassword);
+            if (!result.Succeeded)
+            {
+                _logger.LogError("Failed to change password for user with id: {UserId}", user.Id);
+            }
+            return result;
         }
-        
-        return await _userManager.ChangePasswordAsync(identityUser, currentPassword, newPassword);
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to change password for user with id: {UserId}", user.Id);
+            return IdentityResult.Failed();
+        }
     }
 
     public async Task<IdentityResult> CreateAsync(User user, string password)
     {
         var identityUser = _mapper.Map<Data.Models.User>(user);
-        return await _userManager.CreateAsync(identityUser, password);
+
+        try
+        {
+            var result = await _userManager.CreateAsync(identityUser, password);
+            if (!result.Succeeded)
+            {
+                _logger.LogError("Failed to create user with id: {UserId}", user.Id);                
+            }
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to create user with id: {UserId}", user.Id);
+            return IdentityResult.Failed();
+        }
     }
 
     public async Task<User?> FindByEmailAsync(string email)
@@ -106,13 +139,21 @@ public class UserDataStore : IUserDataStore
         var dbUser = await _context.Users.FirstOrDefaultAsync(u => u.Id == user.Id) ?? new Models.User();
 
         _mapper.Map(user, dbUser);
-        //var dbUser = _mapper.Map<Models.User>(user);
         _context.Entry(dbUser).State = dbUser.Id == Guid.Empty ? EntityState.Added : EntityState.Modified;
-        
-        var result = await _context.SaveChangesAsync() != 0;
-        if (result)
+
+        try
         {
-            return _mapper.Map<User>(dbUser);
+            var result = await _context.SaveChangesAsync() != 0;
+            if (result)
+            {
+                return _mapper.Map<User>(dbUser);
+            }
+
+            _logger.LogError("Failed to save the user. Id: '{Id}'", user.Id);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to save the user. Id: '{Id}'", user.Id);
         }
 
         throw new ApplicationException("Failed to save the user");
@@ -150,7 +191,21 @@ public class UserDataStore : IUserDataStore
             _context.UserExpertise.Remove(userExpertise);
         }
         _context.Users.Remove(speaker);
-        return await _context.SaveChangesAsync() != 0;
+
+        try
+        {
+            var result = await _context.SaveChangesAsync() != 0;
+            if (result)
+            {
+                return true;
+            }
+            _logger.LogError("Failed to delete the user. Id: '{Id}'", primaryKey);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to delete the user. Id: '{Id}'", primaryKey);
+        }
+        return false;
     }
 
     public async Task<IEnumerable<User>> GetNewSpeakersAsync()
@@ -279,11 +334,20 @@ public class UserDataStore : IUserDataStore
 
             var dbSocialMedia = _mapper.Map<Models.SocialMedia>(socialMedia);
             _context.SocialMedia.Add(dbSocialMedia);
-            await _context.SaveChangesAsync();
-            return true;
+
+            var result = await _context.SaveChangesAsync() != 0;
+
+            if (!result)
+            {
+                _logger.LogError(
+                    "Failed to add social media link for user with id: {UserId}. Platform: '{Platform}', '{Url}'",
+                    userId, platform, url);
+            }
+            return result;
         }
-        catch
+        catch(Exception ex)
         {
+            _logger.LogError(ex, "Failed to add social media link for user with id: {UserId}. Platform: '{Platform}', '{Url}'", userId, platform, url);
             return false;
         }
     }
@@ -293,17 +357,22 @@ public class UserDataStore : IUserDataStore
         try
         {
             var socialMedia = await _context.SocialMedia.FindAsync(socialMediaId);
-            if (socialMedia != null)
+            if (socialMedia == null)
             {
-                _context.SocialMedia.Remove(socialMedia);
-                await _context.SaveChangesAsync();
-                return true;
+                return false;
             }
 
-            return false;
+            _context.SocialMedia.Remove(socialMedia);
+            var result = await _context.SaveChangesAsync() != 0;
+            if (!result)
+            {
+                _logger.LogError("Failed to remove social media link with id: {SocialMediaId}", socialMediaId);
+            }
+            return result;
         }
-        catch
+        catch (Exception ex)
         {
+            _logger.LogError(ex, "Failed to remove social media link with id: {SocialMediaId}", socialMediaId);
             return false;
         }
     }
@@ -320,11 +389,16 @@ public class UserDataStore : IUserDataStore
 
             var dbUserExperience = _mapper.Map<Models.UserExpertise>(userExpertise);
             _context.UserExpertise.Add(dbUserExperience);
-            await _context.SaveChangesAsync();
-            return true;
+            var result = await _context.SaveChangesAsync() != 0;
+            if (!result)
+            {
+                _logger.LogError("Failed to add expertise to user with id: {UserId}. ExpertiseId: {ExpertiseId}", userId, expertiseId);
+            }
+            return result;
         }
-        catch
+        catch( Exception ex)
         {
+            _logger.LogError(ex, "Failed to add expertise to user with id: {UserId}. ExpertiseId: {ExpertiseId}", userId, expertiseId);
             return false;
         }
     }
@@ -339,14 +413,19 @@ public class UserDataStore : IUserDataStore
             if (userExpertise != null)
             {
                 _context.UserExpertise.Remove(userExpertise);
-                await _context.SaveChangesAsync();
-                return true;
+                var result = await _context.SaveChangesAsync() != 0;
+                if (!result)
+                {
+                    _logger.LogError("Failed to remove expertise from user with id: {UserId}. ExpertiseId: {ExpertiseId}", userId, expertiseId);
+                }
+                return result;
             }
 
             return false;
         }
-        catch
+        catch (Exception ex)
         {
+            _logger.LogError(ex, "Failed to remove expertise from user with id: {UserId}. ExpertiseId: {ExpertiseId}", userId, expertiseId);
             return false;
         }
     }
@@ -365,10 +444,16 @@ public class UserDataStore : IUserDataStore
             {
                 _context.UserExpertise.Add(new Models.UserExpertise { UserId = userId, ExpertiseId = expertise });
             }
-            return await _context.SaveChangesAsync() != 0;
+            var result = await _context.SaveChangesAsync() != 0;
+            if (!result)
+            {
+                _logger.LogError("Failed to empty and add expertise to user with id: {UserId}", userId);
+            }
+            return result;
         }
-        catch
+        catch(Exception ex)
         {
+            _logger.LogError(ex, "Failed to empty and add expertise to user with id: {UserId}", userId);
             return false;
         }
     }
@@ -388,11 +473,17 @@ public class UserDataStore : IUserDataStore
                 _context.SocialMedia.Add(new Models.SocialMedia { UserId = userId, Platform = socialMedia.Platform, Url = socialMedia.Url });           
             }
 
-            return await _context.SaveChangesAsync() != 0;
+            var result = await _context.SaveChangesAsync() != 0;
+            if (!result)
+            {
+                _logger.LogError("Failed to empty and add social media links to user with id: {UserId}", userId);
+            }
+            return result;       
 
         }
-        catch
+        catch(Exception ex)
         {
+            _logger.LogError(ex, "Failed to empty and add social media links to user with id: {UserId}", userId);
             return false;
         }
     }

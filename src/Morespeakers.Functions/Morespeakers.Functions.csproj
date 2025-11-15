@@ -19,7 +19,7 @@
 	<PropertyGroup>
         <VersionMajor>1</VersionMajor>
         <VersionMinor>2</VersionMinor>
-        <VersionBuild>10</VersionBuild>
+        <VersionBuild>11</VersionBuild>
 	</PropertyGroup>
 	<PropertyGroup>
 		<VersionPrefix>$(VersionMajor).$(VersionMinor).$(VersionBuild)</VersionPrefix>

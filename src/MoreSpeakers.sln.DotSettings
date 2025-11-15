@@ -1,2 +1,4 @@
 ﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
-	<s:String x:Key="/Default/Environment/SqlDaemon/FilesAndFoldersSqlDialects/=6385B702_002DFE45_002D4AEF_002D93CC_002DE724BEC47B0D_002Ff_003Acreate_002Dtables_002Esql_002Fl_003A_002E_002E_003Fscripts_003Fdatabase_003Fcreate_002Dtables_002Esql/@EntryIndexedValue">TSQL</s:String></wpf:ResourceDictionary>
+	<s:String x:Key="/Default/Environment/SqlDaemon/FilesAndFoldersSqlDialects/=6385B702_002DFE45_002D4AEF_002D93CC_002DE724BEC47B0D_002Ff_003Acreate_002Dtables_002Esql_002Fl_003A_002E_002E_003Fscripts_003Fdatabase_003Fcreate_002Dtables_002Esql/@EntryIndexedValue">TSQL</s:String>
+	<s:Boolean x:Key="/Default/UserDictionary/Words/=mentorships/@EntryIndexedValue">True</s:Boolean>
+	<s:Boolean x:Key="/Default/UserDictionary/Words/=Mentorships/@EntryIndexedValue">True</s:Boolean></wpf:ResourceDictionary>

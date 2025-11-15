@@ -18,7 +18,7 @@
     <PropertyGroup>
         <VersionMajor>1</VersionMajor>
         <VersionMinor>2</VersionMinor>
-        <VersionBuild>10</VersionBuild>
+        <VersionBuild>11</VersionBuild>
     </PropertyGroup>
     <PropertyGroup>
         <VersionPrefix>$(VersionMajor).$(VersionMinor).$(VersionBuild)</VersionPrefix>
@@ -50,6 +50,7 @@
     <ItemGroup>
       <PackageReference Include="Azure.Storage.Queues" Version="12.24.0" />
       <PackageReference Include="JosephGuadagno.AzureHelpers.Storage" Version="1.1.9" />
+      <PackageReference Include="Microsoft.ApplicationInsights" Version="2.23.0" />
       <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.0" />
     </ItemGroup>
 

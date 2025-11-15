@@ -1,5 +1,8 @@
+using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Logging;
 
+using MoreSpeakers.Domain.Constants;
+using MoreSpeakers.Domain.Extensions;
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models;
 
@@ -9,11 +12,13 @@ public class MentoringManager: IMentoringManager
 {
     private readonly IMentoringDataStore _dataStore;
     private readonly ILogger<MentoringManager> _logger;
+    private readonly TelemetryClient _telemetryClient;
 
-    public MentoringManager(IMentoringDataStore dataStore, ILogger<MentoringManager> logger)
+    public MentoringManager(IMentoringDataStore dataStore, ILogger<MentoringManager> logger, TelemetryClient telemetryClient)
     {
         _dataStore = dataStore;
         _logger = logger;
+        _telemetryClient = telemetryClient;
     }
     
     public async Task<Mentorship> GetAsync(Guid primaryKey)
@@ -53,12 +58,67 @@ public class MentoringManager: IMentoringManager
 
     public async Task<bool> CreateMentorshipRequestAsync(Mentorship mentorship, List<int> expertiseIds)
     {
-        return await _dataStore.CreateMentorshipRequestAsync(mentorship, expertiseIds);   
+        var result =  await _dataStore.CreateMentorshipRequestAsync(mentorship, expertiseIds);
+
+        if (result)
+        {
+            _telemetryClient.TrackEvent(TelemetryEvents.ManagerEvents.MentorshipRequested,
+                new Dictionary<string, string> { { "MentorId", mentorship.MentorId.ToString() } });    
+        }
+        else
+        {
+            _logger.LogError("Failed to create mentorship request for mentor '{MentorId}'", mentorship.MentorId);
+        }
+        return result;
+    }
+    
+    public async Task<Mentorship?> RequestMentorshipWithDetailsAsync(Guid menteeId, Guid mentorId,
+        MentorshipType type, string? requestMessage, List<int>? focusAreaIds, string? preferredFrequency)
+    {
+        var result = await _dataStore.RequestMentorshipWithDetailsAsync(menteeId, mentorId, type, requestMessage, focusAreaIds, preferredFrequency);
+
+        if (result is not null)
+        {
+            _telemetryClient.TrackEvent(TelemetryEvents.ManagerEvents.MentorshipRequestedWithDetails,
+                new Dictionary<string, string>
+                {
+                    { "MenteeId", menteeId.ToString() },
+                    { "MentorId", mentorId.ToString() },
+                    { "Type", type.GetDescription() },
+                    { "RequestMessage", requestMessage ?? "No request message provided." },
+                });  
+        }
+        else
+        {
+            _logger.LogError(
+                "Failed to create mentorship request with details for mentee '{MenteeId}' and mentor '{MentorId}'",
+                menteeId, mentorId);
+        }
+        return result;
     }
 
     public async Task<Mentorship?> RespondToRequestAsync(Guid mentorshipId, Guid userId, bool accepted, string? message = null)
     {
-        return await _dataStore.RespondToRequestAsync(mentorshipId, userId, accepted, message);
+        var result = await _dataStore.RespondToRequestAsync(mentorshipId, userId, accepted, message);
+
+        if (result is not null)
+        {
+            _telemetryClient.TrackEvent(
+                accepted
+                    ? TelemetryEvents.ManagerEvents.MentorshipAccepted
+                    : TelemetryEvents.ManagerEvents.MentorshipDeclined,
+                new Dictionary<string, string>
+                {
+                    { "MentorshipId", mentorshipId.ToString() },
+                    { "UserId", userId.ToString() },
+                    { "Reason", message ?? "No reason provided." }
+                });
+        }
+        else
+        {
+            _logger.LogError("Failed to respond to mentorship request '{MentorshipId}' for user '{User}'", mentorshipId, userId);
+        }
+        return result;
     }
 
     public async Task<List<Mentorship>> GetActiveMentorshipsForUserAsync(Guid userId)
@@ -83,14 +143,40 @@ public class MentoringManager: IMentoringManager
 
     public async Task<bool> CancelMentorshipRequestAsync(Guid mentorshipId, Guid userId)
     {
-        // Might want to add a cancellation reason here
-        // Might want log the cancellation here
-        return await _dataStore.CancelMentorshipRequestAsync(mentorshipId, userId);
+        var result =  await _dataStore.CancelMentorshipRequestAsync(mentorshipId, userId);
+
+        if (result)
+        {
+            _telemetryClient.TrackEvent(TelemetryEvents.ManagerEvents.MentorshipCancelled,
+                new Dictionary<string, string>
+                {
+                    { "MentorshipId", mentorshipId.ToString() }, { "UserId", userId.ToString() }
+                });    
+        }
+        else
+        {
+            _logger.LogError("Failed to cancel mentorship request '{MentorshipId}' for user '{User}'", mentorshipId, userId);
+        }
+        
+        return result;
     }
     public async Task<bool> CompleteMentorshipRequestAsync(Guid mentorshipId, Guid userId)
     {
-        // Might want log the completion here
-        return await _dataStore.CompleteMentorshipRequestAsync(mentorshipId, userId);
+        var result = await _dataStore.CompleteMentorshipRequestAsync(mentorshipId, userId);
+
+        if (result)
+        {
+            _telemetryClient.TrackEvent(TelemetryEvents.ManagerEvents.MentorshipCompleted,
+                new Dictionary<string, string>
+                {
+                    { "MentorshipId", mentorshipId.ToString() }, { "UserId", userId.ToString() }
+                });
+        }
+        else
+        {
+            _logger.LogError("Failed to complete mentorship request '{MentorshipId}' for user '{User}'", mentorshipId, userId);
+        }
+        return result;
     }
 
     public async Task<List<User>> GetMentorsExceptForUserAsync(Guid userId, MentorshipType mentorshipType, List<string>? expertiseNames, bool? availability = true)
@@ -106,12 +192,6 @@ public class MentoringManager: IMentoringManager
     public async Task<bool> CanRequestMentorshipAsync(Guid menteeId, Guid mentorId)
     {
         return await _dataStore.CanRequestMentorshipAsync(menteeId, mentorId);
-    }
-
-    public async Task<Mentorship?> RequestMentorshipWithDetailsAsync(Guid requesterId, Guid targetId,
-        MentorshipType type, string? requestMessage, List<int>? focusAreaIds, string? preferredFrequency)
-    {
-        return await _dataStore.RequestMentorshipWithDetailsAsync(requesterId, targetId, type, requestMessage, focusAreaIds, preferredFrequency);
     }
 
     public async Task<Mentorship?> GetMentorshipWithRelationships(Guid mentorshipId)
