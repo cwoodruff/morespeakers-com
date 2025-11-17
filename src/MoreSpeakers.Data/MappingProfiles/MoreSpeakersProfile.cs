@@ -18,6 +18,6 @@ public class MoreSpeakersProfile : Profile
         CreateMap<Models.User, Domain.Models.User>().ReverseMap();
         CreateMap<Models.UserExpertise, Domain.Models.UserExpertise>().ReverseMap();
         CreateMap<Models.SocialMediaSite, Domain.Models.SocialMediaSite>().ReverseMap();
-        CreateMap<Models.UserSocialMediaSites, Domain.Models.UserSocialMediaSites>().ReverseMap();
+        CreateMap<Models.UserSocialMediaSites, Domain.Models.UserSocialMediaSite>().ReverseMap();
     }
 }

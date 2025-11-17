@@ -1,6 +1,7 @@
 using FluentAssertions;
 
 using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.Logging;
 using Moq;
 using MoreSpeakers.Domain.Interfaces;
@@ -13,10 +14,19 @@ public class MentoringManagerTests
 {
     private readonly Mock<IMentoringDataStore> _dataStoreMock = new();
     private readonly Mock<ILogger<MentoringManager>> _loggerMock = new();
-    private readonly Mock<TelemetryClient> _telemetryClientMock = new();
 
-    private MentoringManager CreateSut() => new(_dataStoreMock.Object, _loggerMock.Object, _telemetryClientMock.Object);
-
+    private MentoringManager CreateSut() => new(_dataStoreMock.Object, _loggerMock.Object, GetInMemoryTelemetryClient());
+    
+    private TelemetryClient GetInMemoryTelemetryClient()
+    {
+        var telemetryConfiguration = new TelemetryConfiguration
+        {
+            TelemetryChannel = new Microsoft.ApplicationInsights.Channel.InMemoryChannel(),
+            DisableTelemetry = true // Prevents sending data
+        };
+        return new TelemetryClient(telemetryConfiguration);
+    }
+    
     [Fact]
     public async Task GetAsync_should_delegate()
     {

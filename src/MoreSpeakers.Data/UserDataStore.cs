@@ -130,6 +130,8 @@ public class UserDataStore : IUserDataStore
                 .Include(u => u.UserExpertise)
                 .ThenInclude(ue => ue.Expertise)
                 .Include(u => u.SocialMediaLinks)
+                .Include(u => u.UserSocialMediaSites)
+                .ThenInclude(sms => sms.SocialMediaSite)
             .FirstOrDefaultAsync(e => e.Id == primaryKey);
         return _mapper.Map<User>(speaker);
     }
@@ -166,6 +168,8 @@ public class UserDataStore : IUserDataStore
             .Include(u => u.UserExpertise)
             .ThenInclude(ue => ue.Expertise)
             .Include(u => u.SocialMediaLinks)
+            .Include(u => u.UserSocialMediaSites)
+            .ThenInclude(sms => sms.SocialMediaSite)
             .ToListAsync();
         return _mapper.Map<List<User>>(speakers);
     }
@@ -215,6 +219,8 @@ public class UserDataStore : IUserDataStore
             .Include(u => u.UserExpertise)
             .ThenInclude(ue => ue.Expertise)
             .Include(u => u.SocialMediaLinks)
+            .Include(u => u.UserSocialMediaSites)
+            .ThenInclude(sms => sms.SocialMediaSite)
             .Where(u => u.SpeakerType.Id == (int)SpeakerTypeEnum.NewSpeaker)
             .OrderBy(u => u.FirstName)
             .ToListAsync();
@@ -229,6 +235,8 @@ public class UserDataStore : IUserDataStore
             .Include(u => u.UserExpertise)
             .ThenInclude(ue => ue.Expertise)
             .Include(u => u.SocialMediaLinks)
+            .Include(u => u.UserSocialMediaSites)
+            .ThenInclude(sms => sms.SocialMediaSite)
             .Where(u => u.SpeakerType.Id == (int)SpeakerTypeEnum.ExperiencedSpeaker)
             .OrderBy(u => u.FirstName)
             .ToListAsync();

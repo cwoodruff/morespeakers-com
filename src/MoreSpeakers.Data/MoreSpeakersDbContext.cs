@@ -131,7 +131,7 @@ public class MoreSpeakersDbContext
             
         });
         
-        // Configure UserSocialMediaSites many-to-many relationship
+        // Configure UserSocialMediaSite many-to-many relationship
         builder.Entity<UserSocialMediaSites>(entity =>
         {
             entity.ToTable("UserSocialMediaSites");
@@ -140,13 +140,13 @@ public class MoreSpeakersDbContext
             entity.HasIndex(usm => new { usm.UserId });
             
             entity.HasOne(usm => usm.User)
-                .WithMany(u => u.SocialMediaSites)
+                .WithMany(u => u.UserSocialMediaSites)
                 .HasForeignKey(usm => usm.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             entity.HasOne(usm => usm.SocialMediaSite)
                 .WithMany()
-                .HasForeignKey(usm => usm.SocialId)
+                .HasForeignKey(usm => usm.SocialMediaSiteId)
                 .OnDelete(DeleteBehavior.Cascade);
                 
         });
