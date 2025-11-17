@@ -217,7 +217,7 @@ public partial class RegisterModel : PageModel
         return new JsonResult(new { isValid = true, message = "" });
     }
 
-    public async Task<IActionResult> OnPostValidateCustomExpertiseAsync(string expertiseName)
+    public async Task<IActionResult> OnPostValidateCustomExpertiseAsync([FromForm(Name = "Input.CustomExpertise")] string expertiseName)
     {
         if (string.IsNullOrWhiteSpace(expertiseName))
         {
@@ -256,6 +256,18 @@ public partial class RegisterModel : PageModel
         }
 
         return new JsonResult(new { isValid = true, message = "", suggestion = "" });
+    }
+
+    // Returns a single custom expertise input row for HTMX to append
+    public IActionResult OnGetCustomExpertiseRow()
+    {
+        return Partial("_CustomExpertiseRow");
+    }
+
+    // HTMX-friendly remove endpoint: returns empty so the caller can hx-swap outerHTML
+    public IActionResult OnGetRemoveCustomExpertiseRow()
+    {
+        return Content(string.Empty);
     }
 
     private async Task LoadFormDataAsync()
@@ -422,16 +434,63 @@ public partial class RegisterModel : PageModel
                 return Partial("_RegistrationContainer", this);
             }
             
-            // Add expertise relationships
-            await _userManager.EmptyAndAddExpertiseForUserAsync(user.Id, Input.SelectedExpertiseIds);
-            
-            // Add custom expertise
-            foreach (var customExpertise in Input.CustomExpertise.Where(ce => !string.IsNullOrWhiteSpace(ce)))
+            // Build the full set of expertise IDs to associate with the user (predefined + custom)
+            var combinedExpertiseIds = new HashSet<int>();
+
+            // 1) Include predefined selected expertise IDs (if any)
+            if (Input.SelectedExpertiseIds is { Length: > 0 })
             {
-                var expertiseId = await _expertiseManager.CreateExpertiseAsync(customExpertise.Trim(),
-                    $"Custom expertise: {customExpertise.Trim()}");
-                await _userManager.AddExpertiseToUserAsync(user.Id, expertiseId);
+                foreach (var id in Input.SelectedExpertiseIds)
+                    combinedExpertiseIds.Add(id);
             }
+
+            // 2) Normalize, deduplicate, and upsert custom expertise by name (case-insensitive)
+            if (Input.CustomExpertise is { Length: > 0 })
+            {
+                // Normalize: trim and collapse internal whitespace, then dedupe by case-insensitive key
+                static string Normalize(string s)
+                {
+                    var trimmed = s.Trim();
+                    if (trimmed.Length == 0) return string.Empty;
+                    // Collapse multiple whitespaces to single spaces
+                    var parts = trimmed.Split((char[])null, StringSplitOptions.RemoveEmptyEntries);
+                    return string.Join(" ", parts);
+                }
+
+                var comparer = StringComparer.OrdinalIgnoreCase;
+                var distinctCustom = new HashSet<string>(comparer);
+
+                foreach (var raw in Input.CustomExpertise)
+                {
+                    if (string.IsNullOrWhiteSpace(raw))
+                        continue;
+
+                    var normalized = Normalize(raw);
+                    if (string.IsNullOrEmpty(normalized))
+                        continue;
+
+                    if (!distinctCustom.Add(normalized))
+                        continue; // skip duplicates within the same submission
+
+                    // If expertise already exists (case-insensitive), reuse it; otherwise create it
+                    var existing = await _expertiseManager.SearchForExpertiseExistsAsync(normalized);
+                    int expertiseId;
+                    if (existing != null)
+                    {
+                        expertiseId = existing.Id;
+                    }
+                    else
+                    {
+                        expertiseId = await _expertiseManager.CreateExpertiseAsync(normalized, $"Custom expertise: {normalized}");
+                    }
+
+                    if (expertiseId > 0)
+                        combinedExpertiseIds.Add(expertiseId);
+                }
+            }
+
+            // 3) Persist associations in one call to avoid duplicates and ensure consistency
+            await _userManager.EmptyAndAddExpertiseForUserAsync(user.Id, combinedExpertiseIds.ToArray());
 
             // Add social media links
             var socialMediaLinks = new List<SocialMedia>();

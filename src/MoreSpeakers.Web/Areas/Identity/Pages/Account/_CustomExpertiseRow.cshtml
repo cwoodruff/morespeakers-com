@@ -1,0 +1,11 @@
+﻿<div class="input-group mb-2 custom-expertise-input">
+    <input type="text" name="Input.CustomExpertise" class="form-control custom-expertise-field"
+           placeholder="Enter a custom expertise area" />
+
+    <button type="button" class="btn btn-outline-danger"
+            hx-get="/Identity/Account/Register?handler=RemoveCustomExpertiseRow"
+            hx-target="closest .custom-expertise-input"
+            hx-swap="outerHTML">
+        <i class="bi bi-trash"></i>
+    </button>
+</div>

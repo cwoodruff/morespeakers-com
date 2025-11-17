@@ -138,7 +138,7 @@ public class ExpertiseDataStore : IExpertiseDataStore
     public async Task<Expertise?> SearchForExpertiseExistsAsync(string name)
     {
         var experiences = await _context.Expertise.FirstOrDefaultAsync(e => e.Name.Equals(name.Trim(), StringComparison.CurrentCultureIgnoreCase));
-        return _mapper.Map<Expertise>(experiences);   
+        return _mapper.Map<Expertise?>(experiences);   
     }
     
     public async Task<List<Expertise>> FuzzySearchForExistingExpertise(string name, int count = 3)
