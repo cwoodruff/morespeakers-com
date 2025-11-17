@@ -63,7 +63,6 @@ INSERT INTO MoreSpeakers.dbo.SocialMedias (Id, UserId, Platform, Url, CreatedDat
 INSERT INTO MoreSpeakers.dbo.SocialMedias (Id, UserId, Platform, Url, CreatedDate, IsActive) VALUES (23, N'62A49FAC-ECD3-432F-8B92-7C558ACE9575', N'Website', N'https://www.woodruff.dev/', N'2025-09-28 16:13:18.3637854', 1);
 INSERT INTO MoreSpeakers.dbo.SocialMedias (Id, UserId, Platform, Url, CreatedDate, IsActive) VALUES (24, N'62A49FAC-ECD3-432F-8B92-7C558ACE9575', N'LinkedIn', N'https://www.linkedin.com/in/chriswoodruff/', N'2025-09-28 16:13:18.3637973', 1);
 INSERT INTO MoreSpeakers.dbo.SocialMedias (Id, UserId, Platform, Url, CreatedDate, IsActive) VALUES (25, N'62A49FAC-ECD3-432F-8B92-7C558ACE9575', N'GitHub', N'https://github.com/cwoodruff', N'2025-09-28 16:13:18.3638053', 1);
-
 SET IDENTITY_INSERT MoreSpeakers.dbo.SocialMedias OFF;
 
 INSERT INTO MoreSpeakers.dbo.UserExpertises (UserId, ExpertiseId, CreatedDate) VALUES (N'62A49FAC-ECD3-432F-8B92-7C558ACE9575', 1, N'2025-09-28 16:13:18.4300000');
@@ -101,24 +100,29 @@ INSERT INTO MoreSpeakers.dbo.UserExpertises (UserId, ExpertiseId, CreatedDate) V
 INSERT INTO MoreSpeakers.dbo.UserExpertises (UserId, ExpertiseId, CreatedDate) VALUES (N'3cae1cf9-c6a8-4b50-91e5-9030a678a0fa', 33, N'2025-11-09 14:32:09.7433333');
 INSERT INTO MoreSpeakers.dbo.UserExpertises (UserId, ExpertiseId, CreatedDate) VALUES (N'3cae1cf9-c6a8-4b50-91e5-9030a678a0fa', 36, N'2025-11-09 14:32:09.7433333');
 
-INSERT INTO MoreSpeakers.dbo.SocialMediaSites (Name, Icon, UrlFormat) VALUES ('Bluesky', 'bi bi-bluesky', 'https://bsky.app/profile/{0}');
-INSERT INTO MoreSpeakers.dbo.SocialMediaSites (Name, Icon, UrlFormat) VALUES ('Discord', 'bi bi-discord', 'https://discord.com/users/{0}');
-INSERT INTO MoreSpeakers.dbo.SocialMediaSites (Name, Icon, UrlFormat) VALUES ('Facebook', 'bi bi-facebook', 'https://www.facebook.com/{0}');
-INSERT INTO MoreSpeakers.dbo.SocialMediaSites (Name, Icon, UrlFormat) VALUES ('GitHub', 'bi bi-github', 'https://www.github.com/{0}');
-INSERT INTO MoreSpeakers.dbo.SocialMediaSites (Name, Icon, UrlFormat) VALUES ('Instagram', 'bi bi-instagram', 'https://www.instagram.com/{0}');
-INSERT INTO MoreSpeakers.dbo.SocialMediaSites (Name, Icon, UrlFormat) VALUES ('LinkedIn', 'bi bi-linkedin', 'https://www.linkedin.com/in/{0}}');
-INSERT INTO MoreSpeakers.dbo.SocialMediaSites (Name, Icon, UrlFormat) VALUES ('Mastodon', 'bi bi-mastodon', '{0}');
-INSERT INTO MoreSpeakers.dbo.SocialMediaSites (Name, Icon, UrlFormat) VALUES ('Medium', 'bi bi-medium', 'https://www.medium.com/{0}');
-INSERT INTO MoreSpeakers.dbo.SocialMediaSites (Name, Icon, UrlFormat) VALUES ('PayPal', 'bi bi-paypal', 'https://www.paypal.me/{0}');
-INSERT INTO MoreSpeakers.dbo.SocialMediaSites (Name, Icon, UrlFormat) VALUES ('Reddit', 'bi bi-reddit', 'https://www.reddit.com/u/{0}');
-INSERT INTO MoreSpeakers.dbo.SocialMediaSites (Name, Icon, UrlFormat) VALUES ('Signal', 'bi bi-signal', 'https://signal.me/#p/{0}');
-INSERT INTO MoreSpeakers.dbo.SocialMediaSites (Name, Icon, UrlFormat) VALUES ('StackOverflow', 'bi bi-stack-overflow', 'https://www.stackoverflow.com/users/{0}');
-INSERT INTO MoreSpeakers.dbo.SocialMediaSites (Name, Icon, UrlFormat) VALUES ('Twitch', 'bi bi-twitch', 'https://www.twitch.tv/{0}');
-INSERT INTO MoreSpeakers.dbo.SocialMediaSites (Name, Icon, UrlFormat) VALUES ('Twitter/X', 'bi bi-twitter-x', 'https://www.x.com/{0}');
-INSERT INTO MoreSpeakers.dbo.SocialMediaSites (Name, Icon, UrlFormat) VALUES ('Youtube', 'bi bi-youtube', 'https://www.youtube.com/{0}');
-INSERT INTO MoreSpeakers.dbo.SocialMediaSites (Name, Icon, UrlFormat) VALUES ('Website', 'bi bi-globe', '{0}');
-INSERT INTO MoreSpeakers.dbo.SocialMediaSites (Name, Icon, UrlFormat) VALUES ('Other', 'bi bi-link', '{0}');
-INSERT INTO MoreSpeakers.dbo.SocialMediaSites (Name, Icon, UrlFormat) VALUES ('Blog', 'bi bi-journal-text', '{0}');
+SET IDENTITY_INSERT MoreSpeakers.dbo.SocialMediaSites ON;
+INSERT INTO MoreSpeakers.dbo.SocialMediaSites (SocialMediaSiteId, Name, Icon, UrlFormat) VALUES (1, 'Bluesky', 'bi bi-bluesky', 'https://bsky.app/profile/{0}');
+INSERT INTO MoreSpeakers.dbo.SocialMediaSites (SocialMediaSiteId, Name, Icon, UrlFormat) VALUES (2, 'Discord', 'bi bi-discord', 'https://discord.com/users/{0}');
+INSERT INTO MoreSpeakers.dbo.SocialMediaSites (SocialMediaSiteId, Name, Icon, UrlFormat) VALUES (3, 'Facebook', 'bi bi-facebook', 'https://www.facebook.com/{0}');
+INSERT INTO MoreSpeakers.dbo.SocialMediaSites (SocialMediaSiteId, Name, Icon, UrlFormat) VALUES (4, 'GitHub', 'bi bi-github', 'https://www.github.com/{0}');
+INSERT INTO MoreSpeakers.dbo.SocialMediaSites (SocialMediaSiteId, Name, Icon, UrlFormat) VALUES (5, 'Instagram', 'bi bi-instagram', 'https://www.instagram.com/{0}');
+INSERT INTO MoreSpeakers.dbo.SocialMediaSites (SocialMediaSiteId, Name, Icon, UrlFormat) VALUES (6, 'LinkedIn', 'bi bi-linkedin', 'https://www.linkedin.com/in/{0}');
+INSERT INTO MoreSpeakers.dbo.SocialMediaSites (SocialMediaSiteId, Name, Icon, UrlFormat) VALUES (7, 'Mastodon', 'bi bi-mastodon', '{0}');
+INSERT INTO MoreSpeakers.dbo.SocialMediaSites (SocialMediaSiteId, Name, Icon, UrlFormat) VALUES (8, 'Medium', 'bi bi-medium', 'https://www.medium.com/{0}');
+INSERT INTO MoreSpeakers.dbo.SocialMediaSites (SocialMediaSiteId, Name, Icon, UrlFormat) VALUES (9, 'PayPal', 'bi bi-paypal', 'https://www.paypal.me/{0}');
+INSERT INTO MoreSpeakers.dbo.SocialMediaSites (SocialMediaSiteId, Name, Icon, UrlFormat) VALUES (10, 'Reddit', 'bi bi-reddit', 'https://www.reddit.com/u/{0}');
+INSERT INTO MoreSpeakers.dbo.SocialMediaSites (SocialMediaSiteId, Name, Icon, UrlFormat) VALUES (11, 'Signal', 'bi bi-signal', 'https://signal.me/#p/{0}');
+INSERT INTO MoreSpeakers.dbo.SocialMediaSites (SocialMediaSiteId, Name, Icon, UrlFormat) VALUES (12, 'StackOverflow', 'bi bi-stack-overflow', 'https://www.stackoverflow.com/users/{0}');
+INSERT INTO MoreSpeakers.dbo.SocialMediaSites (SocialMediaSiteId, Name, Icon, UrlFormat) VALUES (13, 'Twitch', 'bi bi-twitch', 'https://www.twitch.tv/{0}');
+INSERT INTO MoreSpeakers.dbo.SocialMediaSites (SocialMediaSiteId, Name, Icon, UrlFormat) VALUES (14, 'Twitter/X', 'bi bi-twitter-x', 'https://www.x.com/{0}');
+INSERT INTO MoreSpeakers.dbo.SocialMediaSites (SocialMediaSiteId, Name, Icon, UrlFormat) VALUES (15, 'Youtube', 'bi bi-youtube', 'https://www.youtube.com/{0}');
+INSERT INTO MoreSpeakers.dbo.SocialMediaSites (SocialMediaSiteId, Name, Icon, UrlFormat) VALUES (16, 'Website', 'bi bi-globe', '{0}');
+INSERT INTO MoreSpeakers.dbo.SocialMediaSites (SocialMediaSiteId, Name, Icon, UrlFormat) VALUES (17, 'Other', 'bi bi-link', '{0}');
+INSERT INTO MoreSpeakers.dbo.SocialMediaSites (SocialMediaSiteId, Name, Icon, UrlFormat) VALUES (18, 'Blog', 'bi bi-journal-text', '{0}');
+INSERT INTO MoreSpeakers.dbo.SocialMediaSites (SocialMediaSiteId, Name, Icon, UrlFormat) VALUES (19, 'WhatsApp', 'bi bi-whatsapp', 'https://wa.me/{0}');
+INSERT INTO MoreSpeakers.dbo.SocialMediaSites (SocialMediaSiteId, Name, Icon, UrlFormat) VALUES (20, 'WhatsApp', 'bi bi-substack', 'https://substack.com/{0}');
+INSERT INTO MoreSpeakers.dbo.SocialMediaSites (SocialMediaSiteId, Name, Icon, UrlFormat) VALUES (21, 'Hacker News', 'fa-brands fa-hacker-news', 'https://news.ycombinator.com/user?id={0}');
+SET IDENTITY_INSERT MoreSpeakers.dbo.SocialMediaSites OFF;
 
 INSERT INTO MoreSpeakers.dbo.UserSocialMediaSites (UserId, SocialMediaSiteId, SocialId) VALUES (N'62A49FAC-ECD3-432F-8B92-7C558ACE9575', 18, N'https://www.woodruff.dev/category/blog/');
 INSERT INTO MoreSpeakers.dbo.UserSocialMediaSites (UserId, SocialMediaSiteId, SocialId) VALUES (N'62A49FAC-ECD3-432F-8B92-7C558ACE9575', 16, N'https://www.woodruff.dev/');
