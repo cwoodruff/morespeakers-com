@@ -36,4 +36,5 @@ public class User : IdentityUser<Guid>
     public ICollection<UserExpertise> UserExpertise { get; set; } = new List<UserExpertise>();
     public ICollection<Mentorship> MentorshipsAsMentor { get; set; } = new List<Mentorship>();
     public ICollection<Mentorship> MentorshipsAsMentee { get; set; } = new List<Mentorship>();
+    public ICollection<UserSocialMediaSites> SocialMediaSites { get; set; } = new List<UserSocialMediaSites>();
 }
