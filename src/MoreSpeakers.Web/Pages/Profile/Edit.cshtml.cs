@@ -20,7 +20,7 @@ public class EditModel(
 {
     [BindProperty]
     public ProfileEditInputModel Input { get; set; } = new();
-    
+
     [BindProperty]
     public PasswordChangeInputModel PasswordInput { get; set; } = new();
 
@@ -78,7 +78,7 @@ public class EditModel(
                 if (fileUploadService.IsValidImageFile(Input.HeadshotFile))
                 {
                     // Delete old headshot if exists
-                    if (!string.IsNullOrEmpty(ProfileUser.HeadshotUrl) && 
+                    if (!string.IsNullOrEmpty(ProfileUser.HeadshotUrl) &&
                         ProfileUser.HeadshotUrl.StartsWith("/uploads/headshots/"))
                     {
                         var oldFileName = Path.GetFileName(ProfileUser.HeadshotUrl);
@@ -87,7 +87,7 @@ public class EditModel(
 
                     // Upload new headshot
                     var fileName = await fileUploadService.UploadHeadshotAsync(Input.HeadshotFile, ProfileUser.Id);
-                    if (fileName != null)
+                    if (!string.IsNullOrWhiteSpace(fileName))
                     {
                         ProfileUser.HeadshotUrl = fileUploadService.GetHeadshotPath(fileName);
                     }
@@ -114,7 +114,7 @@ public class EditModel(
             ProfileUser.SessionizeUrl = Input.SessionizeUrl;
             ProfileUser.SpeakerTypeId = Input.SpeakerTypeId;
             ProfileUser.UpdatedDate = DateTime.UtcNow;
-            
+
             // Save the profile (user information)
             await userManager.SaveAsync(ProfileUser);
 
@@ -126,7 +126,7 @@ public class EditModel(
 
             HasValidationErrors = false;
             SuccessMessage = "Profile updated successfully!";
-            
+
             return Partial("_ProfileEditForm", this);
         }
         catch (Exception ex)
@@ -162,11 +162,11 @@ public class EditModel(
         try
         {
             var changeResult = await userManager.ChangePasswordAsync(
-                ProfileUser, 
-                PasswordInput.CurrentPassword, 
+                ProfileUser,
+                PasswordInput.CurrentPassword,
                 PasswordInput.NewPassword);
 
-            if (changeResult.Succeeded)
+            if (changeResult.IsSuccessful)
             {
                 HasValidationErrors = false;
                 SuccessMessage = "Password changed successfully!";
@@ -175,7 +175,7 @@ public class EditModel(
             else
             {
                 HasValidationErrors = true;
-                ValidationMessage = string.Join("; ", changeResult.Errors.Select(e => e.Description));
+                ValidationMessage = string.Join("; ", changeResult.Errors);
             }
 
             return Partial("_PasswordChangeForm", this);
@@ -184,7 +184,7 @@ public class EditModel(
         {
             HasValidationErrors = true;
             ValidationMessage = "An error occurred while changing your password. Please try again.";
-            
+
             logger.LogError(ex, "Error changing user password for user '{UserId}'", ProfileUser.Id);
             return Partial("_PasswordChangeForm", this);
         }
@@ -194,12 +194,12 @@ public class EditModel(
     {
         return ValidateModel(model);
     }
-    
+
     private List<ValidationResult> ValidatePasswordInputModel(PasswordChangeInputModel model)
     {
         return ValidateModel(model);
     }
-    
+
     private List<ValidationResult> ValidateModel(object model)
     {
         var context = new ValidationContext(model, null, null);
@@ -216,7 +216,7 @@ public class EditModel(
         if (result != null) return result;
 
         ActiveTab = tab;
-        
+
         return tab switch
         {
             "password" => Partial("_PasswordChangeForm", this),
@@ -241,7 +241,7 @@ public class EditModel(
             if (fileUploadService.IsValidImageFile(Input.HeadshotFile))
             {
                 // Delete old headshot if exists
-                if (!string.IsNullOrEmpty(ProfileUser.HeadshotUrl) && 
+                if (!string.IsNullOrEmpty(ProfileUser.HeadshotUrl) &&
                     ProfileUser.HeadshotUrl.StartsWith("/uploads/headshots/"))
                 {
                     var oldFileName = Path.GetFileName(ProfileUser.HeadshotUrl);
@@ -250,11 +250,11 @@ public class EditModel(
 
                 // Upload new headshot
                 var fileName = await fileUploadService.UploadHeadshotAsync(Input.HeadshotFile, ProfileUser.Id);
-                if (fileName != null)
+                if (!string.IsNullOrWhiteSpace(fileName))
                 {
                     ProfileUser.HeadshotUrl = fileUploadService.GetHeadshotPath(fileName);
                     ProfileUser.UpdatedDate = DateTime.UtcNow;
-                    // NOTE: Place holder for saving to DB
+                    // NOTE: Placeholder for saving to DB
                     //await _context.SaveChangesAsync();
 
                     HasValidationErrors = false;
@@ -279,9 +279,9 @@ public class EditModel(
         {
             HasValidationErrors = true;
             ValidationMessage = "An error occurred while uploading your image. Please try again.";
-            
+
             logger.LogError(ex, "Error uploading user headshot for user '{UserId}'", ProfileUser.Id);
-            
+
             return Partial("_HeadshotUpload", this);
         }
     }
@@ -335,10 +335,10 @@ public class EditModel(
         try
         {
             var socialMedias = new List<SocialMedia>();
-        
+
             for (int i = 0; i < Math.Min(Input.SocialMediaPlatforms.Length, Input.SocialMediaUrls.Length); i++)
             {
-                if (!string.IsNullOrWhiteSpace(Input.SocialMediaPlatforms[i]) && 
+                if (!string.IsNullOrWhiteSpace(Input.SocialMediaPlatforms[i]) &&
                     !string.IsNullOrWhiteSpace(Input.SocialMediaUrls[i]))
                 {
                     socialMedias.Add(new SocialMedia
@@ -350,7 +350,7 @@ public class EditModel(
                     });
                 }
             }
-        
+
             await userManager.EmptyAndAddSocialMediaForUserAsync(ProfileUser.Id,socialMedias);
         }
         catch (Exception ex)

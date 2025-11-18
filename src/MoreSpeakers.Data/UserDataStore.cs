@@ -18,30 +18,30 @@ public class UserDataStore : IUserDataStore
     private readonly Mapper _mapper;
     private readonly ILogger<UserDataStore> _logger;
 
-    public UserDataStore(MoreSpeakersDbContext context, UserManager<Data.Models.User> userManager, ILogger<UserDataStore> logger)
+    public UserDataStore(MoreSpeakersDbContext context, UserManager<Data.Models.User> userManager, ILogger<UserDataStore> logger, ILoggerFactory loggerFactory)
     {
         _context = context;
         var mappingConfiguration = new MapperConfiguration(cfg =>
         {
             cfg.AddProfile<MappingProfiles.MoreSpeakersProfile>();
-        });
+        }, loggerFactory);
         _mapper = new Mapper(mappingConfiguration);
-        
+
         _userManager = userManager;
         _logger = logger;
     }
-    
+
     // ------------------------------------------
     // Wrapper methods for AspNetCore Identity
     // ------------------------------------------
-    
+
     public async Task<User?> GetUserAsync(ClaimsPrincipal user)
     {
         var identityUserByClaim = await _userManager.GetUserAsync(user);
         return _mapper.Map<User>(identityUserByClaim);
     }
 
-    public async Task<IdentityResult> ChangePasswordAsync(User user, string currentPassword, string newPassword)
+    public async Task<Result> ChangePasswordAsync(User user, string currentPassword, string newPassword)
     {
         try
         {
@@ -58,17 +58,18 @@ public class UserDataStore : IUserDataStore
             if (!result.Succeeded)
             {
                 _logger.LogError("Failed to change password for user with id: {UserId}", user.Id);
+                return Result.Failure(result.Errors.Select(e => e.Description));
             }
-            return result;
+            return Result.Success();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to change password for user with id: {UserId}", user.Id);
-            return IdentityResult.Failed();
+            return Result.Failure(ex);
         }
     }
 
-    public async Task<IdentityResult> CreateAsync(User user, string password)
+    public async Task<Result> CreateAsync(User user, string password)
     {
         var identityUser = _mapper.Map<Data.Models.User>(user);
 
@@ -77,14 +78,15 @@ public class UserDataStore : IUserDataStore
             var result = await _userManager.CreateAsync(identityUser, password);
             if (!result.Succeeded)
             {
-                _logger.LogError("Failed to create user with id: {UserId}", user.Id);                
+                _logger.LogError("Failed to create user with id: {UserId}", user.Id);
+                return Result.Failure(result.Errors.Select(e => e.Description));
             }
-            return result;
+            return Result.Success();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to create user with id: {UserId}", user.Id);
-            return IdentityResult.Failed();
+            return Result.Failure(ex);
         }
     }
 
@@ -106,23 +108,26 @@ public class UserDataStore : IUserDataStore
         return await _userManager.GenerateEmailConfirmationTokenAsync(identityUser);
     }
 
-    public async Task<IdentityResult> ConfirmEmailAsync(User user, string token)
+    public async Task<Result> ConfirmEmailAsync(User user, string token)
     {
         var identityUser = await _userManager.FindByIdAsync(user.Id.ToString());
 
         if (identityUser == null)
         {
-            return IdentityResult.Failed(new IdentityError { Description = "User not found" });       
+            return Result.Failure("User not found");
         }
-        
-        return await _userManager.ConfirmEmailAsync(identityUser, token);
+
+        var identityResult = await _userManager.ConfirmEmailAsync(identityUser, token);
+        return identityResult.Succeeded
+            ? Result.Success()
+            : Result.Failure(identityResult.Errors.Select(e => e.Description));
     }
 
 
     // ------------------------------------------
     // Application Methods
     // ------------------------------------------
-    
+
     public async Task<User> GetAsync(Guid primaryKey)
     {
         var speaker = await _context.Users
@@ -218,7 +223,7 @@ public class UserDataStore : IUserDataStore
             .Where(u => u.SpeakerType.Id == (int)SpeakerTypeEnum.NewSpeaker)
             .OrderBy(u => u.FirstName)
             .ToListAsync();
-            
+
         return _mapper.Map<IEnumerable<User>>(users);
     }
 
@@ -232,7 +237,7 @@ public class UserDataStore : IUserDataStore
             .Where(u => u.SpeakerType.Id == (int)SpeakerTypeEnum.ExperiencedSpeaker)
             .OrderBy(u => u.FirstName)
             .ToListAsync();
-        
+
         return _mapper.Map<IEnumerable<User>>(users);
     }
 
@@ -260,7 +265,7 @@ public class UserDataStore : IUserDataStore
         {
             query = query.Where(u => u.SpeakerTypeId == speakerTypeId.Value);
         }
-        
+
         // Expertise
         if (expertiseId.HasValue)
         {
@@ -273,11 +278,11 @@ public class UserDataStore : IUserDataStore
             case SpeakerSearchOrderBy.Newest:
                 query = query.OrderByDescending(u => u.CreatedDate);
                 break;
-            
+
             case SpeakerSearchOrderBy.Expertise:
                 query = query.OrderBy(u => u.UserExpertise.Count).ThenBy(u => u.LastName).ThenBy(u => u.FirstName);
                 break;
-            
+
             case SpeakerSearchOrderBy.Name:
             default:
                 query = query.OrderBy(u => u.LastName).ThenBy(u => u.FirstName);
@@ -286,7 +291,7 @@ public class UserDataStore : IUserDataStore
 
         var users = await query.ToListAsync();
         var totalCount = users.Count;
-        
+
         if (page.HasValue && pageSize.HasValue)
         {
             users = users.Skip((page.Value - 1) * pageSize.Value).Take(pageSize.Value).ToList();
@@ -294,7 +299,7 @@ public class UserDataStore : IUserDataStore
 
         if (page.HasValue)
         {
-            
+
         }
         var results = new SpeakerSearchResult
         {
@@ -304,7 +309,7 @@ public class UserDataStore : IUserDataStore
             CurrentPage = page ?? 1,
             TotalPages = page.HasValue ? (totalCount / (pageSize ?? totalCount)) : 1
         };
-        
+
         return results;
     }
 
@@ -317,7 +322,7 @@ public class UserDataStore : IUserDataStore
             .Where(u => u.UserExpertise.Any(ue => ue.ExpertiseId == expertiseId))
             .OrderBy(u => u.FirstName)
             .ToListAsync();
-        
+
         return _mapper.Map<IEnumerable<User>>(users);
     }
 
@@ -470,7 +475,7 @@ public class UserDataStore : IUserDataStore
 
             foreach (var socialMedia in socialMedias)
             {
-                _context.SocialMedia.Add(new Models.SocialMedia { UserId = userId, Platform = socialMedia.Platform, Url = socialMedia.Url });           
+                _context.SocialMedia.Add(new Models.SocialMedia { UserId = userId, Platform = socialMedia.Platform, Url = socialMedia.Url });
             }
 
             var result = await _context.SaveChangesAsync() != 0;
@@ -478,7 +483,7 @@ public class UserDataStore : IUserDataStore
             {
                 _logger.LogError("Failed to empty and add social media links to user with id: {UserId}", userId);
             }
-            return result;       
+            return result;
 
         }
         catch(Exception ex)
@@ -502,7 +507,7 @@ public class UserDataStore : IUserDataStore
         var socialMedias = await _context.SocialMedia
             .Where(sm => sm.UserId == userId)
             .ToListAsync();
-        return _mapper.Map<List<SocialMedia>>(socialMedias);   
+        return _mapper.Map<List<SocialMedia>>(socialMedias);
     }
 
     public async Task<(int newSpeakers, int experiencedSpeakers, int activeMentorships)> GetStatisticsForApplicationAsync()
@@ -512,7 +517,7 @@ public class UserDataStore : IUserDataStore
         var experiencedSpeakers = await _context.Users.CountAsync(u => u.SpeakerType.Id == (int) SpeakerTypeEnum.ExperiencedSpeaker);
 
         var activeMentorships = await _context.Mentorship.CountAsync(m => m.Status == Models.MentorshipStatus.Active);
-        
+
         return (newSpeakers, experiencedSpeakers, activeMentorships);
 
     }
@@ -524,7 +529,7 @@ public class UserDataStore : IUserDataStore
             .OrderByDescending(s => s.UserExpertise.Count)
             .Take(count)
             .ToListAsync();
-        
+
         return _mapper.Map<List<User>>(speakers);
     }
 

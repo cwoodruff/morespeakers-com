@@ -16,13 +16,13 @@ public class MentoringDataStore: IMentoringDataStore
     private readonly Mapper _mapper;
     private readonly ILogger<MentoringDataStore> _logger;
 
-    public MentoringDataStore(MoreSpeakersDbContext context, ILogger<MentoringDataStore> logger)
+    public MentoringDataStore(MoreSpeakersDbContext context, ILogger<MentoringDataStore> logger, ILoggerFactory loggerFactory)
     {
         _context = context;
         var mappingConfiguration = new MapperConfiguration(cfg =>
         {
             cfg.AddProfile<MappingProfiles.MoreSpeakersProfile>();
-        });
+        }, loggerFactory);
         _mapper = new Mapper(mappingConfiguration);
         _logger = logger;
     }
@@ -70,7 +70,7 @@ public class MentoringDataStore: IMentoringDataStore
     {
         var mentorship = await _context.Mentorship
             .FirstOrDefaultAsync(e => e.Id == primaryKey);
-        
+
         if (mentorship is null)
         {
             return true;
@@ -104,25 +104,25 @@ public class MentoringDataStore: IMentoringDataStore
             .Where(ue => ue.UserId == mentee.Id)
             .Select(ue => ue.ExpertiseId)
             .ToListAsync();
-        
+
         var expertises = await _context.Expertise
             .Where(e => mentorExpertises.Contains(e.Id) && menteeExpertises.Contains(e.Id))
             .ToListAsync();
-        
+
         return _mapper.Map<List<Expertise>>(expertises);
     }
 
     public async Task<bool> DoesMentorshipRequestsExistsAsync(User mentor, User mentee)
     {
         var exists = await _context.Mentorship.FirstOrDefaultAsync(m => m.MentorId == mentor.Id && m.MenteeId == mentee.Id && m.Status == Models.MentorshipStatus.Pending);
-        
+
         return exists != null;
     }
 
     public async Task<bool> CreateMentorshipRequestAsync(Mentorship mentorship, List<int> expertiseIds)
     {
         var dbMentorship = _mapper.Map<Data.Models.Mentorship>(mentorship);
-        
+
         _context.Mentorship.Add(dbMentorship);
 
         try
@@ -150,7 +150,7 @@ public class MentoringDataStore: IMentoringDataStore
                     mentorship.MentorId, mentorship.MenteeId);
                 return false;
             }
-            
+
             return true;
         }
         catch (Exception ex)
@@ -174,7 +174,7 @@ public class MentoringDataStore: IMentoringDataStore
         {
             return null;
         }
-        
+
         mentorship.Status = accepted ? Models.MentorshipStatus.Active : Models.MentorshipStatus.Declined;
         mentorship.ResponseMessage = message;
         mentorship.ResponsedAt = DateTime.UtcNow;
@@ -213,11 +213,11 @@ public class MentoringDataStore: IMentoringDataStore
             .ThenInclude(m => m.SpeakerType)
             .Include(m => m.FocusAreas)
             .ThenInclude(fa => fa.Expertise)
-            .Where(m => (m.MentorId == userId || m.MenteeId == userId) && 
+            .Where(m => (m.MentorId == userId || m.MenteeId == userId) &&
                         m.Status == Models.MentorshipStatus.Active)
             .OrderBy(m => m.StartedAt)
             .ToListAsync();
-        
+
         return _mapper.Map<List<Mentorship>>(activeMentorships);
     }
 
@@ -225,7 +225,7 @@ public class MentoringDataStore: IMentoringDataStore
     {
         var outboundCount = await _context.Mentorship.CountAsync(m => m.MenteeId == userId && m.Status == Models.MentorshipStatus.Pending);
         var inboundCount = await _context.Mentorship.CountAsync(m => m.MentorId == userId && m.Status == Models.MentorshipStatus.Pending);
-        
+
         return (outboundCount, inboundCount);
     }
 
@@ -252,7 +252,7 @@ public class MentoringDataStore: IMentoringDataStore
             .Where(m => m.MenteeId == userId)
             .OrderByDescending(m => m.RequestedAt)
             .ToListAsync();
-        return _mapper.Map<List<Mentorship>>(mentorships); 
+        return _mapper.Map<List<Mentorship>>(mentorships);
     }
 
     public async Task<bool> CancelMentorshipRequestAsync(Guid mentorshipId, Guid userId)
@@ -283,7 +283,7 @@ public class MentoringDataStore: IMentoringDataStore
         }
         return false;
     }
-    
+
     public async Task<bool> CompleteMentorshipRequestAsync(Guid mentorshipId, Guid userId)
     {
         var mentorship = await _context.Mentorship
@@ -334,7 +334,7 @@ public class MentoringDataStore: IMentoringDataStore
                 query = query.Where(u => u.UserExpertise.Any(ue => ue.ExpertiseId == expertiseId));
             }
         }
-        
+
         // Filter by availability
         if (availability == true)
         {
@@ -345,7 +345,7 @@ public class MentoringDataStore: IMentoringDataStore
             .OrderBy(u => u.LastName)
             .ThenBy(u => u.FirstName)
             .ToListAsync();
-        
+
         return _mapper.Map<List<User>>(mentors);
     }
 
@@ -356,10 +356,10 @@ public class MentoringDataStore: IMentoringDataStore
             .Include(u => u.UserExpertise)
             .ThenInclude(ue => ue.Expertise)
             .FirstOrDefaultAsync(u => u.Id == userId);
-        
+
         return _mapper.Map<User?>(mentor);
     }
-    
+
     public async Task<bool> CanRequestMentorshipAsync(Guid menteeId, Guid mentorId)
     {
         // Check if there's already a pending or active mentorship
@@ -371,7 +371,7 @@ public class MentoringDataStore: IMentoringDataStore
 
         return !existingMentorship;
     }
-    
+
     public async Task<Mentorship?> RequestMentorshipWithDetailsAsync(Guid menteeId, Guid mentorId,
         MentorshipType type, string? requestMessage, List<int>? focusAreaIds, string? preferredFrequency)
     {
@@ -391,7 +391,7 @@ public class MentoringDataStore: IMentoringDataStore
             }
 
             var dbMentorshipType = _mapper.Map<Data.Models.MentorshipType>(type);
-            
+
             var mentorship = new Models.Mentorship
             {
                 Id = Guid.NewGuid(),

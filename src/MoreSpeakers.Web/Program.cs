@@ -1,8 +1,6 @@
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights.WindowsServer;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models;

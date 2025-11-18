@@ -1,5 +1,7 @@
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
+
+using MoreSpeakers.Data.Models;
 using MoreSpeakers.Web.Models;
 
 namespace MoreSpeakers.Tests.Integration;

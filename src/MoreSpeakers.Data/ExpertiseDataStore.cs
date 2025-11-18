@@ -14,13 +14,13 @@ public class ExpertiseDataStore : IExpertiseDataStore
     private readonly Mapper _mapper;
     private readonly ILogger<ExpertiseDataStore> _logger;
 
-    public ExpertiseDataStore(MoreSpeakersDbContext context, ILogger<ExpertiseDataStore> logger)
+    public ExpertiseDataStore(MoreSpeakersDbContext context, ILogger<ExpertiseDataStore> logger, ILoggerFactory loggerFactory)
     {
         _context = context;
         var mappingConfiguration = new MapperConfiguration(cfg =>
         {
             cfg.AddProfile<MappingProfiles.MoreSpeakersProfile>();
-        });
+        }, loggerFactory);
         _mapper = new Mapper(mappingConfiguration);
         _logger = logger;
     }
@@ -72,7 +72,7 @@ public class ExpertiseDataStore : IExpertiseDataStore
         {
             return true;
         }
-        
+
         foreach (var userExpertise in expertise.UserExpertise)
         {
             _context.UserExpertise.Remove(userExpertise);
@@ -81,7 +81,7 @@ public class ExpertiseDataStore : IExpertiseDataStore
 
         try
         {
-            return await _context.SaveChangesAsync() != 0;    
+            return await _context.SaveChangesAsync() != 0;
         }
         catch (Exception ex)
         {
@@ -120,7 +120,7 @@ public class ExpertiseDataStore : IExpertiseDataStore
             .OrderByDescending(e => e.UserExpertise.Count)
             .Take(count)
             .ToListAsync();
-        
+
         return _mapper.Map<IEnumerable<Expertise>>(expertises);
     }
 
@@ -131,16 +131,16 @@ public class ExpertiseDataStore : IExpertiseDataStore
                         (e.Description != null && e.Description.Contains(searchTerm)))
             .OrderBy(e => e.Name)
             .ToListAsync();
-        
+
         return _mapper.Map<IEnumerable<Expertise>>(expertises);
     }
 
     public async Task<Expertise?> SearchForExpertiseExistsAsync(string name)
     {
         var experiences = await _context.Expertise.FirstOrDefaultAsync(e => e.Name.Equals(name.Trim(), StringComparison.CurrentCultureIgnoreCase));
-        return _mapper.Map<Expertise>(experiences);   
+        return _mapper.Map<Expertise>(experiences);
     }
-    
+
     public async Task<List<Expertise>> FuzzySearchForExistingExpertise(string name, int count = 3)
     {
         var trimmedName = name.Trim();
@@ -150,7 +150,7 @@ public class ExpertiseDataStore : IExpertiseDataStore
             .Take(count)
             .Select(e => new { e.Id, e.Name })
             .ToListAsync();
-        
-        return _mapper.Map<List<Expertise>>(expertises.FirstOrDefault());   
+
+        return _mapper.Map<List<Expertise>>(expertises.FirstOrDefault());
     }
 }

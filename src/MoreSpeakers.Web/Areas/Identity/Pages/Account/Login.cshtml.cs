@@ -25,26 +25,26 @@ public class LoginModel : PageModel
     ///     directly from your code. This API may change or be removed in future releases.
     /// </summary>
     [BindProperty]
-    public InputModel Input { get; set; }
+    public required InputModel Input { get; init; }
 
     /// <summary>
     ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
     ///     directly from your code. This API may change or be removed in future releases.
     /// </summary>
-    public IList<AuthenticationScheme> ExternalLogins { get; set; }
+    public required IList<AuthenticationScheme> ExternalLogins { get; set; }
 
     /// <summary>
     ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
     ///     directly from your code. This API may change or be removed in future releases.
     /// </summary>
-    public string ReturnUrl { get; set; }
+    public required string ReturnUrl { get; set; }
 
     /// <summary>
     ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
     ///     directly from your code. This API may change or be removed in future releases.
     /// </summary>
     [TempData]
-    public string ErrorMessage { get; set; }
+    public required string ErrorMessage { get; set; }
 
     public async Task OnGetAsync(string? returnUrl = null)
     {
@@ -111,7 +111,7 @@ public class LoginModel : PageModel
         /// </summary>
         [Required]
         [EmailAddress]
-        public string Email { get; init; }
+        public required string Email { get; init; }
 
         /// <summary>
         ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
@@ -119,13 +119,13 @@ public class LoginModel : PageModel
         /// </summary>
         [Required]
         [DataType(DataType.Password)]
-        public string Password { get; init; }
+        public required string Password { get; init; }
 
         /// <summary>
         ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
         ///     directly from your code. This API may change or be removed in future releases.
         /// </summary>
         [Display(Name = "Remember me?")]
-        public bool RememberMe { get; init; }
+        public required bool RememberMe { get; init; }
     }
 }
