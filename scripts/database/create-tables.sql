@@ -265,7 +265,7 @@ go
 
 CREATE TABLE SocialMediaSites
 (
-    SocialMediaSiteId int IDENTITY(1,1) PRIMARY KEY,
+    Id int IDENTITY(1,1) PRIMARY KEY,
     Name varchar(50),
     Icon varchar(50),
     UrlFormat varchar(1024)
@@ -283,7 +283,7 @@ CREATE TABLE UserSocialMediaSites
             references AspNetUsers
             on delete cascade,
     SocialMediaSiteId int,
-    constraint FK_UserSocialMediaSites_SocialMediaSites_Id foreign key (SocialMediaSiteId) references SocialMediaSites(SocialMediaSiteId),
+    constraint FK_UserSocialMediaSites_SocialMediaSites_Id foreign key (SocialMediaSiteId) references SocialMediaSites(Id),
     SocialId varchar(1024),
 )
 

@@ -169,14 +169,14 @@
                     </h5>
                 </div>
                 <div class="card-body">
-                    @if (Model.SocialMedia.Any())
+                    @if (Model.CurrentUser.UserSocialMediaSites.Any())
                     {
                         <div class="d-flex flex-wrap gap-2">
-                            @foreach (var social in Model.SocialMedia)
+                            @foreach (var userSocialMediaSite in Model.CurrentUser.UserSocialMediaSites)
                             {
-                                <a href="@social.Url" target="_blank" class="btn btn-primary btn-sm text-start">
-                                    <i class="bi @GetSocialIcon(social.Platform)"></i>
-                                    @social.Platform
+                                <a href="@userSocialMediaSite.UserUrl" target="_blank" class="btn btn-primary mb-2">
+                                    <i class="@userSocialMediaSite.SocialMediaSite.Icon"></i>
+                                    @userSocialMediaSite.SocialMediaSite.Name
                                 </a>
                             }
                         </div>
@@ -198,20 +198,3 @@
     </div>
 </div>
 
-@functions {
-
-    private string GetSocialIcon(string platform)
-    {
-        return platform.ToLower() switch
-        {
-            "linkedin" => "bi-linkedin",
-            "twitter" => "bi-twitter",
-            "github" => "bi-github",
-            "youtube" => "bi-youtube",
-            "website" => "bi-globe",
-            "blog" => "bi-journal-text",
-            _ => "bi-link-45deg"
-        };
-    }
-
-}

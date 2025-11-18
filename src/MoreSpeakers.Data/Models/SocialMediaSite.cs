@@ -4,7 +4,7 @@ namespace MoreSpeakers.Data.Models;
 
 public class SocialMediaSite
 {
-    public int SocialMediaSiteId { get; set; }
+    public int Id { get; set; }
 
     [Required]
     public required string Name { get; set; }

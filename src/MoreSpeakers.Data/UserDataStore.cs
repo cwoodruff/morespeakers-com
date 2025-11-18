@@ -123,17 +123,16 @@ public class UserDataStore : IUserDataStore
     // Application Methods
     // ------------------------------------------
     
-    public async Task<User> GetAsync(Guid primaryKey)
+    public async Task<User?> GetAsync(Guid primaryKey)
     {
         var speaker = await _context.Users
                 .Include(u => u.SpeakerType)
                 .Include(u => u.UserExpertise)
                 .ThenInclude(ue => ue.Expertise)
-                .Include(u => u.SocialMediaLinks)
                 .Include(u => u.UserSocialMediaSites)
                 .ThenInclude(sms => sms.SocialMediaSite)
             .FirstOrDefaultAsync(e => e.Id == primaryKey);
-        return _mapper.Map<User>(speaker);
+        return _mapper.Map<User?>(speaker);
     }
 
     public async Task<User> SaveAsync(User user)
@@ -167,7 +166,6 @@ public class UserDataStore : IUserDataStore
             .Include(u => u.SpeakerType)
             .Include(u => u.UserExpertise)
             .ThenInclude(ue => ue.Expertise)
-            .Include(u => u.SocialMediaLinks)
             .Include(u => u.UserSocialMediaSites)
             .ThenInclude(sms => sms.SocialMediaSite)
             .ToListAsync();
@@ -218,7 +216,6 @@ public class UserDataStore : IUserDataStore
             .Include(u => u.SpeakerType)
             .Include(u => u.UserExpertise)
             .ThenInclude(ue => ue.Expertise)
-            .Include(u => u.SocialMediaLinks)
             .Include(u => u.UserSocialMediaSites)
             .ThenInclude(sms => sms.SocialMediaSite)
             .Where(u => u.SpeakerType.Id == (int)SpeakerTypeEnum.NewSpeaker)
@@ -234,7 +231,6 @@ public class UserDataStore : IUserDataStore
             .Include(u => u.SpeakerType)
             .Include(u => u.UserExpertise)
             .ThenInclude(ue => ue.Expertise)
-            .Include(u => u.SocialMediaLinks)
             .Include(u => u.UserSocialMediaSites)
             .ThenInclude(sms => sms.SocialMediaSite)
             .Where(u => u.SpeakerType.Id == (int)SpeakerTypeEnum.ExperiencedSpeaker)
@@ -329,60 +325,97 @@ public class UserDataStore : IUserDataStore
         return _mapper.Map<IEnumerable<User>>(users);
     }
 
-    public async Task<bool> AddSocialMediaLinkAsync(Guid userId, string platform, string url)
+    public async Task<bool> AddUserSocialMediaSiteAsync(Guid userId, UserSocialMediaSite userSocialMediaSite)
     {
         try
         {
-            var socialMedia = new SocialMedia
-            {
-                UserId = userId,
-                Platform = platform,
-                Url = url
-            };
-
-            var dbSocialMedia = _mapper.Map<Models.SocialMedia>(socialMedia);
-            _context.SocialMedia.Add(dbSocialMedia);
+            var dbUserSocialMediaSite = _mapper.Map<Models.UserSocialMediaSites>(userSocialMediaSite);
+            _context.UserSocialMediaSite.Add(dbUserSocialMediaSite);
 
             var result = await _context.SaveChangesAsync() != 0;
 
             if (!result)
             {
                 _logger.LogError(
-                    "Failed to add social media link for user with id: {UserId}. Platform: '{Platform}', '{Url}'",
-                    userId, platform, url);
+                    "Failed to add social media link for user for id: {UserId}. SocialMediaSiteId: {SocialMediaSiteId}, SocialId: {SocialId}",
+                    userId, userSocialMediaSite.SocialMediaSiteId, userSocialMediaSite.SocialId);
             }
             return result;
         }
         catch(Exception ex)
         {
-            _logger.LogError(ex, "Failed to add social media link for user with id: {UserId}. Platform: '{Platform}', '{Url}'", userId, platform, url);
+            _logger.LogError(ex, "Failed to add social media link for user for id: {UserId}. SocialMediaSiteId: {SocialMediaSiteId}, SocialId: {SocialId}",
+                userId, userSocialMediaSite.SocialMediaSiteId, userSocialMediaSite.SocialId);
             return false;
         }
     }
 
-    public async Task<bool> RemoveSocialMediaLinkAsync(int socialMediaId)
+    public async Task<bool> RemoveUserSocialMediaSiteAsync(int userSocialMediaSiteId)
     {
         try
         {
-            var socialMedia = await _context.SocialMedia.FindAsync(socialMediaId);
-            if (socialMedia == null)
+            var userSocialMediaSite = await _context.UserSocialMediaSite.FindAsync(userSocialMediaSiteId);
+            if (userSocialMediaSite == null)
             {
                 return false;
             }
 
-            _context.SocialMedia.Remove(socialMedia);
+            _context.UserSocialMediaSite.Remove(userSocialMediaSite);
             var result = await _context.SaveChangesAsync() != 0;
             if (!result)
             {
-                _logger.LogError("Failed to remove social media link with id: {SocialMediaId}", socialMediaId);
+                _logger.LogError("Failed to remove social media link with id: {UserSocialMediaSiteId}", userSocialMediaSiteId);
             }
             return result;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to remove social media link with id: {SocialMediaId}", socialMediaId);
+            _logger.LogError(ex, "Failed to remove social media link with id: {UserSocialMediaSiteId}", userSocialMediaSiteId);
             return false;
         }
+    }
+    
+    public async Task<bool> EmptyAndAddUserSocialMediaSiteForUserAsync(Guid userId, List<UserSocialMediaSite> userSocialMediaSites)
+    {
+        try
+        {
+            var userSocialMediaSitesList = await _context.UserSocialMediaSite.Where(u => u.UserId == userId).ToListAsync();
+            foreach (Models.UserSocialMediaSites userSocialMediaSite in userSocialMediaSitesList)
+            {
+                _context.UserSocialMediaSite.Remove(userSocialMediaSite);
+            }
+
+            foreach (var userSocialMediaSite in userSocialMediaSites)
+            {
+                _context.UserSocialMediaSite.Add(new Models.UserSocialMediaSites
+                {
+                    SocialId = userSocialMediaSite.SocialId,
+                    SocialMediaSiteId = userSocialMediaSite.SocialMediaSiteId,
+                    UserId = userId
+                });
+            }
+
+            var result = await _context.SaveChangesAsync() != 0;
+            if (!result)
+            {
+                _logger.LogError("Failed to empty and add social media links to user with id: {UserId}", userId);
+            }
+            return result;       
+
+        }
+        catch(Exception ex)
+        {
+            _logger.LogError(ex, "Failed to empty and add social media links to user with id: {UserId}", userId);
+            return false;
+        }
+    }
+    
+    public async Task<IEnumerable<UserSocialMediaSite>> GetUserSocialMediaSitesAsync(Guid userId)
+    {
+        var userSocialMediaSitesList = await _context.UserSocialMediaSite
+            .Where(sm => sm.UserId == userId)
+            .ToListAsync();
+        return _mapper.Map<List<UserSocialMediaSite>>(userSocialMediaSitesList);   
     }
 
     public async Task<bool> AddExpertiseToUserAsync(Guid userId, int expertiseId)
@@ -465,37 +498,7 @@ public class UserDataStore : IUserDataStore
             return false;
         }
     }
-
-    public async Task<bool> EmptyAndAddSocialMediaForUserAsync(Guid userId, List<SocialMedia> socialMedias)
-    {
-        try
-        {
-            var socialMediaLinks = await _context.SocialMedia.Where(u => u.UserId == userId).ToListAsync();
-            foreach (Models.SocialMedia socialMediaLink in socialMediaLinks)
-            {
-                _context.SocialMedia.Remove(socialMediaLink);
-            }
-
-            foreach (var socialMedia in socialMedias)
-            {
-                _context.SocialMedia.Add(new Models.SocialMedia { UserId = userId, Platform = socialMedia.Platform, Url = socialMedia.Url });           
-            }
-
-            var result = await _context.SaveChangesAsync() != 0;
-            if (!result)
-            {
-                _logger.LogError("Failed to empty and add social media links to user with id: {UserId}", userId);
-            }
-            return result;       
-
-        }
-        catch(Exception ex)
-        {
-            _logger.LogError(ex, "Failed to empty and add social media links to user with id: {UserId}", userId);
-            return false;
-        }
-    }
-
+    
     public async Task<IEnumerable<UserExpertise>> GetUserExpertisesForUserAsync(Guid userId)
     {
         var userExpertises = await _context.UserExpertise
@@ -505,13 +508,6 @@ public class UserDataStore : IUserDataStore
         return _mapper.Map<List<UserExpertise>>(userExpertises);
     }
 
-    public async Task<IEnumerable<SocialMedia>> GetUserSocialMediaForUserAsync(Guid userId)
-    {
-        var socialMedias = await _context.SocialMedia
-            .Where(sm => sm.UserId == userId)
-            .ToListAsync();
-        return _mapper.Map<List<SocialMedia>>(socialMedias);   
-    }
 
     public async Task<(int newSpeakers, int experiencedSpeakers, int activeMentorships)> GetStatisticsForApplicationAsync()
     {

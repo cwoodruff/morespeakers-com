@@ -12,6 +12,7 @@ public partial class IndexModel : PageModel
 {
     private readonly IUserManager _userManager;
     private readonly IExpertiseManager _expertiseManager;
+    private readonly ISocialMediaSiteManager _socialMediaSiteManager;
     private readonly ILogger<IndexModel> _logger;
 
     public IndexModel(
@@ -28,7 +29,6 @@ public partial class IndexModel : PageModel
 
     public User CurrentUser { get; set; } = null!;
     public IEnumerable<UserExpertise> UserExpertise { get; set; } = new List<UserExpertise>();
-    public IEnumerable<SocialMedia> SocialMedia { get; set; } = new List<SocialMedia>();
     public IEnumerable<Expertise> AvailableExpertise { get; set; } = new List<Expertise>();
     public SpeakerType? SpeakerType { get; set; }
 
@@ -126,13 +126,25 @@ public partial class IndexModel : PageModel
         {
             user = await _userManager.GetUserAsync(User);
 
-            CurrentUser = user ?? throw new InvalidOperationException("Invalid user");
+            if (user == null)
+            {
+                RedirectToPage("/Profile/LoadingProblem", new { UserId = Guid.Empty });
+                return;
+            }
+            
+            var currentUser = await _userManager.GetAsync(user.Id);
+            if (currentUser == null)
+            {
+                RedirectToPage("/Profile/LoadingProblem", new { UserId = Guid.Empty });
+                return;
+            }
+
+            CurrentUser = currentUser;
             UserExpertise = await _userManager.GetUserExpertisesForUserAsync(user.Id);
-            SocialMedia = await _userManager.GetUserSocialMediaForUserAsync(user.Id);
             AvailableExpertise = await _expertiseManager.GetAllAsync();
             SpeakerType = CurrentUser.SpeakerType;
 
-            // Populate input model with current values
+            // Populate the input model with current values
             Input.FirstName = CurrentUser.FirstName;
             Input.LastName = CurrentUser.LastName;
             Input.Email = CurrentUser.Email!;

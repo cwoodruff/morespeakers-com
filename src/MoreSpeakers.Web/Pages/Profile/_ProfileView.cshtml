@@ -70,7 +70,7 @@
 <div class="row">
     @if (Model.UserExpertise?.Any() == true)
     {
-        <div class="col-md-@(Model.SocialMedia?.Any() == true ? "6" : "12") mb-4">
+        <div class="col-md-@(Model.ProfileUser.UserSocialMediaSites.Any() ? "6" : "12") mb-4">
             <div class="card h-100">
                 <div class="card-header">
                     <h5 class="mb-0">
@@ -90,7 +90,7 @@
         </div>
     }
 
-    @if (Model.SocialMedia?.Any() == true)
+    @if (Model.ProfileUser.UserSocialMediaSites.Any())
     {
         <div class="col-md-@(Model.UserExpertise?.Any() == true ? "6" : "12") mb-4">
             <div class="card h-100">
@@ -102,11 +102,11 @@
                 </div>
                 <div class="card-body">
                     <div class="d-flex flex-wrap gap-2">
-                        @foreach (var link in Model.SocialMedia)
+                        @foreach (var userSocialMediaSite in Model.ProfileUser.UserSocialMediaSites)
                         {
-                            <a href="@link.Url" target="_blank" class="btn btn-primary btn-sm text-start">
-                                <i class="bi bi-@GetSocialIcon(link.Platform)"></i>
-                                @link.Platform
+                            <a href="@userSocialMediaSite.UserUrl" target="_blank" class="btn btn-primary mb-2">
+                                <i class="@userSocialMediaSite.SocialMediaSite.Icon"></i>
+                                @userSocialMediaSite.SocialMediaSite.Name
                             </a>
                         }
                     </div>
@@ -157,34 +157,16 @@
     </div>
 </div>
 
-@if (Model.UserExpertise?.Any() != true && Model.SocialMedia?.Any() != true)
+@if (Model.UserExpertise?.Any() !=true && Model.ProfileUser.UserSocialMediaSites?.Any() != true)
 {
     <div class="card">
         <div class="card-body text-center py-5">
             <i class="bi bi-info-circle display-4 text-muted mb-3"></i>
             <h5 class="text-muted">Complete Your Profile</h5>
             <p class="text-muted mb-3">Add expertise areas and social links to help others connect with you.</p>
-            <a href="/Profile/Edit" class="btn btn-primary">
+            <a asp-page="~/Profile/Edit" class="btn btn-primary">
                 <i class="bi bi-pencil me-2"></i>Edit Profile
             </a>
         </div>
     </div>
-}
-@functions {
-
-    private string GetSocialIcon(string platform)
-    {
-        return platform.ToLower() switch
-        {
-            "linkedin" => "linkedin",
-            "twitter" => "twitter-x",
-            "github" => "github",
-            "website" => "globe",
-            "blog" => "journal-text",
-            "youtube" => "youtube",
-            "mastodon" => "mastodon",
-            "bluesky" => "bluesky",
-            _ => "link-45deg"
-        };
-    }
 }

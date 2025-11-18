@@ -28,7 +28,7 @@ public class SocialMediaSiteDataStore: ISocialMediaSiteDataStore
     public async Task<SocialMediaSite> SaveAsync(SocialMediaSite socialMediaSite)
     { 
         var dbSocialMediaSite = _mapper.Map<Models.SocialMediaSite>(socialMediaSite);
-        _context.Entry(dbSocialMediaSite).State = socialMediaSite.SocialMediaSiteId == 0 ? EntityState.Added : EntityState.Modified;
+        _context.Entry(dbSocialMediaSite).State = socialMediaSite.Id == 0 ? EntityState.Added : EntityState.Modified;
 
         try
         {
@@ -39,12 +39,12 @@ public class SocialMediaSiteDataStore: ISocialMediaSiteDataStore
             }
 
             _logger.LogError("Failed to save the social media site. Id: '{Id}', Name: '{Name}'",
-                socialMediaSite.SocialMediaSiteId, socialMediaSite.Name);
+                socialMediaSite.Id, socialMediaSite.Name);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex,"Failed to save the social media site. Id: '{Id}', Name: '{Name}'",
-                socialMediaSite.SocialMediaSiteId, socialMediaSite.Name);
+                socialMediaSite.Id, socialMediaSite.Name);
         }
         throw new ApplicationException("Failed to save the social media site.");
     }
@@ -57,19 +57,19 @@ public class SocialMediaSiteDataStore: ISocialMediaSiteDataStore
     
     public async Task<SocialMediaSite> GetAsync(int primaryKey)
     {
-        var socialMediaSite = await _context.SocialMediaSite.FirstOrDefaultAsync(sms => sms.SocialMediaSiteId == primaryKey);
+        var socialMediaSite = await _context.SocialMediaSite.FirstOrDefaultAsync(sms => sms.Id == primaryKey);
         return _mapper.Map<SocialMediaSite>(socialMediaSite);
     }
 
     public async Task<bool> DeleteAsync(SocialMediaSite entity)
     {
-        return await DeleteAsync(entity.SocialMediaSiteId);
+        return await DeleteAsync(entity.Id);
     }
 
     public async Task<bool> DeleteAsync(int primaryKey)
     {
         var socialMediaSite = await _context.SocialMediaSite
-            .FirstOrDefaultAsync(sms => sms.SocialMediaSiteId == primaryKey);
+            .FirstOrDefaultAsync(sms => sms.Id == primaryKey);
         
         if (socialMediaSite is null)
         {

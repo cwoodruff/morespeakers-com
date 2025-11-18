@@ -15,6 +15,7 @@ namespace MoreSpeakers.Web.Pages.Profile;
 public class EditModel(
     IExpertiseManager expertiseManager,
     IUserManager userManager,
+    ISocialMediaSiteManager socialMediaSiteManager,
     IFileUploadService fileUploadService,
     ILogger<EditModel> logger) : PageModel
 {
@@ -27,7 +28,7 @@ public class EditModel(
     public User ProfileUser { get; set; } = null!;
     public IEnumerable<Expertise> AvailableExpertise { get; set; } = new List<Expertise>();
     public IEnumerable<UserExpertise> UserExpertise { get; set; } = new List<UserExpertise>();
-    public IEnumerable<SocialMedia> SocialMedia { get; set; } = new List<SocialMedia>();
+    public IEnumerable<SocialMediaSite> SocialMediaSites { get; set; } = new List<SocialMediaSite>();
 
     // Properties for HTMX state management
     public string ActiveTab { get; set; } = "profile";
@@ -43,6 +44,7 @@ public class EditModel(
             return result;
         }
 
+        SocialMediaSites = await socialMediaSiteManager.GetAllAsync();
         ActiveTab = "profile";
         return Page();
     }
@@ -54,7 +56,8 @@ public class EditModel(
         {
             return result;
         }
-
+        
+        SocialMediaSites = await socialMediaSiteManager.GetAllAsync();
         ActiveTab = "profile";
 
         var validationErrors = ValidateProfileEditInputModel(Input);
@@ -112,7 +115,7 @@ public class EditModel(
             ProfileUser.Bio = Input.Bio;
             ProfileUser.Goals = Input.Goals;
             ProfileUser.SessionizeUrl = Input.SessionizeUrl;
-            ProfileUser.SpeakerTypeId = Input.SpeakerTypeId;
+            ProfileUser.SpeakerTypeId = (int)Input.SpeakerTypeId;
             ProfileUser.UpdatedDate = DateTime.UtcNow;
             
             // Save the profile (user information)
@@ -144,6 +147,7 @@ public class EditModel(
         var result = await LoadUserDataAsync();
         if (result != null) return result;
 
+        SocialMediaSites = await socialMediaSiteManager.GetAllAsync();
         ActiveTab = "password";
 
         var validationErrors = ValidatePasswordInputModel(PasswordInput);
@@ -215,6 +219,7 @@ public class EditModel(
         var result = await LoadUserDataAsync();
         if (result != null) return result;
 
+        SocialMediaSites = await socialMediaSiteManager.GetAllAsync();
         ActiveTab = tab;
         
         return tab switch
@@ -288,22 +293,30 @@ public class EditModel(
 
     private async Task<IActionResult?> LoadUserDataAsync()
     {
-        User? currentUser = null;
+        User? identityUser = null;
 
         try
         {
-            currentUser = await userManager.GetUserAsync(User);
-            if (currentUser == null)
+            identityUser = await userManager.GetUserAsync(User);
+            if (identityUser == null)
             {
                 return Challenge();
             }
+            
+            // Load profile with all the user's data
+            var userProfile = await userManager.GetAsync(identityUser.Id);
+            if (userProfile == null)
+            {
+                logger.LogError("Error loading profile page. Could not find user. UserId: '{UserId}'", identityUser?.Id);
+                return RedirectToPage("/Profile/LoadingProblem",
+                    new { UserId = identityUser?.Id ?? Guid.Empty });
+            }
 
-            ProfileUser = currentUser;
+            ProfileUser = userProfile;
             AvailableExpertise = await expertiseManager.GetAllAsync();
-            UserExpertise = await userManager.GetUserExpertisesForUserAsync(currentUser.Id);
-            SocialMedia = await userManager.GetUserSocialMediaForUserAsync(currentUser.Id);
+            UserExpertise = await userManager.GetUserExpertisesForUserAsync(identityUser.Id);
 
-            // Populate Input model if not already populated
+            // Populate the Input model if not already populated
             if (string.IsNullOrEmpty(Input.FirstName))
             {
                 Input.FirstName = ProfileUser.FirstName;
@@ -313,17 +326,24 @@ public class EditModel(
                 Input.Goals = ProfileUser.Goals;
                 Input.SessionizeUrl = ProfileUser.SessionizeUrl ?? string.Empty;
                 Input.HeadshotUrl = ProfileUser.HeadshotUrl ?? string.Empty;
-                Input.SpeakerTypeId = ProfileUser.SpeakerTypeId;
-                Input.SelectedExpertiseIds = UserExpertise.Select(ue => ue.ExpertiseId).ToArray();
+                
+                if (Enum.IsDefined(typeof(SpeakerTypeEnum), ProfileUser.SpeakerTypeId))
+                {
+                    Input.SpeakerTypeId = (SpeakerTypeEnum)ProfileUser.SpeakerTypeId;
+                }
+                else
+                {
+                    Input.SpeakerTypeId = SpeakerTypeEnum.NewSpeaker;
+                }
 
-                var socialMediaList = SocialMedia.ToList();
-                Input.SocialMediaPlatforms = socialMediaList.Select(sm => sm.Platform).ToArray();
-                Input.SocialMediaUrls = socialMediaList.Select(sm => sm.Url).ToArray();
+                Input.SelectedExpertiseIds = UserExpertise.Select(ue => ue.ExpertiseId).ToArray();
+                Input.UserSocialMediaSites = ProfileUser.UserSocialMediaSites.ToList();
+                
             }
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error loading user data for user '{UserId}'", currentUser?.Id);
+            logger.LogError(ex, "Error loading user data for user '{UserId}'", identityUser?.Id);
         }
 
         return null;
@@ -332,26 +352,27 @@ public class EditModel(
     private async Task UpdateSocialMediaAsync()
     {
 
+        // TODO: Implement the saving of the user social media sites
         try
         {
-            var socialMedias = new List<SocialMedia>();
-        
-            for (int i = 0; i < Math.Min(Input.SocialMediaPlatforms.Length, Input.SocialMediaUrls.Length); i++)
-            {
-                if (!string.IsNullOrWhiteSpace(Input.SocialMediaPlatforms[i]) && 
-                    !string.IsNullOrWhiteSpace(Input.SocialMediaUrls[i]))
-                {
-                    socialMedias.Add(new SocialMedia
-                    {
-                        UserId = ProfileUser.Id,
-                        Platform = Input.SocialMediaPlatforms[i].Trim(),
-                        Url = Input.SocialMediaUrls[i].Trim(),
-                        CreatedDate = DateTime.UtcNow
-                    });
-                }
-            }
-        
-            await userManager.EmptyAndAddSocialMediaForUserAsync(ProfileUser.Id,socialMedias);
+            // var socialMedias = new List<SocialMedia>();
+            //
+            // for (int i = 0; i < Math.Min(Input.SocialMediaPlatforms.Length, Input.SocialMediaUrls.Length); i++)
+            // {
+            //     if (!string.IsNullOrWhiteSpace(Input.SocialMediaPlatforms[i]) && 
+            //         !string.IsNullOrWhiteSpace(Input.SocialMediaUrls[i]))
+            //     {
+            //         socialMedias.Add(new SocialMedia
+            //         {
+            //             UserId = ProfileUser.Id,
+            //             Platform = Input.SocialMediaPlatforms[i].Trim(),
+            //             Url = Input.SocialMediaUrls[i].Trim(),
+            //             CreatedDate = DateTime.UtcNow
+            //         });
+            //     }
+            // }
+            //
+            // await userManager.EmptyAndAddSocialMediaForUserAsync(ProfileUser.Id,socialMedias);
         }
         catch (Exception ex)
         {

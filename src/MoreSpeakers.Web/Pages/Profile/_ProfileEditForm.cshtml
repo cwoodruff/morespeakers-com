@@ -1,3 +1,4 @@
+@using MoreSpeakers.Domain.Extensions
 @model EditModel
 
 @if (Model.HasValidationErrors && !string.IsNullOrEmpty(Model.ValidationMessage))
@@ -71,8 +72,8 @@
                         <i class="bi bi-person text-muted"></i>
                     </span>
                     <select asp-for="Input.SpeakerTypeId" class="form-select">
-                        <option value="1" selected="@(Model.Input.SpeakerTypeId == 1)">New Speaker</option>
-                        <option value="2" selected="@(Model.Input.SpeakerTypeId == 2)">Experienced Speaker</option>
+                        <option value="@Domain.Models.SpeakerTypeEnum.NewSpeaker" selected="@(Model.Input.SpeakerTypeId == Domain.Models.SpeakerTypeEnum.NewSpeaker)">@Domain.Models.SpeakerTypeEnum.NewSpeaker.GetDescription()</option>
+                        <option value="@Domain.Models.SpeakerTypeEnum.ExperiencedSpeaker" selected="@(Model.Input.SpeakerTypeId == Domain.Models.SpeakerTypeEnum.ExperiencedSpeaker)">@Domain.Models.SpeakerTypeEnum.ExperiencedSpeaker.GetDescription()</option>
                     </select>
                 </div>
                 <span asp-validation-for="Input.SpeakerTypeId" class="text-danger small"></span>
@@ -186,6 +187,7 @@
     </div>
 
     <!-- Social Media Links -->
+    <!-- TODO: Add support for multiple social media links -->
     <div class="row mb-4">
         <div class="col-12">
             <h5 class="border-bottom pb-2 mb-3">
@@ -194,23 +196,25 @@
             <div class="form-text mb-3">Add your social media profiles and professional links.</div>
         </div>
         <div class="col-12" id="socialMediaContainer">
-            @for (int i = 0; i < 5; i++)
-            {
-                <div class="row mb-2">
-                    <div class="col-md-4">
-                        <input name="Input.SocialMediaPlatforms[@i]" 
-                               class="form-control" 
-                               placeholder="Platform (e.g., Twitter, LinkedIn)"
-                               value="@(Model.Input.SocialMediaPlatforms?.ElementAtOrDefault(i) ?? "")" />
-                    </div>
-                    <div class="col-md-8">
-                        <input name="Input.SocialMediaUrls[@i]" 
-                               class="form-control" 
-                               placeholder="URL (e.g., https://twitter.com/username)"
-                               value="@(Model.Input.SocialMediaUrls?.ElementAtOrDefault(i) ?? "")" />
-                    </div>
-                </div>
+            
+            @{
+                int index = 0;
+                int total = Model.ProfileUser.UserSocialMediaSites.Count - 1;
+                var socialMediaSites = Model.SocialMediaSites.ToList();
             }
+            @foreach (var userSocialMediaSite in Model.ProfileUser.UserSocialMediaSites)
+            {
+                var model = new UserSocialMediaSiteEdit()
+                {
+                    UserSocialMediaSite = userSocialMediaSite,
+                    SocialMediaSites = socialMediaSites,
+                    ItemNumber = index,
+                    TotalCount = total
+                };
+                index++;
+                @(await Html.PartialAsync("_UserSocialMediaSiteEdit", model))
+            }
+            
         </div>
     </div>
 

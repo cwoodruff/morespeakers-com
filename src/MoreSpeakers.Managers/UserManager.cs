@@ -106,15 +106,35 @@ public class UserManager: IUserManager
         return await _dataStore.GetSpeakersByExpertiseAsync(expertiseId);
     }
 
-    public async Task<bool> AddSocialMediaLinkAsync(Guid userId, string platform, string url)
+    public async Task<bool> AddUserSocialMediaSiteAsync(Guid userId, UserSocialMediaSite userSocialMediaSite)
     {
-        return await _dataStore.AddSocialMediaLinkAsync(userId, platform, url);
+        return await _dataStore.AddUserSocialMediaSiteAsync(userId, userSocialMediaSite);
     }
 
-    public async Task<bool> RemoveSocialMediaLinkAsync(int socialMediaId)
+    public async Task<bool> RemoveUserSocialMediaSiteAsync(int userSocialMediaSiteId)
     {
-        return await _dataStore.RemoveSocialMediaLinkAsync(socialMediaId); 
+        return await _dataStore.RemoveUserSocialMediaSiteAsync(userSocialMediaSiteId);
     }
+
+    public Task<bool> EmptyAndAddUserSocialMediaSiteForUserAsync(Guid userId,
+        List<UserSocialMediaSite> userSocialMediaSites)
+    {
+        if (userId == Guid.Empty || userId == Guid.NewGuid())
+        {
+            throw new ArgumentException("Invalid user id");
+        }
+        return _dataStore.EmptyAndAddUserSocialMediaSiteForUserAsync(userId, userSocialMediaSites);
+    }
+
+    public async Task<IEnumerable<UserSocialMediaSite>> GetUserSocialMediaSitesAsync(Guid userId)
+    {
+        if (userId == Guid.Empty || userId == Guid.NewGuid())
+        {
+            throw new ArgumentException("Invalid user id");
+        }
+        return await _dataStore.GetUserSocialMediaSitesAsync(userId);
+    }
+    
 
     public async Task<bool> AddExpertiseToUserAsync(Guid userId, int expertiseId)
     {
@@ -135,23 +155,9 @@ public class UserManager: IUserManager
         return await _dataStore.EmptyAndAddExpertiseForUserAsync(userId, expertises); 
     }
 
-    public async Task<bool> EmptyAndAddSocialMediaForUserAsync(Guid userId, List<SocialMedia> socialMedias)
-    {
-        if (userId == Guid.Empty || userId == Guid.NewGuid())
-        {
-            throw new ArgumentException("Invalid user id");
-        }
-        return await _dataStore.EmptyAndAddSocialMediaForUserAsync(userId, socialMedias);
-    }
-
     public async Task<IEnumerable<UserExpertise>> GetUserExpertisesForUserAsync(Guid userId)
     {
         return await _dataStore.GetUserExpertisesForUserAsync(userId);
-    }
-
-    public async Task<IEnumerable<SocialMedia>> GetUserSocialMediaForUserAsync(Guid userId)
-    {
-        return await _dataStore.GetUserSocialMediaForUserAsync(userId);
     }
 
     public async Task<(int newSpeakers, int experiencedSpeakers, int activeMentorships)> GetStatisticsForApplicationAsync()

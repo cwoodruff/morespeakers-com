@@ -27,10 +27,10 @@ public class MentoringDataStore: IMentoringDataStore
         _logger = logger;
     }
 
-    public async Task<Mentorship> GetAsync(Guid primaryKey)
+    public async Task<Mentorship?> GetAsync(Guid primaryKey)
     {
         var mentorship = await _context.Mentorship.FirstOrDefaultAsync(e => e.Id == primaryKey);
-        return _mapper.Map<Mentorship>(mentorship);
+        return _mapper.Map<Mentorship?>(mentorship);
     }
 
     public async Task<Mentorship> SaveAsync(Mentorship mentorship)

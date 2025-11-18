@@ -1,7 +1,7 @@
 @page
 @model MoreSpeakers.Web.Pages.Profile.ViewModel
 @{
-    ViewData["Title"] = Model.ProfileUser is not null ? Model.ProfileUser.FullName + " - Speaker Profile" : "Speaker Profile";
+    ViewData["Title"] = Model.ProfileUser.FullName + " - Speaker Profile";
 }
 
 <div class="container">
@@ -10,14 +10,14 @@
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="/" class="text-decoration-none">Home</a></li>
             <li class="breadcrumb-item"><a asp-page="~/Speakers/Index" class="text-decoration-none">Browse Speakers</a></li>
-            <li class="breadcrumb-item active" aria-current="page">@Model.ProfileUser?.FullName</li>
+            <li class="breadcrumb-item active" aria-current="page">@Model.ProfileUser.FullName</li>
         </ol>
     </nav>
     <!-- Profile Header Card -->
     <div class="card mb-3">
         <div class="row g-0">
             <div class="col-md-3">
-                @if (!string.IsNullOrEmpty(Model.ProfileUser?.HeadshotUrl))
+                @if (!string.IsNullOrEmpty(Model.ProfileUser.HeadshotUrl))
                 {
                     <img src="@Model.ProfileUser.HeadshotUrl" alt="@Model.ProfileUser.FullName" 
                          class="object-fit-contain border rounded" style="width:100%; height:100%;" />
@@ -31,7 +31,7 @@
             </div>
             <div class="col-md-9">
                 <div class="card-body">
-                    <h1 class="card-title">@Model.ProfileUser?.FullName</h1>
+                    <h1 class="card-title">@Model.ProfileUser.FullName</h1>
                     <span class="badge @(Model.ProfileUser is { IsNewSpeaker: true } ? "bg-primary" : "bg-success") fs-6 px-3 py-2">
                         <i class="bi @(Model.ProfileUser is { IsNewSpeaker: true } ? "bi-person-plus" : "bi-award") me-2"></i>
                         @(Model.ProfileUser is { IsNewSpeaker: true } ? "New Speaker" : "Experienced Speaker")
@@ -56,7 +56,7 @@
     <div class="row">
         @if (Model.UserExpertise.Any())
         {
-            <div class="col-md-@(Model.SocialMedia.Any() ? "6" : "12") mb-4">
+            <div class="col-md-@(Model.ProfileUser!.UserSocialMediaSites.Any() ? "6" : "12") mb-4">
                 <div class="card h-100">
                     <div class="card-header">
                         <h5 class="mb-0">
@@ -76,7 +76,7 @@
             </div>
         }
 
-        @if (Model.SocialMedia.Any())
+        @if (Model.ProfileUser!.UserSocialMediaSites.Any())
         {
             <div class="col-md-@(Model.UserExpertise.Any() ? "6" : "12") mb-4">
                 <div class="card h-100">
@@ -88,11 +88,11 @@
                     </div>
                     <div class="card-body">
                         <div>
-                            @foreach (var socialMedia in Model.SocialMedia)
+                            @foreach (var userSocialMediaSite in Model.ProfileUser.UserSocialMediaSites)
                             {
-                                <a href="@socialMedia.Url" target="_blank" class="btn btn-primary">
-                                    <i class="bi bi-@GetSocialIcon(socialMedia.Platform)"></i>
-                                    @socialMedia.Platform
+                                <a href="@userSocialMediaSite.UserUrl" target="_blank" class="btn btn-primary mb-2">
+                                    <i class="@userSocialMediaSite.SocialMediaSite.Icon"></i>
+                                    @userSocialMediaSite.SocialMediaSite.Name
                                 </a>
                             }
                         </div>
@@ -102,7 +102,7 @@
         }
     </div>
 
-    @if (Model.UserExpertise.Any() != true && Model.SocialMedia.Any() != true)
+    @if (!Model.UserExpertise.Any() && !Model.ProfileUser.UserSocialMediaSites.Any())
     {
         <div class="card">
             <div class="card-body text-center py-5">
@@ -114,7 +114,7 @@
     }
 
     <!-- Additional Profile Information -->
-    @if (!string.IsNullOrEmpty(Model.ProfileUser?.SessionizeUrl))
+    @if (!string.IsNullOrEmpty(Model.ProfileUser.SessionizeUrl))
     {
         <div class="card mt-4">
             <div class="card-header">
@@ -137,7 +137,7 @@
         <div class="card mt-4">
             <div class="card-header">
                 <h5 class="mb-0">
-                    <i class="bi bi-handshake me-2"></i>Connect with @Model.ProfileUser?.FirstName
+                    <i class="bi bi-handshake me-2"></i>Connect with @Model.ProfileUser.FirstName
                 </h5>
             </div>
             <div class="card-body">
@@ -177,7 +177,7 @@
     {
         <div class="card mt-4">
             <div class="card-body text-center">
-                <h5 class="card-title">Connect with @Model.ProfileUser?.FirstName</h5>
+                <h5 class="card-title">Connect with @Model.ProfileUser.FirstName</h5>
                 <p class="card-text">Sign in to request mentorship or connect with this speaker.</p>
                 <a asp-area="Identity" asp-page="/Account/Login" class="btn btn-primary">
                     <i class="bi bi-box-arrow-in-right me-2"></i>Sign In to Connect
@@ -203,7 +203,7 @@
                 </div>
                 <div class="col-md-4">
                     <div class="stat-item">
-                        <div class="stat-number">@(Model.SocialMedia?.Count() ?? 0)</div>
+                        <div class="stat-number">@(Model.ProfileUser?.UserSocialMediaSites.Count ?? 0)</div>
                         <div class="stat-label">Social Links</div>
                     </div>
                 </div>
@@ -217,22 +217,3 @@
         </div>
     </div>
 </div>
-
-@functions {
-
-    private string GetSocialIcon(string platform)
-    {
-        return platform.ToLower() switch
-        {
-            "linkedin" => "linkedin",
-            "twitter" => "twitter-x",
-            "github" => "github",
-            "website" => "globe",
-            "blog" => "journal-text",
-            "youtube" => "youtube",
-            "mastodon" => "mastodon",
-            "bluesky" => "bluesky",
-            _ => "link-45deg"
-        };
-    }
-}

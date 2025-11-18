@@ -9,7 +9,7 @@ public class UserSocialMediaSites
     public int SocialMediaSiteId { get; set; }
     [Required]
     public required string SocialId { get; set; }
-    
-    public required User User { get; set; }
-    public required SocialMediaSite SocialMediaSite { get; set; }
+
+    public User User { get; set; } = null!;
+    public SocialMediaSite SocialMediaSite { get; set; } = null!;
 }

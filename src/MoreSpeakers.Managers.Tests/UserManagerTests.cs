@@ -243,28 +243,36 @@ public class UserManagerTests
     }
 
     [Fact]
-    public async Task AddSocialMediaLinkAsync_should_delegate()
+    public async Task AddUserSocialMediaSiteAsync_should_delegate()
     {
         var userId = Guid.NewGuid();
-        _dataStoreMock.Setup(d => d.AddSocialMediaLinkAsync(userId, "Twitter", "https://x.com/u")).ReturnsAsync(true);
+        var link = new UserSocialMediaSite
+        {
+            UserId = userId,
+            SocialMediaSiteId = 2,
+            SocialId = "myhandle",
+            User = new User { Id = userId },
+            SocialMediaSite = new SocialMediaSite { Id = 2, Name = "X", Icon = "x", UrlFormat = "https://x.com/{0}" }
+        };
+        _dataStoreMock.Setup(d => d.AddUserSocialMediaSiteAsync(userId, link)).ReturnsAsync(true);
         var sut = CreateSut();
 
-        var result = await sut.AddSocialMediaLinkAsync(userId, "Twitter", "https://x.com/u");
+        var result = await sut.AddUserSocialMediaSiteAsync(userId, link);
 
         result.Should().BeTrue();
-        _dataStoreMock.Verify(d => d.AddSocialMediaLinkAsync(userId, "Twitter", "https://x.com/u"), Times.Once);
+        _dataStoreMock.Verify(d => d.AddUserSocialMediaSiteAsync(userId, link), Times.Once);
     }
 
     [Fact]
-    public async Task RemoveSocialMediaLinkAsync_should_delegate()
+    public async Task RemoveUserSocialMediaSiteAsync_should_delegate()
     {
-        _dataStoreMock.Setup(d => d.RemoveSocialMediaLinkAsync(123)).ReturnsAsync(true);
+        _dataStoreMock.Setup(d => d.RemoveUserSocialMediaSiteAsync(123)).ReturnsAsync(true);
         var sut = CreateSut();
 
-        var result = await sut.RemoveSocialMediaLinkAsync(123);
+        var result = await sut.RemoveUserSocialMediaSiteAsync(123);
 
         result.Should().BeTrue();
-        _dataStoreMock.Verify(d => d.RemoveSocialMediaLinkAsync(123), Times.Once);
+        _dataStoreMock.Verify(d => d.RemoveUserSocialMediaSiteAsync(123), Times.Once);
     }
 
     [Fact]
@@ -318,28 +326,38 @@ public class UserManagerTests
     }
 
     [Fact]
-    public async Task EmptyAndAddSocialMediaForUserAsync_should_throw_when_userId_empty()
+    public async Task EmptyAndAddUserSocialMediaSiteForUserAsync_should_throw_when_userId_empty()
     {
         var sut = CreateSut();
 
-        var act = async () => await sut.EmptyAndAddSocialMediaForUserAsync(Guid.Empty, new List<SocialMedia>());
+        var act = async () => await sut.EmptyAndAddUserSocialMediaSiteForUserAsync(Guid.Empty, new List<UserSocialMediaSite>());
 
         await act.Should().ThrowAsync<ArgumentException>().WithMessage("Invalid user id");
-        _dataStoreMock.Verify(d => d.EmptyAndAddSocialMediaForUserAsync(It.IsAny<Guid>(), It.IsAny<List<SocialMedia>>()), Times.Never);
+        _dataStoreMock.Verify(d => d.EmptyAndAddUserSocialMediaSiteForUserAsync(It.IsAny<Guid>(), It.IsAny<List<UserSocialMediaSite>>()), Times.Never);
     }
 
     [Fact]
-    public async Task EmptyAndAddSocialMediaForUserAsync_should_delegate_when_userId_valid()
+    public async Task EmptyAndAddUserSocialMediaSiteForUserAsync_should_delegate_when_userId_valid()
     {
         var id = Guid.NewGuid();
-        var links = new List<SocialMedia> { new() { Id = 1, Platform = "X", Url = "https://x.com/user" } };
-        _dataStoreMock.Setup(d => d.EmptyAndAddSocialMediaForUserAsync(id, links)).ReturnsAsync(true);
+        var links = new List<UserSocialMediaSite>
+        {
+            new()
+            {
+                UserId = id,
+                SocialMediaSiteId = 1,
+                SocialId = "user",
+                User = new User { Id = id },
+                SocialMediaSite = new SocialMediaSite { Id = 1, Name = "X", Icon = "x", UrlFormat = "https://x.com/{0}" }
+            }
+        };
+        _dataStoreMock.Setup(d => d.EmptyAndAddUserSocialMediaSiteForUserAsync(id, links)).ReturnsAsync(true);
         var sut = CreateSut();
 
-        var result = await sut.EmptyAndAddSocialMediaForUserAsync(id, links);
+        var result = await sut.EmptyAndAddUserSocialMediaSiteForUserAsync(id, links);
 
         result.Should().BeTrue();
-        _dataStoreMock.Verify(d => d.EmptyAndAddSocialMediaForUserAsync(id, links), Times.Once);
+        _dataStoreMock.Verify(d => d.EmptyAndAddUserSocialMediaSiteForUserAsync(id, links), Times.Once);
     }
 
     [Fact]
@@ -357,17 +375,39 @@ public class UserManagerTests
     }
 
     [Fact]
-    public async Task GetUserSocialMediaForUserAsync_should_delegate()
+    public async Task GetUserSocialMediaSitesAsync_should_delegate()
     {
         var id = Guid.NewGuid();
-        var expected = new List<SocialMedia> { new() { Id = 1, Platform = "X", Url = "u" } };
-        _dataStoreMock.Setup(d => d.GetUserSocialMediaForUserAsync(id)).ReturnsAsync(expected);
+        var expected = new List<UserSocialMediaSite>
+        {
+            new()
+            {
+                Id = 10,
+                UserId = id,
+                SocialMediaSiteId = 1,
+                SocialId = "user",
+                User = new User { Id = id },
+                SocialMediaSite = new SocialMediaSite { Id = 1, Name = "X", Icon = "x", UrlFormat = "https://x.com/{0}" }
+            }
+        };
+        _dataStoreMock.Setup(d => d.GetUserSocialMediaSitesAsync(id)).ReturnsAsync(expected);
         var sut = CreateSut();
 
-        var result = await sut.GetUserSocialMediaForUserAsync(id);
+        var result = await sut.GetUserSocialMediaSitesAsync(id);
 
         result.Should().BeSameAs(expected);
-        _dataStoreMock.Verify(d => d.GetUserSocialMediaForUserAsync(id), Times.Once);
+        _dataStoreMock.Verify(d => d.GetUserSocialMediaSitesAsync(id), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetUserSocialMediaSitesAsync_should_throw_when_userId_empty()
+    {
+        var sut = CreateSut();
+
+        var act = async () => await sut.GetUserSocialMediaSitesAsync(Guid.Empty);
+
+        await act.Should().ThrowAsync<ArgumentException>().WithMessage("Invalid user id");
+        _dataStoreMock.Verify(d => d.GetUserSocialMediaSitesAsync(It.IsAny<Guid>()), Times.Never);
     }
 
     [Fact]

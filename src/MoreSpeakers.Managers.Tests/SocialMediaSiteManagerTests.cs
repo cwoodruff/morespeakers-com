@@ -30,7 +30,7 @@ public class SocialMediaSiteManagerTests
     public async Task GetAsync_should_delegate()
     {
         var id = 42;
-        var expected = new SocialMediaSite { SocialMediaSiteId = id, Name = "X/Twitter", Icon = "x", UrlFormat = "https://twitter.com/{0}" };
+        var expected = new SocialMediaSite { Id = id, Name = "X/Twitter", Icon = "x", UrlFormat = "https://twitter.com/{0}" };
         _dataStoreMock.Setup(d => d.GetAsync(id)).ReturnsAsync(expected);
         var sut = CreateSut();
 
@@ -56,7 +56,7 @@ public class SocialMediaSiteManagerTests
     [Fact]
     public async Task SaveAsync_should_delegate()
     {
-        var entity = new SocialMediaSite { SocialMediaSiteId = 5, Name = "LinkedIn", Icon = "in", UrlFormat = "https://linkedin.com/in/{0}" };
+        var entity = new SocialMediaSite { Id = 5, Name = "LinkedIn", Icon = "in", UrlFormat = "https://linkedin.com/in/{0}" };
         _dataStoreMock.Setup(d => d.SaveAsync(entity)).ReturnsAsync(entity);
         var sut = CreateSut();
 
@@ -69,7 +69,7 @@ public class SocialMediaSiteManagerTests
     [Fact]
     public async Task GetAllAsync_should_delegate()
     {
-        var expected = new List<SocialMediaSite> { new() { SocialMediaSiteId = 1, Name = "YouTube", Icon = "yt", UrlFormat = "https://youtube.com/@{0}" } };
+        var expected = new List<SocialMediaSite> { new() { Id = 1, Name = "YouTube", Icon = "yt", UrlFormat = "https://youtube.com/@{0}" } };
         _dataStoreMock.Setup(d => d.GetAllAsync()).ReturnsAsync(expected);
         var sut = CreateSut();
 
@@ -82,7 +82,7 @@ public class SocialMediaSiteManagerTests
     [Fact]
     public async Task Delete_by_entity_should_delegate()
     {
-        var entity = new SocialMediaSite { SocialMediaSiteId = 9, Name = "Mastodon", Icon = "mstdn", UrlFormat = "https://mastodon.social/@{0}" };
+        var entity = new SocialMediaSite { Id = 9, Name = "Mastodon", Icon = "mstdn", UrlFormat = "https://mastodon.social/@{0}" };
         _dataStoreMock.Setup(d => d.DeleteAsync(entity)).ReturnsAsync(true);
         var sut = CreateSut();
 

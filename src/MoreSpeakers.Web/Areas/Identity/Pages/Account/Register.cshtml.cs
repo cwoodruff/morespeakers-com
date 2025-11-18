@@ -433,22 +433,25 @@ public partial class RegisterModel : PageModel
                 await _userManager.AddExpertiseToUserAsync(user.Id, expertiseId);
             }
 
+            
+            // TODO: Add social media links
+            
             // Add social media links
-            var socialMediaLinks = new List<SocialMedia>();
-            for (var i = 0; i < Input.SocialMediaPlatforms.Length && i < Input.SocialMediaUrls.Length; i++)
-            {
-                if (!string.IsNullOrWhiteSpace(Input.SocialMediaPlatforms[i]) &&
-                    !string.IsNullOrWhiteSpace(Input.SocialMediaUrls[i]))
-                    socialMediaLinks.Add(new SocialMedia
-                    {
-                        UserId = user.Id,
-                        Platform = Input.SocialMediaPlatforms[i],
-                        Url = Input.SocialMediaUrls[i],
-                        CreatedDate = DateTime.UtcNow
-                    });
-            }
-
-            await _userManager.EmptyAndAddSocialMediaForUserAsync(user.Id, socialMediaLinks);
+            // var socialMediaLinks = new List<SocialMedia>();
+            // for (var i = 0; i < Input.SocialMediaPlatforms.Length && i < Input.SocialMediaUrls.Length; i++)
+            // {
+            //     if (!string.IsNullOrWhiteSpace(Input.SocialMediaPlatforms[i]) &&
+            //         !string.IsNullOrWhiteSpace(Input.SocialMediaUrls[i]))
+            //         socialMediaLinks.Add(new SocialMedia
+            //         {
+            //             UserId = user.Id,
+            //             Platform = Input.SocialMediaPlatforms[i],
+            //             Url = Input.SocialMediaUrls[i],
+            //             CreatedDate = DateTime.UtcNow
+            //         });
+            // }
+            //
+            // await _userManager.EmptyAndAddSocialMediaForUserAsync(user.Id, socialMediaLinks);
 
             // Send the welcome email
             var emailSent = await _templatedEmailSender.SendTemplatedEmail("~/EmailTemplates/Welcome.cshtml",

@@ -15,9 +15,9 @@ public class ViewModel(
     [BindProperty(SupportsGet = true)]
     public Guid Id { get; set; }
 
-    public User? ProfileUser { get; set; }
+    public User ProfileUser { get; set; } = new();
+    
     public IEnumerable<UserExpertise> UserExpertise { get; set; } = new List<UserExpertise>();
-    public IEnumerable<SocialMedia> SocialMedia { get; set; } = new List<SocialMedia>();
 
     public async Task<IActionResult> OnGetAsync()
     {
@@ -28,16 +28,14 @@ public class ViewModel(
 
         try
         {
-            ProfileUser = await userManager.GetAsync(Id);
-
-            if (ProfileUser == null)
+            var profileUser = await userManager.GetAsync(Id);
+            if (profileUser is null)
             {
                 return RedirectToPage("/Profile/LoadingProblem", new { UserId = Id });
             }
 
+            ProfileUser = profileUser;
             UserExpertise = await userManager.GetUserExpertisesForUserAsync(Id);
-
-            SocialMedia = await userManager.GetUserSocialMediaForUserAsync(Id);
 
             return Page();
         }

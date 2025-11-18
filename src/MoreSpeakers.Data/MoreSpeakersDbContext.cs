@@ -18,7 +18,6 @@ public class MoreSpeakersDbContext
     public DbSet<SpeakerType> SpeakerType { get; set; }
     public DbSet<Expertise> Expertise { get; set; }
     public DbSet<UserExpertise> UserExpertise { get; set; }
-    public DbSet<SocialMedia> SocialMedia { get; set; }
     public DbSet<Mentorship> Mentorship { get; set; }
     public DbSet<MentorshipExpertise> MentorshipExpertise { get; set; }
     public DbSet<SocialMediaSite> SocialMediaSite { get; set; }
@@ -99,21 +98,6 @@ public class MoreSpeakersDbContext
             entity.HasOne(e => e.Expertise)
                 .WithMany(ex => ex.UserExpertise)
                 .HasForeignKey(e => e.ExpertiseId)
-                .OnDelete(DeleteBehavior.Cascade);
-        });
-
-        // Configure SocialMedia entity
-        builder.Entity<SocialMedia>(entity =>
-        {
-            entity.ToTable("SocialMedias");
-            entity.Property(e => e.CreatedDate)
-                .HasDefaultValueSql("GETUTCDATE()");
-
-            entity.HasIndex(e => e.UserId);
-
-            entity.HasOne(e => e.User)
-                .WithMany(u => u.SocialMediaLinks)
-                .HasForeignKey(e => e.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
         
