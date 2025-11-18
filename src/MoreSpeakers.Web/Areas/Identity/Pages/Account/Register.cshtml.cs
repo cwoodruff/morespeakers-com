@@ -19,9 +19,8 @@ public partial class RegisterModel : PageModel
     private readonly IExpertiseManager _expertiseManager;
     private readonly IUserManager _userManager;
     private readonly ITemplatedEmailSender _templatedEmailSender;
-    private readonly TelemetryClient _telemetryClient;
     private readonly ILogger<RegisterModel> _logger;
-    
+
     public RegisterModel(
         SignInManager<Data.Models.User> signInManager,
         IExpertiseManager expertiseManager,
@@ -34,7 +33,6 @@ public partial class RegisterModel : PageModel
         _expertiseManager = expertiseManager;
         _userManager = userManager;
         _templatedEmailSender = templatedEmailSender;
-        _telemetryClient = telemetryClient;
         _logger = logger;
     }
 
@@ -43,15 +41,15 @@ public partial class RegisterModel : PageModel
     ///     directly from your code. This API may change or be removed in future releases.
     /// </summary>
     [BindProperty]
-    public InputModel Input { get; set; }
+    public required InputModel Input { get; set; }
 
     /// <summary>
     ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
     ///     directly from your code. This API may change or be removed in future releases.
     /// </summary>
-    public IList<AuthenticationScheme> ExternalLogins { get; set; }
+    public required IList<AuthenticationScheme> ExternalLogins { get; set; }
 
-    public IEnumerable<Expertise> AvailableExpertise { get; set; } = new List<Expertise>();
+    public required IEnumerable<Expertise> AvailableExpertise { get; set; } = new List<Expertise>();
 
     public IEnumerable<SpeakerType> SpeakerTypes { get; set; } = new List<SpeakerType>();
 
@@ -369,8 +367,8 @@ public partial class RegisterModel : PageModel
         {
             var user = new User
             {
-                Email = Input.Email, 
-                UserName = Input.Email, 
+                Email = Input.Email,
+                UserName = Input.Email,
                 FirstName = Input.FirstName,
                 LastName = Input.LastName,
                 PhoneNumber = Input.PhoneNumber,
@@ -378,10 +376,10 @@ public partial class RegisterModel : PageModel
                 Goals = Input.Goals,
                 SessionizeUrl = Input.SessionizeUrl,
                 HeadshotUrl = Input.HeadshotUrl,
-                SpeakerTypeId = Input.SpeakerTypeId,    
+                SpeakerTypeId = Input.SpeakerTypeId,
             };
 
-            IdentityResult saveResult;
+            Result saveResult;
             try
             {
                 saveResult = await _userManager.CreateAsync(user, Input.Password);
@@ -396,11 +394,11 @@ public partial class RegisterModel : PageModel
                 return Partial("_RegistrationContainer", this);
             }
 
-            if (!saveResult.Succeeded)
+            if (!saveResult.IsSuccessful)
             {
-                foreach (var error in saveResult.Errors)
+                foreach (var errorMessage in saveResult.Errors)
                 {
-                    ModelState.AddModelError(string.Empty, error.Description);
+                    ModelState.AddModelError(string.Empty, errorMessage);
                 }
                 CurrentStep = Models.RegistrationProgressions.SpeakerProfileNeeded; // Reset to the first step on major failure
                 HasValidationErrors = true;
@@ -421,10 +419,10 @@ public partial class RegisterModel : PageModel
                 ValidationMessage = "Could not find user after saving registration. Please try again.";
                 return Partial("_RegistrationContainer", this);
             }
-            
+
             // Add expertise relationships
             await _userManager.EmptyAndAddExpertiseForUserAsync(user.Id, Input.SelectedExpertiseIds);
-            
+
             // Add custom expertise
             foreach (var customExpertise in Input.CustomExpertise.Where(ce => !string.IsNullOrWhiteSpace(ce)))
             {
@@ -465,9 +463,9 @@ public partial class RegisterModel : PageModel
             var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
             var confirmationLink = Url.Page("/Account/ConfirmEmail",
                 null,
-                new { area = "Identity", token = encodedToken, email = user.Email }, 
+                new { area = "Identity", token = encodedToken, email = user.Email },
                 Request.Scheme);
-            if (confirmationLink == null)
+            if (string.IsNullOrWhiteSpace(confirmationLink))
             {
                 _logger.LogWarning("Failed to generate confirmation link for user {UserId}", user.Id);
             }

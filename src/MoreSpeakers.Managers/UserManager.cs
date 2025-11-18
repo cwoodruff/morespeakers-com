@@ -1,7 +1,5 @@
 using System.Security.Claims;
 
-using Microsoft.AspNetCore.Identity;
-
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models;
 
@@ -15,51 +13,51 @@ public class UserManager: IUserManager
     {
         _dataStore = dataStore;
     }
-    
+
     // ------------------------------------------
     // Wrapper methods for AspNetCore Identity
     // ------------------------------------------
 
-    public async Task<User?> GetUserAsync(ClaimsPrincipal user)
+    public Task<User?> GetUserAsync(ClaimsPrincipal user)
     {
-        return await _dataStore.GetUserAsync(user);
+        return _dataStore.GetUserAsync(user);
     }
 
-    public async Task<IdentityResult> ChangePasswordAsync(User user, string currentPassword, string newPassword)
+    public Task<Result> ChangePasswordAsync(User user, string currentPassword, string newPassword)
     {
-        return await _dataStore.ChangePasswordAsync(user, currentPassword, newPassword);
+        return _dataStore.ChangePasswordAsync(user, currentPassword, newPassword);
     }
 
-    public async Task<IdentityResult> CreateAsync(User user, string password)
+    public Task<Result> CreateAsync(User user, string password)
     {
-        return await _dataStore.CreateAsync(user, password);
+        return _dataStore.CreateAsync(user, password);
     }
 
-    public async Task<User?> FindByEmailAsync(string email)
+    public Task<User?> FindByEmailAsync(string email)
     {
-        return await _dataStore.FindByEmailAsync(email);
+        return _dataStore.FindByEmailAsync(email);
     }
 
-    public async Task<User?> GetUserIdAsync(ClaimsPrincipal user)
+    public Task<User?> GetUserIdAsync(ClaimsPrincipal user)
     {
-        return await _dataStore.GetUserIdAsync(user);
+        return _dataStore.GetUserIdAsync(user);
     }
 
-    public async Task<string> GenerateEmailConfirmationTokenAsync(User user)
+    public Task<string> GenerateEmailConfirmationTokenAsync(User user)
     {
-        return await _dataStore.GenerateEmailConfirmationTokenAsync(user);
+        return _dataStore.GenerateEmailConfirmationTokenAsync(user);
     }
 
     public async Task<bool> ConfirmEmailAsync(User user, string token)
     {
         var result = await _dataStore.ConfirmEmailAsync(user, token);
-        return result.Succeeded;
+        return result.IsSuccessful;
     }
 
     // ------------------------------------------
     // Application Methods
     // ------------------------------------------
-    
+
     public async Task<User> GetAsync(Guid primaryKey)
     {
         return await _dataStore.GetAsync(primaryKey);
@@ -113,17 +111,17 @@ public class UserManager: IUserManager
 
     public async Task<bool> RemoveSocialMediaLinkAsync(int socialMediaId)
     {
-        return await _dataStore.RemoveSocialMediaLinkAsync(socialMediaId); 
+        return await _dataStore.RemoveSocialMediaLinkAsync(socialMediaId);
     }
 
     public async Task<bool> AddExpertiseToUserAsync(Guid userId, int expertiseId)
     {
-        return await _dataStore.AddExpertiseToUserAsync(userId, expertiseId);  
+        return await _dataStore.AddExpertiseToUserAsync(userId, expertiseId);
     }
 
     public async Task<bool> RemoveExpertiseFromUserAsync(Guid userId, int expertiseId)
     {
-        return await _dataStore.RemoveExpertiseFromUserAsync(userId, expertiseId);   
+        return await _dataStore.RemoveExpertiseFromUserAsync(userId, expertiseId);
     }
 
     public async Task<bool> EmptyAndAddExpertiseForUserAsync(Guid userId, int[] expertises)
@@ -132,7 +130,7 @@ public class UserManager: IUserManager
         {
             throw new ArgumentException("Invalid user id");
         }
-        return await _dataStore.EmptyAndAddExpertiseForUserAsync(userId, expertises); 
+        return await _dataStore.EmptyAndAddExpertiseForUserAsync(userId, expertises);
     }
 
     public async Task<bool> EmptyAndAddSocialMediaForUserAsync(Guid userId, List<SocialMedia> socialMedias)
