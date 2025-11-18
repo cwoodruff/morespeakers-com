@@ -2,7 +2,7 @@
 
 @if (Model.UserSocialMediaSite is null)
 {
-    <div class="row mb-2">
+    <div class="row mb-2" id="SocialMediaItem-0">
         <div class="col-md-4">
             <select name="Input.SocialMediaPlatforms[@Model.ItemNumber]" class="form-select" asp-items="Model.SocialMediaSites.Select(s => new SelectListItem(s.Name, s.Id.ToString()))">
             </select>
@@ -17,18 +17,21 @@
 }
 else
 {
-    <div class="row mb-2">
+    <div class="row mb-2" id="SocialMediaItem-@Model.ItemNumber">
         <div class="col-md-4">
             <select name="Input.SocialMediaPlatforms[@Model.ItemNumber]" class="form-select" 
                     asp-items="Model.SocialMediaSites.Select(s => new SelectListItem(s.Name, s.Id.ToString()))"
                     asp-for="@Model.UserSocialMediaSite.SocialMediaSite.Id">
             </select>
         </div>
-        <div class="col-md-8">
+        <div class="col-md-7">
             <input name="Input.SocialMediaUrls[@Model.ItemNumber]"
                    class="form-control"
                    placeholder="Social Media Id. Not the full url, just the id."
-                   value="@(Model.UserSocialMediaSite.SocialId ?? string.Empty)"/>
+                   value="@Model.UserSocialMediaSite.SocialId"/>
+        </div>
+        <div class="col-md-1">
+            <button class="btn btn-danger" type="button"><i class="bi bi-trash"></i></button>
         </div>
     </div>
 }
