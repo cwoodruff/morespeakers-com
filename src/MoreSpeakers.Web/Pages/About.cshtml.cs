@@ -1,12 +1,22 @@
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using MoreSpeakers.Web.Models.DTOs;
+using MoreSpeakers.Web.Services;
 
 namespace MoreSpeakers.Web.Pages;
 
 public class AboutModel : PageModel
 {
-    public void OnGet()
+    private readonly IGitHubService _gitHubService;
+
+    public AboutModel(IGitHubService gitHubService)
     {
-        // This page doesn't need any data from the database
-        // It's purely informational content
+        _gitHubService = gitHubService;
+    }
+
+    public IEnumerable<GitHubContributor> Contributors { get; set; } = new List<GitHubContributor>();
+
+    public async Task OnGet()
+    {
+        Contributors = await _gitHubService.GetContributorsAsync();
     }
 }
