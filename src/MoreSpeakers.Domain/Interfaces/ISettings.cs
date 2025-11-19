@@ -11,4 +11,9 @@ public interface ISettings
     /// The email settings.
     /// </summary>
     public EmailSettings Email { get; init; }
+
+    /// <summary>
+    /// The GitHub settings.
+    /// </summary>
+    public GitHubSettings GitHub { get; init; }
 }
