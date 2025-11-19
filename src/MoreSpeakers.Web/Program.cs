@@ -29,7 +29,8 @@ ConfigureLogging(builder.Configuration, builder.Services, fullyQualifiedLogFile,
 // Add settings
 var settings = new Settings
 {
-    Email = null!
+    Email = null!,
+    GitHub = null!
 };
 builder.Configuration.AddEnvironmentVariables();
 builder.Configuration.Bind("Settings", settings);
