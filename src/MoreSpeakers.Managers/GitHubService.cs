@@ -1,8 +1,10 @@
 using Microsoft.Extensions.Caching.Memory;
-using MoreSpeakers.Web.Models.DTOs;
+using Microsoft.Extensions.Logging;
+using MoreSpeakers.Domain.Interfaces;
+using MoreSpeakers.Domain.Models.DTOs;
 using System.Text.Json;
 
-namespace MoreSpeakers.Web.Services;
+namespace MoreSpeakers.Managers;
 
 public class GitHubService : IGitHubService
 {
@@ -10,7 +12,6 @@ public class GitHubService : IGitHubService
     private readonly IMemoryCache _cache;
     private readonly ILogger<GitHubService> _logger;
     private const string CacheKey = "GitHubContributors";
-    // Based on repository context: cwoodruff/morespeakers-com
     private const string RepoOwner = "cwoodruff";
     private const string RepoName = "morespeakers-com";
 
@@ -20,7 +21,6 @@ public class GitHubService : IGitHubService
         _cache = cache;
         _logger = logger;
 
-        // GitHub API requires a User-Agent header
         _httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("MoreSpeakers.com-Web");
     }
 
@@ -33,7 +33,6 @@ public class GitHubService : IGitHubService
 
         try
         {
-            // Using the public GitHub API
             var response = await _httpClient.GetAsync($"https://api.github.com/repos/{RepoOwner}/{RepoName}/contributors");
             
             if (response.IsSuccessStatusCode)
@@ -43,7 +42,6 @@ public class GitHubService : IGitHubService
 
                 if (contributors != null)
                 {
-                    // Cache for 1 hour to avoid rate limiting
                     _cache.Set(CacheKey, contributors, TimeSpan.FromHours(1));
                     return contributors;
                 }

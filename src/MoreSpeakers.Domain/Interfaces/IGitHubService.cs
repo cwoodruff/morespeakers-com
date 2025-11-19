@@ -1,6 +1,6 @@
-using MoreSpeakers.Web.Models.DTOs;
+using MoreSpeakers.Domain.Models.DTOs;
 
-namespace MoreSpeakers.Web.Services;
+namespace MoreSpeakers.Domain.Interfaces;
 
 public interface IGitHubService
 {

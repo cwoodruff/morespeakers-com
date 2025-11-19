@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace MoreSpeakers.Web.Models.DTOs;
+namespace MoreSpeakers.Domain.Models.DTOs;
 
 public class GitHubContributor
 {

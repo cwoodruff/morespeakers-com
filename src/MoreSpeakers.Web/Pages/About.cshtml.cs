@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using MoreSpeakers.Web.Models.DTOs;
-using MoreSpeakers.Web.Services;
+using MoreSpeakers.Domain.Interfaces;
+using MoreSpeakers.Domain.Models.DTOs;
 
 namespace MoreSpeakers.Web.Pages;
 
