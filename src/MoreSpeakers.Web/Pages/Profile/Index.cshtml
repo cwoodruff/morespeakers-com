@@ -4,7 +4,7 @@
     ViewData["Title"] = "My Profile";
 }
 @{
-    string? hidden = string.Empty;
+    string hidden = string.Empty;
     if (!Model.CanEdit) {hidden = "d-none"; }
 }
 <div class="container py-4">

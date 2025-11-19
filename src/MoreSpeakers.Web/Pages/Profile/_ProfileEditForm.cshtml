@@ -196,10 +196,9 @@
             <div class="form-text mb-3">Add your social media profiles and professional links.</div>
         </div>
         <div class="col-12" id="socialMediaContainer">
-            
             @{
-                int index = 0;
-                int total = Model.ProfileUser.UserSocialMediaSites.Count - 1;
+                var index = 0;
+                var total = Model.ProfileUser.UserSocialMediaSites.Count - 1;
                 var socialMediaSites = Model.SocialMediaSites.ToList();
             }
             @foreach (var userSocialMediaSite in Model.ProfileUser.UserSocialMediaSites)
@@ -214,7 +213,9 @@
                 index++;
                 @(await Html.PartialAsync("_UserSocialMediaSiteEdit", model))
             }
-            
+            <button class="btn btn-primary" onclick="addSocialMediaRow()" type="button">
+                <i class="bi bi-plus-square"> Add</i>
+            </button>
         </div>
     </div>
 

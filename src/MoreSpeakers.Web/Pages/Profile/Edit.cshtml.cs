@@ -379,4 +379,18 @@ public class EditModel(
             logger.LogError(ex, "Error updating social media for user '{UserId}'", ProfileUser.Id);
         }
     }
+
+    public async Task<IActionResult> OnGetAddSocialMediaRowAsync()
+    {
+        // var model = new UserSocialMediaSiteEdit()
+        // {
+        //     UserSocialMediaSite = userSocialMediaSite,
+        //     SocialMediaSites = socialMediaSites,
+        //     ItemNumber = ItemNumber,
+        //     TotalCount = total
+        // };
+        // index++;
+        //     @(await Html.PartialAsync("_UserSocialMediaSiteEdit", model))
+        return null;
+    }
 }

@@ -2,7 +2,7 @@
 
 @if (Model.UserSocialMediaSite is null)
 {
-    <div class="row mb-2" id="SocialMediaItem-0">
+    <div class="row mb-2" id="SocialMediaItem-@Model.ItemNumber">
         <div class="col-md-4">
             <select name="Input.SocialMediaPlatforms[@Model.ItemNumber]" class="form-select" asp-items="Model.SocialMediaSites.Select(s => new SelectListItem(s.Name, s.Id.ToString()))">
             </select>
