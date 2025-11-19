@@ -1,4 +1,4 @@
-﻿// MoreSpeakers.com JavaScript Utilities
+// MoreSpeakers.com JavaScript Utilities
 // This file contains minimal JavaScript to enhance the user experience
 
 // Initialize when DOM is loaded
@@ -431,7 +431,7 @@ function addCustomExpertise() {
     newInputGroup.innerHTML = `
         <input type="text" name="Input.CustomExpertise" class="form-control custom-expertise-field" 
                placeholder="Enter a custom expertise area"
-               hx-post="/Identity/Account/Register?handler=ValidateCustomExpertise"
+               hx-post="/Register?handler=ValidateCustomExpertise"
                hx-trigger="blur, keyup changed delay:500ms"
                hx-target="next .custom-expertise-validation"
                hx-include="this"
