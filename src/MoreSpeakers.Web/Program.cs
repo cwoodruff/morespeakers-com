@@ -99,6 +99,9 @@ builder.Services.AddScoped<Microsoft.AspNetCore.Identity.UI.Services.IEmailSende
 builder.Services.AddScoped<ITemplatedEmailSender, TemplatedEmailSender>();
 builder.Services.AddScoped<IRazorPartialToStringRenderer, RazorPartialToStringRenderer>();
 
+// Register GitHub Service
+builder.Services.AddHttpClient<IGitHubService, GitHubService>();
+
 // Add HTTP context accessor for services
 builder.Services.AddHttpContextAccessor();
 
