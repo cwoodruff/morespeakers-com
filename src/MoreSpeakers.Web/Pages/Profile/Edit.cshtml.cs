@@ -388,7 +388,6 @@ public class EditModel(
         {
             var identityUser = await userManager.GetUserAsync(User);
 
-
             if (identityUser == null)
             {
                 return Challenge();
@@ -403,8 +402,9 @@ public class EditModel(
                 return RedirectToPage("/Profile/LoadingProblem",
                     new { UserId = identityUser?.Id ?? Guid.Empty });
             }
-
+            
             ProfileUser = userProfile;
+            ActiveTab = "profile";
 
             var model = new UserSocialMediaSiteRow
             {
@@ -420,6 +420,6 @@ public class EditModel(
         {
             logger.LogError(ex, "Failed to add a social media row");
         }
-        return Page();
+        return Content("");
     }
 }

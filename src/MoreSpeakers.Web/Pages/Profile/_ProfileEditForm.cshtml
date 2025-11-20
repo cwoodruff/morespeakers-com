@@ -200,17 +200,23 @@
                 var index = 0;
                 var socialMediaSites = Model.SocialMediaSites.ToList();
             }
-            @foreach (var userSocialMediaSite in Model.ProfileUser.UserSocialMediaSites)
+
+            @if (Model.ProfileUser?.UserSocialMediaSites != null)
             {
-                var model = new UserSocialMediaSiteRow
+                foreach (var userSocialMediaSite in Model.ProfileUser.UserSocialMediaSites)
                 {
-                    UserSocialMediaSite = userSocialMediaSite,
-                    SocialMediaSites = socialMediaSites,
-                    ItemNumber = index
-                };
-                index++;
-                @(await Html.PartialAsync("_UserSocialMediaSiteRow", model))
+                    var model = new UserSocialMediaSiteRow
+                    {
+                        UserSocialMediaSite = userSocialMediaSite,
+                        SocialMediaSites = socialMediaSites,
+                        ItemNumber = index
+                    };
+                    index++;
+                    @await Html.PartialAsync("_UserSocialMediaSiteRow", model)
+                }
             }
+        </div>
+        <div id="replaceSocialMediaRow">
             <div id="addingRowSpinner" class="htmx-indicator">
                 <div class="spinner-border spinner-border-sm me-2" role="status">
                     <span class="visually-hidden">Adding row...</span>
@@ -219,11 +225,11 @@
             </div>
             <button class="btn btn-primary float-end" type="button"
                     hx-post="/Profile/Edit?handler=AddSocialMediaRow"
-                    hx-target="previous .social-media-row"
-                    hx-include="this"
-                    hx-indicator="#addingRowSpinner">
+                    hx-target=":nth-last-child(1 of .social-media-row)"
+                    hx-indicator="#addingRowSpinner"
+                    hx-swap="afterEnd">
                 <i class="bi bi-plus-square me-2"></i>Add
-            </button>
+            </button>    
         </div>
     </div>
 
