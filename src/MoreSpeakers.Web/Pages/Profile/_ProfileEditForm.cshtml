@@ -113,20 +113,20 @@
         </div>
         <div class="col-12">
             <div class="mb-3">
-                @if (!string.IsNullOrEmpty(Model.ProfileUser.HeadshotUrl))
+                @if (!string.IsNullOrEmpty(Model.ProfileUser?.HeadshotUrl))
                 {
                     <img src="@Model.ProfileUser.HeadshotUrl" 
                          alt="Current headshot" 
-                         class="rounded-circle border shadow-sm" 
-                         style="width: 120px; height: 120px; object-fit: cover;" 
+                         class="object-fit-contain border shadow-sm image-thumbnail rounded " 
+                         style="width: 9em; height: 9em; object-fit: cover;" 
                          id="currentHeadshot" />
                 }
                 else
                 {
-                    <div class="rounded-circle border shadow-sm bg-light d-flex align-items-center justify-content-center" 
-                         style="width: 120px; height: 120px; margin: 0 auto;" 
+                    <div class="border shadow-sm rounded d-flex align-items-center justify-content-center" 
+                         style="width: 9em; height: 9em; margin: 0 auto;" 
                          id="currentHeadshot">
-                        <i class="bi bi-person display-4 text-muted"></i>
+                        <i class="bi bi-person-fill text-muted" style="font-size: 9rem;"></i>
                     </div>
                 }
             </div>
@@ -198,23 +198,31 @@
         <div class="col-12" id="socialMediaContainer">
             @{
                 var index = 0;
-                var total = Model.ProfileUser.UserSocialMediaSites.Count - 1;
                 var socialMediaSites = Model.SocialMediaSites.ToList();
             }
             @foreach (var userSocialMediaSite in Model.ProfileUser.UserSocialMediaSites)
             {
-                var model = new UserSocialMediaSiteEdit()
+                var model = new UserSocialMediaSiteRow
                 {
                     UserSocialMediaSite = userSocialMediaSite,
                     SocialMediaSites = socialMediaSites,
-                    ItemNumber = index,
-                    TotalCount = total
+                    ItemNumber = index
                 };
                 index++;
-                @(await Html.PartialAsync("_UserSocialMediaSiteEdit", model))
+                @(await Html.PartialAsync("_UserSocialMediaSiteRow", model))
             }
-            <button class="btn btn-primary" onclick="addSocialMediaRow()" type="button">
-                <i class="bi bi-plus-square"> Add</i>
+            <div id="addingRowSpinner" class="htmx-indicator">
+                <div class="spinner-border spinner-border-sm me-2" role="status">
+                    <span class="visually-hidden">Adding row...</span>
+                </div>
+                Adding row...
+            </div>
+            <button class="btn btn-primary float-end" type="button"
+                    hx-post="/Profile/Edit?handler=AddSocialMediaRow"
+                    hx-target="previous .social-media-row"
+                    hx-include="this"
+                    hx-indicator="#addingRowSpinner">
+                <i class="bi bi-plus-square me-2"></i>Add
             </button>
         </div>
     </div>
