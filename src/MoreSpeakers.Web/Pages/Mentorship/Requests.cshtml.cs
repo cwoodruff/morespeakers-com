@@ -201,11 +201,12 @@ public class RequestsModel : PageModel
             var currentUser = await _userManager.GetUserAsync(User);
             if (currentUser == null) return Content(string.Empty);
 
-            var (incoming, outgoing) = await _mentoringManager.GetNumberOfMentorshipsPending(currentUser.Id);
+            (int outbound, int inbound) = await _mentoringManager.GetNumberOfMentorshipsPending(currentUser.Id);
+            var total = outbound + inbound;
 
-            if (incoming > 0)
+            if (total > 0)
             {
-                return Content($"<span class='badge bg-danger ms-1'>{incoming}</span>");
+                return Content($"<span class='badge bg-danger ms-1'>{total}</span>");
             }
         }
         catch (Exception ex)
