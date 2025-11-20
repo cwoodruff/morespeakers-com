@@ -30,13 +30,14 @@ public class EditModel(
     public IEnumerable<UserExpertise> UserExpertise { get; set; } = new List<UserExpertise>();
     public IEnumerable<SocialMediaSite> SocialMediaSites { get; set; } = new List<SocialMediaSite>();
 
+    
     // Properties for HTMX state management
     public string ActiveTab { get; set; } = "profile";
     public bool HasValidationErrors { get; set; }
     public string ValidationMessage { get; set; } = string.Empty;
     public string SuccessMessage { get; set; } = string.Empty;
-    public int NumberOfSocialMediaRows { get; set; } = 0;
-
+   
+    
     public async Task<IActionResult> OnGetAsync()
     {
         var result = await LoadUserDataAsync();
@@ -316,7 +317,6 @@ public class EditModel(
             ProfileUser = userProfile;
             AvailableExpertise = await expertiseManager.GetAllAsync();
             UserExpertise = await userManager.GetUserExpertisesForUserAsync(identityUser.Id);
-            NumberOfSocialMediaRows = ProfileUser.UserSocialMediaSites.Count;
 
             // Populate the Input model if not already populated
             if (string.IsNullOrEmpty(Input.FirstName))
@@ -382,37 +382,17 @@ public class EditModel(
         }
     }
 
-    public async Task<IActionResult> OnGetAddSocialMediaRowAsync()
+    public async Task<IActionResult> OnGetAddSocialMediaRowAsync(int itemNumber = 0)
     {
         try
         {
-            var identityUser = await userManager.GetUserAsync(User);
-
-            if (identityUser == null)
-            {
-                return Challenge();
-            }
-
-            // Load profile with all the user's data
-            var userProfile = await userManager.GetAsync(identityUser.Id);
-            if (userProfile == null)
-            {
-                logger.LogError("Error loading profile page. Could not find user. UserId: '{UserId}'",
-                    identityUser?.Id);
-                return RedirectToPage("/Profile/LoadingProblem",
-                    new { UserId = identityUser?.Id ?? Guid.Empty });
-            }
-            
-            ProfileUser = userProfile;
-            ActiveTab = "profile";
-
             var model = new UserSocialMediaSiteRow
             {
                 UserSocialMediaSite = null,
                 SocialMediaSites = await socialMediaSiteManager.GetAllAsync(),
-                ItemNumber = NumberOfSocialMediaRows
+                ItemNumber = itemNumber
             };
-            NumberOfSocialMediaRows++;
+
 
             return Partial("_UserSocialMediaSiteRow", model);
         }

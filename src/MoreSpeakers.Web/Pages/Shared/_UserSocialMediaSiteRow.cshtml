@@ -1,37 +1,24 @@
 @model Web.Models.ViewModels.UserSocialMediaSiteRow
 
-@if (Model.UserSocialMediaSite is null)
-{
-    <div class="row mb-2 social-media-row" id="SocialMediaItem-@Model.ItemNumber">
-        <div class="col-md-4">
-            <select name="Input.SocialMediaPlatforms[@Model.ItemNumber]" class="form-select" asp-items="Model.SocialMediaSites.Select(s => new SelectListItem(s.Name, s.Id.ToString()))">
-            </select>
-        </div>
-        <div class="col-md-8">
-            <input name="Input.SocialMediaUrls[@Model.ItemNumber]"
-                   class="form-control"
-                   placeholder="Social Media Id. Not the full url, just the id."
-                   value=""/>
-        </div>
-    </div>
+@{
+    var socialMediaSiteId = Model.UserSocialMediaSite?.SocialMediaSiteId ?? 1;
+    var socialId = Model.UserSocialMediaSite?.SocialId ?? string.Empty;
 }
-else
-{
-    <div class="row mb-2 social-media-row" id="SocialMediaItem-@Model.ItemNumber">
-        <div class="col-md-4">
-            <select name="Input.SocialMediaPlatforms[@Model.ItemNumber]" class="form-select" 
-                    asp-items="Model.SocialMediaSites.Select(s => new SelectListItem(s.Name, s.Id.ToString()))"
-                    asp-for="@Model.UserSocialMediaSite.SocialMediaSite.Id">
-            </select>
-        </div>
-        <div class="col-md-7">
-            <input name="Input.SocialMediaUrls[@Model.ItemNumber]"
-                   class="form-control"
-                   placeholder="Social Media Id. Not the full url, just the id."
-                   value="@Model.UserSocialMediaSite.SocialId"/>
-        </div>
-        <div class="col-md-1">
-            <button class="btn btn-danger" type="button"><i class="bi bi-trash"></i></button>
-        </div>
+
+<div class="row mb-2 social-media-row" id="SocialMediaItem-@Model.ItemNumber">
+    <div class="col-md-4">
+        <select name="Input.SocialMediaPlatforms[@Model.ItemNumber]" class="form-select" 
+                asp-items="Model.SocialMediaSites.Select(s => new SelectListItem(s.Name, s.Id.ToString()))"
+                asp-for="@socialMediaSiteId">
+        </select>
     </div>
-}
+    <div class="col-md-7">
+        <input name="Input.SocialMediaUrls[@Model.ItemNumber]"
+               class="form-control"
+               placeholder="Social Media Id. Not the full url, just the id."
+               value="@socialId"/>
+    </div>
+    <div class="col-md-1">
+        <button class="btn btn-danger" type="button" onclick="document.getElementById('SocialMediaItem-@Model.ItemNumber').remove();"><i class="bi bi-trash"></i></button>
+    </div>
+</div>

@@ -224,10 +224,11 @@
                 Adding row...
             </div>
             <button class="btn btn-primary float-end" type="button"
-                    hx-post="/Profile/Edit?handler=AddSocialMediaRow"
+                    hx-get="/Profile/Edit?handler=AddSocialMediaRow"
                     hx-target=":nth-last-child(1 of .social-media-row)"
                     hx-indicator="#addingRowSpinner"
-                    hx-swap="afterEnd">
+                    hx-debug="true"
+                    hx-swap="afterend">
                 <i class="bi bi-plus-square me-2"></i>Add
             </button>    
         </div>
