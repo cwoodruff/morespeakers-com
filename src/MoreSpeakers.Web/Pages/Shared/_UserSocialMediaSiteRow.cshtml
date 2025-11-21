@@ -5,15 +5,15 @@
     var socialId = Model.UserSocialMediaSite?.SocialId ?? string.Empty;
 }
 
-<div class="row mb-2 social-media-row" id="SocialMediaItem-@Model.ItemNumber">
+<div class="row mb-2 social-media-row" id="SocialMediaItem-@Model.ItemNumber" data-id="@Model.ItemNumber">
     <div class="col-md-4">
-        <select name="Input.SocialMediaPlatforms[@Model.ItemNumber]" class="form-select" 
+        <select name="Input.SocialMediaSiteId[@Model.ItemNumber]" class="form-select" 
                 asp-items="Model.SocialMediaSites.Select(s => new SelectListItem(s.Name, s.Id.ToString()))"
                 asp-for="@socialMediaSiteId">
         </select>
     </div>
     <div class="col-md-7">
-        <input name="Input.SocialMediaUrls[@Model.ItemNumber]"
+        <input name="Input.SocialId[@Model.ItemNumber]"
                class="form-control"
                placeholder="Social Media Id. Not the full url, just the id."
                value="@socialId"/>

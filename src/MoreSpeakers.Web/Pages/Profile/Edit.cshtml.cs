@@ -3,6 +3,8 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Http;
+using System.Text.RegularExpressions;
 
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models;
@@ -19,26 +21,24 @@ public class EditModel(
     IFileUploadService fileUploadService,
     ILogger<EditModel> logger) : PageModel
 {
-    [BindProperty]
-    public ProfileEditInputModel Input { get; set; } = new();
-    
-    [BindProperty]
-    public PasswordChangeInputModel PasswordInput { get; set; } = new();
+    [BindProperty] public ProfileEditInputModel Input { get; set; } = new();
+
+    [BindProperty] public PasswordChangeInputModel PasswordInput { get; set; } = new();
 
     public User ProfileUser { get; set; } = null!;
     public IEnumerable<Expertise> AvailableExpertise { get; set; } = new List<Expertise>();
     public IEnumerable<UserExpertise> UserExpertise { get; set; } = new List<UserExpertise>();
     public IEnumerable<SocialMediaSite> SocialMediaSites { get; set; } = new List<SocialMediaSite>();
 
-    
+
     // Properties for HTMX state management
     public string ActiveTab { get; set; } = "profile";
     public bool HasValidationErrors { get; set; }
     public string ValidationMessage { get; set; } = string.Empty;
     public string SuccessMessage { get; set; } = string.Empty;
-   
-    
-    public async Task<IActionResult> OnGetAsync()
+
+
+public async Task<IActionResult> OnGetAsync()
     {
         var result = await LoadUserDataAsync();
         if (result != null)
@@ -53,6 +53,8 @@ public class EditModel(
 
     public async Task<IActionResult> OnPostUpdateProfileAsync()
     {
+        var socialDictionary = ParseSocialMediaPairs(Request.Form);
+        
         var result = await LoadUserDataAsync();
         if (result != null)
         {
@@ -127,8 +129,8 @@ public class EditModel(
             await userManager.EmptyAndAddExpertiseForUserAsync(ProfileUser.Id, Input.SelectedExpertiseIds);
 
             // Update social media
-            await UpdateSocialMediaAsync();
-
+            await UpdateSocialMediaAsync(ProfileUser.Id, socialDictionary);
+            
             HasValidationErrors = false;
             SuccessMessage = "Profile updated successfully!";
             
@@ -261,7 +263,7 @@ public class EditModel(
                 {
                     ProfileUser.HeadshotUrl = fileUploadService.GetHeadshotPath(fileName);
                     ProfileUser.UpdatedDate = DateTime.UtcNow;
-                    // NOTE: Place holder for saving to DB
+                    // NOTE: Placeholder for saving to DB
                     //await _context.SaveChangesAsync();
 
                     HasValidationErrors = false;
@@ -340,7 +342,6 @@ public class EditModel(
 
                 Input.SelectedExpertiseIds = UserExpertise.Select(ue => ue.ExpertiseId).ToArray();
                 Input.UserSocialMediaSites = ProfileUser.UserSocialMediaSites.ToList();
-                
             }
         }
         catch (Exception ex)
@@ -351,29 +352,124 @@ public class EditModel(
         return null;
     }
 
-    private async Task UpdateSocialMediaAsync()
+    /// <summary>
+    /// Parses the posted form collection for indexed pairs like
+    /// Input.SocialId[7] and Input.SocialMediaSiteId[7] and returns
+    /// a dictionary keyed by the index with the matched values.
+    /// </summary>
+    /// <param name="form">The posted form collection (e.g., Request.Form)</param>
+    /// <param name="leftKeyPrefix">The left key prefix (e.g., "Input.SocialId")</param>
+    /// <param name="rightKeyPrefix">The right key prefix (e.g., "Input.SocialMediaSiteId")</param>
+    /// <returns>
+    /// Dictionary where the key is the index (e.g., 7) and value is a tuple of (leftValue, rightValue).
+    /// Only indices present for both sides are included.
+    /// </returns>
+    private static Dictionary<int, (string leftValue, string rightValue)> ParseIndexedPairs(
+        IFormCollection form,
+        string leftKeyPrefix,
+        string rightKeyPrefix)
     {
+        var leftPattern = new Regex($"^" + Regex.Escape(leftKeyPrefix) + "\\[(\\d+)\\]$",
+            RegexOptions.Compiled);
+        var rightPattern = new Regex($"^" + Regex.Escape(rightKeyPrefix) + "\\[(\\d+)\\]$",
+            RegexOptions.Compiled);
 
-        // TODO: Implement the saving of the user social media sites
+        var leftByIndex = new Dictionary<int, string>();
+        var rightByIndex = new Dictionary<int, string>();
+
+        foreach (var key in form.Keys)
+        {
+            var leftMatch = leftPattern.Match(key);
+            if (leftMatch.Success && int.TryParse(leftMatch.Groups[1].Value, out var li))
+            {
+                var v = form[key].ToString();
+                leftByIndex[li] = v;
+                continue;
+            }
+
+            var rightMatch = rightPattern.Match(key);
+            if (rightMatch.Success && int.TryParse(rightMatch.Groups[1].Value, out var ri))
+            {
+                var v = form[key].ToString();
+                rightByIndex[ri] = v;
+            }
+        }
+
+        var result = new Dictionary<int, (string leftValue, string rightValue)>();
+        foreach (var idx in leftByIndex.Keys)
+        {
+            if (!rightByIndex.TryGetValue(idx, out var rightVal))
+            {
+                continue; // only include indices present on both sides
+            }
+
+            var leftVal = leftByIndex[idx];
+
+            // Skip completely empty pairs
+            if (string.IsNullOrWhiteSpace(leftVal) && string.IsNullOrWhiteSpace(rightVal))
+            {
+                continue;
+            }
+
+            result[idx] = (leftVal?.Trim() ?? string.Empty, rightVal?.Trim() ?? string.Empty);
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Specialized helper for Social Media fields. It reads pairs of
+    /// Input.SocialId[n] and Input.SocialMediaSiteId[n] from the provided form
+    /// and returns a dictionary keyed by index with (SiteId, SocialId).
+    /// </summary>
+    private static Dictionary<int, (int SiteId, string SocialId)> ParseSocialMediaPairs(IFormCollection form)
+    {
+        var pairs = ParseIndexedPairs(form, "Input.SocialId", "Input.SocialMediaSiteId");
+        var result = new Dictionary<int, (int SiteId, string SocialId)>();
+
+        foreach (var kvp in pairs)
+        {
+            // kvp.Value.rightValue is the SocialMediaSiteId, kvp.Value.leftValue is SocialId
+            if (!int.TryParse(kvp.Value.rightValue, out var siteId))
+            {
+                continue; // ignore invalid site ids
+            }
+
+            var socialId = kvp.Value.leftValue?.Trim() ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(socialId))
+            {
+                continue; // ignore rows without a social id
+            }
+
+            result[kvp.Key] = (siteId, socialId);
+        }
+
+        return result;
+    }
+
+    private async Task UpdateSocialMediaAsync(Guid userId, Dictionary<int, (int, string)> socialMediaPairs)
+    {
         try
         {
-            // var socialMedias = new List<SocialMedia>();
-            //
-            // for (int i = 0; i < Math.Min(Input.SocialMediaPlatforms.Length, Input.SocialMediaUrls.Length); i++)
-            // {
-            //     if (!string.IsNullOrWhiteSpace(Input.SocialMediaPlatforms[i]) && 
-            //         !string.IsNullOrWhiteSpace(Input.SocialMediaUrls[i]))
-            //     {
-            //         socialMedias.Add(new SocialMedia
-            //         {
-            //             UserId = ProfileUser.Id,
-            //             Platform = Input.SocialMediaPlatforms[i].Trim(),
-            //             Url = Input.SocialMediaUrls[i].Trim(),
-            //             CreatedDate = DateTime.UtcNow
-            //         });
-            //     }
-            // }
-            //
+            var userSocialMediaSites = new List<UserSocialMediaSite>();
+            foreach (var socialMediaKey in socialMediaPairs.Keys)
+            {
+                var (siteId, socialId) = socialMediaPairs[socialMediaKey];
+                userSocialMediaSites.Add(new UserSocialMediaSite
+                {
+                    UserId = userId,
+                    SocialMediaSiteId = siteId,
+                    SocialId = socialId,
+                    User = new User(),
+                    SocialMediaSite = new SocialMediaSite
+                    {
+                        Name = null,
+                        Icon = null,
+                        UrlFormat = null
+                    }
+                });
+            }
+
             // await userManager.EmptyAndAddSocialMediaForUserAsync(ProfileUser.Id,socialMedias);
         }
         catch (Exception ex)
@@ -382,18 +478,17 @@ public class EditModel(
         }
     }
 
-    public async Task<IActionResult> OnGetAddSocialMediaRowAsync(int itemNumber = 0)
+    public async Task<IActionResult> OnGetAddSocialMediaRowAsync(int socialMediaSitesCount = 0)
     {
         try
         {
+            socialMediaSitesCount++;
             var model = new UserSocialMediaSiteRow
             {
                 UserSocialMediaSite = null,
                 SocialMediaSites = await socialMediaSiteManager.GetAllAsync(),
-                ItemNumber = itemNumber
+                ItemNumber = socialMediaSitesCount
             };
-
-
             return Partial("_UserSocialMediaSiteRow", model);
         }
         catch (Exception ex)

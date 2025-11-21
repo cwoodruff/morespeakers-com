@@ -50,4 +50,7 @@ public class ProfileEditInputModel
     [Display(Name = "Social Media Sites")] public List<Domain.Models.UserSocialMediaSite> UserSocialMediaSites { get; set; } = [];
 
     [Display(Name = "Upload Headshot")] public IFormFile? HeadshotFile { get; set; }
+    
+    //public int[] SocialMediaSiteId { get; set; } = [];
+    //public string[] SocialId { get; set; } = [];
 }

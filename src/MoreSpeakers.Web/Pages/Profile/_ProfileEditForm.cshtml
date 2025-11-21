@@ -215,7 +215,7 @@
                     @await Html.PartialAsync("_UserSocialMediaSiteRow", model)
                 }
             }
-            <input type="hidden" id="socialMediaSitesCount" value="@index" />
+            <input type="hidden" name="socialMediaSitesCount" value="@index" hx-swap-oob="true" />
         </div>
         <div id="replaceSocialMediaRow">
             <div id="addingRowSpinner" class="htmx-indicator">
@@ -227,12 +227,12 @@
             <button class="btn btn-primary float-end" type="button"
                     hx-get="/Profile/Edit?handler=AddSocialMediaRow"
                     hx-target=":nth-last-child(1 of .social-media-row)"
-                    hx-include="#socialMediaSitesCount"
+                    hx-include="[name='socialMediaSitesCount']"
                     hx-indicator="#addingRowSpinner"
-                    hx-debug="true"
-                    hx-swap="afterend">
+                    hx-swap="afterend"
+                    hx-on::after-request="document.querySelector('[name=socialMediaSitesCount]').value = document.querySelector(':nth-last-child(1 of .social-media-row)').dataset.id">
                 <i class="bi bi-plus-square me-2"></i>Add
-            </button>    
+            </button>
         </div>
     </div>
 

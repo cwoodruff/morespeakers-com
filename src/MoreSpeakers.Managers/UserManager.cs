@@ -60,7 +60,7 @@ public class UserManager: IUserManager
     // Application Methods
     // ------------------------------------------
     
-    public async Task<User> GetAsync(Guid primaryKey)
+    public async Task<User?> GetAsync(Guid primaryKey)
     {
         return await _dataStore.GetAsync(primaryKey);
     }
@@ -119,7 +119,7 @@ public class UserManager: IUserManager
     public Task<bool> EmptyAndAddUserSocialMediaSiteForUserAsync(Guid userId,
         List<UserSocialMediaSite> userSocialMediaSites)
     {
-        if (userId == Guid.Empty || userId == Guid.NewGuid())
+        if (userId == Guid.Empty)
         {
             throw new ArgumentException("Invalid user id");
         }
@@ -128,7 +128,7 @@ public class UserManager: IUserManager
 
     public async Task<IEnumerable<UserSocialMediaSite>> GetUserSocialMediaSitesAsync(Guid userId)
     {
-        if (userId == Guid.Empty || userId == Guid.NewGuid())
+        if (userId == Guid.Empty)
         {
             throw new ArgumentException("Invalid user id");
         }
@@ -148,7 +148,7 @@ public class UserManager: IUserManager
 
     public async Task<bool> EmptyAndAddExpertiseForUserAsync(Guid userId, int[] expertises)
     {
-        if (userId == Guid.Empty || userId == Guid.NewGuid())
+        if (userId == Guid.Empty)
         {
             throw new ArgumentException("Invalid user id");
         }
