@@ -18,9 +18,9 @@ public class IndexModel(IUserManager userManager, ILogger<IndexModel> logger) : 
     public async Task<IActionResult> OnGetAsync()
     {
         // There are two possible views for this page
-        // - A person viewing another persons profile. (default)
+        // - A person viewing another person's profile. (default)
         //    This requires just an Id query parameter
-        // - A logged in user that is visiting their profile
+        // - A logged-in user that is visiting their profile
         //    This happens if a person to be signed in and no Id query parameter passed
         //    This happens if a person to be signed in and their Id passed
         
