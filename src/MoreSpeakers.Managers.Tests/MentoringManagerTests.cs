@@ -1,21 +1,27 @@
 using FluentAssertions;
 
 using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Testing;
+
 using Moq;
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models;
-using MoreSpeakers.Managers;
 
 namespace MoreSpeakers.Managers.Tests;
 
 public class MentoringManagerTests
 {
     private readonly Mock<IMentoringDataStore> _dataStoreMock = new();
-    private readonly Mock<ILogger<MentoringManager>> _loggerMock = new();
-    private readonly Mock<TelemetryClient> _telemetryClientMock = new();
+    private readonly FakeLogger<MentoringManager> _fakeLogger = new();
+    private readonly TelemetryClient _dummyTelemetryClient = new(new TelemetryConfiguration
+    {
+        TelemetryChannel = new Microsoft.ApplicationInsights.Channel.InMemoryChannel(),
+        DisableTelemetry = true
+    });
 
-    private MentoringManager CreateSut() => new(_dataStoreMock.Object, _loggerMock.Object, _telemetryClientMock.Object);
+    private MentoringManager CreateSut() => new(_dataStoreMock.Object, _fakeLogger, _dummyTelemetryClient);
 
     [Fact]
     public async Task GetAsync_should_delegate()
@@ -127,6 +133,24 @@ public class MentoringManagerTests
     }
 
     [Fact]
+    public async Task CreateMentorshipRequestAsync_Should_Log_Error_On_Failure()
+    {
+        var mentorship = new Mentorship { Id = Guid.NewGuid(), MentorId = Guid.NewGuid() };
+        var expertiseIds = new List<int> { 1, 2 };
+        _dataStoreMock
+            .Setup(d => d.CreateMentorshipRequestAsync(It.IsAny<Mentorship>(), It.IsAny<List<int>>()))
+            .ReturnsAsync(false);
+        var sut = CreateSut();
+
+        var result = await sut.CreateMentorshipRequestAsync(mentorship, expertiseIds);
+
+        Assert.False(result);
+        var snapshot = _fakeLogger.Collector.GetSnapshot();
+        var entry = Assert.Single(snapshot);
+        Assert.True(entry.Level == LogLevel.Error && entry.Message == $"Failed to create mentorship request for mentor '{mentorship.MentorId}'");
+    }
+
+    [Fact]
     public async Task RespondToRequestAsync_should_delegate()
     {
         var mentorshipId = Guid.NewGuid();
@@ -139,6 +163,24 @@ public class MentoringManagerTests
 
         result.Should().BeSameAs(expected);
         _dataStoreMock.Verify(d => d.RespondToRequestAsync(mentorshipId, userId, true, "ok"), Times.Once);
+    }
+
+    [Fact]
+    public async Task RespondToRequestAsync_Should_Log_Error_On_Failure()
+    {
+        var mentorshipId = Guid.NewGuid();
+        var userId = Guid.NewGuid();
+
+        _dataStoreMock
+            .Setup(d => d.RespondToRequestAsync(mentorshipId, userId, true, "ok"))
+            .ReturnsAsync((Mentorship?)null);
+        var sut = CreateSut();
+
+        var result = await sut.RespondToRequestAsync(mentorshipId, userId, true, "ok");
+        Assert.Null(result);
+        var snapshot = _fakeLogger.Collector.GetSnapshot();
+        var entry = Assert.Single(snapshot);
+        Assert.True(entry.Level == LogLevel.Error && entry.Message == $"Failed to respond to mentorship request '{mentorshipId}' for user '{userId}'");
     }
 
     [Fact]
@@ -211,6 +253,23 @@ public class MentoringManagerTests
     }
 
     [Fact]
+    public async Task CancelMentorshipRequestAsync_Should_Log_Error_On_Failure()
+    {
+        var mentorshipId = Guid.NewGuid();
+        var userId = Guid.NewGuid();
+        _dataStoreMock
+            .Setup(d => d.CancelMentorshipRequestAsync(mentorshipId, userId))
+            .ReturnsAsync(false);
+        var sut = CreateSut();
+
+        var result = await sut.CancelMentorshipRequestAsync(mentorshipId, userId);
+        Assert.False(result);
+        var snapshot = _fakeLogger.Collector.GetSnapshot();
+        var entry = Assert.Single(snapshot);
+        Assert.True(entry.Level == LogLevel.Error && entry.Message == $"Failed to cancel mentorship request '{mentorshipId}' for user '{userId}'");
+    }
+
+    [Fact]
     public async Task CompleteMentorshipRequestAsync_should_delegate()
     {
         var mentorshipId = Guid.NewGuid();
@@ -225,6 +284,24 @@ public class MentoringManagerTests
     }
 
     [Fact]
+    public async Task CompleteMentorshipRequestAsync_Should_Log_Error_On_Failure()
+    {
+        var mentorshipId = Guid.NewGuid();
+        var userId = Guid.NewGuid();
+        _dataStoreMock
+            .Setup(d => d.CompleteMentorshipRequestAsync(mentorshipId, userId))
+            .ReturnsAsync(false);
+        var sut = CreateSut();
+
+        var result = await sut.CompleteMentorshipRequestAsync(mentorshipId, userId);
+
+        Assert.False(result);
+        var snapshot = _fakeLogger.Collector.GetSnapshot();
+        var entry = Assert.Single(snapshot);
+        Assert.True(entry.Level == LogLevel.Error && entry.Message == $"Failed to complete mentorship request '{mentorshipId}' for user '{userId}'");
+    }
+
+    [Fact]
     public async Task GetMentorsExceptForUserAsync_should_delegate()
     {
         var userId = Guid.NewGuid();
@@ -232,7 +309,7 @@ public class MentoringManagerTests
         _dataStoreMock.Setup(d => d.GetMentorsExceptForUserAsync(userId, MentorshipType.NewToExperienced, new List<string> { "AI" }, true)).ReturnsAsync(expected);
         var sut = CreateSut();
 
-        var result = await sut.GetMentorsExceptForUserAsync(userId, MentorshipType.NewToExperienced, new List<string> { "AI" }, true);
+        var result = await sut.GetMentorsExceptForUserAsync(userId, MentorshipType.NewToExperienced, ["AI"]);
 
         result.Should().BeSameAs(expected);
         _dataStoreMock.Verify(d => d.GetMentorsExceptForUserAsync(userId, MentorshipType.NewToExperienced, It.IsAny<List<string>>(), true), Times.Once);
@@ -275,10 +352,29 @@ public class MentoringManagerTests
         _dataStoreMock.Setup(d => d.RequestMentorshipWithDetailsAsync(requesterId, targetId, MentorshipType.NewToExperienced, "msg", It.IsAny<List<int>?>(), "weekly")).ReturnsAsync(expected);
         var sut = CreateSut();
 
-        var result = await sut.RequestMentorshipWithDetailsAsync(requesterId, targetId, MentorshipType.NewToExperienced, "msg", new List<int> { 1, 2 }, "weekly");
+        var result = await sut.RequestMentorshipWithDetailsAsync(requesterId, targetId, MentorshipType.NewToExperienced, "msg", [1, 2], "weekly");
 
         result.Should().BeSameAs(expected);
         _dataStoreMock.Verify(d => d.RequestMentorshipWithDetailsAsync(requesterId, targetId, MentorshipType.NewToExperienced, "msg", It.IsAny<List<int>?>(), "weekly"), Times.Once);
+    }
+
+    [Fact]
+    public async Task RequestMentorshipWithDetailsAsync_Should_Log_Error_On_Failure()
+    {
+        var requesterId = Guid.NewGuid();
+        var targetId = Guid.NewGuid();
+
+        _dataStoreMock
+            .Setup(d => d.RequestMentorshipWithDetailsAsync(requesterId, targetId, MentorshipType.NewToExperienced, "msg", It.IsAny<List<int>?>(), "weekly"))
+            .ReturnsAsync((Mentorship?)null);
+        var sut = CreateSut();
+
+        var result = await sut.RequestMentorshipWithDetailsAsync(requesterId, targetId, MentorshipType.NewToExperienced, "msg", [1, 2], "weekly");
+
+        Assert.Null(result);
+        var snapshot = _fakeLogger.Collector.GetSnapshot();
+        var entry = Assert.Single(snapshot);
+        Assert.True(entry.Level == LogLevel.Error && entry.Message == $"Failed to create mentorship request with details for mentee '{requesterId}' and mentor '{targetId}'");
     }
 
     [Fact]
