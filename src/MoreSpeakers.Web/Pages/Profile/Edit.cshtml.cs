@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.AspNetCore.Http;
+
 using System.Text.RegularExpressions;
 
 using MoreSpeakers.Domain.Interfaces;
@@ -53,20 +53,12 @@ public async Task<IActionResult> OnGetAsync()
 
     public async Task<IActionResult> OnPostUpdateProfileAsync()
     {
-        var result = await LoadUserDataAsync();
-        if (result != null)
-        {
-            return result;
-        }
-        
-        SocialMediaSites = await socialMediaSiteManager.GetAllAsync();
-        ActiveTab = "profile";
-
+        // Attempt to validate the input model
         var validationErrors = ValidateProfileEditInputModel(Input);
         if (validationErrors.Count != 0)
         {
             HasValidationErrors = true;
-            ValidationMessage = "Please correct the password errors below.</br><ul>";
+            ValidationMessage = "Please correct the errors below.</br><ul>";
             foreach (var error in validationErrors)
             {
                 ValidationMessage += $"<li>{error.ErrorMessage}</li>";
@@ -74,6 +66,17 @@ public async Task<IActionResult> OnGetAsync()
             ValidationMessage += "</ul>";
             return Partial("_ProfileEditForm", this);
         }
+        
+        var result = await LoadUserDataAsync();
+        if (result != null)
+        {
+            HasValidationErrors = true;
+            ValidationMessage = "An error occurred while updating your profile. Please try again.";
+            logger.LogError("Error updating user profile for user '{UserId}'. Could not load the profile", ProfileUser.Id);
+            return Partial("_ProfileEditForm", this);
+        }
+
+        ActiveTab = "profile";
 
         try
         {
@@ -130,6 +133,20 @@ public async Task<IActionResult> OnGetAsync()
             var socialDictionary = ParseSocialMediaPairs(Request.Form);
             await userManager.EmptyAndAddUserSocialMediaSiteForUserAsync(ProfileUser.Id, socialDictionary.Values.ToDictionary());
             
+            // Now that everything is saved, reload the user profile to get the updated values
+            result = await LoadUserDataAsync();
+            if (result != null)
+            {
+                HasValidationErrors = true;
+                ValidationMessage = "An error occurred while updating your profile. Please try again.";
+                logger.LogError("Error updating user profile for user '{UserId}'. Could not load the profile", ProfileUser.Id);
+                return Partial("_ProfileEditForm", this);
+            }
+            UserExpertise = await userManager.GetUserExpertisesForUserAsync(ProfileUser.Id);
+            Input.SelectedExpertiseIds = UserExpertise.Select(ue => ue.ExpertiseId).ToArray();
+            Input.UserSocialMediaSites = ProfileUser.UserSocialMediaSites.ToList();
+            SocialMediaSites = await socialMediaSiteManager.GetAllAsync();
+            
             HasValidationErrors = false;
             SuccessMessage = "Profile updated successfully!";
             
@@ -139,7 +156,6 @@ public async Task<IActionResult> OnGetAsync()
         {
             HasValidationErrors = true;
             ValidationMessage = "An error occurred while updating your profile. Please try again.";
-
             logger.LogError(ex, "Error updating user profile for user '{UserId}'", ProfileUser.Id);
             return Partial("_ProfileEditForm", this);
         }
@@ -148,7 +164,14 @@ public async Task<IActionResult> OnGetAsync()
     public async Task<IActionResult> OnPostChangePasswordAsync()
     {
         var result = await LoadUserDataAsync();
-        if (result != null) return result;
+        if (result != null)
+        {
+            HasValidationErrors = true;
+            ValidationMessage = "An error occurred while changing your password. Please try again.";
+            
+            logger.LogError("Error changing user password for user '{UserId}'. Could not load the profile", ProfileUser.Id);
+            return Partial("_PasswordChangeForm", this);
+        }
 
         SocialMediaSites = await socialMediaSiteManager.GetAllAsync();
         ActiveTab = "password";
@@ -310,15 +333,14 @@ public async Task<IActionResult> OnGetAsync()
             var userProfile = await userManager.GetAsync(identityUser.Id);
             if (userProfile == null)
             {
-                logger.LogError("Error loading profile page. Could not find user. UserId: '{UserId}'", identityUser?.Id);
+                logger.LogError("Error loading profile page. Could not find user. UserId: '{UserId}'", identityUser.Id);
                 return RedirectToPage("/Profile/LoadingProblem",
-                    new { UserId = identityUser?.Id ?? Guid.Empty });
+                    new { UserId = identityUser.Id });
             }
 
             ProfileUser = userProfile;
             AvailableExpertise = await expertiseManager.GetAllAsync();
-            UserExpertise = await userManager.GetUserExpertisesForUserAsync(identityUser.Id);
-
+            
             // Populate the Input model if not already populated
             if (string.IsNullOrEmpty(Input.FirstName))
             {
@@ -338,9 +360,6 @@ public async Task<IActionResult> OnGetAsync()
                 {
                     Input.SpeakerTypeId = SpeakerTypeEnum.NewSpeaker;
                 }
-
-                Input.SelectedExpertiseIds = UserExpertise.Select(ue => ue.ExpertiseId).ToArray();
-                Input.UserSocialMediaSites = ProfileUser.UserSocialMediaSites.ToList();
             }
         }
         catch (Exception ex)
@@ -410,7 +429,7 @@ public async Task<IActionResult> OnGetAsync()
                 continue;
             }
 
-            result[idx] = (leftVal?.Trim() ?? string.Empty, rightVal?.Trim() ?? string.Empty);
+            result[idx] = (leftVal.Trim(), rightVal.Trim());
         }
 
         return result;
@@ -434,7 +453,7 @@ public async Task<IActionResult> OnGetAsync()
                 continue; // ignore invalid site ids
             }
 
-            var socialId = kvp.Value.leftValue?.Trim() ?? string.Empty;
+            var socialId = kvp.Value.leftValue.Trim();
             if (string.IsNullOrWhiteSpace(socialId))
             {
                 continue; // ignore rows without a social id

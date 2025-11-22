@@ -45,12 +45,12 @@ public class ProfileEditInputModel
     [Display(Name = "Speaker Type")]
     public Domain.Models.SpeakerTypeEnum SpeakerTypeId { get; set; }
 
-    [Display(Name = "Areas of Expertise")] public int[] SelectedExpertiseIds { get; set; } = [];
+    [Display(Name = "Areas of Expertise")] 
+    public int[] SelectedExpertiseIds { get; set; } = [];
 
-    [Display(Name = "Social Media Sites")] public List<Domain.Models.UserSocialMediaSite> UserSocialMediaSites { get; set; } = [];
+    [Display(Name = "Social Media Sites")] 
+    public List<Domain.Models.UserSocialMediaSite> UserSocialMediaSites { get; set; } = [];
 
-    [Display(Name = "Upload Headshot")] public IFormFile? HeadshotFile { get; set; }
-    
-    //public int[] SocialMediaSiteId { get; set; } = [];
-    //public string[] SocialId { get; set; } = [];
+    [Display(Name = "Upload Headshot")] 
+    public IFormFile? HeadshotFile { get; set; }
 }

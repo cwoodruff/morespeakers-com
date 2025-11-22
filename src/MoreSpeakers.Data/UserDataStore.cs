@@ -139,7 +139,6 @@ public class UserDataStore : IUserDataStore
     {
         try
         {
-            bool result;
             Data.Models.User? dbUser;
             if (user.Id != Guid.Empty)
             {
@@ -165,13 +164,9 @@ public class UserDataStore : IUserDataStore
                 {
                     _context.UserSocialMediaSite.Remove(userSocialMediaSiteItem);
                 }
-                result = await _context.SaveChangesAsync() != 0;
-                if (!result)
-                {
-                    _logger.LogError("Failed to save the user. Id: '{Id}'", user.Id);
-                    throw new ApplicationException("Failed to save the user");
-                }
-                dbUser = _mapper.Map(user, dbUser);
+                await _context.SaveChangesAsync();
+                dbUser = _mapper.Map<Models.User>(user);
+                _context.Entry(dbUser).State = EntityState.Modified;
             }
             else
             {
@@ -179,7 +174,7 @@ public class UserDataStore : IUserDataStore
                 _context.Entry(dbUser).State = EntityState.Added;
             }
 
-            result = await _context.SaveChangesAsync() != 0;
+            var result = await _context.SaveChangesAsync() != 0;
             if (result)
             {
                 return _mapper.Map<User>(dbUser);
