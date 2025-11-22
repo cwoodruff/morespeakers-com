@@ -11,4 +11,9 @@ public class Settings : ISettings
     /// The email settings.
     /// </summary>
     public required EmailSettings Email { get; init; }
+
+    /// <summary>
+    /// The GitHub settings.
+    /// </summary>
+    public required GitHubSettings GitHub { get; init; }
 }

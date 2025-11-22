@@ -151,6 +151,33 @@
         </div>
     </div>
 
+    <!-- Contributors Section -->
+    @if (Model.Contributors.Any())
+    {
+        <div class="row mb-5">
+            <div class="col-12">
+                <h2 class="text-center mb-4">Contributors</h2>
+                <p class="text-center text-muted mb-4">
+                    A huge thank you to the awesome people who have contributed to the 
+                    <a href="https://github.com/cwoodruff/morespeakers-com" target="_blank" class="text-decoration-none">MoreSpeakers.com project</a>!
+                </p>
+                <div class="row justify-content-center g-3">
+                    @foreach (var contributor in Model.Contributors)
+                    {
+                        <div class="col-6 col-sm-4 col-md-3 col-lg-2 text-center">
+                            <a href="@contributor.HtmlUrl" target="_blank" class="text-decoration-none d-block p-3 rounded hover-lift" data-bs-toggle="tooltip" title="@contributor.Login - @contributor.Contributions contributions">
+                                <img src="@contributor.AvatarUrl" alt="@contributor.Login" 
+                                     class="rounded-circle border mb-2 shadow-sm"
+                                     style="width: 80px; height: 80px; object-fit: cover;">
+                                <div class="small text-dark fw-bold text-truncate">@contributor.Login</div>
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+
     <!-- How to Get Started Section -->
     <div class="row mb-5">
         <div class="col-lg-8 mx-auto">
@@ -204,4 +231,11 @@
 </div>
 
 @section Scripts {
+    <script>
+        // Initialize tooltips for contributors
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        })
+    </script>
 }
