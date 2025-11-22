@@ -29,7 +29,8 @@ ConfigureLogging(builder.Configuration, builder.Services, fullyQualifiedLogFile,
 // Add settings
 var settings = new Settings
 {
-    Email = null!
+    Email = null!,
+    GitHub = null!
 };
 builder.Configuration.AddEnvironmentVariables();
 builder.Configuration.Bind("Settings", settings);
@@ -100,6 +101,10 @@ builder.Services.AddScoped<IEmailSender, EmailSender>();
 builder.Services.AddScoped<Microsoft.AspNetCore.Identity.UI.Services.IEmailSender, EmailSender>();
 builder.Services.AddScoped<ITemplatedEmailSender, TemplatedEmailSender>();
 builder.Services.AddScoped<IRazorPartialToStringRenderer, RazorPartialToStringRenderer>();
+
+// Register GitHub Service and Add in-memory caching (required by GitHubService constructor)
+builder.Services.AddMemoryCache();
+builder.Services.AddHttpClient<IGitHubService, GitHubService>();
 
 // Add HTTP context accessor for services
 builder.Services.AddHttpContextAccessor();

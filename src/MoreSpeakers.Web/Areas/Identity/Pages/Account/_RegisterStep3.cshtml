@@ -39,7 +39,7 @@
             <div class="input-group mb-2 custom-expertise-input" data-expertise-index="0">
                 <input type="text" name="Input.CustomExpertise" class="form-control custom-expertise-field"
                        placeholder="Enter a custom expertise area"
-                       hx-post="/Identity/Account/Register?handler=ValidateCustomExpertise"
+                       hx-post="/Register?handler=ValidateCustomExpertise"
                        hx-trigger="blur, keyup changed delay:500ms"
                        hx-target="next .custom-expertise-validation"
                        hx-include="this"
@@ -83,4 +83,3 @@
     <input type="hidden" asp-for="Input.HeadshotUrl" />
     <input type="hidden" asp-for="Input.SpeakerTypeId" />
 </div>
-

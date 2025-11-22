@@ -48,7 +48,7 @@
             </span>
             <input asp-for="Input.Email" class="form-control border-start-0" autocomplete="username"
                    placeholder="Enter your email"
-                   hx-post="/Identity/Account/Register?handler=ValidateEmail"
+                   hx-post="/Register?handler=ValidateEmail"
                    hx-trigger="blur, keyup changed delay:500ms"
                    hx-target="#email-validation-message"
                    hx-include="this"

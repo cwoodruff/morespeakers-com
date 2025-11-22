@@ -73,7 +73,7 @@
         <div class="d-flex justify-content-between mt-4" id="navigationButtons">
             <button type="button" id="prevBtn" class="btn btn-outline-secondary"
                     style="display: @(currentStep == 1 ? "none" : "block");"
-                    hx-post="/Identity/Account/Register?handler=PreviousStep"
+                    hx-post="/Register?handler=PreviousStep"
                     hx-target="#registrationContainer"
                     hx-include="#registerForm"
                     hx-vals='{"step": "@currentStep"}'
@@ -84,7 +84,7 @@
             @if (currentStep < 4)
             {
                 <button type="button" id="nextBtn" class="btn btn-primary"
-                        hx-post="/Identity/Account/Register?handler=ValidateStep"
+                        hx-post="/Register?handler=ValidateStep"
                         hx-target="#registrationContainer"
                         hx-include="#registerForm"
                         hx-vals='{"step": "@currentStep"}'
@@ -95,7 +95,7 @@
             else
             {
                 <button type="button" id="submitBtn" class="btn btn-success"
-                        hx-post="/Identity/Account/Register?handler=Submit"
+                        hx-post="/Register?handler=Submit"
                         hx-target="#registrationContainer"
                         hx-include="#registerForm"
                         hx-swap="innerHTML">

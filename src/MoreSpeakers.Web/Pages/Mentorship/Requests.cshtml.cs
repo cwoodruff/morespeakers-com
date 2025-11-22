@@ -201,12 +201,23 @@ public class RequestsModel : PageModel
             var currentUser = await _userManager.GetUserAsync(User);
             if (currentUser == null) return Content(string.Empty);
 
-            var (incoming, outgoing) = await _mentoringManager.GetNumberOfMentorshipsPending(currentUser.Id);
+            var (outbound, inbound) = await _mentoringManager.GetNumberOfMentorshipsPending(currentUser.Id);
+            
+            var html = string.Empty;
 
-            if (incoming > 0)
+            // Incoming requests: Require user attention (Red badge)
+            if (inbound > 0)
             {
-                return Content($"<span class='badge bg-danger ms-1'>{incoming}</span>");
+                html += $"<span class='badge bg-danger ms-1' title='{inbound} Incoming Request(s)'><i class='bi bi-inbox-fill me-1'></i>{inbound}</span>";
             }
+            
+            // Outgoing requests: Awaiting external response (Gray badge)
+            if (outbound > 0)
+            {
+                html += $"<span class='badge bg-secondary ms-1' title='{outbound} Outgoing Request(s)'><i class='bi bi-send-fill me-1'></i>{outbound}</span>";
+            }
+
+            return Content(html);
         }
         catch (Exception ex)
         {
