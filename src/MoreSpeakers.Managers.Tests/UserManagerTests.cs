@@ -330,26 +330,19 @@ public class UserManagerTests
     {
         var sut = CreateSut();
 
-        var act = async () => await sut.EmptyAndAddUserSocialMediaSiteForUserAsync(Guid.Empty, new List<UserSocialMediaSite>());
+        var act = async () => await sut.EmptyAndAddUserSocialMediaSiteForUserAsync(Guid.Empty, new Dictionary<int, string>());
 
         await act.Should().ThrowAsync<ArgumentException>().WithMessage("Invalid user id");
-        _dataStoreMock.Verify(d => d.EmptyAndAddUserSocialMediaSiteForUserAsync(It.IsAny<Guid>(), It.IsAny<List<UserSocialMediaSite>>()), Times.Never);
+        _dataStoreMock.Verify(d => d.EmptyAndAddUserSocialMediaSiteForUserAsync(It.IsAny<Guid>(), It.IsAny<Dictionary<int, string>>()), Times.Never);
     }
 
     [Fact]
     public async Task EmptyAndAddUserSocialMediaSiteForUserAsync_should_delegate_when_userId_valid()
     {
         var id = Guid.NewGuid();
-        var links = new List<UserSocialMediaSite>
+        var links = new Dictionary<int, string>
         {
-            new()
-            {
-                UserId = id,
-                SocialMediaSiteId = 1,
-                SocialId = "user",
-                User = new User { Id = id },
-                SocialMediaSite = new SocialMediaSite { Id = 1, Name = "X", Icon = "x", UrlFormat = "https://x.com/{0}" }
-            }
+            { 1, "user" }
         };
         _dataStoreMock.Setup(d => d.EmptyAndAddUserSocialMediaSiteForUserAsync(id, links)).ReturnsAsync(true);
         var sut = CreateSut();

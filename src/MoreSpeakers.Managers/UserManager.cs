@@ -117,7 +117,7 @@ public class UserManager: IUserManager
     }
 
     public Task<bool> EmptyAndAddUserSocialMediaSiteForUserAsync(Guid userId,
-        List<UserSocialMediaSite> userSocialMediaSites)
+        Dictionary<int, string> userSocialMediaSites)
     {
         if (userId == Guid.Empty)
         {

@@ -137,14 +137,49 @@ public class UserDataStore : IUserDataStore
 
     public async Task<User> SaveAsync(User user)
     {
-        var dbUser = await _context.Users.FirstOrDefaultAsync(u => u.Id == user.Id) ?? new Models.User();
-
-        _mapper.Map(user, dbUser);
-        _context.Entry(dbUser).State = dbUser.Id == Guid.Empty ? EntityState.Added : EntityState.Modified;
-
         try
         {
-            var result = await _context.SaveChangesAsync() != 0;
+            bool result;
+            Data.Models.User? dbUser;
+            if (user.Id != Guid.Empty)
+            {
+                dbUser = await _context.Users.FirstOrDefaultAsync(u => u.Id == user.Id);
+                if (dbUser == null)
+                {
+                    dbUser = _mapper.Map<Models.User>(user);
+                    _context.Entry(dbUser).State = EntityState.Added;
+                }
+                else
+                {
+                    _context.ChangeTracker.Clear();
+                }
+                // Let's remove all the fk references to the user before saving
+                // This is to avoid the "circular dependency" error when saving the user
+                var userExpertise = await _context.UserExpertise.Where(ue => ue.UserId == user.Id).ToListAsync();
+                foreach (var userExpertiseItem in userExpertise)
+                {
+                    _context.UserExpertise.Remove(userExpertiseItem);
+                }
+                var userSocialMediaSites = await _context.UserSocialMediaSite.Where(sms => sms.UserId == user.Id).ToListAsync();
+                foreach (var userSocialMediaSiteItem in userSocialMediaSites)
+                {
+                    _context.UserSocialMediaSite.Remove(userSocialMediaSiteItem);
+                }
+                result = await _context.SaveChangesAsync() != 0;
+                if (!result)
+                {
+                    _logger.LogError("Failed to save the user. Id: '{Id}'", user.Id);
+                    throw new ApplicationException("Failed to save the user");
+                }
+                dbUser = _mapper.Map(user, dbUser);
+            }
+            else
+            {
+                dbUser = _mapper.Map<Models.User>(user);
+                _context.Entry(dbUser).State = EntityState.Added;
+            }
+
+            result = await _context.SaveChangesAsync() != 0;
             if (result)
             {
                 return _mapper.Map<User>(dbUser);
@@ -375,7 +410,7 @@ public class UserDataStore : IUserDataStore
         }
     }
     
-    public async Task<bool> EmptyAndAddUserSocialMediaSiteForUserAsync(Guid userId, List<UserSocialMediaSite> userSocialMediaSites)
+    public async Task<bool> EmptyAndAddUserSocialMediaSiteForUserAsync(Guid userId, Dictionary<int, string> userSocialMediaSites)
     {
         try
         {
@@ -389,8 +424,8 @@ public class UserDataStore : IUserDataStore
             {
                 _context.UserSocialMediaSite.Add(new Models.UserSocialMediaSites
                 {
-                    SocialId = userSocialMediaSite.SocialId,
-                    SocialMediaSiteId = userSocialMediaSite.SocialMediaSiteId,
+                    SocialId = userSocialMediaSite.Value,
+                    SocialMediaSiteId = userSocialMediaSite.Key,
                     UserId = userId
                 });
             }

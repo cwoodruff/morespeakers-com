@@ -53,8 +53,6 @@ public async Task<IActionResult> OnGetAsync()
 
     public async Task<IActionResult> OnPostUpdateProfileAsync()
     {
-        var socialDictionary = ParseSocialMediaPairs(Request.Form);
-        
         var result = await LoadUserDataAsync();
         if (result != null)
         {
@@ -129,7 +127,8 @@ public async Task<IActionResult> OnGetAsync()
             await userManager.EmptyAndAddExpertiseForUserAsync(ProfileUser.Id, Input.SelectedExpertiseIds);
 
             // Update social media
-            await UpdateSocialMediaAsync(ProfileUser.Id, socialDictionary);
+            var socialDictionary = ParseSocialMediaPairs(Request.Form);
+            await userManager.EmptyAndAddUserSocialMediaSiteForUserAsync(ProfileUser.Id, socialDictionary.Values.ToDictionary());
             
             HasValidationErrors = false;
             SuccessMessage = "Profile updated successfully!";
@@ -445,37 +444,6 @@ public async Task<IActionResult> OnGetAsync()
         }
 
         return result;
-    }
-
-    private async Task UpdateSocialMediaAsync(Guid userId, Dictionary<int, (int, string)> socialMediaPairs)
-    {
-        try
-        {
-            var userSocialMediaSites = new List<UserSocialMediaSite>();
-            foreach (var socialMediaKey in socialMediaPairs.Keys)
-            {
-                var (siteId, socialId) = socialMediaPairs[socialMediaKey];
-                userSocialMediaSites.Add(new UserSocialMediaSite
-                {
-                    UserId = userId,
-                    SocialMediaSiteId = siteId,
-                    SocialId = socialId,
-                    User = new User(),
-                    SocialMediaSite = new SocialMediaSite
-                    {
-                        Name = null,
-                        Icon = null,
-                        UrlFormat = null
-                    }
-                });
-            }
-
-            // await userManager.EmptyAndAddSocialMediaForUserAsync(ProfileUser.Id,socialMedias);
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error updating social media for user '{UserId}'", ProfileUser.Id);
-        }
     }
 
     public async Task<IActionResult> OnGetAddSocialMediaRowAsync(int socialMediaSitesCount = 0)
