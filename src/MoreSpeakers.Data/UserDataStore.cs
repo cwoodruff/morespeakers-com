@@ -151,22 +151,26 @@ public class UserDataStore : IUserDataStore
                 else
                 {
                     _context.ChangeTracker.Clear();
+                    //
+                    // // Let's remove all the fk references to the user before saving
+                    // // This is to avoid an EF tracking error when saving the user
+                    // var userExpertise = await _context.UserExpertise.Where(ue => ue.UserId == user.Id).ToListAsync();
+                    // foreach (var userExpertiseItem in userExpertise)
+                    // {
+                    //     _context.UserExpertise.Remove(userExpertiseItem);
+                    // }
+                    //
+                    // var userSocialMediaSites =
+                    //     await _context.UserSocialMediaSite.Where(sms => sms.UserId == user.Id).ToListAsync();
+                    // foreach (var userSocialMediaSiteItem in userSocialMediaSites)
+                    // {
+                    //     _context.UserSocialMediaSite.Remove(userSocialMediaSiteItem);
+                    // }
+                    //
+                    // await _context.SaveChangesAsync();
+                    dbUser = _mapper.Map<Models.User>(user);
+                    _context.Entry(dbUser).State = EntityState.Modified;
                 }
-                // Let's remove all the fk references to the user before saving
-                // This is to avoid the "circular dependency" error when saving the user
-                var userExpertise = await _context.UserExpertise.Where(ue => ue.UserId == user.Id).ToListAsync();
-                foreach (var userExpertiseItem in userExpertise)
-                {
-                    _context.UserExpertise.Remove(userExpertiseItem);
-                }
-                var userSocialMediaSites = await _context.UserSocialMediaSite.Where(sms => sms.UserId == user.Id).ToListAsync();
-                foreach (var userSocialMediaSiteItem in userSocialMediaSites)
-                {
-                    _context.UserSocialMediaSite.Remove(userSocialMediaSiteItem);
-                }
-                await _context.SaveChangesAsync();
-                dbUser = _mapper.Map<Models.User>(user);
-                _context.Entry(dbUser).State = EntityState.Modified;
             }
             else
             {

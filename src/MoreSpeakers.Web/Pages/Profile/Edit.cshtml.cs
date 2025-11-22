@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Security.Claims;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -30,7 +31,6 @@ public class EditModel(
     public IEnumerable<UserExpertise> UserExpertise { get; set; } = new List<UserExpertise>();
     public IEnumerable<SocialMediaSite> SocialMediaSites { get; set; } = new List<SocialMediaSite>();
 
-
     // Properties for HTMX state management
     public string ActiveTab { get; set; } = "profile";
     public bool HasValidationErrors { get; set; }
@@ -40,12 +40,18 @@ public class EditModel(
 
 public async Task<IActionResult> OnGetAsync()
     {
-        var result = await LoadUserDataAsync();
-        if (result != null)
+        var user = await UpdateModelFromUserAsync(User);
+        if (user is null)
         {
-            return result;
+            // User Not Found
+            logger.LogError("Error loading profile page. Could not find user");
+            return RedirectToPage("/Profile/LoadingProblem",
+                new { UserId = Guid.Empty });
         }
 
+        ProfileUser = user;
+        UserExpertise = user?.UserExpertise ?? new List<UserExpertise>();
+        AvailableExpertise = await expertiseManager.GetAllAsync();
         SocialMediaSites = await socialMediaSiteManager.GetAllAsync();
         ActiveTab = "profile";
         return Page();
@@ -67,12 +73,12 @@ public async Task<IActionResult> OnGetAsync()
             return Partial("_ProfileEditForm", this);
         }
         
-        var result = await LoadUserDataAsync();
-        if (result != null)
+        var userProfile = await UpdateUserFromModelAsync(User);
+        if (userProfile is null)
         {
             HasValidationErrors = true;
             ValidationMessage = "An error occurred while updating your profile. Please try again.";
-            logger.LogError("Error updating user profile for user '{UserId}'. Could not load the profile", ProfileUser.Id);
+            logger.LogError("Error updating user profile for user. Could not load the profile");
             return Partial("_ProfileEditForm", this);
         }
 
@@ -80,71 +86,28 @@ public async Task<IActionResult> OnGetAsync()
 
         try
         {
-            // Handle headshot upload if provided
-            if (Input.HeadshotFile is { Length: > 0 })
-            {
-                if (fileUploadService.IsValidImageFile(Input.HeadshotFile))
-                {
-                    // Delete old headshot if exists
-                    if (!string.IsNullOrEmpty(ProfileUser.HeadshotUrl) && 
-                        ProfileUser.HeadshotUrl.StartsWith("/uploads/headshots/"))
-                    {
-                        var oldFileName = Path.GetFileName(ProfileUser.HeadshotUrl);
-                        fileUploadService.DeleteHeadshotAsync(oldFileName);
-                    }
-
-                    // Upload new headshot
-                    var fileName = await fileUploadService.UploadHeadshotAsync(Input.HeadshotFile, ProfileUser.Id);
-                    if (fileName != null)
-                    {
-                        ProfileUser.HeadshotUrl = fileUploadService.GetHeadshotPath(fileName);
-                    }
-                }
-                else
-                {
-                    HasValidationErrors = true;
-                    ValidationMessage = "Invalid image file. Please upload a JPG, PNG, or GIF file under 5MB.";
-                    return Partial("_ProfileEditForm", this);
-                }
-            }
-            else if (!string.IsNullOrEmpty(Input.HeadshotUrl))
-            {
-                // Use provided URL if no file uploaded
-                ProfileUser.HeadshotUrl = Input.HeadshotUrl;
-            }
-
-            // Update user profile
-            ProfileUser.FirstName = Input.FirstName;
-            ProfileUser.LastName = Input.LastName;
-            ProfileUser.PhoneNumber = Input.PhoneNumber;
-            ProfileUser.Bio = Input.Bio;
-            ProfileUser.Goals = Input.Goals;
-            ProfileUser.SessionizeUrl = Input.SessionizeUrl;
-            ProfileUser.SpeakerTypeId = (int)Input.SpeakerTypeId;
-            ProfileUser.UpdatedDate = DateTime.UtcNow;
-            
             // Save the profile (user information)
-            await userManager.SaveAsync(ProfileUser);
+            await userManager.SaveAsync(userProfile);
 
             // Update expertise
-            await userManager.EmptyAndAddExpertiseForUserAsync(ProfileUser.Id, Input.SelectedExpertiseIds);
+            await userManager.EmptyAndAddExpertiseForUserAsync(userProfile.Id, Input.SelectedExpertiseIds);
 
             // Update social media
             var socialDictionary = ParseSocialMediaPairs(Request.Form);
-            await userManager.EmptyAndAddUserSocialMediaSiteForUserAsync(ProfileUser.Id, socialDictionary.Values.ToDictionary());
+            await userManager.EmptyAndAddUserSocialMediaSiteForUserAsync(userProfile.Id, socialDictionary.Values.ToDictionary());
             
             // Now that everything is saved, reload the user profile to get the updated values
-            result = await LoadUserDataAsync();
-            if (result != null)
+            userProfile = await UpdateModelFromUserAsync(User);
+            if (userProfile is null)
             {
                 HasValidationErrors = true;
                 ValidationMessage = "An error occurred while updating your profile. Please try again.";
-                logger.LogError("Error updating user profile for user '{UserId}'. Could not load the profile", ProfileUser.Id);
+                logger.LogError("Error updating user profile for user. Could not load the profile");
                 return Partial("_ProfileEditForm", this);
             }
-            UserExpertise = await userManager.GetUserExpertisesForUserAsync(ProfileUser.Id);
-            Input.SelectedExpertiseIds = UserExpertise.Select(ue => ue.ExpertiseId).ToArray();
-            Input.UserSocialMediaSites = ProfileUser.UserSocialMediaSites.ToList();
+
+            ProfileUser = userProfile;
+            AvailableExpertise = await expertiseManager.GetAllAsync();
             SocialMediaSites = await socialMediaSiteManager.GetAllAsync();
             
             HasValidationErrors = false;
@@ -156,20 +119,20 @@ public async Task<IActionResult> OnGetAsync()
         {
             HasValidationErrors = true;
             ValidationMessage = "An error occurred while updating your profile. Please try again.";
-            logger.LogError(ex, "Error updating user profile for user '{UserId}'", ProfileUser.Id);
+            logger.LogError(ex, "Error updating user profile for user '{UserId}'", userProfile?.Id);
             return Partial("_ProfileEditForm", this);
         }
     }
 
     public async Task<IActionResult> OnPostChangePasswordAsync()
     {
-        var result = await LoadUserDataAsync();
-        if (result != null)
+        var identityUser = await userManager.GetUserAsync(User);
+        if (identityUser is not null)
         {
             HasValidationErrors = true;
             ValidationMessage = "An error occurred while changing your password. Please try again.";
             
-            logger.LogError("Error changing user password for user '{UserId}'. Could not load the profile", ProfileUser.Id);
+            logger.LogError("Error changing user password for user. Could not load the profile");
             return Partial("_PasswordChangeForm", this);
         }
 
@@ -192,7 +155,7 @@ public async Task<IActionResult> OnGetAsync()
         try
         {
             var changeResult = await userManager.ChangePasswordAsync(
-                ProfileUser, 
+                identityUser!, 
                 PasswordInput.CurrentPassword, 
                 PasswordInput.NewPassword);
 
@@ -215,7 +178,7 @@ public async Task<IActionResult> OnGetAsync()
             HasValidationErrors = true;
             ValidationMessage = "An error occurred while changing your password. Please try again.";
             
-            logger.LogError(ex, "Error changing user password for user '{UserId}'", ProfileUser.Id);
+            logger.LogError(ex, "Error changing user password for user '{UserId}'", identityUser?.Id);
             return Partial("_PasswordChangeForm", this);
         }
     }
@@ -242,9 +205,18 @@ public async Task<IActionResult> OnGetAsync()
 
     public async Task<IActionResult> OnGetTabAsync(string tab)
     {
-        var result = await LoadUserDataAsync();
-        if (result != null) return result;
+        var user = await UpdateModelFromUserAsync(User);
+        if (user != null)
+        {
+            // User Not Found
+            logger.LogError("Error loading profile page. Could not find user");
+            return RedirectToPage("/Profile/LoadingProblem",
+                new { UserId = Guid.Empty });
+        }
 
+        ProfileUser = user ?? ProfileUser;
+        UserExpertise = user?.UserExpertise ?? new List<UserExpertise>();
+        AvailableExpertise = await expertiseManager.GetAllAsync();
         SocialMediaSites = await socialMediaSiteManager.GetAllAsync();
         ActiveTab = tab;
         
@@ -317,7 +289,11 @@ public async Task<IActionResult> OnGetAsync()
         }
     }
 
-    private async Task<IActionResult?> LoadUserDataAsync()
+    /// <summary>
+    /// Returns a populated user object based on the current user's identity with updates to the data from the Input model.
+    /// </summary>
+    /// <returns></returns>
+    private async Task<User?> UpdateUserFromModelAsync(ClaimsPrincipal signedInUser)
     {
         User? identityUser = null;
 
@@ -326,7 +302,7 @@ public async Task<IActionResult> OnGetAsync()
             identityUser = await userManager.GetUserAsync(User);
             if (identityUser == null)
             {
-                return Challenge();
+                return null;
             }
             
             // Load profile with all the user's data
@@ -334,33 +310,128 @@ public async Task<IActionResult> OnGetAsync()
             if (userProfile == null)
             {
                 logger.LogError("Error loading profile page. Could not find user. UserId: '{UserId}'", identityUser.Id);
-                return RedirectToPage("/Profile/LoadingProblem",
-                    new { UserId = identityUser.Id });
+                return null;
             }
-
-            ProfileUser = userProfile;
-            AvailableExpertise = await expertiseManager.GetAllAsync();
             
-            // Populate the Input model if not already populated
-            if (string.IsNullOrEmpty(Input.FirstName))
+            userProfile.FirstName = Input.FirstName;
+            userProfile.LastName = Input.LastName;
+            userProfile.PhoneNumber = Input.PhoneNumber;
+            userProfile.Bio = Input.Bio;
+            userProfile.Goals = Input.Goals;
+            userProfile.SessionizeUrl = Input.SessionizeUrl;
+            userProfile.SpeakerTypeId = (int)Input.SpeakerTypeId;
+            userProfile.UpdatedDate = DateTime.UtcNow;
+            
+            // Handle headshot upload if provided
+            if (Input.HeadshotFile is { Length: > 0 })
             {
-                Input.FirstName = ProfileUser.FirstName;
-                Input.LastName = ProfileUser.LastName;
-                Input.PhoneNumber = ProfileUser.PhoneNumber ?? string.Empty;
-                Input.Bio = ProfileUser.Bio;
-                Input.Goals = ProfileUser.Goals;
-                Input.SessionizeUrl = ProfileUser.SessionizeUrl ?? string.Empty;
-                Input.HeadshotUrl = ProfileUser.HeadshotUrl ?? string.Empty;
-                
-                if (Enum.IsDefined(typeof(SpeakerTypeEnum), ProfileUser.SpeakerTypeId))
+                if (fileUploadService.IsValidImageFile(Input.HeadshotFile))
                 {
-                    Input.SpeakerTypeId = (SpeakerTypeEnum)ProfileUser.SpeakerTypeId;
+                    // Delete old headshot if exists
+                    if (!string.IsNullOrEmpty(userProfile.HeadshotUrl) && 
+                        userProfile.HeadshotUrl.StartsWith("/uploads/headshots/"))
+                    {
+                        var oldFileName = Path.GetFileName(userProfile.HeadshotUrl);
+                        fileUploadService.DeleteHeadshotAsync(oldFileName);
+                    }
+
+                    // Upload new headshot
+                    var fileName = await fileUploadService.UploadHeadshotAsync(Input.HeadshotFile, userProfile.Id);
+                    if (fileName != null)
+                    {
+                        userProfile.HeadshotUrl = fileUploadService.GetHeadshotPath(fileName);
+                    }
                 }
                 else
                 {
-                    Input.SpeakerTypeId = SpeakerTypeEnum.NewSpeaker;
+                    HasValidationErrors = true;
+                    ValidationMessage = "Invalid image file. Please upload a JPG, PNG, or GIF file under 5MB.";
+                    return null;
                 }
             }
+            else if (!string.IsNullOrEmpty(Input.HeadshotUrl))
+            {
+                // Use provided URL if no file uploaded
+                userProfile.HeadshotUrl = Input.HeadshotUrl;
+            }
+            
+            // User Expertise
+            userProfile.UserExpertise.Clear();
+            foreach (var ue in Input.SelectedExpertiseIds)
+            {
+                userProfile.UserExpertise.Add(new UserExpertise { ExpertiseId = ue });
+            }
+            
+            // Social Media Sites
+            var socialDictionary = ParseSocialMediaPairs(Request.Form);
+            userProfile.UserSocialMediaSites.Clear();
+            foreach (var kvp in socialDictionary)
+            {
+                userProfile.UserSocialMediaSites.Add(new UserSocialMediaSite
+                    {
+                        UserId = identityUser.Id,
+                        SocialMediaSiteId = kvp.Key,
+                        SocialId = kvp.Value.SocialId,
+                        User = userProfile,
+                        SocialMediaSite = new SocialMediaSite { Id = kvp.Value.SiteId, Icon = string.Empty, Name = string.Empty, UrlFormat = string.Empty }
+                    }
+                );
+            }
+            
+            return userProfile;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error loading user data for user '{UserId}'", identityUser?.Id);
+        }
+
+        return null;
+    }
+    
+    /// <summary>
+    /// Updates the model with the current user's data.
+    /// </summary>
+    /// <param name="signedInUser"></param>
+    /// <returns>A <see cref="Domain.Models.User"/>, if successful, otherwise null</returns>
+    private async Task<User?> UpdateModelFromUserAsync(ClaimsPrincipal signedInUser)
+    {
+        User? identityUser = null;
+
+        try
+        {
+            identityUser = await userManager.GetUserAsync(User);
+            if (identityUser == null)
+            {
+                return null;
+            }
+            
+            // Load profile with all the user's data
+            var userProfile = await userManager.GetAsync(identityUser.Id);
+            if (userProfile == null)
+            {
+                logger.LogError("Error loading profile page. Could not find user. UserId: '{UserId}'", identityUser.Id);
+                return null;
+            }
+            
+            Input.FirstName = userProfile.FirstName;
+            Input.LastName = userProfile.LastName;
+            Input.PhoneNumber = userProfile.PhoneNumber ?? string.Empty;
+            Input.Bio = userProfile.Bio;
+            Input.Goals = userProfile.Goals;
+            Input.SessionizeUrl = userProfile.SessionizeUrl ?? string.Empty;
+            Input.HeadshotUrl = userProfile.HeadshotUrl ?? string.Empty;
+            Input.SelectedExpertiseIds = UserExpertise.Select(ue => ue.ExpertiseId).ToArray();
+            Input.UserSocialMediaSites = userProfile.UserSocialMediaSites.ToList();
+            
+            if (Enum.IsDefined(typeof(SpeakerTypeEnum), userProfile.SpeakerTypeId))
+            {
+                Input.SpeakerTypeId = (SpeakerTypeEnum)userProfile.SpeakerTypeId;
+            }
+            else
+            {
+                Input.SpeakerTypeId = SpeakerTypeEnum.NewSpeaker;
+            }
+            return userProfile;
         }
         catch (Exception ex)
         {
