@@ -140,3 +140,35 @@ INSERT INTO MoreSpeakers.dbo.UserSocialMediaSites (UserId, SocialMediaSiteId, So
 INSERT INTO MoreSpeakers.dbo.UserSocialMediaSites (UserId, SocialMediaSiteId, SocialId) VALUES (N'3cae1cf9-c6a8-4b50-91e5-9030a678a0fa', 13, N'jguadagno');
 INSERT INTO MoreSpeakers.dbo.UserSocialMediaSites (UserId, SocialMediaSiteId, SocialId) VALUES (N'3cae1cf9-c6a8-4b50-91e5-9030a678a0fa', 14, N'jguadagno');
 INSERT INTO MoreSpeakers.dbo.UserSocialMediaSites (UserId, SocialMediaSiteId, SocialId) VALUES (N'3cae1cf9-c6a8-4b50-91e5-9030a678a0fa', 18, N'https://josephguadagno.net/');
+-- GENERATE 35 USERS FOR PAGINATION TESTING
+INSERT INTO MoreSpeakers.dbo.AspNetUsers (
+    Id, UserName, NormalizedUserName, Email, NormalizedEmail,
+    EmailConfirmed, PasswordHash, SecurityStamp, ConcurrencyStamp,
+    PhoneNumber, PhoneNumberConfirmed, TwoFactorEnabled, LockoutEnabled, AccessFailedCount,
+    FirstName, LastName, Bio, SpeakerTypeId, Goals, CreatedDate, UpdatedDate, IsActive,
+    IsAvailableForMentoring, MaxMentees
+)
+SELECT TOP 35
+    NEWID(),
+    'speaker' + CAST(ROW_NUMBER() OVER (ORDER BY a.object_id) AS NVARCHAR(10)) + '@test.com',
+       'SPEAKER' + CAST(ROW_NUMBER() OVER (ORDER BY a.object_id) AS NVARCHAR(10)) + '@TEST.COM',
+       'speaker' + CAST(ROW_NUMBER() OVER (ORDER BY a.object_id) AS NVARCHAR(10)) + '@test.com',
+       'SPEAKER' + CAST(ROW_NUMBER() OVER (ORDER BY a.object_id) AS NVARCHAR(10)) + '@TEST.COM',
+       1,
+       'AQAAAAIAAYagAAAAEEIXrlcIOOnsJVbTQxiYwul61oWeKDu0tgtSjSafmw7Obixv0lqEKbN2cwRS5LHNAA==', -- Same hash as seeded users
+       NEWID(), NEWID(),
+       '1-555-555-' + RIGHT('0000' + CAST(ROW_NUMBER() OVER (ORDER BY a.object_id) AS NVARCHAR(4)), 4), -- Generates 1-555-555-0001 (14 chars)
+    1, 0, 1, 0,
+    'TestUser', -- FirstName (Length > 2)
+    'Speaker ' + CAST(ROW_NUMBER() OVER (ORDER BY a.object_id) AS NVARCHAR(10)), -- LastName (Length > 2 guaranteed)
+    'Generated bio for pagination testing. User ' + CAST(ROW_NUMBER() OVER (ORDER BY a.object_id) AS NVARCHAR(10)),
+    (ROW_NUMBER() OVER (ORDER BY a.object_id) % 2) + 1, -- Alternates between 1 (New) and 2 (Experienced)
+    'Testing goals',
+    GETUTCDATE(), GETUTCDATE(), 1, 1, 2
+FROM sys.all_columns a;
+
+-- Give them all C# expertise so they show up in default searches
+INSERT INTO MoreSpeakers.dbo.UserExpertises (UserId, ExpertiseId, CreatedDate)
+SELECT Id, 1, GETUTCDATE()
+FROM MoreSpeakers.dbo.AspNetUsers
+WHERE Email LIKE 'speaker%@test.com';
