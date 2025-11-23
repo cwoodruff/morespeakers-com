@@ -95,7 +95,6 @@ public class UserManager: IUserManager
         return await _dataStore.GetExperiencedSpeakersAsync();
     }
 
-
     public async Task<SpeakerSearchResult> SearchSpeakersAsync(string? searchTerm, int? speakerTypeId = null, int? expertiseId = null, SpeakerSearchOrderBy sortOrder = SpeakerSearchOrderBy.Name, int? page = null, int? pageSize = null)
     {
         return await _dataStore.SearchSpeakersAsync(searchTerm, speakerTypeId, expertiseId, sortOrder, page, pageSize);
@@ -116,16 +115,6 @@ public class UserManager: IUserManager
         return await _dataStore.RemoveUserSocialMediaSiteAsync(userSocialMediaSiteId);
     }
 
-    public Task<bool> EmptyAndAddUserSocialMediaSiteForUserAsync(Guid userId,
-        Dictionary<int, string> userSocialMediaSites)
-    {
-        if (userId == Guid.Empty)
-        {
-            throw new ArgumentException("Invalid user id");
-        }
-        return _dataStore.EmptyAndAddUserSocialMediaSiteForUserAsync(userId, userSocialMediaSites);
-    }
-
     public async Task<IEnumerable<UserSocialMediaSite>> GetUserSocialMediaSitesAsync(Guid userId)
     {
         if (userId == Guid.Empty)
@@ -135,7 +124,6 @@ public class UserManager: IUserManager
         return await _dataStore.GetUserSocialMediaSitesAsync(userId);
     }
     
-
     public async Task<bool> AddExpertiseToUserAsync(Guid userId, int expertiseId)
     {
         return await _dataStore.AddExpertiseToUserAsync(userId, expertiseId);  
@@ -144,15 +132,6 @@ public class UserManager: IUserManager
     public async Task<bool> RemoveExpertiseFromUserAsync(Guid userId, int expertiseId)
     {
         return await _dataStore.RemoveExpertiseFromUserAsync(userId, expertiseId);   
-    }
-
-    public async Task<bool> EmptyAndAddExpertiseForUserAsync(Guid userId, int[] expertises)
-    {
-        if (userId == Guid.Empty)
-        {
-            throw new ArgumentException("Invalid user id");
-        }
-        return await _dataStore.EmptyAndAddExpertiseForUserAsync(userId, expertises); 
     }
 
     public async Task<IEnumerable<UserExpertise>> GetUserExpertisesForUserAsync(Guid userId)

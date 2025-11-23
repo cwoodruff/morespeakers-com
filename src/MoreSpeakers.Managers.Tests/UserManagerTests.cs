@@ -302,58 +302,6 @@ public class UserManagerTests
     }
 
     [Fact]
-    public async Task EmptyAndAddExpertiseForUserAsync_should_throw_when_userId_empty()
-    {
-        var sut = CreateSut();
-
-        var act = async () => await sut.EmptyAndAddExpertiseForUserAsync(Guid.Empty, new[] { 1, 2 });
-
-        await act.Should().ThrowAsync<ArgumentException>().WithMessage("Invalid user id");
-        _dataStoreMock.Verify(d => d.EmptyAndAddExpertiseForUserAsync(It.IsAny<Guid>(), It.IsAny<int[]>()), Times.Never);
-    }
-
-    [Fact]
-    public async Task EmptyAndAddExpertiseForUserAsync_should_delegate_when_userId_valid()
-    {
-        var id = Guid.NewGuid();
-        _dataStoreMock.Setup(d => d.EmptyAndAddExpertiseForUserAsync(id, new[] { 1, 2 })).ReturnsAsync(true);
-        var sut = CreateSut();
-
-        var result = await sut.EmptyAndAddExpertiseForUserAsync(id, new[] { 1, 2 });
-
-        result.Should().BeTrue();
-        _dataStoreMock.Verify(d => d.EmptyAndAddExpertiseForUserAsync(id, new[] { 1, 2 }), Times.Once);
-    }
-
-    [Fact]
-    public async Task EmptyAndAddUserSocialMediaSiteForUserAsync_should_throw_when_userId_empty()
-    {
-        var sut = CreateSut();
-
-        var act = async () => await sut.EmptyAndAddUserSocialMediaSiteForUserAsync(Guid.Empty, new Dictionary<int, string>());
-
-        await act.Should().ThrowAsync<ArgumentException>().WithMessage("Invalid user id");
-        _dataStoreMock.Verify(d => d.EmptyAndAddUserSocialMediaSiteForUserAsync(It.IsAny<Guid>(), It.IsAny<Dictionary<int, string>>()), Times.Never);
-    }
-
-    [Fact]
-    public async Task EmptyAndAddUserSocialMediaSiteForUserAsync_should_delegate_when_userId_valid()
-    {
-        var id = Guid.NewGuid();
-        var links = new Dictionary<int, string>
-        {
-            { 1, "user" }
-        };
-        _dataStoreMock.Setup(d => d.EmptyAndAddUserSocialMediaSiteForUserAsync(id, links)).ReturnsAsync(true);
-        var sut = CreateSut();
-
-        var result = await sut.EmptyAndAddUserSocialMediaSiteForUserAsync(id, links);
-
-        result.Should().BeTrue();
-        _dataStoreMock.Verify(d => d.EmptyAndAddUserSocialMediaSiteForUserAsync(id, links), Times.Once);
-    }
-
-    [Fact]
     public async Task GetUserExpertisesForUserAsync_should_delegate()
     {
         var id = Guid.NewGuid();

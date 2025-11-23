@@ -28,7 +28,6 @@ public class EditModel(
 
     public User ProfileUser { get; set; } = null!;
     public IEnumerable<Expertise> AvailableExpertise { get; set; } = new List<Expertise>();
-    public IEnumerable<UserExpertise> UserExpertise { get; set; } = new List<UserExpertise>();
     public IEnumerable<SocialMediaSite> SocialMediaSites { get; set; } = new List<SocialMediaSite>();
 
     // Properties for HTMX state management
@@ -40,6 +39,7 @@ public class EditModel(
 
 public async Task<IActionResult> OnGetAsync()
     {
+        
         var user = await UpdateModelFromUserAsync(User);
         if (user is null)
         {
@@ -50,7 +50,6 @@ public async Task<IActionResult> OnGetAsync()
         }
 
         ProfileUser = user;
-        UserExpertise = user?.UserExpertise ?? new List<UserExpertise>();
         AvailableExpertise = await expertiseManager.GetAllAsync();
         SocialMediaSites = await socialMediaSiteManager.GetAllAsync();
         ActiveTab = "profile";
@@ -87,18 +86,11 @@ public async Task<IActionResult> OnGetAsync()
         try
         {
             // Save the profile (user information)
-            await userManager.SaveAsync(userProfile);
-
-            // Update expertise
-            await userManager.EmptyAndAddExpertiseForUserAsync(userProfile.Id, Input.SelectedExpertiseIds);
-
-            // Update social media
-            var socialDictionary = ParseSocialMediaPairs(Request.Form);
-            await userManager.EmptyAndAddUserSocialMediaSiteForUserAsync(userProfile.Id, socialDictionary.Values.ToDictionary());
+            userProfile = await userManager.SaveAsync(userProfile);
             
             // Now that everything is saved, reload the user profile to get the updated values
-            userProfile = await UpdateModelFromUserAsync(User);
-            if (userProfile is null)
+            var wasSuccessful = UpdateModelFromUserAsync(userProfile);
+            if (!wasSuccessful)
             {
                 HasValidationErrors = true;
                 ValidationMessage = "An error occurred while updating your profile. Please try again.";
@@ -119,7 +111,7 @@ public async Task<IActionResult> OnGetAsync()
         {
             HasValidationErrors = true;
             ValidationMessage = "An error occurred while updating your profile. Please try again.";
-            logger.LogError(ex, "Error updating user profile for user '{UserId}'", userProfile?.Id);
+            logger.LogError(ex, "Error updating user profile for user '{UserId}'", userProfile.Id);
             return Partial("_ProfileEditForm", this);
         }
     }
@@ -215,7 +207,6 @@ public async Task<IActionResult> OnGetAsync()
         }
 
         ProfileUser = user ?? ProfileUser;
-        UserExpertise = user?.UserExpertise ?? new List<UserExpertise>();
         AvailableExpertise = await expertiseManager.GetAllAsync();
         SocialMediaSites = await socialMediaSiteManager.GetAllAsync();
         ActiveTab = tab;
@@ -370,7 +361,7 @@ public async Task<IActionResult> OnGetAsync()
                 userProfile.UserSocialMediaSites.Add(new UserSocialMediaSite
                     {
                         UserId = identityUser.Id,
-                        SocialMediaSiteId = kvp.Key,
+                        SocialMediaSiteId = kvp.Value.SiteId,
                         SocialId = kvp.Value.SocialId,
                         User = userProfile,
                         SocialMediaSite = new SocialMediaSite { Id = kvp.Value.SiteId, Icon = string.Empty, Name = string.Empty, UrlFormat = string.Empty }
@@ -387,7 +378,7 @@ public async Task<IActionResult> OnGetAsync()
 
         return null;
     }
-    
+
     /// <summary>
     /// Updates the model with the current user's data.
     /// </summary>
@@ -395,43 +386,29 @@ public async Task<IActionResult> OnGetAsync()
     /// <returns>A <see cref="Domain.Models.User"/>, if successful, otherwise null</returns>
     private async Task<User?> UpdateModelFromUserAsync(ClaimsPrincipal signedInUser)
     {
+
         User? identityUser = null;
 
         try
         {
-            identityUser = await userManager.GetUserAsync(User);
+            identityUser = await userManager.GetUserAsync(signedInUser);
             if (identityUser == null)
             {
                 return null;
             }
-            
+
             // Load profile with all the user's data
             var userProfile = await userManager.GetAsync(identityUser.Id);
-            if (userProfile == null)
+            if (userProfile != null)
             {
-                logger.LogError("Error loading profile page. Could not find user. UserId: '{UserId}'", identityUser.Id);
-                return null;
+                if (UpdateModelFromUserAsync(userProfile))
+                {
+                    return userProfile;
+                }
             }
-            
-            Input.FirstName = userProfile.FirstName;
-            Input.LastName = userProfile.LastName;
-            Input.PhoneNumber = userProfile.PhoneNumber ?? string.Empty;
-            Input.Bio = userProfile.Bio;
-            Input.Goals = userProfile.Goals;
-            Input.SessionizeUrl = userProfile.SessionizeUrl ?? string.Empty;
-            Input.HeadshotUrl = userProfile.HeadshotUrl ?? string.Empty;
-            Input.SelectedExpertiseIds = UserExpertise.Select(ue => ue.ExpertiseId).ToArray();
-            Input.UserSocialMediaSites = userProfile.UserSocialMediaSites.ToList();
-            
-            if (Enum.IsDefined(typeof(SpeakerTypeEnum), userProfile.SpeakerTypeId))
-            {
-                Input.SpeakerTypeId = (SpeakerTypeEnum)userProfile.SpeakerTypeId;
-            }
-            else
-            {
-                Input.SpeakerTypeId = SpeakerTypeEnum.NewSpeaker;
-            }
-            return userProfile;
+
+            logger.LogError("Error loading profile page. Could not find user. UserId: '{UserId}'", identityUser.Id);
+            return null;
         }
         catch (Exception ex)
         {
@@ -439,6 +416,43 @@ public async Task<IActionResult> OnGetAsync()
         }
 
         return null;
+    }
+    
+
+    /// <summary>
+    /// Updates the model with the current user's data.
+    /// </summary>
+    /// <param name="user"></param>
+    private bool UpdateModelFromUserAsync(User user)
+    {
+        try
+        {
+            Input.FirstName = user.FirstName;
+            Input.LastName = user.LastName;
+            Input.PhoneNumber = user.PhoneNumber ?? string.Empty;
+            Input.Bio = user.Bio;
+            Input.Goals = user.Goals;
+            Input.SessionizeUrl = user.SessionizeUrl ?? string.Empty;
+            Input.HeadshotUrl = user.HeadshotUrl ?? string.Empty;
+            Input.SelectedExpertiseIds = user.UserExpertise.Select(ue => ue.ExpertiseId).ToArray();
+            Input.UserSocialMediaSites = user.UserSocialMediaSites.ToList();
+            
+            if (Enum.IsDefined(typeof(SpeakerTypeEnum), user.SpeakerTypeId))
+            {
+                Input.SpeakerTypeId = (SpeakerTypeEnum)user.SpeakerTypeId;
+            }
+            else
+            {
+                Input.SpeakerTypeId = SpeakerTypeEnum.NewSpeaker;
+            }
+            return true;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error loading user data for user '{UserId}'", user.Id);
+        }
+
+        return false;
     }
 
     /// <summary>

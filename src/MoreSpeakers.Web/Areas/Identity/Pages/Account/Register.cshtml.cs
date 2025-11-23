@@ -57,6 +57,7 @@ public partial class RegisterModel : PageModel
 
     // Properties needed for complete registration (step 5) confirmation
     public IEnumerable<Expertise> AllExpertise { get; set; } = new List<Expertise>();
+    public IEnumerable<SocialMediaSite> SocialMediaSites { get; set; } = new List<SocialMediaSite>();
 
     // Property to expose selected expertise IDs for registration completion (step 5)
     public int[] ExpertiseIds => Input.SelectedExpertiseIds ?? [];
@@ -423,7 +424,7 @@ public partial class RegisterModel : PageModel
             }
             
             // Add expertise relationships
-            await _userManager.EmptyAndAddExpertiseForUserAsync(user.Id, Input.SelectedExpertiseIds);
+            //await _userManager.EmptyAndAddExpertiseForUserAsync(user.Id, Input.SelectedExpertiseIds);
             
             // Add custom expertise
             foreach (var customExpertise in Input.CustomExpertise.Where(ce => !string.IsNullOrWhiteSpace(ce)))

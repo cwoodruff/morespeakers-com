@@ -74,10 +74,7 @@ public partial class RegisterModel
 
         [Display(Name = "Custom Expertise")] public string[] CustomExpertise { get; set; } = Array.Empty<string>();
 
-        // Social Media Links
-        [Display(Name = "Social Media Platforms")]
-        public string[] SocialMediaPlatforms { get; set; } = Array.Empty<string>();
-
-        [Display(Name = "Social Media URLs")] public string[] SocialMediaUrls { get; set; } = Array.Empty<string>();
+        [Display(Name = "Social Media Sites")] 
+        public List<Domain.Models.UserSocialMediaSite> UserSocialMediaSites { get; set; } = [];
     }
 }

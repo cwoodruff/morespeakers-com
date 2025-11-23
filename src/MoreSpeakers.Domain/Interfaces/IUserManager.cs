@@ -34,11 +34,9 @@ public interface IUserManager
     Task<IEnumerable<User>> GetSpeakersByExpertiseAsync(int expertiseId);
     Task<bool> AddUserSocialMediaSiteAsync(Guid userId, UserSocialMediaSite userSocialMediaSite);
     Task<bool> RemoveUserSocialMediaSiteAsync(int userSocialMediaSiteId);
-    Task<bool> EmptyAndAddUserSocialMediaSiteForUserAsync(Guid userId, Dictionary<int, string> userSocialMediaSites);
     Task<IEnumerable<UserSocialMediaSite>> GetUserSocialMediaSitesAsync(Guid userId);
     Task<bool> AddExpertiseToUserAsync(Guid userId, int expertiseId);
     Task<bool> RemoveExpertiseFromUserAsync(Guid userId, int expertiseId);
-    Task<bool> EmptyAndAddExpertiseForUserAsync (Guid userId, int[] expertises);
     Task<IEnumerable<UserExpertise>> GetUserExpertisesForUserAsync(Guid userId);
     Task<(int newSpeakers, int experiencedSpeakers, int activeMentorships)> GetStatisticsForApplicationAsync();
     Task<IEnumerable<User>> GetFeaturedSpeakersAsync(int count);

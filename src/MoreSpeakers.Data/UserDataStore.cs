@@ -6,8 +6,13 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
+using MoreSpeakers.Data.Models;
 using MoreSpeakers.Domain.Models;
 using MoreSpeakers.Domain.Interfaces;
+
+using SpeakerType = MoreSpeakers.Domain.Models.SpeakerType;
+using User = MoreSpeakers.Domain.Models.User;
+using UserExpertise = MoreSpeakers.Domain.Models.UserExpertise;
 
 namespace MoreSpeakers.Data;
 
@@ -137,45 +142,28 @@ public class UserDataStore : IUserDataStore
 
     public async Task<User> SaveAsync(User user)
     {
+        return (user.Id == Guid.Empty) ? await AddUser(user) : await UpdateUser(user);
+    }
+
+    private async Task<User> AddUser(User user)
+    {
         try
         {
-            Data.Models.User? dbUser;
-            if (user.Id != Guid.Empty)
+            var dbUser = _mapper.Map<Models.User>(user);
+            _context.Entry(dbUser).State = EntityState.Added;
+                
+            // Save the user expertise
+            foreach (var expertise in user.UserExpertise)
             {
-                dbUser = await _context.Users.FirstOrDefaultAsync(u => u.Id == user.Id);
-                if (dbUser == null)
-                {
-                    dbUser = _mapper.Map<Models.User>(user);
-                    _context.Entry(dbUser).State = EntityState.Added;
-                }
-                else
-                {
-                    _context.ChangeTracker.Clear();
-                    //
-                    // // Let's remove all the fk references to the user before saving
-                    // // This is to avoid an EF tracking error when saving the user
-                    // var userExpertise = await _context.UserExpertise.Where(ue => ue.UserId == user.Id).ToListAsync();
-                    // foreach (var userExpertiseItem in userExpertise)
-                    // {
-                    //     _context.UserExpertise.Remove(userExpertiseItem);
-                    // }
-                    //
-                    // var userSocialMediaSites =
-                    //     await _context.UserSocialMediaSite.Where(sms => sms.UserId == user.Id).ToListAsync();
-                    // foreach (var userSocialMediaSiteItem in userSocialMediaSites)
-                    // {
-                    //     _context.UserSocialMediaSite.Remove(userSocialMediaSiteItem);
-                    // }
-                    //
-                    // await _context.SaveChangesAsync();
-                    dbUser = _mapper.Map<Models.User>(user);
-                    _context.Entry(dbUser).State = EntityState.Modified;
-                }
+                var dbUserExpertise = _mapper.Map<Models.UserExpertise>(expertise);
+                _context.UserExpertise.Add(dbUserExpertise);
             }
-            else
+            
+            // Save the user social media sites
+            foreach (var socialMediaSite in user.UserSocialMediaSites)
             {
-                dbUser = _mapper.Map<Models.User>(user);
-                _context.Entry(dbUser).State = EntityState.Added;
+                var dbUserSocialMediaSite = _mapper.Map<Models.UserSocialMediaSites>(socialMediaSite);
+                _context.UserSocialMediaSite.Add(dbUserSocialMediaSite);           
             }
 
             var result = await _context.SaveChangesAsync() != 0;
@@ -183,15 +171,120 @@ public class UserDataStore : IUserDataStore
             {
                 return _mapper.Map<User>(dbUser);
             }
-
-            _logger.LogError("Failed to save the user. Id: '{Id}'", user.Id);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to save the user. Id: '{Id}'", user.Id);
+            _logger.LogError(ex, "Failed to add the new user");
         }
+        throw new ApplicationException("Failed to add the new user");
+    }
 
-        throw new ApplicationException("Failed to save the user");
+    private async Task<User> UpdateUser(User user)
+    {
+        try
+        {
+            var dbUser = await _context.Users
+                .Include(u => u.SpeakerType)
+                .Include(u => u.UserExpertise)
+                .ThenInclude(ue => ue.Expertise)
+                .Include(u => u.UserSocialMediaSites)
+                .ThenInclude(sms => sms.SocialMediaSite)
+                .FirstOrDefaultAsync(e => e.Id == user.Id);
+            
+            if (dbUser == null)
+            {
+                user.Id = Guid.NewGuid();
+                return await AddUser(user);
+            }
+            
+            // Custom mapping is needed to handle the UserExpertise and UserSocialMediaSites collections.
+            // Entity Framework Core does not support updating collections.
+            var map = new MapperConfiguration(cfg =>
+            {
+                cfg.CreateMap<User, Data.Models.User>()
+                    .ForMember(d => d.UserExpertise, opt => opt.Ignore())
+                    .ForMember(d => d.UserSocialMediaSites, opt => opt.Ignore());
+                cfg.CreateMap<Models.MentorshipStatus, Domain.Models.MentorshipStatus>().ReverseMap();
+                cfg.CreateMap<Models.MentorshipType, Domain.Models.MentorshipType>().ReverseMap();
+                cfg.CreateMap<Models.SpeakerType, SpeakerType>().ReverseMap();
+            });
+            var mapper = map.CreateMapper();
+            
+            mapper.Map(user, dbUser);
+            
+            // Expertises
+            var dbUserExpertisesIds = dbUser.UserExpertise.Select(ue => ue.ExpertiseId).ToList();
+            var userExpertisesIds = user.UserExpertise.Select(ue => ue.ExpertiseId).ToList();
+            
+            // Expertises in user.UserExpertises but not in dbUser.UserExpertises (Add)
+            var expertisesToAdd = userExpertisesIds.Except(dbUserExpertisesIds);
+            foreach (var expertiseId in expertisesToAdd)
+            {
+                dbUser.UserExpertise.Add(new Data.Models.UserExpertise { UserId = dbUser.Id, ExpertiseId = expertiseId });
+            }
+            
+            // Expertises in dbUser.UserExpertises but not in user.UserExpertises (Remove)
+            var expertisesToRemove = dbUserExpertisesIds.Except(userExpertisesIds);
+            foreach (var expertiseId in expertisesToRemove)
+            {
+                var dbUserExpertise = dbUser.UserExpertise.FirstOrDefault(ue => ue.ExpertiseId == expertiseId);
+                if (dbUserExpertise != null)
+                {
+                    _context.UserExpertise.Remove(dbUserExpertise);
+                }           
+            }
+            
+            // Social Media Sites
+            var dbUserSocialMediaSitesIds = dbUser.UserSocialMediaSites.Select(ue => ue.SocialMediaSiteId).ToList();
+            var userSocialMediaSitesIds = user.UserSocialMediaSites.Select(ue => ue.SocialMediaSiteId).ToList();
+            
+            // Social Media Sites in user.UserSocialMediaSites but not in dbUser.UserSocialMediaSites (Add)
+            var socialMediaSitesToAdd = userSocialMediaSitesIds.Except(dbUserSocialMediaSitesIds);
+            foreach (var socialMediaSiteId in socialMediaSitesToAdd)
+            {
+                dbUser.UserSocialMediaSites.Add(new UserSocialMediaSites()
+                {
+                    UserId = dbUser.Id,
+                    SocialMediaSiteId = socialMediaSiteId,
+                    SocialId = user.UserSocialMediaSites.FirstOrDefault(sms => sms.SocialMediaSiteId == socialMediaSiteId)?.SocialId ?? string.Empty
+                });
+            }
+            
+            // Social Media Sites in dbUser.UserSocialMediaSites but not in user.UserSocialMediaSites (Remove)
+            var socialMediaSitesToRemove = dbUserSocialMediaSitesIds.Except(userSocialMediaSitesIds);
+            foreach (var socialMediaSiteId in socialMediaSitesToRemove)
+            {
+                var dbUserSocialMediaSite = dbUser.UserSocialMediaSites.FirstOrDefault(sms => sms.SocialMediaSiteId == socialMediaSiteId);
+                if (dbUserSocialMediaSite != null)
+                {
+                    _context.UserSocialMediaSite.Remove(dbUserSocialMediaSite);
+                }           
+            }
+            
+            // Social Media sites that exist in both dbUser.UserSocialMediaSites and user.UserSocialMediaSites
+            // Used to see what may need to be updated
+            var socialMediaSitesToUpdate = dbUserSocialMediaSitesIds.Intersect(userSocialMediaSitesIds);
+            foreach (var socialMediaSiteId in socialMediaSitesToUpdate)
+            {
+                var dbUserSocialMediaSite = dbUser.UserSocialMediaSites.FirstOrDefault(sms => sms.SocialMediaSiteId == socialMediaSiteId);
+                if (dbUserSocialMediaSite != null)
+                {
+                    dbUserSocialMediaSite.SocialId = user.UserSocialMediaSites.FirstOrDefault(sms => sms.SocialMediaSiteId == socialMediaSiteId)?.SocialId ?? string.Empty;
+                }           
+            }
+            
+            var result = await _context.SaveChangesAsync() != 0;
+            if (result)
+            {
+                return _mapper.Map<User>(dbUser);
+            }
+            
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to update the user '{Id}'", user.Id);
+        }
+        throw new ApplicationException($"Failed to update the user '{user.Id}'");
     }
 
     public async Task<List<User>> GetAllAsync()
@@ -409,41 +502,6 @@ public class UserDataStore : IUserDataStore
         }
     }
     
-    public async Task<bool> EmptyAndAddUserSocialMediaSiteForUserAsync(Guid userId, Dictionary<int, string> userSocialMediaSites)
-    {
-        try
-        {
-            var userSocialMediaSitesList = await _context.UserSocialMediaSite.Where(u => u.UserId == userId).ToListAsync();
-            foreach (Models.UserSocialMediaSites userSocialMediaSite in userSocialMediaSitesList)
-            {
-                _context.UserSocialMediaSite.Remove(userSocialMediaSite);
-            }
-
-            foreach (var userSocialMediaSite in userSocialMediaSites)
-            {
-                _context.UserSocialMediaSite.Add(new Models.UserSocialMediaSites
-                {
-                    SocialId = userSocialMediaSite.Value,
-                    SocialMediaSiteId = userSocialMediaSite.Key,
-                    UserId = userId
-                });
-            }
-
-            var result = await _context.SaveChangesAsync() != 0;
-            if (!result)
-            {
-                _logger.LogError("Failed to empty and add social media links to user with id: {UserId}", userId);
-            }
-            return result;       
-
-        }
-        catch(Exception ex)
-        {
-            _logger.LogError(ex, "Failed to empty and add social media links to user with id: {UserId}", userId);
-            return false;
-        }
-    }
-    
     public async Task<IEnumerable<UserSocialMediaSite>> GetUserSocialMediaSitesAsync(Guid userId)
     {
         var userSocialMediaSitesList = await _context.UserSocialMediaSite
@@ -501,34 +559,6 @@ public class UserDataStore : IUserDataStore
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to remove expertise from user with id: {UserId}. ExpertiseId: {ExpertiseId}", userId, expertiseId);
-            return false;
-        }
-    }
-
-    public async Task<bool> EmptyAndAddExpertiseForUserAsync(Guid userId, int[] expertises)
-    {
-        try
-        {
-            var userExperiences = await _context.UserExpertise.Where(u => u.UserId == userId).ToListAsync();
-            foreach (var userExpertise in userExperiences)
-            {
-                _context.UserExpertise.Remove(userExpertise);
-            }
-
-            foreach (var expertise in expertises)
-            {
-                _context.UserExpertise.Add(new Models.UserExpertise { UserId = userId, ExpertiseId = expertise });
-            }
-            var result = await _context.SaveChangesAsync() != 0;
-            if (!result)
-            {
-                _logger.LogError("Failed to empty and add expertise to user with id: {UserId}", userId);
-            }
-            return result;
-        }
-        catch(Exception ex)
-        {
-            _logger.LogError(ex, "Failed to empty and add expertise to user with id: {UserId}", userId);
             return false;
         }
     }

@@ -15,33 +15,25 @@
     }
     <h5 class="mb-4">Social Media & Professional Links</h5>
     <p class="text-muted mb-4">Share your professional social media profiles to help others connect with you.</p>
-
-    <div id="socialMediaContainer">
-        <div class="row mb-3 social-media-row">
-            <div class="col-md-4">
-                <select name="Input.SocialMediaPlatforms" class="form-select">
-                    <option value="">Select Platform</option>
-                    <option value="LinkedIn">LinkedIn</option>
-                    <option value="BlueSky">BlueSky</option>
-                    <option value="Mastodon">Mastodon</option>
-                    <option value="GitHub">GitHub</option>
-                    <option value="YouTube">YouTube</option>
-                    <option value="Twitter">Twitter</option>
-                    <option value="Website">Personal Website</option>
-                    <option value="Blog">Blog</option>
-                    <option value="Other">Other</option>
-                </select>
+    <div class="col-12" id="socialMediaContainer">
+        <input type="hidden" name="socialMediaSitesCount" value="0" />
+    </div>
+    <div id="replaceSocialMediaRow">
+        <div id="addingRowSpinner" class="htmx-indicator">
+            <div class="spinner-border spinner-border-sm me-2" role="status">
+                <span class="visually-hidden">Adding row...</span>
             </div>
-            <div class="col-md-6">
-                <input type="url" name="Input.SocialMediaUrls" class="form-control" placeholder="https://..."/>
-            </div>
-            <div class="col-md-2">
-                <button type="button" class="btn btn-outline-primary w-100" 
-                        onclick="addSocialMediaRow()">
-                    <i class="bi bi-plus"></i>
-                </button>
-            </div>
+            Adding row...
         </div>
+        <button class="btn btn-primary float-end" type="button"
+                hx-get="/Profile/Edit?handler=AddSocialMediaRow"
+                hx-target="[name=socialMediaSitesCount], :nth-last-child(1 of .social-media-row)"
+                hx-include="[name='socialMediaSitesCount']"
+                hx-indicator="#addingRowSpinner"
+                hx-swap="afterend"
+                hx-on::after-request="document.querySelector('[name=socialMediaSitesCount]').value = document.querySelector(':nth-last-child(1 of .social-media-row)').dataset.id">
+            <i class="bi bi-plus-square me-2"></i>Add
+        </button>
     </div>
 </div>
 
@@ -78,6 +70,13 @@
             {
                 <input type="hidden" name="Input.CustomExpertise" value="@ce" />
             }
+        }
+    }
+    @if (Model?.Input?.UserSocialMediaSites != null)
+    {
+        foreach (var usms in Model.Input.UserSocialMediaSites)
+        {
+            <input type="hidden" name="Input.UserSocialMediaSites" value="@usms" />
         }
     }
 </div>
