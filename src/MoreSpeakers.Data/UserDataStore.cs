@@ -95,8 +95,14 @@ public class UserDataStore : IUserDataStore
 
     public async Task<User?> FindByEmailAsync(string email)
     {
-        var identityUser = await _userManager.FindByEmailAsync(email);
-        return _mapper.Map<User>(identityUser);
+        var user = await _context.Users
+            .Include(u => u.SpeakerType)
+            .Include(u => u.UserExpertise)
+            .ThenInclude(ue => ue.Expertise)
+            .Include(u => u.UserSocialMediaSites)
+            .ThenInclude(sms => sms.SocialMediaSite)
+            .FirstOrDefaultAsync(e => e.Email == email);
+        return _mapper.Map<User?>(user);
     }
 
     public async Task<User?> GetUserIdAsync(ClaimsPrincipal user)
@@ -130,14 +136,14 @@ public class UserDataStore : IUserDataStore
     
     public async Task<User?> GetAsync(Guid primaryKey)
     {
-        var speaker = await _context.Users
+        var user = await _context.Users
                 .Include(u => u.SpeakerType)
                 .Include(u => u.UserExpertise)
                 .ThenInclude(ue => ue.Expertise)
                 .Include(u => u.UserSocialMediaSites)
                 .ThenInclude(sms => sms.SocialMediaSite)
             .FirstOrDefaultAsync(e => e.Id == primaryKey);
-        return _mapper.Map<User?>(speaker);
+        return _mapper.Map<User?>(user);
     }
 
     public async Task<User> SaveAsync(User user)

@@ -165,24 +165,22 @@
             </h5>
             <div class="form-text mb-3">Select the technologies and topics you're knowledgeable about.</div>
         </div>
-        <div class="col-12">
-            <div class="row">
-                @foreach (var expertise in Model.AvailableExpertise)
-                {
-                    <div class="col-md-3 col-sm-6 mb-2">
-                        <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" role="switch" switch
-                                   name="Input.SelectedExpertiseIds" 
-                                   value="@expertise.Id"
-                                   id="expertise_@expertise.Id"
-                                   @(Model.Input.SelectedExpertiseIds?.Contains(expertise.Id) == true ? "checked" : "") />
-                            <label class="form-check-label" for="expertise_@expertise.Id">
-                                @expertise.Name
-                            </label>
-                        </div>
+        <div>
+            @foreach (var expertise in Model.AvailableExpertise)
+            {
+                <div class="col-md-3 col-sm-6 mb-2">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" role="switch" switch
+                               name="Input.SelectedExpertiseIds" 
+                               value="@expertise.Id"
+                               id="expertise_@expertise.Id"
+                               @(Model.Input.SelectedExpertiseIds?.Contains(expertise.Id) == true ? "checked" : "") />
+                        <label class="form-check-label" for="expertise_@expertise.Id">
+                            @expertise.Name
+                        </label>
                     </div>
-                }
-            </div>
+                </div>
+            }
         </div>
     </div>
 
