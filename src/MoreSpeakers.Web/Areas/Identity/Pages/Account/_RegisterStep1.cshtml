@@ -22,7 +22,7 @@
                 <span class="input-group-text border-end-0">
                     <i class="bi bi-person text-muted"></i>
                 </span>
-                <input asp-for="Input.FirstName" class="form-control border-start-0"
+                <input asp-for="Input.FirstName" class="form-control border-start-0" autocomplete="given-name"
                        placeholder="Enter your first name"/>
             </div>
             <span asp-validation-for="Input.FirstName" class="text-danger small"></span>
@@ -34,7 +34,8 @@
                 <span class="input-group-text border-end-0">
                     <i class="bi bi-person text-muted"></i>
                 </span>
-                <input asp-for="Input.LastName" class="form-control border-start-0" placeholder="Enter your last name"/>
+                <input asp-for="Input.LastName" class="form-control border-start-0" autocomplete="family-name" 
+                       placeholder="Enter your last name"/>
             </div>
             <span asp-validation-for="Input.LastName" class="text-danger small"></span>
         </div>
@@ -46,7 +47,7 @@
             <span class="input-group-text border-end-0">
                 <i class="bi bi-envelope text-muted"></i>
             </span>
-            <input asp-for="Input.Email" class="form-control border-start-0" autocomplete="username"
+            <input asp-for="Input.Email" class="form-control border-start-0" autocomplete="email"
                    placeholder="Enter your email"
                    hx-post="/Register?handler=ValidateEmail"
                    hx-trigger="blur, keyup changed delay:500ms"
@@ -71,7 +72,7 @@
             <span class="input-group-text border-end-0">
                 <i class="bi bi-telephone text-muted"></i>
             </span>
-            <input asp-for="Input.PhoneNumber" class="form-control border-start-0"
+            <input asp-for="Input.PhoneNumber" class="form-control border-start-0" autocomplete="mobile"
                    placeholder="Enter your phone number with country code"/>
         </div>
         <span asp-validation-for="Input.PhoneNumber" class="text-danger small"></span>
