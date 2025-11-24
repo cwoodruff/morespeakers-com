@@ -119,7 +119,7 @@ public async Task<IActionResult> OnGetAsync()
     public async Task<IActionResult> OnPostChangePasswordAsync()
     {
         var identityUser = await userManager.GetUserAsync(User);
-        if (identityUser is not null)
+        if (identityUser is null)
         {
             HasValidationErrors = true;
             ValidationMessage = "An error occurred while changing your password. Please try again.";
@@ -198,7 +198,7 @@ public async Task<IActionResult> OnGetAsync()
     public async Task<IActionResult> OnGetTabAsync(string tab)
     {
         var user = await UpdateModelFromUserAsync(User);
-        if (user != null)
+        if (user is null)
         {
             // User Not Found
             logger.LogError("Error loading profile page. Could not find user");
@@ -206,7 +206,7 @@ public async Task<IActionResult> OnGetAsync()
                 new { UserId = Guid.Empty });
         }
 
-        ProfileUser = user ?? ProfileUser;
+        ProfileUser = user;
         AvailableExpertise = await expertiseManager.GetAllAsync();
         SocialMediaSites = await socialMediaSiteManager.GetAllAsync();
         ActiveTab = tab;
