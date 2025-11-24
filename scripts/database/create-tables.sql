@@ -147,28 +147,6 @@ create table AspNetUserPasskeys
 )
 go
 
-create table UserPasskeys
-(
-    Id           int identity
-        primary key,
-    UserId       uniqueidentifier               not null
-        constraint FK_UserPasskeys_AspNetUsers_UserId
-            references AspNetUsers
-            on delete cascade,
-    CredentialId nvarchar(450)                  not null,
-    FriendlyName nvarchar(100)                  not null,
-    CreatedDate  datetime2 default getutcdate() not null
-)
-go
-
-create index IX_UserPasskeys_UserId
-    on UserPasskeys (UserId)
-go
-
-create index IX_UserPasskeys_CredentialId
-    on UserPasskeys (CredentialId)
-go
-
 create table Expertises
 (
     Id          int identity
