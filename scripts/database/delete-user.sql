@@ -7,7 +7,7 @@
 DECLARE @UserId UNIQUEIDENTIFIER;
 
 -- Set the user ID to delete (REPLACE THIS WITH ACTUAL USER ID)
-SET @UserId = '0b421c6c-f3bc-4f6e-95ab-e59065283553'; -- CHANGE THIS!
+SET @UserId = '505b4e55-df96-4865-ac0b-c349d533bb7e'; -- CHANGE THIS!
 
 -- Verify user exists before deletion
 IF NOT EXISTS (SELECT 1 FROM AspNetUsers WHERE Id = @UserId)

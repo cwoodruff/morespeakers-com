@@ -18,9 +18,10 @@ public class MoreSpeakersDbContext
     public DbSet<SpeakerType> SpeakerType { get; set; }
     public DbSet<Expertise> Expertise { get; set; }
     public DbSet<UserExpertise> UserExpertise { get; set; }
-    public DbSet<SocialMedia> SocialMedia { get; set; }
     public DbSet<Mentorship> Mentorship { get; set; }
     public DbSet<MentorshipExpertise> MentorshipExpertise { get; set; }
+    public DbSet<SocialMediaSite> SocialMediaSite { get; set; }
+    public DbSet<UserSocialMediaSites> UserSocialMediaSite { get; set; }
     
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -99,20 +100,39 @@ public class MoreSpeakersDbContext
                 .HasForeignKey(e => e.ExpertiseId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
-
-        // Configure SocialMedia entity
-        builder.Entity<SocialMedia>(entity =>
+        
+        // Configure SocialMediaSite entity
+        builder.Entity<SocialMediaSite>(entity =>
         {
-            entity.ToTable("SocialMedias");
-            entity.Property(e => e.CreatedDate)
-                .HasDefaultValueSql("GETUTCDATE()");
+            entity.ToTable("SocialMediaSites");
+            
+            entity.Property(e => e.Name).IsRequired();
+            entity.Property(e => e.Icon).IsRequired();
+            entity.Property(e => e.UrlFormat).IsRequired();
+            
+            entity.HasIndex(e => e.Name)
+                .IsUnique();
+            
+        });
+        
+        // Configure UserSocialMediaSite many-to-many relationship
+        builder.Entity<UserSocialMediaSites>(entity =>
+        {
+            entity.ToTable("UserSocialMediaSites");
 
-            entity.HasIndex(e => e.UserId);
-
-            entity.HasOne(e => e.User)
-                .WithMany(u => u.SocialMediaLinks)
-                .HasForeignKey(e => e.UserId)
+            entity.Property(usm => usm.SocialId).IsRequired();
+            entity.HasIndex(usm => new { usm.UserId });
+            
+            entity.HasOne(usm => usm.User)
+                .WithMany(u => u.UserSocialMediaSites)
+                .HasForeignKey(usm => usm.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(usm => usm.SocialMediaSite)
+                .WithMany()
+                .HasForeignKey(usm => usm.SocialMediaSiteId)
+                .OnDelete(DeleteBehavior.Cascade);
+                
         });
 
         // Configure Mentorship entity

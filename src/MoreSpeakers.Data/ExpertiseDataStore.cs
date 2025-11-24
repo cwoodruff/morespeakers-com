@@ -25,10 +25,10 @@ public class ExpertiseDataStore : IExpertiseDataStore
         _logger = logger;
     }
 
-    public async Task<Expertise> GetAsync(int primaryKey)
+    public async Task<Expertise?> GetAsync(int primaryKey)
     {
         var expertise = await _context.Expertise.FirstOrDefaultAsync(e => e.Id == primaryKey);
-        return _mapper.Map<Expertise>(expertise);
+        return _mapper.Map<Expertise?>(expertise);
     }
 
     public async Task<Expertise> SaveAsync(Expertise expertise)

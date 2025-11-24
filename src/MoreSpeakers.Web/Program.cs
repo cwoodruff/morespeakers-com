@@ -89,9 +89,11 @@ builder.AddAzureQueueServiceClient("AzureStorageQueues");
 // Add application services
 builder.Services.AddScoped<IExpertiseDataStore, ExpertiseDataStore>();
 builder.Services.AddScoped<IMentoringDataStore, MentoringDataStore>();
+builder.Services.AddScoped<ISocialMediaSiteDataStore, SocialMediaSiteDataStore>();
 builder.Services.AddScoped<IUserDataStore, UserDataStore>();
 builder.Services.AddScoped<IExpertiseManager, ExpertiseManager>();
 builder.Services.AddScoped<IMentoringManager, MentoringManager>();
+builder.Services.AddScoped<ISocialMediaSiteManager, SocialMediaSiteManager>();
 builder.Services.AddScoped<IUserManager, UserManager>();
 
 builder.Services.AddScoped<IFileUploadService, FileUploadService>();

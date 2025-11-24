@@ -9,6 +9,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Text;
 
 using MoreSpeakers.Domain.Interfaces;
+using MoreSpeakers.Web.Models.ViewModels;
 using MoreSpeakers.Web.Services;
 
 namespace MoreSpeakers.Web.Areas.Identity.Pages.Account;
@@ -19,6 +20,7 @@ public partial class RegisterModel : PageModel
     private readonly IExpertiseManager _expertiseManager;
     private readonly IUserManager _userManager;
     private readonly ITemplatedEmailSender _templatedEmailSender;
+    private readonly ISocialMediaSiteManager _socialMediaSiteManager;
     private readonly TelemetryClient _telemetryClient;
     private readonly ILogger<RegisterModel> _logger;
     
@@ -27,6 +29,7 @@ public partial class RegisterModel : PageModel
         IExpertiseManager expertiseManager,
         IUserManager userManager,
         ITemplatedEmailSender templatedEmailSender,
+        ISocialMediaSiteManager socialMediaSiteManager,
         TelemetryClient telemetryClient,
         ILogger<RegisterModel> logger)
     {
@@ -34,6 +37,7 @@ public partial class RegisterModel : PageModel
         _expertiseManager = expertiseManager;
         _userManager = userManager;
         _templatedEmailSender = templatedEmailSender;
+        _socialMediaSiteManager = socialMediaSiteManager;
         _telemetryClient = telemetryClient;
         _logger = logger;
     }
@@ -57,6 +61,7 @@ public partial class RegisterModel : PageModel
 
     // Properties needed for complete registration (step 5) confirmation
     public IEnumerable<Expertise> AllExpertise { get; set; } = new List<Expertise>();
+    public IEnumerable<SocialMediaSite> SocialMediaSites { get; set; } = new List<SocialMediaSite>();
 
     // Property to expose selected expertise IDs for registration completion (step 5)
     public int[] ExpertiseIds => Input.SelectedExpertiseIds ?? [];
@@ -361,145 +366,184 @@ public partial class RegisterModel : PageModel
 
         // Validate all steps before final submission
         var allStepsValid = true;
-        foreach(var i in Models.RegistrationProgressions.All)
+        foreach (var i in Models.RegistrationProgressions.All)
             if (!ValidateStep(i))
                 allStepsValid = false;
 
-        if (allStepsValid)
+        if (!allStepsValid)
         {
-            var user = new User
-            {
-                Email = Input.Email, 
-                UserName = Input.Email, 
-                FirstName = Input.FirstName,
-                LastName = Input.LastName,
-                PhoneNumber = Input.PhoneNumber,
-                Bio = Input.Bio,
-                Goals = Input.Goals,
-                SessionizeUrl = Input.SessionizeUrl,
-                HeadshotUrl = Input.HeadshotUrl,
-                SpeakerTypeId = Input.SpeakerTypeId,    
-            };
-
-            IdentityResult saveResult;
-            try
-            {
-                saveResult = await _userManager.CreateAsync(user, Input.Password);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to save new user account");
-                await LoadFormDataAsync();
-                CurrentStep = Models.RegistrationProgressions.SpeakerProfileNeeded; // Reset to first step on major failure
-                HasValidationErrors = true;
-                ValidationMessage = "The saving of registration failed. Please check the errors and try again.";
-                return Partial("_RegistrationContainer", this);
-            }
-
-            if (!saveResult.Succeeded)
-            {
-                foreach (var error in saveResult.Errors)
-                {
-                    ModelState.AddModelError(string.Empty, error.Description);
-                }
-                CurrentStep = Models.RegistrationProgressions.SpeakerProfileNeeded; // Reset to the first step on major failure
-                HasValidationErrors = true;
-                ValidationMessage = "The saving of registration failed. Please check the errors and try again.";
-                return Partial("_RegistrationContainer", this);
-            }
-
-            _logger.LogInformation("User created a new account with password");
-
-            // Load the user from the identity store
-            user = await _userManager.FindByEmailAsync(Input.Email);
-            if (user == null)
-            {
-                _logger.LogError("Failed to find user after saving registration. Email: '{Email}'", Input.Email);
-                await LoadFormDataAsync();
-                CurrentStep = Models.RegistrationProgressions.SpeakerProfileNeeded; // Reset to the first step on major failure
-                HasValidationErrors = true;
-                ValidationMessage = "Could not find user after saving registration. Please try again.";
-                return Partial("_RegistrationContainer", this);
-            }
-            
-            // Add expertise relationships
-            await _userManager.EmptyAndAddExpertiseForUserAsync(user.Id, Input.SelectedExpertiseIds);
-            
-            // Add custom expertise
-            foreach (var customExpertise in Input.CustomExpertise.Where(ce => !string.IsNullOrWhiteSpace(ce)))
-            {
-                var expertiseId = await _expertiseManager.CreateExpertiseAsync(customExpertise.Trim(),
-                    $"Custom expertise: {customExpertise.Trim()}");
-                await _userManager.AddExpertiseToUserAsync(user.Id, expertiseId);
-            }
-
-            // Add social media links
-            var socialMediaLinks = new List<SocialMedia>();
-            for (var i = 0; i < Input.SocialMediaPlatforms.Length && i < Input.SocialMediaUrls.Length; i++)
-            {
-                if (!string.IsNullOrWhiteSpace(Input.SocialMediaPlatforms[i]) &&
-                    !string.IsNullOrWhiteSpace(Input.SocialMediaUrls[i]))
-                    socialMediaLinks.Add(new SocialMedia
-                    {
-                        UserId = user.Id,
-                        Platform = Input.SocialMediaPlatforms[i],
-                        Url = Input.SocialMediaUrls[i],
-                        CreatedDate = DateTime.UtcNow
-                    });
-            }
-
-            await _userManager.EmptyAndAddSocialMediaForUserAsync(user.Id, socialMediaLinks);
-
-            // Send the welcome email
-            var emailSent = await _templatedEmailSender.SendTemplatedEmail("~/EmailTemplates/Welcome.cshtml",
-                Domain.Constants.TelemetryEvents.EmailGenerated.Welcome,
-                "Welcome to MoreSpeakers.com - Your Speaking Journey Begins!", user, user);
-            if (!emailSent)
-            {
-                _logger.LogError("Failed to send mentorship declined email to mentee");
-                // TODO: Create a visual indicator that the email was not sent
-            }
-
-            // Send Email Confirmation
-            var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-            var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
-            var confirmationLink = Url.Page("/Account/ConfirmEmail",
-                null,
-                new { area = "Identity", token = encodedToken, email = user.Email }, 
-                Request.Scheme);
-            if (confirmationLink == null)
-            {
-                _logger.LogWarning("Failed to generate confirmation link for user {UserId}", user.Id);
-            }
-            else
-            {
-                var confirmationModel = new UserConfirmationEmail { ConfirmationUrl = confirmationLink, User = user };
-                emailSent = await _templatedEmailSender.SendTemplatedEmail("~/EmailTemplates/ConfirmUserEmail.cshtml",
-                    Domain.Constants.TelemetryEvents.EmailGenerated.Confirmation,
-                    "Welcome to MoreSpeakers.com - Let's confirm your email!", user, confirmationModel);
-                if (!emailSent)
-                {
-                    _logger.LogError("Failed to send email confirmation email to user {UserId}", user.Id);
-                }
-            }
-
-            // Load data needed for registration completion (step 5) display
+            // If we got this far, something failed, redisplay form with the current state
             await LoadFormDataAsync();
-
-            CurrentStep = Models.RegistrationProgressions.Complete;
-            HasValidationErrors = false;
-            ValidationMessage = string.Empty;
-            SuccessMessage = "Registration completed successfully!";
-
-            // Return step 5 (confirmation) instead of redirecting away
+            CurrentStep =
+                Models.RegistrationProgressions.SpeakerProfileNeeded; // Reset to the first step on major failure
+            HasValidationErrors = true;
+            ValidationMessage = "Registration failed. Please check the errors and try again.";
             return Partial("_RegistrationContainer", this);
         }
 
-        // If we got this far, something failed, redisplay form with the current state
+        var user = new User
+        {
+            Email = Input.Email,
+            UserName = Input.Email,
+            FirstName = Input.FirstName,
+            LastName = Input.LastName,
+            PhoneNumber = Input.PhoneNumber,
+            Bio = Input.Bio,
+            Goals = Input.Goals,
+            SessionizeUrl = Input.SessionizeUrl,
+            HeadshotUrl = Input.HeadshotUrl,
+            SpeakerTypeId = Input.SpeakerTypeId,
+        };
+
+        IdentityResult saveResult;
+        try
+        {
+            saveResult = await _userManager.CreateAsync(user, Input.Password);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to save new user account");
+            await LoadFormDataAsync();
+            CurrentStep = Models.RegistrationProgressions.SpeakerProfileNeeded; // Reset to the first step on major failure
+            HasValidationErrors = true;
+            ValidationMessage = "The saving of registration failed. Please check the errors and try again.";
+            // TODO: This is loads the RegistrationContainer inside itself, which is not ideal.
+            return Partial("_RegistrationContainer", this);
+        }
+
+        if (!saveResult.Succeeded)
+        {
+            foreach (var error in saveResult.Errors)
+            {
+                ModelState.AddModelError(string.Empty, error.Description);
+            }
+
+            CurrentStep =
+                Models.RegistrationProgressions.SpeakerProfileNeeded; // Reset to the first step on major failure
+            HasValidationErrors = true;
+            ValidationMessage = "The saving of registration failed. Please check the errors and try again.";
+            // TODO: This is loads the RegistrationContainer inside itself, which is not ideal.
+            return Partial("_RegistrationContainer", this);
+        }
+
+        _logger.LogInformation("User created a new account with password");
+
+        // Load the user from the identity store
+        user = await _userManager.FindByEmailAsync(Input.Email);
+        if (user == null)
+        {
+            _logger.LogError("Failed to find user after saving registration. Email: '{Email}'", Input.Email);
+            await LoadFormDataAsync();
+            CurrentStep =
+                Models.RegistrationProgressions.SpeakerProfileNeeded; // Reset to the first step on major failure
+            HasValidationErrors = true;
+            ValidationMessage = "Could not find user after saving registration. Please try again.";
+            // TODO: This is loads the RegistrationContainer inside itself, which is not ideal.
+            return Partial("_RegistrationContainer", this);
+        }
+        
+        // User Experiences
+        user.UserExpertise.Clear();
+        foreach (var ue in Input.SelectedExpertiseIds)
+        {
+            user.UserExpertise.Add(new UserExpertise { ExpertiseId = ue });
+        }
+        
+        // Social Media Sites
+        var socialDictionary = SocialMediaSiteHelper.ParseSocialMediaPairs(Request.Form);
+        user.UserSocialMediaSites.Clear();
+        foreach (var kvp in socialDictionary)
+        {
+            user.UserSocialMediaSites.Add(new UserSocialMediaSite
+                {
+                    UserId = user.Id,
+                    SocialMediaSiteId = kvp.Value.SiteId,
+                    SocialId = kvp.Value.SocialId,
+                    User = user,
+                    SocialMediaSite = new SocialMediaSite { Id = kvp.Value.SiteId, Icon = string.Empty, Name = string.Empty, UrlFormat = string.Empty }
+                }
+            );
+        }
+
+        try
+        {
+            user = await _userManager.SaveAsync(user);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to save the user's expertise's and social media sites. Email: '{Email}'", Input.Email);
+            await LoadFormDataAsync();
+            CurrentStep =
+                Models.RegistrationProgressions.SpeakerProfileNeeded; // Reset to the first step on major failure
+            HasValidationErrors = true;
+            ValidationMessage = "Failed to save your expertise and social media sites. Please try again.";
+            // TODO: This is loads the RegistrationContainer inside itself, which is not ideal.
+            return Partial("_RegistrationContainer", this);
+        }
+
+        // Send the welcome email
+        var emailSent = await _templatedEmailSender.SendTemplatedEmail("~/EmailTemplates/Welcome.cshtml",
+            Domain.Constants.TelemetryEvents.EmailGenerated.Welcome,
+            "Welcome to MoreSpeakers.com - Your Speaking Journey Begins!", user, user);
+        if (!emailSent)
+        {
+            _logger.LogError("Failed to send mentorship declined email to mentee");
+            // TODO: Create a visual indicator that the email was not sent
+        }
+
+        // Send Email Confirmation
+        var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+        var encodedToken = WebEncoders.Base64UrlEncode(Encoding.UTF8.GetBytes(token));
+        var confirmationLink = Url.Page("/Account/ConfirmEmail",
+            null,
+            new { area = "Identity", token = encodedToken, email = user.Email },
+            Request.Scheme);
+        if (confirmationLink == null)
+        {
+            _logger.LogWarning("Failed to generate confirmation link for user {UserId}", user.Id);
+        }
+        else
+        {
+            var confirmationModel = new UserConfirmationEmail { ConfirmationUrl = confirmationLink, User = user };
+            emailSent = await _templatedEmailSender.SendTemplatedEmail("~/EmailTemplates/ConfirmUserEmail.cshtml",
+                Domain.Constants.TelemetryEvents.EmailGenerated.Confirmation,
+                "Welcome to MoreSpeakers.com - Let's confirm your email!", user, confirmationModel);
+            if (!emailSent)
+            {
+                _logger.LogError("Failed to send email confirmation email to user {UserId}", user.Id);
+            }
+        }
+
+        // Load data needed for registration completion (step 5) display
         await LoadFormDataAsync();
-        CurrentStep = Models.RegistrationProgressions.SpeakerProfileNeeded; // Reset to the first step on major failure
-        HasValidationErrors = true;
-        ValidationMessage = "Registration failed. Please check the errors and try again.";
+
+        CurrentStep = Models.RegistrationProgressions.Complete;
+        HasValidationErrors = false;
+        ValidationMessage = string.Empty;
+        SuccessMessage = "Registration completed successfully!";
+
+        // Return step 5 (confirmation) instead of redirecting away
         return Partial("_RegistrationContainer", this);
+
+    }
+
+    public async Task<IActionResult> OnGetAddSocialMediaRowAsync(int socialMediaSitesCount = 0)
+    {
+        try
+        {
+            socialMediaSitesCount++;
+            var model = new UserSocialMediaSiteRow
+            {
+                UserSocialMediaSite = null,
+                SocialMediaSites = await _socialMediaSiteManager.GetAllAsync(),
+                ItemNumber = socialMediaSitesCount
+            };
+            return Partial("_UserSocialMediaSiteRow", model);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to add a social media row");
+        }
+        return Content("");
     }
 }

@@ -1,4 +1,4 @@
-// MoreSpeakers.com JavaScript Utilities
+﻿// MoreSpeakers.com JavaScript Utilities
 // This file contains minimal JavaScript to enhance the user experience
 
 // Initialize when DOM is loaded
@@ -472,41 +472,6 @@ function removeCustomExpertise(button) {
     }
 }
 
-function addSocialMediaRow() {
-    const container = document.getElementById('socialMediaContainer');
-    const newRow = document.createElement('div');
-    newRow.className = 'row mb-3 social-media-row';
-    newRow.innerHTML = `
-    <div class="col-md-4">
-        <select name="Input.SocialMediaPlatforms" class="form-select">
-            <option value="">Select Platform</option>
-            <option value="LinkedIn">LinkedIn</option>
-            <option value="Twitter">Twitter</option>
-            <option value="GitHub">GitHub</option>
-            <option value="YouTube">YouTube</option>
-            <option value="Website">Personal Website</option>
-            <option value="Blog">Blog</option>
-            <option value="Other">Other</option>
-        </select>
-    </div>
-    <div class="col-md-6">
-        <input type="url" name="Input.SocialMediaUrls" class="form-control" placeholder="https://..." />
-    </div>
-    <div class="col-md-2">
-        <button type="button" class="btn btn-outline-danger w-100" onclick="removeSocialMediaRow(this)">
-            <i class="bi bi-trash"></i>
-        </button>
-    </div>
-`;
-    container.appendChild(newRow);
-}
-
-function removeSocialMediaRow(button) {
-    if (document.querySelectorAll('.social-media-row').length > 1) {
-        button.closest('.social-media-row').remove();
-    }
-}
-
 function initializeRegistrationForm() {
     // Initialize custom expertise counter
     initializeCustomExpertise();
@@ -644,8 +609,6 @@ window.MoreSpeakers = {
     clearFileUpload,
     addCustomExpertise,
     removeCustomExpertise,
-    addSocialMediaRow,
-    removeSocialMediaRow,
     updatePageHeader,
     setCookie,
     getCookie,

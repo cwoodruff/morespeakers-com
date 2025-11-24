@@ -262,3 +262,31 @@ create table UserExpertises
     primary key (UserId, ExpertiseId)
 )
 go
+
+CREATE TABLE SocialMediaSites
+(
+    Id int IDENTITY(1,1) PRIMARY KEY,
+    Name varchar(50),
+    Icon varchar(50),
+    UrlFormat varchar(1024)
+)
+
+CREATE INDEX IX_SocialMediaSites_Name
+    on SocialMediaSites (Name)
+go
+
+CREATE TABLE UserSocialMediaSites
+(
+    Id int IDENTITY(1,1) PRIMARY KEY,
+    UserId UNIQUEIDENTIFIER
+        constraint FK_UserSocialMediaSites_AspNetUsers_Id
+            references AspNetUsers
+            on delete cascade,
+    SocialMediaSiteId int,
+    constraint FK_UserSocialMediaSites_SocialMediaSites_Id foreign key (SocialMediaSiteId) references SocialMediaSites(Id),
+    SocialId varchar(1024),
+)
+
+CREATE INDEX IX_UserSocialMediaSites_UserId
+    on UserSocialMediaSites (UserId)
+go
