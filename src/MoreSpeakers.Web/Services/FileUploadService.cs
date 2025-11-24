@@ -1,6 +1,7 @@
 namespace MoreSpeakers.Web.Services;
 
 
+[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
 public class FileUploadService(IWebHostEnvironment environment, ILogger<FileUploadService> logger) : IFileUploadService
 {
     private const long MaxFileSize = 5 * 1024 * 1024; // 5MB
