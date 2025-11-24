@@ -91,7 +91,7 @@
                 </div>
             </div>
 
-            @if (Model.Input.SelectedExpertiseIds?.Any() == true && Model.AllExpertise?.Any() == true)
+            @if (Model.Input.SelectedExpertiseIds?.Any() == true && Model.AvailableExpertises.Any())
             {
                 <div class="mt-4 pt-3 border-top border-primary border-opacity-10">
                     <div class="d-flex align-items-center mb-3">
@@ -103,7 +103,7 @@
                     <div class="d-flex flex-wrap gap-2">
                         @foreach (var expertiseId in Model.Input.SelectedExpertiseIds)
                         {
-                            var expertise = Model.AllExpertise.FirstOrDefault(e => e.Id == expertiseId);
+                            var expertise = Model.AvailableExpertises.FirstOrDefault(e => e.Id == expertiseId);
                             if (expertise != null)
                             {
                                 <span class="badge rounded-pill text-bg-primary fw-light">
