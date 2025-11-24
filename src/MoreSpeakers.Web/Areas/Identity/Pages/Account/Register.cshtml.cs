@@ -199,11 +199,19 @@ public partial class RegisterModel : PageModel
         return Partial("_RegistrationContainer", this);
     }
 
-    public async Task<IActionResult> OnPostValidateEmailAsync(string email)
+    public async Task<IActionResult> OnPostValidateEmailAsync()
     {
+        string? email = Input.Email;
+        
         if (string.IsNullOrWhiteSpace(email))
         {
             return new JsonResult(new { isValid = true, message = "" });
+        }
+        
+        // Check if the email address format is valid
+        if (!new EmailAddressAttribute().IsValid(email))
+        {
+            return new JsonResult(new { isValid = false, message = "Please enter a valid email address." });
         }
 
         // Check if email is already in use
@@ -211,12 +219,6 @@ public partial class RegisterModel : PageModel
         if (existingUser != null)
         {
             return new JsonResult(new { isValid = false, message = "This email address is already in use." });
-        }
-
-        // Check if email format is valid
-        if (!new EmailAddressAttribute().IsValid(email))
-        {
-            return new JsonResult(new { isValid = false, message = "Please enter a valid email address." });
         }
 
         return new JsonResult(new { isValid = true, message = "" });
