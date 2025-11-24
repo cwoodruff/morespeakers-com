@@ -71,15 +71,15 @@
     @if (currentStep < 5)
     {
         <div class="d-flex justify-content-between mt-4" id="navigationButtons">
-                <button type="button" id="prevBtn" 
-                        class="btn btn-outline-secondary @(currentStep == RegistrationProgressions.SpeakerProfileNeeded ? "invisible": "visible")"
-                        hx-post="/Register?handler=PreviousStep"
-                        hx-target="#registrationContainer"
-                        hx-include="#registerForm"
-                        hx-vals='{"step": "@currentStep"}'
-                        hx-swap="innerHTML">
-                    <i class="bi bi-arrow-left me-2"></i>Previous
-                </button>
+            <button type="button" id="prevBtn" 
+                    class="btn btn-outline-secondary @(currentStep == RegistrationProgressions.SpeakerProfileNeeded ? "invisible": "visible")"
+                    hx-post="/Register?handler=PreviousStep"
+                    hx-target="#registrationContainer"
+                    hx-include="#registerForm"
+                    hx-vals='{"step": "@currentStep"}'
+                    hx-swap="innerHTML">
+                <i class="bi bi-arrow-left me-2"></i>Previous
+            </button>
             @if (currentStep < 4)
             {
                 <button type="button" id="nextBtn" class="btn btn-primary"
@@ -101,23 +101,10 @@
                     <i class="bi bi-person-plus me-2"></i>Create Account
                 </button>
             }
-            </div>
+        </div>
     }
 </form>
 
-@if (currentStep == 5)
-{
-    <script>
-        if (typeof MoreSpeakers !== 'undefined' && MoreSpeakers.updatePageHeader) {
-            MoreSpeakers.updatePageHeader(5);
-        }
-    </script>
-}
-else
-{
-    <script>
-        if (typeof MoreSpeakers !== 'undefined' && MoreSpeakers.updatePageHeader) {
-            MoreSpeakers.updatePageHeader(@currentStep);
-        }
-    </script>
-}
+<script>
+    updatePageHeader(@currentStep);
+</script>
