@@ -1,5 +1,3 @@
-using MoreSpeakers.Domain.Models;
-
 namespace MoreSpeakers.Domain.Interfaces;
 
 public interface IDataStorePrimaryKeyGuid<T>: IDataStore<T> where T: class
