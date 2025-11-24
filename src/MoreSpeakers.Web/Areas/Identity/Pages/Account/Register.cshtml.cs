@@ -49,41 +49,28 @@ public partial class RegisterModel : PageModel
     [BindProperty]
     public InputModel Input { get; set; }
 
-    /// <summary>
-    ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-    ///     directly from your code. This API may change or be removed in future releases.
-    /// </summary>
-    public IList<AuthenticationScheme> ExternalLogins { get; set; }
-
-    public IEnumerable<Expertise> AvailableExpertise { get; set; } = new List<Expertise>();
-
-    public IEnumerable<SpeakerType> SpeakerTypes { get; set; } = new List<SpeakerType>();
-
-    // Properties needed for complete registration (step 5) confirmation
-    public IEnumerable<Expertise> AllExpertise { get; set; } = new List<Expertise>();
-    public IEnumerable<SocialMediaSite> SocialMediaSites { get; set; } = new List<SocialMediaSite>();
-
     // Property to expose selected expertise IDs for registration completion (step 5)
     public int[] ExpertiseIds => Input.SelectedExpertiseIds ?? [];
-
+    
+    // Lookup values
+    public IEnumerable<Expertise> AvailableExpertises { get; set; } = new List<Expertise>();
+    public IEnumerable<SpeakerType> SpeakerTypes { get; set; } = new List<SpeakerType>();
+    
     // Properties required by _RegistrationContainer.cshtml
     public int CurrentStep { get; set; } = Models.RegistrationProgressions.SpeakerProfileNeeded;
     public bool HasValidationErrors { get; set; }
     public string ValidationMessage { get; set; } = string.Empty;
     public string SuccessMessage { get; set; } = string.Empty;
 
-
     public async Task OnGetAsync()
     {
-        ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
-
         // Initialize registration state
         CurrentStep = Models.RegistrationProgressions.SpeakerProfileNeeded;
         HasValidationErrors = false;
         ValidationMessage = string.Empty;
         SuccessMessage = string.Empty;
 
-        await LoadFormDataAsync();
+        await LoadFormLookupListsAsync();
     }
 
     public async Task<IActionResult> OnPostAsync()
@@ -101,7 +88,7 @@ public partial class RegisterModel : PageModel
         }
 
         // Reload necessary data for the view
-        await LoadFormDataAsync();
+        await LoadFormLookupListsAsync();
 
         // Validate current step
         var stepValid = ValidateStep(step);
@@ -137,7 +124,7 @@ public partial class RegisterModel : PageModel
             return Partial("_RegistrationContainer", this);
         }
 
-        // All validation passed - move to next step
+        // All validation passed - move to the next step
         var nextStep = step + 1;
         if (nextStep <= Models.RegistrationProgressions.SocialMediaNeeded)
         {
@@ -165,7 +152,7 @@ public partial class RegisterModel : PageModel
             Models.RegistrationProgressions.SpeakerProfileNeeded => "Please complete all required account information before proceeding.",
             Models.RegistrationProgressions.RequiredInformationNeeded => "Please fill out your speaker profile completely.",
             Models.RegistrationProgressions.ExpertiseNeeded => "Please select at least one area of expertise.",
-            Models.RegistrationProgressions.SocialMediaNeeded => "Please review your social media information.",
+            Models.RegistrationProgressions.SocialMediaNeeded => "Please add at least one social media account.",
             _ => "Please complete the required information."
         };
     }
@@ -184,12 +171,14 @@ public partial class RegisterModel : PageModel
     public async Task<IActionResult> OnPostPreviousStepAsync(int step)
     {
         // Reload necessary data for the view
-        await LoadFormDataAsync();
+        await LoadFormLookupListsAsync();
 
         // Return previous step without validation
         var prevStep = step - 1;
         if (prevStep < Models.RegistrationProgressions.SpeakerProfileNeeded)
+        {
             prevStep = Models.RegistrationProgressions.SpeakerProfileNeeded;
+        }
 
         CurrentStep = prevStep;
         HasValidationErrors = false;
@@ -226,6 +215,7 @@ public partial class RegisterModel : PageModel
 
     public async Task<IActionResult> OnPostValidateCustomExpertiseAsync(string expertiseName)
     {
+        // This is not implemented until we add the ability to create custom expertise
         if (string.IsNullOrWhiteSpace(expertiseName))
         {
             return new JsonResult(new { isValid = true, message = "", suggestion = "" });
@@ -265,10 +255,9 @@ public partial class RegisterModel : PageModel
         return new JsonResult(new { isValid = true, message = "", suggestion = "" });
     }
 
-    private async Task LoadFormDataAsync()
+    private async Task LoadFormLookupListsAsync()
     {
-        AvailableExpertise = await _expertiseManager.GetAllAsync();
-        AllExpertise = AvailableExpertise; // Same data, different property name for registration completion (step 5)
+        AvailableExpertises = await _expertiseManager.GetAllAsync();
         SpeakerTypes = await _userManager.GetSpeakerTypesAsync();
     }
 
@@ -361,10 +350,8 @@ public partial class RegisterModel : PageModel
 
     public async Task<IActionResult> OnPostSubmitAsync()
     {
-        ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
-
         // Reload data in case of validation errors
-        await LoadFormDataAsync();
+        await LoadFormLookupListsAsync();
 
         // Validate all steps before final submission
         var allStepsValid = true;
@@ -375,7 +362,7 @@ public partial class RegisterModel : PageModel
         if (!allStepsValid)
         {
             // If we got this far, something failed, redisplay form with the current state
-            await LoadFormDataAsync();
+            await LoadFormLookupListsAsync();
             CurrentStep =
                 Models.RegistrationProgressions.SpeakerProfileNeeded; // Reset to the first step on major failure
             HasValidationErrors = true;
@@ -405,8 +392,9 @@ public partial class RegisterModel : PageModel
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to save new user account");
-            await LoadFormDataAsync();
-            CurrentStep = Models.RegistrationProgressions.SpeakerProfileNeeded; // Reset to the first step on major failure
+            await LoadFormLookupListsAsync();
+            // Reset to the first step on major failure
+            CurrentStep = Models.RegistrationProgressions.SpeakerProfileNeeded;
             HasValidationErrors = true;
             ValidationMessage = "The saving of registration failed. Please check the errors and try again.";
             // TODO: This is loads the RegistrationContainer inside itself, which is not ideal.
@@ -420,8 +408,8 @@ public partial class RegisterModel : PageModel
                 ModelState.AddModelError(string.Empty, error.Description);
             }
 
-            CurrentStep =
-                Models.RegistrationProgressions.SpeakerProfileNeeded; // Reset to the first step on major failure
+            // Reset to the first step on major failure
+            CurrentStep = Models.RegistrationProgressions.SpeakerProfileNeeded;
             HasValidationErrors = true;
             ValidationMessage = "The saving of registration failed. Please check the errors and try again.";
             // TODO: This is loads the RegistrationContainer inside itself, which is not ideal.
@@ -435,9 +423,9 @@ public partial class RegisterModel : PageModel
         if (user == null)
         {
             _logger.LogError("Failed to find user after saving registration. Email: '{Email}'", Input.Email);
-            await LoadFormDataAsync();
-            CurrentStep =
-                Models.RegistrationProgressions.SpeakerProfileNeeded; // Reset to the first step on major failure
+            await LoadFormLookupListsAsync();
+            // Reset to the first step on major failure
+            CurrentStep = Models.RegistrationProgressions.SpeakerProfileNeeded;
             HasValidationErrors = true;
             ValidationMessage = "Could not find user after saving registration. Please try again.";
             // TODO: This is loads the RegistrationContainer inside itself, which is not ideal.
@@ -474,9 +462,9 @@ public partial class RegisterModel : PageModel
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to save the user's expertise's and social media sites. Email: '{Email}'", Input.Email);
-            await LoadFormDataAsync();
-            CurrentStep =
-                Models.RegistrationProgressions.SpeakerProfileNeeded; // Reset to the first step on major failure
+            await LoadFormLookupListsAsync();
+            // Reset to the first step on major failure
+            CurrentStep = Models.RegistrationProgressions.SpeakerProfileNeeded;
             HasValidationErrors = true;
             ValidationMessage = "Failed to save your expertise and social media sites. Please try again.";
             // TODO: This is loads the RegistrationContainer inside itself, which is not ideal.
@@ -517,7 +505,7 @@ public partial class RegisterModel : PageModel
         }
 
         // Load data needed for registration completion (step 5) display
-        await LoadFormDataAsync();
+        await LoadFormLookupListsAsync();
 
         CurrentStep = Models.RegistrationProgressions.Complete;
         HasValidationErrors = false;
@@ -526,7 +514,6 @@ public partial class RegisterModel : PageModel
 
         // Return step 5 (confirmation) instead of redirecting away
         return Partial("_RegistrationContainer", this);
-
     }
 
     public async Task<IActionResult> OnGetAddSocialMediaRowAsync(int socialMediaSitesCount = 0)
