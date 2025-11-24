@@ -1,5 +1,3 @@
-using Microsoft.EntityFrameworkCore;
-
 namespace MoreSpeakers.Web.Models.ViewModels;
 
 public class SpeakerResultsViewModel

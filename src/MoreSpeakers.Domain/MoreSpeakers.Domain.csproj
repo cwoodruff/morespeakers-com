@@ -41,7 +41,6 @@
         <DocumentationFile>bin\Release\MoreSpeakers.Web.xml</DocumentationFile>
     </PropertyGroup>
     <ItemGroup>
-      <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.0" />
       <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="10.0.0" />
     </ItemGroup>
 

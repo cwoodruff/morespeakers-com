@@ -1,5 +1,3 @@
-using System.Runtime.CompilerServices;
-
 using AutoMapper;
 
 namespace MoreSpeakers.Data.MappingProfiles;
