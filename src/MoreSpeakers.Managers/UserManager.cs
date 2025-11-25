@@ -1,7 +1,7 @@
 using System.Security.Claims;
 
 using Microsoft.AspNetCore.Identity;
-
+using Microsoft.AspNetCore.WebUtilities;
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models;
 
@@ -54,6 +54,30 @@ public class UserManager: IUserManager
     {
         var result = await _dataStore.ConfirmEmailAsync(user, token);
         return result.Succeeded;
+    }
+
+    // Passkey Support
+    public async Task<IdentityResult> AddOrUpdatePasskeyAsync(User user, UserPasskeyInfo passkey)
+    {
+        return await _dataStore.AddOrUpdatePasskeyAsync(user, passkey);
+    }
+
+    public async Task<IEnumerable<UserPasskey>> GetUserPasskeysAsync(Guid userId)
+    {
+        return await _dataStore.GetUserPasskeysAsync(userId);
+    }
+
+    public async Task<bool> RemovePasskeyAsync(Guid userId, string credentialIdBase64)
+    {
+        try
+        {
+            var credentialIdBytes = WebEncoders.Base64UrlDecode(credentialIdBase64);
+            return await _dataStore.RemovePasskeyAsync(userId, credentialIdBytes);
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     // ------------------------------------------

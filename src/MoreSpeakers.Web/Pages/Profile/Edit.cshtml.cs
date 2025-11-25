@@ -3,7 +3,8 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-
+using Microsoft.EntityFrameworkCore;
+using MoreSpeakers.Data;
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models;
 using MoreSpeakers.Web.Models.ViewModels;
@@ -12,10 +13,11 @@ using MoreSpeakers.Web.Services;
 namespace MoreSpeakers.Web.Pages.Profile;
 
 [Authorize]
-public class EditModel(
+public class EditModel(    
     IExpertiseManager expertiseManager,
     IUserManager userManager,
     IFileUploadService fileUploadService,
+    MoreSpeakersDbContext dbContext,
     ILogger<EditModel> logger) : PageModel
 {
     [BindProperty]
@@ -28,6 +30,7 @@ public class EditModel(
     public IEnumerable<Expertise> AvailableExpertise { get; set; } = new List<Expertise>();
     public IEnumerable<UserExpertise> UserExpertise { get; set; } = new List<UserExpertise>();
     public IEnumerable<SocialMedia> SocialMedia { get; set; } = new List<SocialMedia>();
+    public IEnumerable<UserPasskey> UserPasskeys { get; set; } = new List<UserPasskey>();
 
     // Properties for HTMX state management
     public string ActiveTab { get; set; } = "profile";
@@ -220,6 +223,7 @@ public class EditModel(
         return tab switch
         {
             "password" => Partial("_PasswordChangeForm", this),
+            "passkeys" => Partial("_Passkeys", this),
             _ => Partial("_ProfileEditForm", this)
         };
     }
@@ -302,6 +306,7 @@ public class EditModel(
             AvailableExpertise = await expertiseManager.GetAllAsync();
             UserExpertise = await userManager.GetUserExpertisesForUserAsync(currentUser.Id);
             SocialMedia = await userManager.GetUserSocialMediaForUserAsync(currentUser.Id);
+            UserPasskeys = await userManager.GetUserPasskeysAsync(currentUser.Id);
 
             // Populate Input model if not already populated
             if (string.IsNullOrEmpty(Input.FirstName))

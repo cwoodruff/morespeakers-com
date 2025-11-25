@@ -1,7 +1,7 @@
 @page
 @model EditModel
 @{
-    ViewData["Title"] = "Edit Profile";
+ViewData["Title"] = "Edit Profile";
 }
 
 <div class="container">
@@ -23,8 +23,8 @@
         <div class="card-header p-0">
             <ul class="nav nav-tabs" id="profileTabs" role="tablist">
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link @(Model.ActiveTab == "profile" ? "active" : "")" 
-                            type="button" 
+                    <button class="nav-link @(Model.ActiveTab == "profile" ? "active" : "")"
+                            type="button"
                             hx-get="/Profile/Edit?handler=Tab&tab=profile"
                             hx-target="#tabContent"
                             hx-swap="innerHTML">
@@ -32,7 +32,16 @@
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link @(Model.ActiveTab == "password" ? "active" : "")" 
+                    <button class="nav-link @(Model.ActiveTab == "passkeys" ? "active" : "")"
+                            type="button"
+                            hx-get="/Profile/Edit?handler=Tab&tab=passkeys"
+                            hx-target="#tabContent"
+                            hx-swap="innerHTML">
+                        <i class="bi bi-fingerprint me-2"></i>Passkeys
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link @(Model.ActiveTab == "password" ? "active" : "")"
                             type="button"
                             hx-get="/Profile/Edit?handler=Tab&tab=password"
                             hx-target="#tabContent"
@@ -42,16 +51,20 @@
                 </li>
             </ul>
         </div>
-        
+
         <div class="card-body">
             <div id="tabContent">
                 @if (Model.ActiveTab == "password")
                 {
-                    <partial name="_PasswordChangeForm" model="Model" />
+                <partial name="_PasswordChangeForm" model="Model" />
+                }
+                else if (Model.ActiveTab == "passkeys")
+                {
+                <partial name="_Passkeys" model="Model" />
                 }
                 else
                 {
-                    <partial name="_ProfileEditForm" model="Model" />
+                <partial name="_ProfileEditForm" model="Model" />
                 }
             </div>
         </div>
@@ -59,36 +72,44 @@
 </div>
 
 @section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-    
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Initialize any additional functionality
-            
-            // Auto-hide success messages after 5 seconds
-            setTimeout(function() {
-                const successAlerts = document.querySelectorAll('.alert-success');
-                successAlerts.forEach(function(alert) {
-                    if (alert) {
-                        alert.style.transition = 'opacity 0.5s ease';
-                        alert.style.opacity = '0';
-                        setTimeout(() => alert.remove(), 500);
-                    }
-                });
-            }, 5000);
-        });
+<partial name="_ValidationScriptsPartial" />
+<script src="/js/passkeys.js"></script>
 
-        // Handle tab switching with HTMX
-        document.addEventListener('htmx:afterRequest', function(event) {
-            // Update active tab state
-            const tabs = document.querySelectorAll('#profileTabs .nav-link');
-            tabs.forEach(tab => tab.classList.remove('active'));
-            
-            if (event.detail.xhr.responseURL.includes('tab=password')) {
-                tabs[1].classList.add('active');
-            } else {
-                tabs[0].classList.add('active');
-            }
-        });
-    </script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize any additional functionality
+
+        // Auto-hide success messages after 5 seconds
+        setTimeout(function() {
+            const successAlerts = document.querySelectorAll('.alert-success');
+            successAlerts.forEach(function(alert) {
+                if (alert) {
+                    alert.style.transition = 'opacity 0.5s ease';
+                    alert.style.opacity = '0';
+                    setTimeout(() => alert.remove(), 500);
+                }
+            });
+        }, 5000);
+    });
+
+    // Handle tab switching with HTMX (same pattern as before, extended for Passkeys)
+    document.addEventListener('htmx:afterRequest', function(event) {
+        // Update active tab state
+        const tabs = document.querySelectorAll('#profileTabs .nav-link');
+        tabs.forEach(tab => tab.classList.remove('active'));
+
+        const url = event.detail.xhr.responseURL || "";
+
+        if (url.includes('tab=password')) {
+            // password tab (3rd)
+            tabs[2].classList.add('active');
+        } else if (url.includes('tab=passkeys')) {
+            // passkeys tab (2nd)
+            tabs[1].classList.add('active');
+        } else {
+            // default to profile tab (1st)
+            tabs[0].classList.add('active');
+        }
+    });
+</script>
 }
