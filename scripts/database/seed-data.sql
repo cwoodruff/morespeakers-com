@@ -53,17 +53,7 @@ INSERT INTO MoreSpeakers.dbo.Expertises (Id, Name, Description, CreatedDate, IsA
 INSERT INTO MoreSpeakers.dbo.Expertises (Id, Name, Description, CreatedDate, IsActive) VALUES (39, N'SOLID Principles', N'SOLID design principles', N'2025-09-20 21:36:21.2866667', 1);
 INSERT INTO MoreSpeakers.dbo.Expertises (Id, Name, Description, CreatedDate, IsActive) VALUES (40, N'Domain-Driven Design', N'Domain-Driven Design methodology', N'2025-09-20 21:36:21.2866667', 1);
 INSERT INTO MoreSpeakers.dbo.Expertises (Id, Name, Description, CreatedDate, IsActive) VALUES (41, N'htmx', N'Custom expertise: htmx', N'2025-09-25 19:58:23.1483350', 1);
-
 SET IDENTITY_INSERT MoreSpeakers.dbo.Expertises OFF;
-
-SET IDENTITY_INSERT MoreSpeakers.dbo.SocialMedias ON;
-INSERT INTO MoreSpeakers.dbo.SocialMedias (Id, UserId, Platform, Url, CreatedDate, IsActive) VALUES (20, N'3BF69400-E4E2-446C-88BA-BD89BDF17127', N'LinkedIn', N'https://www.linkedin.com/in/glennhenriksen/', N'2025-09-28 14:18:56.5957508', 1);
-INSERT INTO MoreSpeakers.dbo.SocialMedias (Id, UserId, Platform, Url, CreatedDate, IsActive) VALUES (21, N'3BF69400-E4E2-446C-88BA-BD89BDF17127', N'Website', N'https://www.henriksen.no', N'2025-09-28 14:18:56.5991845', 1);
-INSERT INTO MoreSpeakers.dbo.SocialMedias (Id, UserId, Platform, Url, CreatedDate, IsActive) VALUES (22, N'62A49FAC-ECD3-432F-8B92-7C558ACE9575', N'Blog', N'https://www.woodruff.dev/category/blog/', N'2025-09-28 16:13:18.3637371', 1);
-INSERT INTO MoreSpeakers.dbo.SocialMedias (Id, UserId, Platform, Url, CreatedDate, IsActive) VALUES (23, N'62A49FAC-ECD3-432F-8B92-7C558ACE9575', N'Website', N'https://www.woodruff.dev/', N'2025-09-28 16:13:18.3637854', 1);
-INSERT INTO MoreSpeakers.dbo.SocialMedias (Id, UserId, Platform, Url, CreatedDate, IsActive) VALUES (24, N'62A49FAC-ECD3-432F-8B92-7C558ACE9575', N'LinkedIn', N'https://www.linkedin.com/in/chriswoodruff/', N'2025-09-28 16:13:18.3637973', 1);
-INSERT INTO MoreSpeakers.dbo.SocialMedias (Id, UserId, Platform, Url, CreatedDate, IsActive) VALUES (25, N'62A49FAC-ECD3-432F-8B92-7C558ACE9575', N'GitHub', N'https://github.com/cwoodruff', N'2025-09-28 16:13:18.3638053', 1);
-SET IDENTITY_INSERT MoreSpeakers.dbo.SocialMedias OFF;
 
 INSERT INTO MoreSpeakers.dbo.UserExpertises (UserId, ExpertiseId, CreatedDate) VALUES (N'62A49FAC-ECD3-432F-8B92-7C558ACE9575', 1, N'2025-09-28 16:13:18.4300000');
 INSERT INTO MoreSpeakers.dbo.UserExpertises (UserId, ExpertiseId, CreatedDate) VALUES (N'62A49FAC-ECD3-432F-8B92-7C558ACE9575', 2, N'2025-09-28 16:13:18.4300000');
@@ -140,6 +130,7 @@ INSERT INTO MoreSpeakers.dbo.UserSocialMediaSites (UserId, SocialMediaSiteId, So
 INSERT INTO MoreSpeakers.dbo.UserSocialMediaSites (UserId, SocialMediaSiteId, SocialId) VALUES (N'E6F76213-C3E1-40B4-9E24-97D69D177855', 13, N'jguadagno');
 INSERT INTO MoreSpeakers.dbo.UserSocialMediaSites (UserId, SocialMediaSiteId, SocialId) VALUES (N'E6F76213-C3E1-40B4-9E24-97D69D177855', 14, N'jguadagno');
 INSERT INTO MoreSpeakers.dbo.UserSocialMediaSites (UserId, SocialMediaSiteId, SocialId) VALUES (N'E6F76213-C3E1-40B4-9E24-97D69D177855', 18, N'https://josephguadagno.net/');
+
 -- GENERATE 35 USERS FOR PAGINATION TESTING
 INSERT INTO MoreSpeakers.dbo.AspNetUsers (
     Id, UserName, NormalizedUserName, Email, NormalizedEmail,

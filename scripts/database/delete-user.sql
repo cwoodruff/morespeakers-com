@@ -48,7 +48,7 @@ BEGIN TRY
     PRINT 'Deleted user tokens';
 
     -- 5. Delete from SocialMedia (CASCADE configured, but being explicit)
-    DELETE FROM SocialMedias WHERE UserId = @UserId;
+    DELETE FROM dbo.UserSocialMediaSites WHERE UserId = @UserId;
     PRINT 'Deleted social media links';
 
     -- 6. Delete from UserExpertise (CASCADE configured, but being explicit)

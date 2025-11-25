@@ -21,7 +21,6 @@ create table AspNetRoleClaims
 )
 go
 
-
 create table SpeakerTypes
 (
     Id          int identity
@@ -229,23 +228,6 @@ go
 
 create index IX_Mentorships_MenteeId_Status
     on Mentorships (MenteeId, Status)
-go
-
-create table SocialMedias
-(
-    Id          int identity
-        primary key,
-    UserId      uniqueidentifier               not null
-        constraint FK_SocialMedias_Users
-            references AspNetUsers
-            on delete cascade,
-    Platform    nvarchar(50)                   not null,
-    Url         nvarchar(500)                  not null
-        constraint CHK_SocialMedias_Url_Format
-            check ([Url] like 'http%://%' OR [Url] like 'https%://%'),
-    CreatedDate datetime2 default getutcdate() not null,
-    IsActive    bit       default 1            not null
-)
 go
 
 create table UserExpertises
