@@ -243,13 +243,7 @@ public class RequestsModel : PageModel
 
             if (IncomingRequests.Count == 0)
             {
-                // TODO: Convert to a partial view
-                return Content(@"
-                <div class='text-center py-4'>
-                    <i class='bi bi-inbox display-4 text-muted'></i>
-                    <h6 class='mt-3'>No incoming requests</h6>
-                    <p class='text-muted'>You'll see mentorship requests here when they arrive.</p>
-                </div>");
+                return Partial("_IncomingRequests_NoRequestsFound.cshtml", null);
             }
             
             // Check if this is an HTMX request for just the speakers container
@@ -284,16 +278,7 @@ public class RequestsModel : PageModel
 
             if (OutgoingRequests.Count == 0)
             {
-                // TODO: Convert to a partial view
-                return Content(@"
-                <div class='text-center py-4'>
-                    <i class='bi bi-send display-4 text-muted'></i>
-                    <h6 class='mt-3'>No outgoing requests</h6>
-                    <p class='text-muted'>You haven't sent any mentorship requests yet.</p>
-                    <a href='/Mentorship/Browse' class='btn btn-primary'>
-                        <i class='bi bi-search me-2'></i>Find a Mentor
-                    </a>
-                </div>");
+                return Partial("_OutgoingRequests_NoRequestsFound.cshtml", null);
             }
 
             // Check if this is an HTMX request for just the speakers container

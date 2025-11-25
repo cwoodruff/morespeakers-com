@@ -1,0 +1,105 @@
+@model Domain.Models.Mentorship
+
+<div class="card p-2 request-card">
+    <div class="card-body">
+        <div class="row">
+            <!-- Header with Avatar and Basic Info -->
+            <div class="col-4">
+                @if (!string.IsNullOrEmpty(Model.Mentor.HeadshotUrl))
+                {
+                    <img hx-preserve src="@Model.Mentor.HeadshotUrl" alt="@Model.Mentor.FullName"
+                         class="object-fit-contain border image-thumbnail rounded float-start" style="width:8rem; height:8rem;">
+                }
+                else
+                {
+                    <div class="align-items-center justify-content-center">
+                        <i class="bi bi-person-fill text-muted d-flex justify-content-center align-items-center" style="font-size: 8rem;"></i>
+                    </div>
+                }
+            </div>
+            <!-- Status and Mentor Info -->
+            <div class="col-8">
+                @{ string alertType = Model.Status switch
+                   {
+                       Domain.Models.MentorshipStatus.Pending => "warning",
+                       Domain.Models.MentorshipStatus.Active => "success",
+                       Domain.Models.MentorshipStatus.Declined => "danger",
+                       _ => "info"
+                   }; }
+                <div class="alert alert-@alertType">
+                    @switch (Model.Status)
+                    {
+                        case Domain.Models.MentorshipStatus.Pending:
+                            <i class="bi bi-clock me-1"></i>
+                            break;
+                        case Domain.Models.MentorshipStatus.Active:
+                            <i class="bi bi-check-circle me-1"></i>
+                            break;
+                        case Domain.Models.MentorshipStatus.Declined:
+                            <i class="bi bi-x-circle me-1"></i>
+                            break;
+                    }
+                    @Model.Status
+                </div>
+                <h5 class="card-title mb-1">@Model.Mentor.FullName</h5>
+                <span class="badge bg-success">@Model.Mentor.SpeakerType.ToFriendlyName()</span>
+            </div>
+        </div>
+        <div class="card-body">
+
+            <div class="mb-3">
+                <strong class="small">Your message:</strong>
+                <p class="small text-muted mb-0">@Model.RequestMessage</p>
+            </div>
+
+            @if (Model.FocusAreas.Any())
+            {
+                <div class="mb-3">
+                    <strong class="small">Focus areas:</strong>
+                    <div class="mt-1">
+                        @foreach (var focus in Model.FocusAreas)
+                        {
+                            <span class="badge rounded-pill text-bg-primary fw-light">@focus.Expertise.Name</span>
+                        }
+                    </div>
+                </div>
+            }
+
+            @if (!string.IsNullOrEmpty(Model.ResponseMessage))
+            {
+                <div class="mb-3">
+                    <strong class="small">Response:</strong>
+                    <p class="small text-muted mb-0">@Model.ResponseMessage</p>
+                </div>
+            }
+
+            <div class="d-flex justify-content-between align-items-center">
+                <small class="text-muted">
+                    Requested @Model.RequestedAt.ToString("MMM dd, yyyy")
+                    @if (Model.ResponsedAt.HasValue)
+                    {
+                        <span>• Responded @Model.ResponsedAt.Value.ToString("MMM dd, yyyy")</span>
+                    }
+                </small>
+
+                @if (Model.Status == Domain.Models.MentorshipStatus.Active)
+                {
+                    <a asp-page="/Mentorship/Active" class="btn btn-sm btn-success">
+                        <i class="bi bi-chat-dots me-1"></i>View Mentorship
+                    </a>
+                }
+                else if (Model.Status == Domain.Models.MentorshipStatus.Pending)
+                {
+                    <button class="btn btn-danger"
+                            hx-post="/Mentorship/Requests?handler=CancelRequest&mentorshipId=@Model.Id"
+                            hx-target="#outgoing-requests"
+                            hx-swap="outerHTML"
+                            hx-include="#htmx-af input[name='__RequestVerificationToken']"
+                            hx-confirm="Are you sure you want to cancel this request?">
+                        <i class="bi bi-x-circle me-2"></i>Cancel
+                    </button>
+                }
+            </div>
+        </div>
+    </div>
+</div>
