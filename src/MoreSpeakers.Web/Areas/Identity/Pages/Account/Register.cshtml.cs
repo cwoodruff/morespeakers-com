@@ -1,5 +1,4 @@
 using Microsoft.ApplicationInsights;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -16,7 +15,6 @@ namespace MoreSpeakers.Web.Areas.Identity.Pages.Account;
 
 public partial class RegisterModel : PageModel
 {
-    private readonly SignInManager<Data.Models.User> _signInManager;
     private readonly IExpertiseManager _expertiseManager;
     private readonly IUserManager _userManager;
     private readonly ITemplatedEmailSender _templatedEmailSender;
@@ -25,7 +23,6 @@ public partial class RegisterModel : PageModel
     private readonly ILogger<RegisterModel> _logger;
     
     public RegisterModel(
-        SignInManager<Data.Models.User> signInManager,
         IExpertiseManager expertiseManager,
         IUserManager userManager,
         ITemplatedEmailSender templatedEmailSender,
@@ -33,7 +30,6 @@ public partial class RegisterModel : PageModel
         TelemetryClient telemetryClient,
         ILogger<RegisterModel> logger)
     {
-        _signInManager = signInManager;
         _expertiseManager = expertiseManager;
         _userManager = userManager;
         _templatedEmailSender = templatedEmailSender;
@@ -472,7 +468,7 @@ public partial class RegisterModel : PageModel
         }
 
         // Send the welcome email
-        var emailSent = await _templatedEmailSender.SendTemplatedEmail("~/EmailTemplates/Welcome.cshtml",
+        var emailSent = await _templatedEmailSender.SendTemplatedEmail("~/EmailTemplates/WelcomeEmail.cshtml",
             Domain.Constants.TelemetryEvents.EmailGenerated.Welcome,
             "Welcome to MoreSpeakers.com - Your Speaking Journey Begins!", user, user);
         if (!emailSent)
