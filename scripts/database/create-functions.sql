@@ -19,7 +19,7 @@ BEGIN
     -- Count common expertise areas
     SELECT @CommonCount = COUNT(*)
     FROM UserExpertises ue1
-             INNER JOIN UserExpertise ue2 ON ue1.ExpertiseId = ue2.ExpertiseId
+             INNER JOIN UserExpertises ue2 ON ue1.ExpertiseId = ue2.ExpertiseId
     WHERE ue1.UserId = @UserId1 AND ue2.UserId = @UserId2;
 
     -- Count total unique expertise areas between both users

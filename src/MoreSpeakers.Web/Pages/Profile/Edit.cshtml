@@ -1,7 +1,7 @@
 @page
 @model EditModel
 @{
-ViewData["Title"] = "Edit Profile";
+    ViewData["Title"] = "Edit Profile";
 }
 
 <div class="container">
@@ -56,15 +56,15 @@ ViewData["Title"] = "Edit Profile";
             <div id="tabContent">
                 @if (Model.ActiveTab == "password")
                 {
-                <partial name="_PasswordChangeForm" model="Model" />
+                    <partial name="_PasswordChangeForm" model="Model" />
                 }
                 else if (Model.ActiveTab == "passkeys")
                 {
-                <partial name="_Passkeys" model="Model" />
+                    <partial name="_Passkeys" model="Model" />
                 }
                 else
                 {
-                <partial name="_ProfileEditForm" model="Model" />
+                    <partial name="_ProfileEditForm" model="Model" />
                 }
             </div>
         </div>
@@ -72,44 +72,7 @@ ViewData["Title"] = "Edit Profile";
 </div>
 
 @section Scripts {
-<partial name="_ValidationScriptsPartial" />
-<script src="/js/passkeys.js"></script>
-
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Initialize any additional functionality
-
-        // Auto-hide success messages after 5 seconds
-        setTimeout(function() {
-            const successAlerts = document.querySelectorAll('.alert-success');
-            successAlerts.forEach(function(alert) {
-                if (alert) {
-                    alert.style.transition = 'opacity 0.5s ease';
-                    alert.style.opacity = '0';
-                    setTimeout(() => alert.remove(), 500);
-                }
-            });
-        }, 5000);
-    });
-
-    // Handle tab switching with HTMX (same pattern as before, extended for Passkeys)
-    document.addEventListener('htmx:afterRequest', function(event) {
-        // Update active tab state
-        const tabs = document.querySelectorAll('#profileTabs .nav-link');
-        tabs.forEach(tab => tab.classList.remove('active'));
-
-        const url = event.detail.xhr.responseURL || "";
-
-        if (url.includes('tab=password')) {
-            // password tab (3rd)
-            tabs[2].classList.add('active');
-        } else if (url.includes('tab=passkeys')) {
-            // passkeys tab (2nd)
-            tabs[1].classList.add('active');
-        } else {
-            // default to profile tab (1st)
-            tabs[0].classList.add('active');
-        }
-    });
-</script>
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/profile.edit.js" asp-append-version="true"></script>
+    <script src="~/js/passkeys.js" asp-append-version="true"></script>
 }

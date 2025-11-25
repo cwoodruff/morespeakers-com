@@ -17,8 +17,8 @@
 
     <PropertyGroup>
         <VersionMajor>1</VersionMajor>
-        <VersionMinor>2</VersionMinor>
-        <VersionBuild>11</VersionBuild>
+        <VersionMinor>3</VersionMinor>
+        <VersionBuild>1</VersionBuild>
     </PropertyGroup>
     <PropertyGroup>
         <VersionPrefix>$(VersionMajor).$(VersionMinor).$(VersionBuild)</VersionPrefix>
@@ -43,7 +43,6 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.0" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.0" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
         <PackageReference Include="Moq" Version="4.20.72" />
         <PackageReference Include="xunit" Version="2.9.3" />
@@ -52,11 +51,10 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="FluentAssertions" Version="8.8.0" />
-        <PackageReference Include="Bogus" Version="35.6.5" />
     </ItemGroup>
 
     <ItemGroup>
-        <Using Include="Xunit"/>
+        <Using Include="Xunit" />
     </ItemGroup>
 
     <ItemGroup>

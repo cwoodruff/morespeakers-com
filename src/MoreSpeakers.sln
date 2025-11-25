@@ -9,8 +9,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoreSpeakers.AppHost", "Mor
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoreSpeakers.ServiceDefaults", "MoreSpeakers.ServiceDefaults\MoreSpeakers.ServiceDefaults.csproj", "{1F906499-C013-4551-B32E-66C36C6CB11C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoreSpeakers.Tests", "MoreSpeakers.Tests\MoreSpeakers.Tests.csproj", "{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ExtraStuff", "ExtraStuff", "{F237316C-4113-4191-9EF7-EFA8065ED236}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
@@ -20,6 +18,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ExtraStuff", "ExtraStuff", 
 		..\docs\Custom-Icon-Design-Flatastic-11-Megaphone.512.png = ..\docs\Custom-Icon-Design-Flatastic-11-Megaphone.512.png
 		..\docs\database_overview.md = ..\docs\database_overview.md
 		..\docs\deployment_guide.md = ..\docs\deployment_guide.md
+		..\docs\developer-startup.md = ..\docs\developer-startup.md
 		..\docs\icon-readme.md = ..\docs\icon-readme.md
 		install-libman.ps1 = install-libman.ps1
 		libman-restore.ps1 = libman-restore.ps1
@@ -27,7 +26,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ExtraStuff", "ExtraStuff", 
 		..\.github\workflows\publish-function-app.yml = ..\.github\workflows\publish-function-app.yml
 		..\.github\workflows\publish-web-app.yml = ..\.github\workflows\publish-web-app.yml
 		..\README.md = ..\README.md
-		..\docs\developer-startup.md = ..\docs\developer-startup.md
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoreSpeakers.Managers", "MoreSpeakers.Managers\MoreSpeakers.Managers.csproj", "{C3DF31E7-C67C-44C7-B629-4FB470E9F5CE}"
@@ -52,6 +50,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoreSpeakers.Data.Tests", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoreSpeakers.Managers.Tests", "MoreSpeakers.Managers.Tests\MoreSpeakers.Managers.Tests.csproj", "{58032E76-8158-4EAC-9463-41DFEDB450C6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoreSpeakers.Domain.Tests", "MoreSpeakers.Domain.Tests\MoreSpeakers.Domain.Tests.csproj", "{5322D6CB-FA61-40BF-B14F-D99F70873DC3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoreSpeakers.Web.Tests", "MoreSpeakers.Web.Tests\MoreSpeakers.Web.Tests.csproj", "{819E6A50-16EC-4E62-A42A-F58CC463E761}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -70,10 +72,6 @@ Global
 		{1F906499-C013-4551-B32E-66C36C6CB11C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1F906499-C013-4551-B32E-66C36C6CB11C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1F906499-C013-4551-B32E-66C36C6CB11C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C3DF31E7-C67C-44C7-B629-4FB470E9F5CE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{C3DF31E7-C67C-44C7-B629-4FB470E9F5CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C3DF31E7-C67C-44C7-B629-4FB470E9F5CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -98,6 +96,14 @@ Global
 		{58032E76-8158-4EAC-9463-41DFEDB450C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{58032E76-8158-4EAC-9463-41DFEDB450C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{58032E76-8158-4EAC-9463-41DFEDB450C6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5322D6CB-FA61-40BF-B14F-D99F70873DC3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5322D6CB-FA61-40BF-B14F-D99F70873DC3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5322D6CB-FA61-40BF-B14F-D99F70873DC3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5322D6CB-FA61-40BF-B14F-D99F70873DC3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{819E6A50-16EC-4E62-A42A-F58CC463E761}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{819E6A50-16EC-4E62-A42A-F58CC463E761}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{819E6A50-16EC-4E62-A42A-F58CC463E761}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{819E6A50-16EC-4E62-A42A-F58CC463E761}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

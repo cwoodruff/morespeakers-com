@@ -40,7 +40,7 @@ public class IndexModel : PageModel
             ActiveMentorshipsCount = stats.activeMentorships;
 
             // Get featured speakers (experienced speakers with profiles)
-            FeaturedSpeakers = await _userManager.GetFeaturedSpeakersAsync(6);
+            FeaturedSpeakers = await _userManager.GetFeaturedSpeakersAsync(3);
 
             // Get popular expertise areas
             PopularExpertise = await _expertiseManager.GetPopularExpertiseAsync(8);

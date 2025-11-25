@@ -21,7 +21,6 @@ create table AspNetRoleClaims
 )
 go
 
-
 create table SpeakerTypes
 (
     Id          int identity
@@ -243,23 +242,6 @@ create index IX_Mentorships_MenteeId_Status
     on Mentorships (MenteeId, Status)
 go
 
-create table SocialMedias
-(
-    Id          int identity
-        primary key,
-    UserId      uniqueidentifier               not null
-        constraint FK_SocialMedias_Users
-            references AspNetUsers
-            on delete cascade,
-    Platform    nvarchar(50)                   not null,
-    Url         nvarchar(500)                  not null
-        constraint CHK_SocialMedias_Url_Format
-            check ([Url] like 'http%://%' OR [Url] like 'https%://%'),
-    CreatedDate datetime2 default getutcdate() not null,
-    IsActive    bit       default 1            not null
-)
-go
-
 create table UserExpertises
 (
     UserId      uniqueidentifier               not null
@@ -273,4 +255,32 @@ create table UserExpertises
     CreatedDate datetime2 default getutcdate() not null,
     primary key (UserId, ExpertiseId)
 )
+go
+
+CREATE TABLE SocialMediaSites
+(
+    Id int IDENTITY(1,1) PRIMARY KEY,
+    Name varchar(50),
+    Icon varchar(50),
+    UrlFormat varchar(1024)
+)
+
+CREATE INDEX IX_SocialMediaSites_Name
+    on SocialMediaSites (Name)
+go
+
+CREATE TABLE UserSocialMediaSites
+(
+    Id int IDENTITY(1,1) PRIMARY KEY,
+    UserId UNIQUEIDENTIFIER
+        constraint FK_UserSocialMediaSites_AspNetUsers_Id
+            references AspNetUsers
+            on delete cascade,
+    SocialMediaSiteId int,
+    constraint FK_UserSocialMediaSites_SocialMediaSites_Id foreign key (SocialMediaSiteId) references SocialMediaSites(Id),
+    SocialId varchar(1024),
+)
+
+CREATE INDEX IX_UserSocialMediaSites_UserId
+    on UserSocialMediaSites (UserId)
 go

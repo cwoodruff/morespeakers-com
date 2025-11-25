@@ -16,17 +16,21 @@
     <h5 class="mb-4">Areas of Expertise</h5>
     <p class="text-muted mb-4">Select the technologies, topics, and areas where you have experience or interest.</p>
 
-    <div class="mb-4">
+    <div class="row mb-4">
         <label class="form-label fw-medium">Select Your Expertise Areas</label>
-        <div>
-            @foreach (var expertise in Model.AvailableExpertise)
+        <div class="row mb-4">
+            @foreach (var expertise in Model.AvailableExpertises)
             {
-                <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" role="switch" switch 
-                           name="Input.SelectedExpertiseIds" value="@expertise.Id" id="expertise@(expertise.Id)"/>
-                    <label class="form-check-label" for="expertise@(expertise.Id)">
-                        @expertise.Name
-                    </label>
+                <div class="col-md-3 col-sm-6 mb-2">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" role="switch" switch
+                               name="Input.SelectedExpertiseIds" 
+                               value="@expertise.Id"
+                               id="expertise_@expertise.Id"/>
+                        <label class="form-check-label" for="expertise_@expertise.Id">
+                            @expertise.Name
+                        </label>
+                    </div>
                 </div>
             }
         </div>
@@ -39,7 +43,7 @@
             <div class="input-group mb-2 custom-expertise-input" data-expertise-index="0">
                 <input type="text" name="Input.CustomExpertise" class="form-control custom-expertise-field"
                        placeholder="Enter a custom expertise area"
-                       hx-post="/Identity/Account/Register?handler=ValidateCustomExpertise"
+                       hx-post="/Register?handler=ValidateCustomExpertise"
                        hx-trigger="blur, keyup changed delay:500ms"
                        hx-target="next .custom-expertise-validation"
                        hx-include="this"
@@ -83,4 +87,3 @@
     <input type="hidden" asp-for="Input.HeadshotUrl" />
     <input type="hidden" asp-for="Input.SpeakerTypeId" />
 </div>
-

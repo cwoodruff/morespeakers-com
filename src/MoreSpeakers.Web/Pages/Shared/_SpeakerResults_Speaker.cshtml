@@ -96,7 +96,7 @@
     <!-- Action Buttons -->
     <div class="d-grid gap-2">
                
-        <a asp-page="/Profile/View" asp-route-id="@Model.Speaker.Id"
+        <a asp-page="/Profile/Index" asp-route-id="@Model.Speaker.Id"
            class="btn btn-primary">
             <i class="bi bi-eye me-2"></i>View Profile
         </a>
@@ -118,18 +118,18 @@
     </div>
     
     <!-- Contact Links -->
-    @if (Model.Speaker.SocialMediaLinks.Any())
+    @if (Model.Speaker.UserSocialMediaSites.Any())
     {
         <div class="social-links mt-3 pt-3 border-top">
-            @foreach (var social in Model.Speaker.SocialMediaLinks.Take(3))
+            @foreach (var social in Model.Speaker.UserSocialMediaSites.Take(3))
             {
-                <a href="@social.Url" target="_blank" rel="noopener" class="btn btn-secondary">
-                    <i class="bi bi-@social.Platform.ToLower()"></i>
+                <a href="@social.UserUrl" target="_blank" rel="noopener" class="btn btn-secondary">
+                    <i class="@social.SocialMediaSite.Icon"></i>
                 </a>
             }
-            @if (Model.Speaker.SocialMediaLinks.Count > 3)
+            @if (Model.Speaker.UserSocialMediaSites.Count > 3)
             {
-                <span class="small text-muted">+@(Model.Speaker.SocialMediaLinks.Count - 3) more</span>
+                <span class="small text-muted">+@(Model.Speaker.UserSocialMediaSites.Count - 3) more</span>
             }
         </div>
     }

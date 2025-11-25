@@ -1,8 +1,6 @@
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights.WindowsServer;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models;
@@ -30,7 +28,8 @@ ConfigureLogging(builder.Configuration, builder.Services, fullyQualifiedLogFile,
 // Add settings
 var settings = new Settings
 {
-    Email = null!
+    Email = null!,
+    GitHub = null!
 };
 builder.Configuration.AddEnvironmentVariables();
 builder.Configuration.Bind("Settings", settings);
@@ -102,9 +101,11 @@ builder.AddAzureQueueServiceClient("AzureStorageQueues");
 // Add application services
 builder.Services.AddScoped<IExpertiseDataStore, ExpertiseDataStore>();
 builder.Services.AddScoped<IMentoringDataStore, MentoringDataStore>();
+builder.Services.AddScoped<ISocialMediaSiteDataStore, SocialMediaSiteDataStore>();
 builder.Services.AddScoped<IUserDataStore, UserDataStore>();
 builder.Services.AddScoped<IExpertiseManager, ExpertiseManager>();
 builder.Services.AddScoped<IMentoringManager, MentoringManager>();
+builder.Services.AddScoped<ISocialMediaSiteManager, SocialMediaSiteManager>();
 builder.Services.AddScoped<IUserManager, UserManager>();
 
 builder.Services.AddScoped<IFileUploadService, FileUploadService>();
@@ -112,6 +113,10 @@ builder.Services.AddScoped<IEmailSender, EmailSender>();
 builder.Services.AddScoped<Microsoft.AspNetCore.Identity.UI.Services.IEmailSender, EmailSender>();
 builder.Services.AddScoped<ITemplatedEmailSender, TemplatedEmailSender>();
 builder.Services.AddScoped<IRazorPartialToStringRenderer, RazorPartialToStringRenderer>();
+
+// Register GitHub Service and Add in-memory caching (required by GitHubService constructor)
+builder.Services.AddMemoryCache();
+builder.Services.AddHttpClient<IGitHubService, GitHubService>();
 
 // Add HTTP context accessor for services
 builder.Services.AddHttpContextAccessor();

@@ -1,5 +1,3 @@
-using System.Runtime.CompilerServices;
-
 using AutoMapper;
 
 namespace MoreSpeakers.Data.MappingProfiles;
@@ -13,9 +11,10 @@ public class MoreSpeakersProfile : Profile
         CreateMap<Models.MentorshipExpertise, Domain.Models.MentorshipExpertise>().ReverseMap();
         CreateMap<Models.MentorshipStatus, Domain.Models.MentorshipStatus>().ReverseMap();
         CreateMap<Models.MentorshipType, Domain.Models.MentorshipType>().ReverseMap();
-        CreateMap<Models.SocialMedia, Domain.Models.SocialMedia>().ReverseMap();
         CreateMap<Models.SpeakerType, Domain.Models.SpeakerType>().ReverseMap();
         CreateMap<Models.User, Domain.Models.User>().ReverseMap();
         CreateMap<Models.UserExpertise, Domain.Models.UserExpertise>().ReverseMap();
+        CreateMap<Models.SocialMediaSite, Domain.Models.SocialMediaSite>().ReverseMap();
+        CreateMap<Models.UserSocialMediaSites, Domain.Models.UserSocialMediaSite>().ReverseMap();
     }
 }

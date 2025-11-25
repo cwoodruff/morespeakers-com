@@ -1,0 +1,8 @@
+User-agent: AhrefsBot
+Disallow: /
+User-agent: SemrushBot
+Disallow: /
+User-agent: YandexBot
+Disallow: /
+User-agent: baiduspider
+Disallow: /

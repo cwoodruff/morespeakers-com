@@ -1,9 +1,9 @@
 using FluentAssertions;
+
 using Microsoft.Extensions.Logging;
 using Moq;
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models;
-using MoreSpeakers.Managers;
 
 namespace MoreSpeakers.Managers.Tests;
 

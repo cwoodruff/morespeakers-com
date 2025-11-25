@@ -1,3 +1,4 @@
+@using MoreSpeakers.Domain.Extensions
 @model EditModel
 
 @if (Model.HasValidationErrors && !string.IsNullOrEmpty(Model.ValidationMessage))
@@ -71,8 +72,8 @@
                         <i class="bi bi-person text-muted"></i>
                     </span>
                     <select asp-for="Input.SpeakerTypeId" class="form-select">
-                        <option value="1" selected="@(Model.Input.SpeakerTypeId == 1)">New Speaker</option>
-                        <option value="2" selected="@(Model.Input.SpeakerTypeId == 2)">Experienced Speaker</option>
+                        <option value="@Domain.Models.SpeakerTypeEnum.NewSpeaker" selected="@(Model.Input.SpeakerTypeId == Domain.Models.SpeakerTypeEnum.NewSpeaker)">@Domain.Models.SpeakerTypeEnum.NewSpeaker.GetDescription()</option>
+                        <option value="@Domain.Models.SpeakerTypeEnum.ExperiencedSpeaker" selected="@(Model.Input.SpeakerTypeId == Domain.Models.SpeakerTypeEnum.ExperiencedSpeaker)">@Domain.Models.SpeakerTypeEnum.ExperiencedSpeaker.GetDescription()</option>
                     </select>
                 </div>
                 <span asp-validation-for="Input.SpeakerTypeId" class="text-danger small"></span>
@@ -112,20 +113,20 @@
         </div>
         <div class="col-12">
             <div class="mb-3">
-                @if (!string.IsNullOrEmpty(Model.ProfileUser.HeadshotUrl))
+                @if (!string.IsNullOrEmpty(Model.ProfileUser?.HeadshotUrl))
                 {
                     <img src="@Model.ProfileUser.HeadshotUrl" 
                          alt="Current headshot" 
-                         class="rounded-circle border shadow-sm" 
-                         style="width: 120px; height: 120px; object-fit: cover;" 
+                         class="object-fit-contain border shadow-sm image-thumbnail rounded " 
+                         style="width: 9em; height: 9em; object-fit: cover;" 
                          id="currentHeadshot" />
                 }
                 else
                 {
-                    <div class="rounded-circle border shadow-sm bg-light d-flex align-items-center justify-content-center" 
-                         style="width: 120px; height: 120px; margin: 0 auto;" 
+                    <div class="border shadow-sm rounded d-flex align-items-center justify-content-center" 
+                         style="width: 9em; height: 9em; margin: 0 auto;" 
                          id="currentHeadshot">
-                        <i class="bi bi-person display-4 text-muted"></i>
+                        <i class="bi bi-person-fill text-muted" style="font-size: 9rem;"></i>
                     </div>
                 }
             </div>
@@ -164,24 +165,22 @@
             </h5>
             <div class="form-text mb-3">Select the technologies and topics you're knowledgeable about.</div>
         </div>
-        <div class="col-12">
-            <div class="row">
-                @foreach (var expertise in Model.AvailableExpertise)
-                {
-                    <div class="col-md-3 col-sm-6 mb-2">
-                        <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" role="switch" switch
-                                   name="Input.SelectedExpertiseIds" 
-                                   value="@expertise.Id"
-                                   id="expertise_@expertise.Id"
-                                   @(Model.Input.SelectedExpertiseIds?.Contains(expertise.Id) == true ? "checked" : "") />
-                            <label class="form-check-label" for="expertise_@expertise.Id">
-                                @expertise.Name
-                            </label>
-                        </div>
+        <div class="row mb-4">
+            @foreach (var expertise in Model.AvailableExpertise)
+            {
+                <div class="col-md-3 col-sm-6 mb-2">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" role="switch" switch
+                               name="Input.SelectedExpertiseIds" 
+                               value="@expertise.Id"
+                               id="expertise_@expertise.Id"
+                               @(Model.Input.SelectedExpertiseIds?.Contains(expertise.Id) == true ? "checked" : "") />
+                        <label class="form-check-label" for="expertise_@expertise.Id">
+                            @expertise.Name
+                        </label>
                     </div>
-                }
-            </div>
+                </div>
+            }
         </div>
     </div>
 
@@ -194,23 +193,43 @@
             <div class="form-text mb-3">Add your social media profiles and professional links.</div>
         </div>
         <div class="col-12" id="socialMediaContainer">
-            @for (int i = 0; i < 5; i++)
-            {
-                <div class="row mb-2">
-                    <div class="col-md-4">
-                        <input name="Input.SocialMediaPlatforms[@i]" 
-                               class="form-control" 
-                               placeholder="Platform (e.g., Twitter, LinkedIn)"
-                               value="@(Model.Input.SocialMediaPlatforms?.ElementAtOrDefault(i) ?? "")" />
-                    </div>
-                    <div class="col-md-8">
-                        <input name="Input.SocialMediaUrls[@i]" 
-                               class="form-control" 
-                               placeholder="URL (e.g., https://twitter.com/username)"
-                               value="@(Model.Input.SocialMediaUrls?.ElementAtOrDefault(i) ?? "")" />
-                    </div>
-                </div>
+            @{
+                var index = 0;
+                var socialMediaSites = Model.SocialMediaSites.ToList();
             }
+
+            @if (Model.ProfileUser?.UserSocialMediaSites != null)
+            {
+                foreach (var userSocialMediaSite in Model.ProfileUser.UserSocialMediaSites)
+                {
+                    var model = new UserSocialMediaSiteRow
+                    {
+                        UserSocialMediaSite = userSocialMediaSite,
+                        SocialMediaSites = socialMediaSites,
+                        ItemNumber = index
+                    };
+                    index++;
+                    @await Html.PartialAsync("_UserSocialMediaSiteRow", model)
+                }
+            }
+            <input type="hidden" name="socialMediaSitesCount" value="@index" />
+        </div>
+        <div id="replaceSocialMediaRow">
+            <div id="addingRowSpinner" class="htmx-indicator">
+                <div class="spinner-border spinner-border-sm me-2" role="status">
+                    <span class="visually-hidden">Adding row...</span>
+                </div>
+                Adding row...
+            </div>
+            <button class="btn btn-primary float-end" type="button"
+                    hx-get="/Profile/Edit?handler=AddSocialMediaRow"
+                    hx-target="[name=socialMediaSitesCount], :nth-last-child(1 of .social-media-row)"
+                    hx-include="[name='socialMediaSitesCount']"
+                    hx-indicator="#addingRowSpinner"
+                    hx-swap="afterend"
+                    hx-on::after-request="document.querySelector('[name=socialMediaSitesCount]').value = document.querySelector(':nth-last-child(1 of .social-media-row)').dataset.id">
+                <i class="bi bi-plus-square me-2"></i>Add
+            </button>
         </div>
     </div>
 
