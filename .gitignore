@@ -729,3 +729,6 @@ startup.ps1
 **/*secret*.md
 **/*secret*.txt
 *.txt
+
+### Allowed Overrides
+!**/wwwroot/robots.txt
