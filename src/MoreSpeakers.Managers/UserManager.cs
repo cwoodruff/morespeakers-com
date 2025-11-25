@@ -146,7 +146,6 @@ public class UserManager: IUserManager
 
     public async Task<IEnumerable<User>> GetFeaturedSpeakersAsync(int count)
     {
-        // TODO: Need to improve this logic and just not pick the count with most expertise
         return await _dataStore.GetFeaturedSpeakersAsync(count);
     }
 

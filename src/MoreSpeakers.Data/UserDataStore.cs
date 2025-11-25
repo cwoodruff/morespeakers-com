@@ -595,7 +595,7 @@ public class UserDataStore : IUserDataStore
     {
         var speakers = await _context.Users
             .Where(s => !string.IsNullOrEmpty(s.Bio) && s.UserExpertise.Any() && s.SpeakerType.Id == (int) SpeakerTypeEnum.ExperiencedSpeaker)
-            .OrderByDescending(s => s.UserExpertise.Count)
+            .OrderBy(u => Guid.NewGuid())
             .Take(count)
             .ToListAsync();
         
