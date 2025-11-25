@@ -68,7 +68,7 @@ SELECT
 FROM AspNetUsers u
          INNER JOIN SpeakerTypes st ON u.SpeakerTypeId = st.Id
          LEFT JOIN UserExpertises ue ON u.Id = ue.UserId
-         LEFT JOIN SocialMedias sm ON u.Id = sm.UserId AND sm.IsActive = 1
+         LEFT JOIN UserSocialMediaSites sm ON u.Id = sm.UserId
          LEFT JOIN Mentorships m1 ON u.Id = m1.MentorId
          LEFT JOIN Mentorships m2 ON u.Id = m2.NewSpeakerId
 WHERE u.IsActive = 1
