@@ -2,6 +2,7 @@ using System.Security.Claims;
 
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.Logging;
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models;
 
@@ -10,10 +11,12 @@ namespace MoreSpeakers.Managers;
 public class UserManager: IUserManager
 {
     private readonly IUserDataStore _dataStore;
+    private readonly ILogger<UserManager> _logger;
 
-    public UserManager(IUserDataStore dataStore)
+    public UserManager(IUserDataStore dataStore, ILogger<UserManager> logger)
     {
         _dataStore = dataStore;
+        _logger = logger;
     }
     
     // ------------------------------------------
@@ -74,8 +77,9 @@ public class UserManager: IUserManager
             var credentialIdBytes = WebEncoders.Base64UrlDecode(credentialIdBase64);
             return await _dataStore.RemovePasskeyAsync(userId, credentialIdBytes);
         }
-        catch
+        catch (Exception ex)
         {
+            _logger.LogError(ex, "Failed to remove passkey for user {UserId}", userId);
             return false;
         }
     }
