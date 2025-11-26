@@ -92,7 +92,7 @@
                         </div>
 
                         <!-- Passkey Login -->
-                        <button type="button" class="btn btn-lg btn-outline-primary w-100 mb-3" onclick="handlePasskeyLogin()">
+                        <button type="button" class="btn btn-lg btn-outline-primary w-100 mb-3" onclick="Passkeys.handleLogin()">
                             <i class="bi bi-fingerprint me-2"></i>Passkey
                         </button>
 
@@ -157,21 +157,5 @@
 
 @section Scripts {
     <script src="/js/passkeys.js"></script>
-    <script>
-        async function handlePasskeyLogin() {
-            try {
-                await Passkeys.login();
-                // If successful, redirect to returnUrl or home
-                const params = new URLSearchParams(window.location.search);
-                const returnUrl = params.get('ReturnUrl') || '/';
-                window.location.href = returnUrl;
-            } catch (err) {
-                const alert = document.getElementById('passkeyLoginAlert');
-                alert.innerHTML = `<i class="bi bi-exclamation-triangle me-2"></i>${err.message}`;
-                alert.className = 'alert alert-danger fade show mb-3';
-                alert.classList.remove('d-none');
-            }
-        }
-    </script>
     <partial name="_ValidationScriptsPartial"/>
 }

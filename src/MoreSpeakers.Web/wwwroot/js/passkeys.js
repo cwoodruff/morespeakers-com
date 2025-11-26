@@ -206,6 +206,28 @@ const Passkeys = {
         return true;
     },
 
+    // Handles the full login flow including UI updates for the Login page
+    handleLogin: async function() {
+        try {
+            await this.login();
+            // If successful, redirect to returnUrl or home
+            const params = new URLSearchParams(window.location.search);
+            const returnUrl = params.get('ReturnUrl') || '/';
+            window.location.href = returnUrl;
+        } catch (err) {
+            const alert = document.getElementById('passkeyLoginAlert');
+            if (alert) {
+                alert.innerHTML = `<i class="bi bi-exclamation-triangle me-2"></i>${err.message}`;
+                alert.className = 'alert alert-danger fade show mb-3';
+                alert.classList.remove('d-none');
+            } else {
+                console.error("Passkey login failed:", err);
+                // Fallback alert if element is missing
+                window.alert("Login failed: " + err.message);
+            }
+        }
+    },
+
     // Delete a passkey
     delete: async function(id) {
         const response = await fetch(`/api/Passkey/${id}`, {
