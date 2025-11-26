@@ -389,7 +389,6 @@ public partial class RegisterModel : PageModel
             CurrentStep = Models.RegistrationProgressions.SpeakerProfileNeeded;
             HasValidationErrors = true;
             ValidationMessage = "The saving of registration failed. Please check the errors and try again.";
-            // TODO: This is loads the RegistrationContainer inside itself, which is not ideal.
             return Partial("_RegistrationContainer", this);
         }
 
@@ -404,7 +403,6 @@ public partial class RegisterModel : PageModel
             CurrentStep = Models.RegistrationProgressions.SpeakerProfileNeeded;
             HasValidationErrors = true;
             ValidationMessage = "The saving of registration failed. Please check the errors and try again.";
-            // TODO: This is loads the RegistrationContainer inside itself, which is not ideal.
             return Partial("_RegistrationContainer", this);
         }
 
@@ -420,7 +418,6 @@ public partial class RegisterModel : PageModel
             CurrentStep = Models.RegistrationProgressions.SpeakerProfileNeeded;
             HasValidationErrors = true;
             ValidationMessage = "Could not find user after saving registration. Please try again.";
-            // TODO: This is loads the RegistrationContainer inside itself, which is not ideal.
             return Partial("_RegistrationContainer", this);
         }
         
@@ -459,7 +456,6 @@ public partial class RegisterModel : PageModel
             CurrentStep = Models.RegistrationProgressions.SpeakerProfileNeeded;
             HasValidationErrors = true;
             ValidationMessage = "Failed to save your expertise and social media sites. Please try again.";
-            // TODO: This is loads the RegistrationContainer inside itself, which is not ideal.
             return Partial("_RegistrationContainer", this);
         }
 
