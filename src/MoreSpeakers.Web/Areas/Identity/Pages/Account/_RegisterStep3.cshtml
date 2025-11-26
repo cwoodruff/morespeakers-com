@@ -71,8 +71,9 @@
 
 
 <!-- Persist Steps 1-2 values across HTMX steps -->
-<div aria-hidden="true" style="display:none;visibility:hidden;">
+<div aria-hidden="true" class="d-none">
     <!-- Step 1 fields -->
+    <input type="hidden" asp-for="CurrentStep" />
     <input type="hidden" asp-for="Input.FirstName" />
     <input type="hidden" asp-for="Input.LastName" />
     <input type="hidden" asp-for="Input.Email" />

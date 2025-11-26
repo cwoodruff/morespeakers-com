@@ -38,10 +38,6 @@ public partial class RegisterModel : PageModel
         _logger = logger;
     }
 
-    /// <summary>
-    ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-    ///     directly from your code. This API may change or be removed in future releases.
-    /// </summary>
     [BindProperty]
     public InputModel Input { get; set; }
 
@@ -473,7 +469,7 @@ public partial class RegisterModel : PageModel
             "Welcome to MoreSpeakers.com - Your Speaking Journey Begins!", user, user);
         if (!emailSent)
         {
-            _logger.LogError("Failed to send mentorship declined email to mentee");
+            _logger.LogError("Failed to send the welcome email");
             // TODO: Create a visual indicator that the email was not sent
         }
 

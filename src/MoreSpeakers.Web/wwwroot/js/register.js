@@ -58,6 +58,7 @@ function initializeRegistrationForm() {
             button.innerHTML = originalContent;
             button.removeAttribute('data-original-content');
         }
+        updatePageHeader();
     });
 }
 
@@ -90,4 +91,22 @@ function validateRegistrationForm(form) {
     }
 
     return isValid;
+}
+
+function updatePageHeader() {
+    
+    const currentStep = document.getElementById('CurrentStep');
+    let stepNumber = 1;
+    if (currentStep) {
+        stepNumber = Number(currentStep.value);
+    }
+    
+    const pageHeader = document.getElementById('pageHeader');
+    if (pageHeader) {
+        if (stepNumber === 5) {
+            pageHeader.innerHTML = '<h1 class="h3 fw-bold text-success">Welcome to MoreSpeakers.com!</h1><p class="text-muted">Your registration has been completed successfully</p>';
+        } else {
+            pageHeader.innerHTML = '<h1 class="h3 fw-bold text-primary">Create Your Speaker Profile</h1><p class="text-muted">Tell us about yourself and join the community</p>';
+        }
+    }
 }

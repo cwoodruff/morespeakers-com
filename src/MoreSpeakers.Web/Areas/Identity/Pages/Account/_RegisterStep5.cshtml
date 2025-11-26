@@ -64,12 +64,12 @@
                     <div class="h-100 bg-opacity-50 rounded-3 p-3 border border-primary border-opacity-10">
                         <div class="d-flex align-items-start">
                             <div class="bg-primary bg-opacity-10 rounded-circle p-2 me-3">
-                                <i class="bi @(Model.Input.SpeakerTypeId == 1 ? "bi-person-plus" : "bi-award") text-color"></i>
+                                <i class="bi @(Model.Input.SpeakerTypeId == (int) MoreSpeakers.Domain.Models.SpeakerTypeEnum.NewSpeaker ? "bi-person-plus" : "bi-award") text-color"></i>
                             </div>
                             <div class="flex-grow-1">
                                 <small class="text-muted text-uppercase fw-bold d-block">Speaker Type</small>
-                                <span class="badge @(Model.Input.SpeakerTypeId == 1 ? "bg-primary" : "bg-success")">
-                                    @(Model.Input.SpeakerTypeId == 1 ? "New Speaker" : "Experienced Speaker")
+                                <span class="badge @(Model.Input.SpeakerTypeId == (int) MoreSpeakers.Domain.Models.SpeakerTypeEnum.NewSpeaker ? "bg-primary" : "bg-success")">
+                                    @(Model.Input.SpeakerTypeId == (int) MoreSpeakers.Domain.Models.SpeakerTypeEnum.NewSpeaker ? "New Speaker" : "Experienced Speaker")
                                 </span>
                             </div>
                         </div>
@@ -183,15 +183,15 @@
                             </div>
                         </div>
                         <h5 class="fw-bold text-success mb-3">
-                            @(Model.Input.SpeakerTypeId == 1 ? "Find Your Mentors" : "Connect with New Speakers")
+                            @(Model.Input.SpeakerTypeId == (int) MoreSpeakers.Domain.Models.SpeakerTypeEnum.NewSpeaker ? "Find Your Mentors" : "Connect with New Speakers")
                         </h5>
                         <p class="text-muted mb-3">
-                            @(Model.Input.SpeakerTypeId == 1 
+                            @(Model.Input.SpeakerTypeId == (int) MoreSpeakers.Domain.Models.SpeakerTypeEnum.NewSpeaker
                                 ? "Browse our community of experienced speakers and find mentors who can guide your speaking journey."
                                 : "Discover new speakers who could benefit from your experience and mentorship.")
                         </p>
                         <div class="text-success">
-                            <i class="bi @(Model.Input.SpeakerTypeId == 1 ? "bi-search-heart" : "bi-person-hearts")" style="font-size: 1.5rem;"></i>
+                            <i class="bi @(Model.Input.SpeakerTypeId == (int) MoreSpeakers.Domain.Models.SpeakerTypeEnum.NewSpeaker ? "bi-search-heart" : "bi-person-hearts")" style="font-size: 1.5rem;"></i>
                         </div>
                     </div>
                 </div>
@@ -242,7 +242,7 @@
                 <a href="@Url.Page("/Index")" class="btn btn-sm btn-outline-secondary">
                     <i class="bi bi-house me-1"></i>Go to Home
                 </a>
-                @if (Model.Input.SpeakerTypeId == 1)
+                @if (Model.Input.SpeakerTypeId == (int) MoreSpeakers.Domain.Models.SpeakerTypeEnum.NewSpeaker)
                 {
                     <a href="@Url.Page("/Mentorship/Index")" class="btn btn-sm btn-outline-secondary">
                         <i class="bi bi-person-workspace me-1"></i>Find Mentors
@@ -274,4 +274,7 @@
             </div>
         </div>
     </div>
+</div>
+<div aria-hidden="true" class="d-none">
+    <input type="hidden" asp-for="CurrentStep" />
 </div>
