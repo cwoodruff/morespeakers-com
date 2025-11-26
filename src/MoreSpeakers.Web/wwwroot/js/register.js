@@ -61,7 +61,6 @@ function initializeRegistrationForm() {
     });
 }
 
-
 // Custom validation for the registration form
 function validateRegistrationForm(form) {
     let isValid = true;
@@ -91,16 +90,4 @@ function validateRegistrationForm(form) {
     }
 
     return isValid;
-}
-
-
-function updatePageHeader(step) {
-    const pageHeader = document.getElementById('pageHeader');
-    if (pageHeader) {
-        if (step === 5) {
-            pageHeader.innerHTML = '<h1 class="h3 fw-bold text-success">Welcome to MoreSpeakers.com!</h1><p class="text-muted">Your registration has been completed successfully</p>';
-        } else {
-            pageHeader.innerHTML = '<h1 class="h3 fw-bold text-primary">Create Your Speaker Profile</h1><p class="text-muted">Tell us about yourself and join the community</p>';
-        }
-    }
 }

@@ -49,19 +49,19 @@
     <div id="stepContainer">
         @switch (currentStep)
         {
-            case 1:
+            case RegistrationProgressions.SpeakerProfileNeeded:
                 <partial name="_RegisterStep1" model="Model"/>
                 break;
-            case 2:
+            case RegistrationProgressions.RequiredInformationNeeded:
                 <partial name="_RegisterStep2" model="Model"/>
                 break;
-            case 3:
+            case RegistrationProgressions.ExpertiseNeeded:
                 <partial name="_RegisterStep3" model="Model"/>
                 break;
-            case 4:
+            case RegistrationProgressions.SocialMediaNeeded:
                 <partial name="_RegisterStep4" model="Model"/>
                 break;
-            case 5:
+            case RegistrationProgressions.Complete:
                 <partial name="_RegisterStep5" model="Model"/>
                 break;
         }
@@ -104,7 +104,3 @@
         </div>
     }
 </form>
-
-<script>
-    updatePageHeader(@currentStep);
-</script>

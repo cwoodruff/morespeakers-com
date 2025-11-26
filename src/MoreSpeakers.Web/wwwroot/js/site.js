@@ -120,7 +120,6 @@ function initializeHtmxEnhancements() {
     document.body.addEventListener('htmx:afterSwap', function(evt) {
         // Reinitialize components for new content
         initializeTooltips();
-        initializeFileUploads();
 
         // Animate new content
         if (evt.detail.target) {

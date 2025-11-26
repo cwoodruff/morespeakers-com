@@ -46,9 +46,8 @@
         <div class="col-md-9 py-5">
             <div class="container-fluid">
                 <div class="row justify-content-center">
-                    <div class="text-center mb-4" id="pageHeader">
-                        <h1 class="h3 fw-bold text-primary">Create Your Speaker Profile</h1>
-                        <p>Tell us about yourself and join the community</p>
+                    <div class="text-center mb-4" id="pageHeader" hx-swap-oob="true" hx-swap="innerHTML">
+                        <partial name="_Register_PageHeader_Create" />
                     </div>
 
                     <div class="card shadow-sm border-0">
@@ -77,8 +76,7 @@
         </div>
     </div>
 </div>
-
 @section Scripts {
-    <partial name="_ValidationScriptsPartial"/>
+    <partial name="~/Pages/Shared/_ValidationScriptsPartial.cshtml"/>
     <script src="~/js/register.js" asp-append-version="true"></script>
 }
