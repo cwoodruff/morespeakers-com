@@ -46,11 +46,4 @@
         <HintPath>C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\9.0.9\Microsoft.Extensions.Logging.Abstractions.dll</HintPath>
       </Reference>
     </ItemGroup>
-
-    <ItemGroup>
-      <PackageReference Include="JosephGuadagno.AzureHelpers.Storage" Version="1.1.9" />
-      <PackageReference Include="Microsoft.ApplicationInsights" Version="2.23.0" />
-      <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.0" />
-    </ItemGroup>
-
 </Project>
