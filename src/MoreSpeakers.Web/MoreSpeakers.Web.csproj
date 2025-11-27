@@ -72,11 +72,4 @@
         <ProjectReference Include="..\MoreSpeakers.Managers\MoreSpeakers.Managers.csproj" />
         <ProjectReference Include="..\MoreSpeakers.ServiceDefaults\MoreSpeakers.ServiceDefaults.csproj" />
     </ItemGroup>
-
-    <ItemGroup>
-      <_ContentIncludedByDefault Remove="Pages\Account\Index.cshtml" />
-      <_ContentIncludedByDefault Remove="Pages\Account\_DisplayField.cshtml" />
-      <_ContentIncludedByDefault Remove="Pages\Account\_EditField.cshtml" />
-    </ItemGroup>
-
 </Project>
