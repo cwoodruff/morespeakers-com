@@ -13,17 +13,13 @@ namespace MoreSpeakers.Data;
 public class MentoringDataStore: IMentoringDataStore
 {
     private readonly MoreSpeakersDbContext _context;
-    private readonly Mapper _mapper;
+    private readonly IMapper _mapper;
     private readonly ILogger<MentoringDataStore> _logger;
 
-    public MentoringDataStore(MoreSpeakersDbContext context, ILogger<MentoringDataStore> logger)
+    public MentoringDataStore(MoreSpeakersDbContext context, IMapper mapper,  ILogger<MentoringDataStore> logger)
     {
         _context = context;
-        var mappingConfiguration = new MapperConfiguration(cfg =>
-        {
-            cfg.AddProfile<MappingProfiles.MoreSpeakersProfile>();
-        });
-        _mapper = new Mapper(mappingConfiguration);
+        _mapper = mapper;
         _logger = logger;
     }
 

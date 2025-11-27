@@ -28,11 +28,20 @@ ConfigureLogging(builder.Configuration, builder.Services, fullyQualifiedLogFile,
 var settings = new Settings
 {
     Email = null!,
-    GitHub = null!
+    GitHub = null!,
+    AutoMapper = null!
 };
 builder.Configuration.AddEnvironmentVariables();
 builder.Configuration.Bind("Settings", settings);
 builder.Services.AddSingleton<ISettings>(settings);
+builder.Services.AddSingleton<IAutoMapperSettings>(settings.AutoMapper);
+
+// Add in AutoMapper
+builder.Services.AddAutoMapper(config =>
+{
+    config.LicenseKey = settings.AutoMapper.LicenseKey;
+    config.AddProfile<MoreSpeakers.Data.MappingProfiles.MoreSpeakersProfile>();
+}, typeof(Program));
 
 // Add database context
 builder.AddSqlServerDbContext<MoreSpeakersDbContext>("sqldb");

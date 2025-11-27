@@ -11,17 +11,13 @@ namespace MoreSpeakers.Data;
 public class ExpertiseDataStore : IExpertiseDataStore
 {
     private readonly MoreSpeakersDbContext _context;
-    private readonly Mapper _mapper;
+    private readonly IMapper _mapper;
     private readonly ILogger<ExpertiseDataStore> _logger;
 
-    public ExpertiseDataStore(MoreSpeakersDbContext context, ILogger<ExpertiseDataStore> logger)
+    public ExpertiseDataStore(MoreSpeakersDbContext context, IMapper mapper, ILogger<ExpertiseDataStore> logger)
     {
         _context = context;
-        var mappingConfiguration = new MapperConfiguration(cfg =>
-        {
-            cfg.AddProfile<MappingProfiles.MoreSpeakersProfile>();
-        });
-        _mapper = new Mapper(mappingConfiguration);
+        _mapper = mapper;
         _logger = logger;
     }
 

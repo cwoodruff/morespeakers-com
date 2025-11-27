@@ -20,20 +20,19 @@ public class UserDataStore : IUserDataStore
 {
     private readonly MoreSpeakersDbContext _context;
     private readonly UserManager<Data.Models.User> _userManager;
-    private readonly Mapper _mapper;
+    private readonly IMapper _mapper;
+    private readonly IAutoMapperSettings _autoMapperSettings;
     private readonly ILogger<UserDataStore> _logger;
+    private readonly ILoggerFactory _loggerFactory;
 
-    public UserDataStore(MoreSpeakersDbContext context, UserManager<Data.Models.User> userManager, ILogger<UserDataStore> logger)
+    public UserDataStore(MoreSpeakersDbContext context, UserManager<Data.Models.User> userManager, IMapper mapper, IAutoMapperSettings autoMapperSettings, ILogger<UserDataStore> logger, ILoggerFactory loggerFactory)
     {
         _context = context;
-        var mappingConfiguration = new MapperConfiguration(cfg =>
-        {
-            cfg.AddProfile<MappingProfiles.MoreSpeakersProfile>();
-        });
-        _mapper = new Mapper(mappingConfiguration);
-        
+        _mapper = mapper;
+        _autoMapperSettings = autoMapperSettings;
         _userManager = userManager;
         _logger = logger;
+        _loggerFactory = loggerFactory;
     }
     
     // ------------------------------------------
@@ -207,13 +206,14 @@ public class UserDataStore : IUserDataStore
             // Entity Framework Core does not support updating collections.
             var map = new MapperConfiguration(cfg =>
             {
+                cfg.LicenseKey = _autoMapperSettings.LicenseKey;
                 cfg.CreateMap<User, Data.Models.User>()
                     .ForMember(d => d.UserExpertise, opt => opt.Ignore())
                     .ForMember(d => d.UserSocialMediaSites, opt => opt.Ignore());
                 cfg.CreateMap<Models.MentorshipStatus, Domain.Models.MentorshipStatus>().ReverseMap();
                 cfg.CreateMap<Models.MentorshipType, Domain.Models.MentorshipType>().ReverseMap();
                 cfg.CreateMap<Models.SpeakerType, SpeakerType>().ReverseMap();
-            });
+            }, _loggerFactory);
             var mapper = map.CreateMapper();
             
             mapper.Map(user, dbUser);
