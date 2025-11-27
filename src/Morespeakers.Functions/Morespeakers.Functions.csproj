@@ -45,9 +45,9 @@
 	</PropertyGroup>
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
-		<PackageReference Include="Aspire.Azure.Data.Tables" Version="13.0.0" />
-		<PackageReference Include="Aspire.Azure.Storage.Blobs" Version="13.0.0" />
-		<PackageReference Include="Aspire.Azure.Storage.Queues" Version="13.0.0" />
+		<PackageReference Include="Aspire.Azure.Data.Tables" Version="13.0.1" />
+		<PackageReference Include="Aspire.Azure.Storage.Blobs" Version="13.0.1" />
+		<PackageReference Include="Aspire.Azure.Storage.Queues" Version="13.0.1" />
 		<PackageReference Include="Azure.Communication.Email" Version="1.1.0" />
 		<PackageReference Include="JosephGuadagno.AzureHelpers.Storage" Version="1.1.9" />
 		<PackageReference Include="Microsoft.ApplicationInsights.WorkerService" Version="2.23.0" />
