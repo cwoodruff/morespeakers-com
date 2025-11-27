@@ -16,4 +16,9 @@ public class Settings : ISettings
     /// The GitHub settings.
     /// </summary>
     public required GitHubSettings GitHub { get; init; }
+
+    /// <summary>
+    /// The AutoMapper settings.
+    /// </summary>
+    public required AutoMapperSettings AutoMapper { get; init; }
 }

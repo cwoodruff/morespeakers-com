@@ -11,17 +11,13 @@ namespace MoreSpeakers.Data;
 public class SocialMediaSiteDataStore: ISocialMediaSiteDataStore
 {
     private readonly MoreSpeakersDbContext _context;
-    private readonly Mapper _mapper;
+    private readonly IMapper _mapper;
     private readonly ILogger<SocialMediaSiteDataStore> _logger;
 
-    public SocialMediaSiteDataStore(MoreSpeakersDbContext context, ILogger<SocialMediaSiteDataStore> logger)
+    public SocialMediaSiteDataStore(MoreSpeakersDbContext context, IMapper mapper, ILogger<SocialMediaSiteDataStore> logger)
     {
         _context = context;
-        var mappingConfiguration = new MapperConfiguration(cfg =>
-        {
-            cfg.AddProfile<MappingProfiles.MoreSpeakersProfile>();
-        });
-        _mapper = new Mapper(mappingConfiguration);
+        _mapper = mapper;
         _logger = logger;
     }
     

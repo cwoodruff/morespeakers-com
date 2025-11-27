@@ -16,4 +16,9 @@ public interface ISettings
     /// The GitHub settings.
     /// </summary>
     public GitHubSettings GitHub { get; init; }
+    
+    /// <summary>
+    /// The AutoMapper settings.
+    /// </summary>
+    public AutoMapperSettings AutoMapper { get; init; }
 }
