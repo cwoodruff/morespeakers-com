@@ -1,3 +1,8 @@
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    initializeRegistrationForm();
+});
+
 // Registration form specific functions
 function handleEmailValidation() {
     document.body.addEventListener('htmx:afterRequest', function(evt) {
@@ -22,8 +27,6 @@ function handleEmailValidation() {
 }
 
 function initializeRegistrationForm() {
-    // Initialize custom expertise counter
-    initializeCustomExpertise();
 
     // Handle email validation
     handleEmailValidation();
@@ -55,13 +58,52 @@ function initializeRegistrationForm() {
             button.innerHTML = originalContent;
             button.removeAttribute('data-original-content');
         }
+        updatePageHeader();
     });
 }
 
-function updatePageHeader(step) {
+// Custom validation for the registration form
+function validateRegistrationForm(form) {
+    let isValid = true;
+
+    // Check if at least one expertise is selected
+    const expertiseInputs = form.querySelectorAll('input[name="Input.SelectedExpertiseIds"]:checked, input[name="Input.CustomExpertise"]:checked');
+    if (expertiseInputs.length === 0) {
+        showAlert('Please select at least one area of expertise.', 'warning');
+        isValid = false;
+    }
+
+    // Check if at least one social media link is provided
+    const socialPlatforms = form.querySelectorAll('select[name^="Input.SocialMediaPlatforms"]');
+    const socialUrls = form.querySelectorAll('input[name^="Input.SocialMediaUrls"]');
+    let hasSocialMedia = false;
+
+    for (let i = 0; i < socialPlatforms.length; i++) {
+        if (socialPlatforms[i].value && socialUrls[i] && socialUrls[i].value) {
+            hasSocialMedia = true;
+            break;
+        }
+    }
+
+    if (!hasSocialMedia) {
+        showAlert('Please provide at least one social media link.', 'warning');
+        isValid = false;
+    }
+
+    return isValid;
+}
+
+function updatePageHeader() {
+    
+    const currentStep = document.getElementById('CurrentStep');
+    let stepNumber = 1;
+    if (currentStep) {
+        stepNumber = Number(currentStep.value);
+    }
+    
     const pageHeader = document.getElementById('pageHeader');
     if (pageHeader) {
-        if (step === 5) {
+        if (stepNumber === 5) {
             pageHeader.innerHTML = '<h1 class="h3 fw-bold text-success">Welcome to MoreSpeakers.com!</h1><p class="text-muted">Your registration has been completed successfully</p>';
         } else {
             pageHeader.innerHTML = '<h1 class="h3 fw-bold text-primary">Create Your Speaker Profile</h1><p class="text-muted">Tell us about yourself and join the community</p>';

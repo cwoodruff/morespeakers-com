@@ -123,11 +123,11 @@ builder.Services.AddSession(options =>
 });
 
 var app = builder.Build();
-
-app.MapDefaultEndpoints();
-
-// Configure the HTTP request pipeline
-if (!app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+}
+else
 {
     app.UseExceptionHandler("/Error");
     app.UseHsts();
@@ -144,6 +144,7 @@ app.UseAuthorization();
 
 app.UseSession();
 
+app.MapDefaultEndpoints();
 app.MapRazorPages();
 
 app.Run();
