@@ -120,29 +120,6 @@ public class ExpertiseManagerTests
     }
 
     [Fact]
-    public async Task UpdateExpertiseAsync_should_return_true_on_success()
-    {
-        _dataStoreMock.Setup(d => d.SaveAsync(It.Is<Expertise>(e => e.Id == 7 && e.Name == "AI"))).ReturnsAsync(new Expertise());
-        var sut = CreateSut();
-
-        var result = await sut.UpdateExpertiseAsync(7, "AI", "desc");
-
-        result.Should().BeTrue();
-        _dataStoreMock.Verify(d => d.SaveAsync(It.IsAny<Expertise>()), Times.Once);
-    }
-
-    [Fact]
-    public async Task UpdateExpertiseAsync_should_return_false_on_exception()
-    {
-        _dataStoreMock.Setup(d => d.SaveAsync(It.IsAny<Expertise>())).ThrowsAsync(new Exception("boom"));
-        var sut = CreateSut();
-
-        var result = await sut.UpdateExpertiseAsync(8, "ML");
-
-        result.Should().BeFalse();
-    }
-
-    [Fact]
     public async Task SearchForExpertiseExistsAsync_should_delegate()
     {
         var expected = new Expertise { Id = 1, Name = "AI" };

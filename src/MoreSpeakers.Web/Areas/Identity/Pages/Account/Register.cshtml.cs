@@ -8,6 +8,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Text;
 
 using MoreSpeakers.Domain.Interfaces;
+using MoreSpeakers.Web.Models;
 using MoreSpeakers.Web.Models.ViewModels;
 using MoreSpeakers.Web.Services;
 
@@ -205,46 +206,50 @@ public partial class RegisterModel : PageModel
         return new JsonResult(new { isValid = true, message = "" });
     }
 
-    public async Task<IActionResult> OnPostValidateCustomExpertiseAsync()
+    public async Task<IActionResult> OnPostValidateNewExpertiseAsync()
     {
-        if (string.IsNullOrWhiteSpace(Input.CustomExpertise))
+        if (string.IsNullOrWhiteSpace(Input.NewExpertise))
         {
-            return new JsonResult(new { isValid = true, message = "", suggestion = "" });
+            return new JsonResult(new NewExpertiseResponse
+            {
+                IsValid = false
+            });
         }
 
-        var expertiseName = Input.CustomExpertise;
+        var expertiseName = Input.NewExpertise;
         var trimmedName = expertiseName.Trim();
 
-        // Check if expertise already exists (case-insensitive)
-        var existingExpertise = await _expertiseManager.SearchForExpertiseExistsAsync(trimmedName);
-
-        if (existingExpertise != null)
+        // Search to see if the name exists
+        var existingExpertise = await _expertiseManager.DoesExpertiseWithNameExistsAsync(trimmedName);
+        if (existingExpertise)
         {
-            return new JsonResult(new
+            return new JsonResult(new NewExpertiseResponse
             {
-                isValid = false,
-                message = $"'{existingExpertise.Name}' already exists in our database.",
-                suggestion = $"Consider selecting '{existingExpertise.Name}' from the list above instead.",
-                existingId = existingExpertise.Id
+                IsValid = false,
+                Message = $"Expertise '{expertiseName}' already exists."
             });
         }
-
+        
         // Check for similar expertise (fuzzy matching for suggestions)
-        var similarExpertise = await _expertiseManager.FuzzySearchForExistingExpertise(trimmedName);
+        var similarExpertise = await _expertiseManager.FuzzySearchForExistingExpertise(trimmedName, 5);
 
-        if (similarExpertise.Any())
+        List<Expertise> expertises = similarExpertise.ToList();
+        if (expertises.Any())
         {
-            var suggestions = string.Join(", ", similarExpertise.Select(s => s.Name));
-            return new JsonResult(new
+            
+            var suggestions = string.Join(", ", expertises.Select(s => s.Name));
+            return new JsonResult(new NewExpertiseResponse
             {
-                isValid = true,
-                message = "",
-                suggestion = $"Similar expertise found: {suggestions}. Consider selecting from existing options.",
-                similarItems = similarExpertise
+                IsValid = false,
+                Message = $"Similar expertise found: {suggestions}. Consider selecting from existing options.",
+                Expertises = expertises
             });
         }
 
-        return new JsonResult(new { isValid = true, message = "", suggestion = "" });
+        return new JsonResult(new NewExpertiseResponse
+        {
+            IsValid = true
+        });
     }
 
     private async Task LoadFormLookupListsAsync()
@@ -329,7 +334,7 @@ public partial class RegisterModel : PageModel
                     ModelState.AddModelError("Input.Goals", "Goals are required.");
                 break;
             case Models.RegistrationProgressions.ExpertiseNeeded: // Expertise step
-                if ((Input.SelectedExpertiseIds?.Length ?? 0) == 0 && (Input.CustomExpertise?.Length ?? 0) == 0)
+                if (Input.SelectedExpertiseIds?.Length == 0)
                     ModelState.AddModelError("Input.SelectedExpertiseIds",
                         "Please select at least one area of expertise.");
                 break;

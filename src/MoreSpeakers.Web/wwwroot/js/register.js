@@ -1,35 +1,11 @@
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
     initializeRegistrationForm();
+    handleEmailValidation();
+    handleNewExpertiseValidation();
 });
 
-// Registration form specific functions
-function handleEmailValidation() {
-    document.body.addEventListener('htmx:afterRequest', function(evt) {
-        if (evt.detail.target.id === 'email-validation-message') {
-            const response = JSON.parse(evt.detail.xhr.responseText);
-            const messageDiv = document.getElementById('email-validation-message');
-            const emailInput = document.querySelector('input[name="Input.Email"]');
-
-            if (response.isValid) {
-                messageDiv.innerHTML = response.message ? '<i class="bi bi-check-circle me-1"></i>' + response.message : '';
-                messageDiv.className = 'small mt-1 text-success';
-                emailInput.classList.remove('is-invalid');
-                emailInput.classList.add('is-valid');
-            } else {
-                messageDiv.innerHTML = '<i class="bi bi-exclamation-triangle me-1"></i>' + response.message;
-                messageDiv.className = 'small mt-1 text-danger';
-                emailInput.classList.remove('is-valid');
-                emailInput.classList.add('is-invalid');
-            }
-        }
-    });
-}
-
 function initializeRegistrationForm() {
-
-    // Handle email validation
-    handleEmailValidation();
 
     // Enhanced HTMX handlers for registration
     document.addEventListener('htmx:beforeRequest', function (event) {
@@ -60,6 +36,92 @@ function initializeRegistrationForm() {
         }
         updatePageHeader();
     });
+}
+
+function handleEmailValidation() {
+    document.body.addEventListener('htmx:afterRequest', function(event) {
+        if (event.detail.target.id === 'email-validation-message') {
+            const response = JSON.parse(event.detail.xhr.responseText);
+            const messageDiv = document.getElementById('email-validation-message');
+            const emailInput = document.querySelector('input[name="Input.Email"]');
+
+            if (response.isValid) {
+                messageDiv.innerHTML = response.message ? '<i class="bi bi-check-circle me-1"></i>' + response.message : '';
+                messageDiv.className = 'small mt-1 text-success';
+                emailInput.classList.remove('is-invalid');
+                emailInput.classList.add('is-valid');
+            } else {
+                messageDiv.innerHTML = '<i class="bi bi-exclamation-triangle me-1"></i>' + response.message;
+                messageDiv.className = 'small mt-1 text-danger';
+                emailInput.classList.remove('is-valid');
+                emailInput.classList.add('is-invalid');
+            }
+        }
+    });
+}
+
+function handleNewExpertiseValidation() {
+    document.body.addEventListener('htmx:afterRequest', function(event) {
+
+        if (event.detail.elt.name !== 'Input.NewExpertise' || event.detail.successful !== true) {
+            return;
+        }
+
+        try {
+            const jsonData = JSON.parse(event.detail.xhr.responseText);
+            const messageDiv = event.detail.target;
+            const newExpertiseInput = event.detail.elt;   
+            
+            let submitButton = document.getElementById('submitExpertise');
+            if (!submitButton) {
+                console.log ("Could not find submit button!");
+                return;
+            }
+            submitButton.disabled = !jsonData.isValid;
+            if (jsonData.isValid) {
+                messageDiv.innerHTML = jsonData.message ? '<i class="bi bi-check-circle me-1"></i>' + jsonData.message : '';
+                messageDiv.className = 'small mt-1 text-success';
+                newExpertiseInput.classList.remove('is-invalid');
+                newExpertiseInput.classList.add('is-valid');
+            } else {
+                messageDiv.innerHTML = '<i class="bi bi-exclamation-triangle me-1"></i>' + jsonData.message;
+                messageDiv.className = 'small mt-1 text-danger';
+                newExpertiseInput.classList.remove('is-valid');
+                newExpertiseInput.classList.add('is-invalid');
+            }
+        }
+        catch {
+            console.log("Failed to parse JSON");
+        }
+    });
+}
+
+function handleNewExpertiseValidation2() {
+    document.body.addEventListener('htmx:afterRequest', function(event) {
+
+        if (event.detail.elt.name !== 'Input.NewExpertise' || event.detail.successful !== true) {
+            return;
+        }
+        
+        try {
+            const jsonData = JSON.parse(event.detail.xhr.responseText);
+            console.log("Sample");
+            let submitButton = document.getElementById('submitExpertise');
+            if (!submitButton) {
+                console.log ("Could not find submit button!");
+                return;
+            }
+            submitButton.disabled = !jsonData.canCreate;
+            if (jsonData.message) {
+                // Display the message
+                event.target.innerHTML = jsonData.message;
+            }
+        }
+        catch {
+            console.log("Failed to parse JSON");
+        }
+        event.preventDefault();
+    });  
 }
 
 // Custom validation for the registration form
