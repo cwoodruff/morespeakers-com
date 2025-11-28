@@ -21,4 +21,9 @@ public class NewExpertiseResponse
     /// A list of expertises that may match
     /// </summary>
     public List<Expertise> Expertises { get; set; } = [];
+    
+    /// <summary>
+    /// The id of the newly created expertise
+    /// </summary>
+    public int NewId { get; set; }
 }

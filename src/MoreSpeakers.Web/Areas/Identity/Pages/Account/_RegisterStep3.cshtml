@@ -47,8 +47,12 @@
                        hx-trigger="blur, keyup changed delay:500ms"
                        hx-target="#newExpertiseValidationMessage"
                        hx-include="this"
-                       hx-indicator="#newExpertiseStatus"/>
-                <button type="button" class="btn btn-outline-primary" id="submitExpertise" disabled="disabled" >
+                       hx-indicator="#newExpertiseStatus" />
+                <button type="button" class="btn btn-outline-primary" id="submitExpertise" disabled="disabled"
+                        hx-post="/Register?handler=SubmitNewExpertise"
+                        hx-target="#newExpertiseValidationMessage"
+                        hx-include="[name='Input.NewExpertise']"
+                        hx-indicator="#newExpertiseStatus">
                     <i class="bi bi-plus mt-2"></i>Add
                 </button>
                 <div id="newExpertiseStatus">

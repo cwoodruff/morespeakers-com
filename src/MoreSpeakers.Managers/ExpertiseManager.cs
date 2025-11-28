@@ -47,8 +47,8 @@ public class ExpertiseManager: IExpertiseManager
         
         try
         {
-            await _dataStore.SaveAsync(expertise);
-            return expertise.Id;  
+            var savedExpertise = await _dataStore.SaveAsync(expertise);
+            return savedExpertise.Id;  
         }
         catch(Exception ex)
         {

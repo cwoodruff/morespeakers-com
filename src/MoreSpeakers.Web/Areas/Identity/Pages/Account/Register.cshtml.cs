@@ -252,6 +252,48 @@ public partial class RegisterModel : PageModel
         });
     }
 
+    public async Task<IActionResult> OnPostSubmitNewExpertiseAsync()
+    {
+        if (string.IsNullOrWhiteSpace(Input.NewExpertise))
+        {
+            return new JsonResult(new NewExpertiseResponse { IsValid = false, Message = "No expertise name was provided."});
+        }
+
+        var expertiseName = Input.NewExpertise;
+        var trimmedName = expertiseName.Trim();
+
+        try
+        {
+            // Search to see if the name exists
+            var existingExpertise = await _expertiseManager.DoesExpertiseWithNameExistsAsync(trimmedName);
+            if (existingExpertise)
+            {
+                return new JsonResult(new NewExpertiseResponse
+                {
+                    IsValid = false, Message = $"Expertise '{expertiseName}' already exists."
+                });
+            }
+
+            // Attempt to save the expertise
+            var expertiseId = await _expertiseManager.CreateExpertiseAsync(trimmedName);
+
+            return expertiseId == 0
+                ? new JsonResult(new NewExpertiseResponse { IsValid = false, Message = "Failed to create expertise." })
+                : new JsonResult(new NewExpertiseResponse { IsValid = true, NewId = expertiseId });
+
+
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error submitting new expertise");
+            return new JsonResult(new NewExpertiseResponse
+            {
+                IsValid = false, Message = "Failed to save the expertise."
+            });
+        }
+        
+    }
+
     private async Task LoadFormLookupListsAsync()
     {
         AvailableExpertises = await _expertiseManager.GetAllAsync();
