@@ -69,16 +69,7 @@
             <input type="hidden" name="Input.SelectedExpertiseIds" value="@id" />
         }
     }
-    @if (Model?.Input?.CustomExpertise != null)
-    {
-        foreach (var ce in Model.Input.CustomExpertise)
-        {
-            if (!string.IsNullOrWhiteSpace(ce))
-            {
-                <input type="hidden" name="Input.CustomExpertise" value="@ce" />
-            }
-        }
-    }
+   
     @if (Model?.Input?.UserSocialMediaSites != null)
     {
         foreach (var usms in Model.Input.UserSocialMediaSites)

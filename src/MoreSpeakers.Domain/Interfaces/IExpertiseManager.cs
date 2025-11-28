@@ -15,5 +15,5 @@ public interface IExpertiseManager
     Task<IEnumerable<Expertise>> SearchExpertiseAsync(string searchTerm);
     Task<bool> UpdateExpertiseAsync(int id, string name, string? description = null);
     Task<Expertise?> SearchForExpertiseExistsAsync(string name);
-    Task<List<Expertise>> FuzzySearchForExistingExpertise(string name, int count = 3);
+    Task<List<Expertise?>> FuzzySearchForExistingExpertise(string name, int count = 3);
 }

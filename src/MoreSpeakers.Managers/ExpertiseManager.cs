@@ -95,7 +95,7 @@ public class ExpertiseManager: IExpertiseManager
         return await _dataStore.GetPopularExpertiseAsync(count);
     }
 
-    public async Task<List<Expertise>> FuzzySearchForExistingExpertise(string name, int count = 3)
+    public async Task<List<Expertise?>> FuzzySearchForExistingExpertise(string name, int count = 3)
     {
         return await _dataStore.FuzzySearchForExistingExpertise(name, count);
     }

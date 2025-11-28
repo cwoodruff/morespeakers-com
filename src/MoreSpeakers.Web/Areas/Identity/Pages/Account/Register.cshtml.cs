@@ -205,14 +205,14 @@ public partial class RegisterModel : PageModel
         return new JsonResult(new { isValid = true, message = "" });
     }
 
-    public async Task<IActionResult> OnPostValidateCustomExpertiseAsync(string expertiseName)
+    public async Task<IActionResult> OnPostValidateCustomExpertiseAsync()
     {
-        // This is not implemented until we add the ability to create custom expertise
-        if (string.IsNullOrWhiteSpace(expertiseName))
+        if (string.IsNullOrWhiteSpace(Input.CustomExpertise))
         {
             return new JsonResult(new { isValid = true, message = "", suggestion = "" });
         }
 
+        var expertiseName = Input.CustomExpertise;
         var trimmedName = expertiseName.Trim();
 
         // Check if expertise already exists (case-insensitive)

@@ -37,23 +37,22 @@
         <span asp-validation-for="Input.SelectedExpertiseIds" class="text-danger small"></span>
     </div>
 
-    <div class="mb-3 d-none">
+    <div class="mb-3">
         <label class="form-label fw-medium">Custom Expertise Areas</label>
         <div id="customExpertiseContainer">
-            <div class="input-group mb-2 custom-expertise-input" data-expertise-index="0">
-                <input type="text" name="Input.CustomExpertise" class="form-control custom-expertise-field"
+            <div class="input-group mb-2" data-expertise-index="0">
+                <input type="text" name="Input.CustomExpertise" class="form-control"
                        placeholder="Enter a custom expertise area"
                        hx-post="/Register?handler=ValidateCustomExpertise"
                        hx-trigger="blur, keyup changed delay:500ms"
                        hx-target="next .custom-expertise-validation"
                        hx-include="this"
-                       hx-indicator="next .custom-expertise-validation .htmx-indicator"/>
-                <button type="button" class="btn btn-outline-primary" 
-                        onclick="addCustomExpertise()">
+                       hx-indicator="next .htmx-indicator"/>
+                <button type="button" class="btn btn-outline-primary" >
                     <i class="bi bi-plus"></i>
                 </button>
                 <div class="custom-expertise-validation position-relative">
-                    <div class="htmx-indicator position-absolute" style="top: 8px; right: 8px;">
+                    <div class="htmx-indicator position-absolute">
                         <div class="spinner-border spinner-border-sm text-primary" role="status">
                             <span class="visually-hidden">Checking...</span>
                         </div>

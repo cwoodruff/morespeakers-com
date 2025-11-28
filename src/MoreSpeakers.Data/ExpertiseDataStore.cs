@@ -133,20 +133,21 @@ public class ExpertiseDataStore : IExpertiseDataStore
 
     public async Task<Expertise?> SearchForExpertiseExistsAsync(string name)
     {
-        var experiences = await _context.Expertise.FirstOrDefaultAsync(e => e.Name.Equals(name.Trim(), StringComparison.CurrentCultureIgnoreCase));
-        return _mapper.Map<Expertise>(experiences);   
+        var experiences = await _context.Expertise.FirstOrDefaultAsync(e =>
+            e.Name.Trim().Equals(name.Trim().ToLower()));
+        return _mapper.Map<Expertise?>(experiences);   
     }
     
-    public async Task<List<Expertise>> FuzzySearchForExistingExpertise(string name, int count = 3)
+    public async Task<List<Expertise?>> FuzzySearchForExistingExpertise(string name, int count = 3)
     {
         var trimmedName = name.Trim();
         var expertises = await _context.Expertise
-            .Where(e => e.Name.ToLower().Contains(trimmedName.ToLower()) ||
-                        trimmedName.ToLower().Contains(e.Name.ToLower()))
+            .Where(e => EF.Functions.Like(e.Name, trimmedName.ToLower()) ||
+                        EF.Functions.Like(trimmedName, e.Name.ToLower()))
             .Take(count)
             .Select(e => new { e.Id, e.Name })
             .ToListAsync();
         
-        return _mapper.Map<List<Expertise>>(expertises.FirstOrDefault());   
+        return _mapper.Map<List<Expertise?>>(expertises);   
     }
 }
