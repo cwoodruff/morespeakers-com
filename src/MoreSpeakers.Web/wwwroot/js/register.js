@@ -42,8 +42,8 @@ function handleEmailValidation() {
     document.body.addEventListener('htmx:afterRequest', function(event) {
         if (event.detail.target.id === 'email-validation-message') {
             const response = JSON.parse(event.detail.xhr.responseText);
-            const messageDiv = document.getElementById('email-validation-message');
-            const emailInput = document.querySelector('input[name="Input.Email"]');
+            const messageDiv = event.detail.target;
+            const emailInput = event.detail.elt;
 
             if (response.isValid) {
                 messageDiv.innerHTML = response.message ? '<i class="bi bi-check-circle me-1"></i>' + response.message : '';
@@ -96,33 +96,6 @@ function handleNewExpertiseValidation() {
     });
 }
 
-function handleNewExpertiseValidation2() {
-    document.body.addEventListener('htmx:afterRequest', function(event) {
-
-        if (event.detail.elt.name !== 'Input.NewExpertise' || event.detail.successful !== true) {
-            return;
-        }
-        
-        try {
-            const jsonData = JSON.parse(event.detail.xhr.responseText);
-            console.log("Sample");
-            let submitButton = document.getElementById('submitExpertise');
-            if (!submitButton) {
-                console.log ("Could not find submit button!");
-                return;
-            }
-            submitButton.disabled = !jsonData.canCreate;
-            if (jsonData.message) {
-                // Display the message
-                event.target.innerHTML = jsonData.message;
-            }
-        }
-        catch {
-            console.log("Failed to parse JSON");
-        }
-        event.preventDefault();
-    });  
-}
 
 // Custom validation for the registration form
 function validateRegistrationForm(form) {

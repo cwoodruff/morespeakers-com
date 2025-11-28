@@ -38,23 +38,22 @@
     </div>
 
     <div class="mb-3">
-        <label class="form-label fw-medium">Add an expertise?</label>
+        <label class="form-label fw-medium">Are we missing an expertise? Add new one!</label>
         <div id="newExpertiseContainer">
             <div class="input-group mb-2" data-expertise-index="0">
                 <input type="text" name="Input.NewExpertise" class="form-control"
                        placeholder="Enter a new expertise area"
                        hx-post="/Register?handler=ValidateNewExpertise"
-                       hx-trigger="blur"
+                       hx-trigger="blur, keyup changed delay:500ms"
                        hx-target="#newExpertiseValidationMessage"
                        hx-include="this"
                        hx-indicator="#newExpertiseStatus"/>
-                <!-- hx-trigger="blur, keyup changed delay:500ms"-->
                 <button type="button" class="btn btn-outline-primary" id="submitExpertise" disabled="disabled" >
                     <i class="bi bi-plus mt-2"></i>Add
                 </button>
                 <div id="newExpertiseStatus">
                     <div class="htmx-indicator position-absolute">
-                        <div class="spinner-border spinner-border-sm text-primary" role="status">
+                        <div class="spinner-border text-primary" role="status">
                             <span class="visually-hidden">Checking...</span>
                         </div>
                     </div>
