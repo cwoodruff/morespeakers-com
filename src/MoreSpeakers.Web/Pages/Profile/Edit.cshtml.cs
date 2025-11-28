@@ -25,7 +25,7 @@ public class EditModel(
     [BindProperty] public PasswordChangeInputModel PasswordInput { get; set; } = new();
 
     public User ProfileUser { get; set; } = null!;
-    public IEnumerable<Expertise> AvailableExpertise { get; set; } = new List<Expertise>();
+    public IEnumerable<Expertise> AvailableExpertises { get; set; } = new List<Expertise>();
     public IEnumerable<SocialMediaSite> SocialMediaSites { get; set; } = new List<SocialMediaSite>();
 
     // Properties for HTMX state management
@@ -48,7 +48,7 @@ public async Task<IActionResult> OnGetAsync()
         }
 
         ProfileUser = user;
-        AvailableExpertise = await expertiseManager.GetAllAsync();
+        AvailableExpertises = await expertiseManager.GetAllAsync();
         SocialMediaSites = await socialMediaSiteManager.GetAllAsync();
         ActiveTab = "profile";
         return Page();
@@ -97,7 +97,7 @@ public async Task<IActionResult> OnGetAsync()
             }
 
             ProfileUser = userProfile;
-            AvailableExpertise = await expertiseManager.GetAllAsync();
+            AvailableExpertises = await expertiseManager.GetAllAsync();
             SocialMediaSites = await socialMediaSiteManager.GetAllAsync();
             
             HasValidationErrors = false;
@@ -205,7 +205,7 @@ public async Task<IActionResult> OnGetAsync()
         }
 
         ProfileUser = user;
-        AvailableExpertise = await expertiseManager.GetAllAsync();
+        AvailableExpertises = await expertiseManager.GetAllAsync();
         SocialMediaSites = await socialMediaSiteManager.GetAllAsync();
         ActiveTab = tab;
         

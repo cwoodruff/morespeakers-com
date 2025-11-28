@@ -1,0 +1,17 @@
+@model MoreSpeakers.Web.Models.ViewModels.ExpertiseListDisplayViewModel
+
+@foreach (var expertise in Model.AvailableExpertises)
+{
+    <div class="col-md-3 col-sm-6 mb-2">
+        <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" role="switch" switch
+                   name="Input.SelectedExpertiseIds" 
+                   value="@expertise.Id"
+                   id="expertise_@expertise.Id"
+                   @(Model.SelectedExpertiseIds?.Contains(expertise.Id) == true ? "checked" : "") />
+            <label class="form-check-label" for="expertise_@expertise.Id">
+                @expertise.Name
+            </label>
+        </div>
+    </div>
+}

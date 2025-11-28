@@ -44,6 +44,7 @@ public partial class RegisterModel : PageModel
 
     // Property to expose selected expertise IDs for registration completion (step 5)
     public int[] ExpertiseIds => Input.SelectedExpertiseIds ?? [];
+    public ExpertiseListDisplayViewModel ExpertiseListDisplay { get; set; }
     
     // Lookup values
     public IEnumerable<Expertise> AvailableExpertises { get; set; } = new List<Expertise>();
@@ -298,6 +299,11 @@ public partial class RegisterModel : PageModel
     {
         AvailableExpertises = await _expertiseManager.GetAllAsync();
         SpeakerTypes = await _userManager.GetSpeakerTypesAsync();
+        ExpertiseListDisplay = new ExpertiseListDisplayViewModel
+        {
+            AvailableExpertises = AvailableExpertises
+        };
+        ExpertiseListDisplay.SelectedExpertiseIds = Input?.SelectedExpertiseIds ?? [];
     }
 
     private bool ValidateStep(int step)

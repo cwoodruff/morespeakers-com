@@ -1,3 +1,4 @@
+@using MoreSpeakers.Web.Models.ViewModels
 @model MoreSpeakers.Web.Areas.Identity.Pages.Account.RegisterModel
 
 <div class="form-step" data-step="3">
@@ -18,21 +19,8 @@
 
     <div class="row mb-4">
         <label class="form-label fw-medium">Select Your Expertise Areas</label>
-        <div class="row mb-4">
-            @foreach (var expertise in Model.AvailableExpertises)
-            {
-                <div class="col-md-3 col-sm-6 mb-2">
-                    <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" role="switch" switch
-                               name="Input.SelectedExpertiseIds" 
-                               value="@expertise.Id"
-                               id="expertise_@expertise.Id"/>
-                        <label class="form-check-label" for="expertise_@expertise.Id">
-                            @expertise.Name
-                        </label>
-                    </div>
-                </div>
-            }
+        <div class="row mb-4" hx-swap-oob="true" id="expertise-list-display">
+            <partial name="~/Pages/Shared/_ExpertiseListDisplay.cshtml" model="Model.ExpertiseListDisplay" />
         </div>
         <span asp-validation-for="Input.SelectedExpertiseIds" class="text-danger small"></span>
     </div>
