@@ -10,6 +10,7 @@ using MoreSpeakers.Data;
 
 using Serilog;
 using Serilog.Exceptions;
+using MoreSpeakers.Web.Authorization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -84,9 +85,39 @@ builder.Services.AddRazorPages(options =>
 {
     options.Conventions.AuthorizeAreaFolder("Identity", "/Account/Manage");
     options.Conventions.AuthorizeAreaPage("Identity", "/Account/Logout");
+
+    // Admin area baseline: require AdminOnly for all pages under /Admin
+    // Keep the dashboard (Index) under AdminOnly only; granular policies apply to sub-folders below.
+    options.Conventions.AuthorizeAreaFolder("Admin", "/", policy: "AdminOnly");
+
+    // Granular least-privilege policies by sub-folder within the Admin area
+    // Users management pages → ManageUsers policy
+    options.Conventions.AuthorizeAreaFolder("Admin", "/Users", policy: PolicyNames.ManageUsers);
+    // Catalog/content management pages → ManageCatalog policy
+    options.Conventions.AuthorizeAreaFolder("Admin", "/Catalog", policy: PolicyNames.ManageCatalog);
+    // Reports/analytics pages → ViewReports policy
+    options.Conventions.AuthorizeAreaFolder("Admin", "/Reports", policy: PolicyNames.ViewReports);
 });
 builder.Services.AddMvcCore().AddRazorViewEngine();
 builder.Services.AddControllersWithViews();
+
+// Add authorization policies for least-privilege admin operations
+builder.Services.AddAuthorization(options =>
+{
+    // Baseline Admin area policy: only Administrators can enter the Admin area
+    options.AddPolicy("AdminOnly", policy =>
+        policy.RequireRole(AppRoles.Administrator));
+
+    // Keep Administrator with full access to all policies
+    options.AddPolicy(PolicyNames.ManageUsers, policy =>
+        policy.RequireRole(AppRoles.Administrator, AppRoles.UserManager, AppRoles.Moderator));
+
+    options.AddPolicy(PolicyNames.ManageCatalog, policy =>
+        policy.RequireRole(AppRoles.Administrator, AppRoles.CatalogManager, AppRoles.Moderator));
+
+    options.AddPolicy(PolicyNames.ViewReports, policy =>
+        policy.RequireRole(AppRoles.Administrator, AppRoles.Reporter, AppRoles.Moderator));
+});
 
 // Add Azure Storage services
 builder.AddAzureBlobServiceClient("AzureStorageBlobs");
