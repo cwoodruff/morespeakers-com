@@ -79,11 +79,27 @@ builder.Services.AddDefaultIdentity<MoreSpeakers.Data.Models.User>(options =>
     .AddRoles<IdentityRole<Guid>>()
     .AddEntityFrameworkStores<MoreSpeakersDbContext>();
 
+// Configure cookie paths explicitly to ensure expected redirects
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath = "/Identity/Account/Login";
+    options.AccessDeniedPath = "/Identity/Account/AccessDenied";
+});
+
+// Add Authorization with AdminOnly policy
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminOnly", policy =>
+        policy.RequireRole("Administrator"));
+});
+
 // Add Razor Pages
 builder.Services.AddRazorPages(options =>
 {
     options.Conventions.AuthorizeAreaFolder("Identity", "/Account/Manage");
     options.Conventions.AuthorizeAreaPage("Identity", "/Account/Logout");
+    // Authorize entire Admin area using the AdminOnly policy
+    options.Conventions.AuthorizeAreaFolder("Admin", "/", policy: "AdminOnly");
 });
 builder.Services.AddMvcCore().AddRazorViewEngine();
 builder.Services.AddControllersWithViews();
@@ -184,3 +200,6 @@ void ConfigureLogging(IConfigurationRoot configurationRoot, IServiceCollection s
         loggingBuilder.AddSerilog(logger);
     });
 }
+
+// Expose Program for WebApplicationFactory in integration tests
+public partial class Program { }
