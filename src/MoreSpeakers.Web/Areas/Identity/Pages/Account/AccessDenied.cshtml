@@ -1,0 +1,25 @@
+@page
+@{
+    ViewData["Title"] = "Access denied";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-8 col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h1 class="h4 mb-3 text-danger"><i class="bi bi-shield-lock me-2"></i>Access denied</h1>
+                    <p class="mb-3">You do not have permission to access this resource.</p>
+                    <ul class="mb-4 small text-muted">
+                        <li>If you believe this is an error, contact a site administrator.</li>
+                        <li>Your account might require additional permissions (role: <code>Administrator</code>).</li>
+                    </ul>
+                    <div class="d-flex gap-2">
+                        <a class="btn btn-primary" asp-area="" asp-page="/Index"><i class="bi bi-house me-1"></i>Return to Home</a>
+                        <a class="btn btn-outline-secondary" asp-area="Identity" asp-page="/Account/Manage/Index"><i class="bi bi-person me-1"></i>Manage Account</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
