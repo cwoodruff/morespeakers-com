@@ -1,0 +1,111 @@
+@*
+    Admin Area Layout
+    - Distinct title and branding to differentiate from the main site
+    - Reuses the site's CSS/JS assets
+    - Provides admin nav placeholders and a profile/sign-out area
+*@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="theme-color" content="#fd7e14"/>
+    <title>@ViewData["Title"] - Admin • MoreSpeakers.com</title>
+
+    <link rel="apple-touch-icon" sizes="57x57" href="/images/favicons/apple-icon-57x57.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="/images/favicons/apple-icon-60x60.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="/images/favicons/apple-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="/images/favicons/apple-icon-76x76.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="/images/favicons/apple-icon-114x114.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="/images/favicons/apple-icon-120x120.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="/images/favicons/apple-icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="/images/favicons/apple-icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/favicons/apple-icon-180x180.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/images/favicons/android-icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/images/favicons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="/images/favicons/favicon-96x96.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/images/favicons/favicon-16x16.png">
+    <link rel="manifest" href="/images/favicons/manifest.json">
+    <meta name="msapplication-TileColor" content="#ffffff">
+    <meta name="msapplication-TileImage" content="/images/favicons/ms-icon-144x144.png">
+
+    <environment include="Production">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha256-2FMn2Zx6PuH5tdBQDRNwrOo60ts5wWPC9R8jK67b3t4=" crossorigin="anonymous">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" rel="stylesheet" integrity="sha256-pdY4ejLKO67E0CM2tbPtq1DJ3VGDVVdqAR6j3ZwdiE4=" crossorigin="anonymous">
+        <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.8/dist/united/bootstrap.min.css" rel="stylesheet">
+        <link href="https://cdn.jsdelivr.net/npm/@@fortawesome/fontawesome-free@7.1.0/css/fontawesome.min.css" rel="stylesheet" integrity="sha256-G5bovI+uHM2gCO6EwO9PFQcclSBYzTaxY6DXks3YxBU=" crossorigin="anonymous">
+    </environment>
+    <environment exclude="Production">
+        <link rel="stylesheet" href="~/lib/bootswatch/dist/united/bootstrap.css" />
+        <link rel="stylesheet" href="~/lib/bootstrap-icons/font/bootstrap-icons.css" />
+        <link rel="stylesheet" href="~/lib/fontawesome-free/css/all.css" />
+    </environment>
+
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true"/>
+
+    <environment include="Production">
+        <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.7/dist/htmx.min.js" integrity="sha256-YCMa5rqds4JesVomESLV9VkhxNU7Zr9jfcGLTuJ8efk=" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/hyperscript.org@0.9.14/dist/_hyperscript.min.js" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/hyperscript.org@0.9.14/dist/hdb.min.js" integrity="sha256-eqsD5t9zqxRfgY93GIt7yy5ckoxF/aiU5MRHMiAFnq4=" crossorigin="anonymous"></script>
+    </environment>
+    <environment exclude="Production">
+        <script src="~/lib/htmx-org/dist/htmx.js"></script>
+        <script src="~/lib/hyperscript-org/dist/_hyperscript.js"></script>
+    </environment>
+    <script src="~/js/theme-support.js" asp-append-version="true"></script>
+</head>
+<body>
+<header>
+    <nav class="navbar navbar-expand-lg fixed-top bg-dark navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" asp-area="Admin" asp-page="/Index">
+                <img src="/images/favicons/favicon-32x32.png" alt="More Speakers Logo" width="30" height="24" class="d-inline-block align-text-top" />
+                Admin • MoreSpeakers
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#adminNavbar"
+                    aria-controls="adminNavbar" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="adminNavbar">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" asp-area="Admin" asp-page="/Index"><i class="bi bi-speedometer2 me-1"></i>Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="bi bi-people me-1"></i>Users</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="bi bi-journal-text me-1"></i>Content</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="bi bi-gear me-1"></i>Settings</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <partial name="~/Pages/Shared/_LoginPartial.cshtml" />
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+</header>
+
+<main role="main" class="container" style="padding-top: 5rem;">
+    @RenderBody()
+</main>
+
+<footer class="border-top footer text-muted mt-5">
+    <div class="container py-3 small">
+        <span>Admin Area • MoreSpeakers.com</span>
+        <span class="ms-2">|</span>
+        <a class="ms-2" asp-area="" asp-page="/Index">Return to site</a>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha256-r3owBq6lfFfW5yUitM9qFWR1RUWBZSJQy5qv6z+vmdQ=" crossorigin="anonymous"></script>
+    @RenderSection("Scripts", required: false)
+    <partial name="~/Pages/Shared/_ValidationScriptsPartial.cshtml" />
+    <script src="~/js/site.js" asp-append-version="true"></script>
+</footer>
+
+</body>
+</html>
