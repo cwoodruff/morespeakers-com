@@ -167,11 +167,12 @@
         </div>
         <div class="row mb-4" hx-swap-oob="true" id="expertise-list-display">
             @{
-                await Html.RenderPartialAsync("~/Pages/Shared/_ExpertiseListDisplay.cshtml", new ExpertiseListDisplayViewModel
+                var expertiseListDisplay = new ExpertiseListDisplayViewModel
                 {
                     AvailableExpertises = Model.AvailableExpertises,
                     SelectedExpertiseIds = Model.Input.SelectedExpertiseIds
-                });
+                }; 
+                @await Html.PartialAsync("_ExpertiseListDisplay", expertiseListDisplay); 
             }
         </div>
     </div>
@@ -194,7 +195,7 @@
             {
                 foreach (var userSocialMediaSite in Model.ProfileUser.UserSocialMediaSites)
                 {
-                    var model = new UserSocialMediaSiteRow
+                    var model = new UserSocialMediaSiteRowViewModel
                     {
                         UserSocialMediaSite = userSocialMediaSite,
                         SocialMediaSites = socialMediaSites,

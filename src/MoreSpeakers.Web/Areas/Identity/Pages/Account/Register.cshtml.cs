@@ -55,7 +55,7 @@ public partial class RegisterModel : PageModel
     public async Task OnGetAsync()
     {
         // Initialize registration state
-        CurrentStep = Models.RegistrationProgressions.SpeakerProfileNeeded;
+        CurrentStep = RegistrationProgressions.SpeakerProfileNeeded;
         HasValidationErrors = false;
         ValidationMessage = string.Empty;
         SuccessMessage = string.Empty;
@@ -71,7 +71,7 @@ public partial class RegisterModel : PageModel
     public async Task<IActionResult> OnPostValidateStepAsync(int step)
     {
         // Validate step number
-        if (!Models.RegistrationProgressions.IsValid(step))
+        if (!RegistrationProgressions.IsValid(step))
         {
             ModelState.AddModelError("", "Invalid step number.");
             return BadRequest();
@@ -84,7 +84,7 @@ public partial class RegisterModel : PageModel
         var stepValid = ValidateStep(step);
 
         // Additional async validations for step 1 (e.g., email uniqueness)
-        if (step == Models.RegistrationProgressions.SpeakerProfileNeeded && stepValid)
+        if (step == RegistrationProgressions.SpeakerProfileNeeded && stepValid)
         {
             if (!string.IsNullOrWhiteSpace(Input.Email))
             {
@@ -116,7 +116,7 @@ public partial class RegisterModel : PageModel
 
         // All validation passed - move to the next step
         var nextStep = step + 1;
-        if (nextStep <= Models.RegistrationProgressions.SocialMediaNeeded)
+        if (nextStep <= RegistrationProgressions.SocialMediaNeeded)
         {
             HasValidationErrors = false;
             SuccessMessage = GetSuccessMessage(step);
@@ -139,10 +139,10 @@ public partial class RegisterModel : PageModel
     {
         return step switch
         {
-            Models.RegistrationProgressions.SpeakerProfileNeeded => "Please complete all required account information before proceeding.",
-            Models.RegistrationProgressions.RequiredInformationNeeded => "Please fill out your speaker profile completely.",
-            Models.RegistrationProgressions.ExpertiseNeeded => "Please select at least one area of expertise.",
-            Models.RegistrationProgressions.SocialMediaNeeded => "Please add at least one social media account.",
+            RegistrationProgressions.SpeakerProfileNeeded => "Please complete all required account information before proceeding.",
+            RegistrationProgressions.RequiredInformationNeeded => "Please fill out your speaker profile completely.",
+            RegistrationProgressions.ExpertiseNeeded => "Please select at least one area of expertise.",
+            RegistrationProgressions.SocialMediaNeeded => "Please add at least one social media account.",
             _ => "Please complete the required information."
         };
     }
@@ -151,9 +151,9 @@ public partial class RegisterModel : PageModel
     {
         return step switch
         {
-            Models.RegistrationProgressions.SpeakerProfileNeeded => "Account information saved successfully!",
-            Models.RegistrationProgressions.RequiredInformationNeeded => "Profile information saved successfully!",
-            Models.RegistrationProgressions.ExpertiseNeeded => "Expertise areas saved successfully!",
+            RegistrationProgressions.SpeakerProfileNeeded => "Account information saved successfully!",
+            RegistrationProgressions.RequiredInformationNeeded => "Profile information saved successfully!",
+            RegistrationProgressions.ExpertiseNeeded => "Expertise areas saved successfully!",
             _ => "Information saved successfully!"
         };
     }
@@ -165,9 +165,9 @@ public partial class RegisterModel : PageModel
 
         // Return previous step without validation
         var prevStep = step - 1;
-        if (prevStep < Models.RegistrationProgressions.SpeakerProfileNeeded)
+        if (prevStep < RegistrationProgressions.SpeakerProfileNeeded)
         {
-            prevStep = Models.RegistrationProgressions.SpeakerProfileNeeded;
+            prevStep = RegistrationProgressions.SpeakerProfileNeeded;
         }
 
         CurrentStep = prevStep;
@@ -304,7 +304,7 @@ public partial class RegisterModel : PageModel
 
         switch (step)
         {
-            case Models.RegistrationProgressions.SpeakerProfileNeeded: // Account step
+            case RegistrationProgressions.SpeakerProfileNeeded: // Account step
                 if (string.IsNullOrWhiteSpace(Input.FirstName))
                 {
                     ModelState.AddModelError("Input.FirstName", "First name is required.");
@@ -364,7 +364,7 @@ public partial class RegisterModel : PageModel
                     ModelState.AddModelError("Input.ConfirmPassword", "Passwords do not match.");
                 }
                 break;
-            case Models.RegistrationProgressions.RequiredInformationNeeded: // Profile step
+            case RegistrationProgressions.RequiredInformationNeeded: // Profile step
                 if (Input.SpeakerTypeId <= 0)
                     ModelState.AddModelError("Input.SpeakerTypeId", "Please select a speaker type.");
                 if (string.IsNullOrWhiteSpace(Input.Bio))
@@ -372,12 +372,12 @@ public partial class RegisterModel : PageModel
                 if (string.IsNullOrWhiteSpace(Input.Goals))
                     ModelState.AddModelError("Input.Goals", "Goals are required.");
                 break;
-            case Models.RegistrationProgressions.ExpertiseNeeded: // Expertise step
+            case RegistrationProgressions.ExpertiseNeeded: // Expertise step
                 if (Input.SelectedExpertiseIds?.Length == 0)
                     ModelState.AddModelError("Input.SelectedExpertiseIds",
                         "Please select at least one area of expertise.");
                 break;
-            case Models.RegistrationProgressions.SocialMediaNeeded: // Social step - optional, no validation needed
+            case RegistrationProgressions.SocialMediaNeeded: // Social step - optional, no validation needed
                 break;
         }
 
@@ -391,7 +391,7 @@ public partial class RegisterModel : PageModel
 
         // Validate all steps before final submission
         var allStepsValid = true;
-        foreach (var i in Models.RegistrationProgressions.All)
+        foreach (var i in RegistrationProgressions.All)
             if (!ValidateStep(i))
                 allStepsValid = false;
 
@@ -400,7 +400,7 @@ public partial class RegisterModel : PageModel
             // If we got this far, something failed, redisplay form with the current state
             await LoadFormLookupListsAsync();
             CurrentStep =
-                Models.RegistrationProgressions.SpeakerProfileNeeded; // Reset to the first step on major failure
+                RegistrationProgressions.SpeakerProfileNeeded; // Reset to the first step on major failure
             HasValidationErrors = true;
             ValidationMessage = "Registration failed. Please check the errors and try again.";
             return Partial("_RegistrationContainer", this);
@@ -430,7 +430,7 @@ public partial class RegisterModel : PageModel
             _logger.LogError(ex, "Failed to save new user account");
             await LoadFormLookupListsAsync();
             // Reset to the first step on major failure
-            CurrentStep = Models.RegistrationProgressions.SpeakerProfileNeeded;
+            CurrentStep = RegistrationProgressions.SpeakerProfileNeeded;
             HasValidationErrors = true;
             ValidationMessage = "The saving of registration failed. Please check the errors and try again.";
             return Partial("_RegistrationContainer", this);
@@ -444,7 +444,7 @@ public partial class RegisterModel : PageModel
             }
 
             // Reset to the first step on major failure
-            CurrentStep = Models.RegistrationProgressions.SpeakerProfileNeeded;
+            CurrentStep = RegistrationProgressions.SpeakerProfileNeeded;
             HasValidationErrors = true;
             ValidationMessage = "The saving of registration failed. Please check the errors and try again.";
             return Partial("_RegistrationContainer", this);
@@ -459,7 +459,7 @@ public partial class RegisterModel : PageModel
             _logger.LogError("Failed to find user after saving registration. Email: '{Email}'", Input.Email);
             await LoadFormLookupListsAsync();
             // Reset to the first step on major failure
-            CurrentStep = Models.RegistrationProgressions.SpeakerProfileNeeded;
+            CurrentStep = RegistrationProgressions.SpeakerProfileNeeded;
             HasValidationErrors = true;
             ValidationMessage = "Could not find user after saving registration. Please try again.";
             return Partial("_RegistrationContainer", this);
@@ -497,7 +497,7 @@ public partial class RegisterModel : PageModel
             _logger.LogError(ex, "Failed to save the user's expertise's and social media sites. Email: '{Email}'", Input.Email);
             await LoadFormLookupListsAsync();
             // Reset to the first step on major failure
-            CurrentStep = Models.RegistrationProgressions.SpeakerProfileNeeded;
+            CurrentStep = RegistrationProgressions.SpeakerProfileNeeded;
             HasValidationErrors = true;
             ValidationMessage = "Failed to save your expertise and social media sites. Please try again.";
             return Partial("_RegistrationContainer", this);
@@ -539,7 +539,7 @@ public partial class RegisterModel : PageModel
         // Load data needed for registration completion (step 5) display
         await LoadFormLookupListsAsync();
 
-        CurrentStep = Models.RegistrationProgressions.Complete;
+        CurrentStep = RegistrationProgressions.Complete;
         HasValidationErrors = false;
         ValidationMessage = string.Empty;
         SuccessMessage = "Registration completed successfully!";

@@ -1,4 +1,4 @@
-@model MoreSpeakers.Web.Models.ViewModels.ExpertiseListDisplayViewModel
+@model Web.Models.ViewModels.ExpertiseListDisplayViewModel
 
 @foreach (var expertise in Model.AvailableExpertises)
 {
@@ -8,7 +8,11 @@
                    name="Input.SelectedExpertiseIds" 
                    value="@expertise.Id"
                    id="expertise_@expertise.Id"
-                   @(Model.SelectedExpertiseIds?.Contains(expertise.Id) == true ? "checked" : "") />
+                   @if (Model.SelectedExpertiseIds is not null && Model.SelectedExpertiseIds.Length > 0)
+                   {
+                       @(Model.SelectedExpertiseIds?.Contains(expertise.Id) == true ? "checked" : "")
+                   }
+            />
             <label class="form-check-label" for="expertise_@expertise.Id">
                 @expertise.Name
             </label>
