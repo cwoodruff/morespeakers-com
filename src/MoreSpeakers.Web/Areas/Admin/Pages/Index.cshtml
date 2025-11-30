@@ -2,120 +2,45 @@
 @{
     ViewData["Title"] = "Admin • Dashboard";
 }
+@using MoreSpeakers.Web.Areas.Admin.Pages.Shared
 
-<div class="d-flex align-items-center mb-4">
-    <h1 class="h3 mb-0">Admin • Dashboard</h1>
-    <span class="badge bg-secondary ms-3">v1 Placeholder</span>
-    <!-- TODO: Replace placeholder badge with version/build info or environment tag -->
-    <!-- TODO: Add breadcrumb component if needed -->
-    <!-- TODO: Add quick actions (e.g., clear cache) with proper authorization/policies -->
-    <!-- TODO: Wire telemetry to track admin dashboard visits -->
+<h1 class="mb-4">Admin • Dashboard</h1>
+
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a asp-area="Admin" asp-page="/Index">Admin</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Dashboard</li>
+  </ol>
+  <!-- Breadcrumb is optional; included for improved orientation -->
+</nav>
+
+<div class="mb-4">
+  <partial name="~/Areas/Admin/Pages/Shared/_HealthStatus.cshtml" />
+  <!-- Health card is a placeholder and can be replaced with live checks later -->
 </div>
 
-<div class="row g-3 mb-4">
-    <div class="col-12 col-md-6 col-lg-3">
-        <div class="card shadow-sm h-100">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <i class="bi bi-people fs-3 text-primary me-3"></i>
-                    <div>
-                        <div class="small text-muted">Total Users</div>
-                        <div class="fs-5 fw-semibold">—</div>
-                    </div>
-                </div>
-                <!-- TODO: Replace em-dash with live KPI (e.g., count from API) -->
-            </div>
-        </div>
-    </div>
-    <div class="col-12 col-md-6 col-lg-3">
-        <div class="card shadow-sm h-100">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <i class="bi bi-person-check fs-3 text-success me-3"></i>
-                    <div>
-                        <div class="small text-muted">Admins</div>
-                        <div class="fs-5 fw-semibold">—</div>
-                    </div>
-                </div>
-                <!-- TODO: Wire to role membership count for "Administrator" -->
-            </div>
-        </div>
-    </div>
-    <div class="col-12 col-md-6 col-lg-3">
-        <div class="card shadow-sm h-100">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <i class="bi bi-journal-text fs-3 text-info me-3"></i>
-                    <div>
-                        <div class="small text-muted">Content Items</div>
-                        <div class="fs-5 fw-semibold">—</div>
-                    </div>
-                </div>
-                <!-- TODO: Replace with content count (talks/articles/etc.) -->
-            </div>
-        </div>
-    </div>
-    <div class="col-12 col-md-6 col-lg-3">
-        <div class="card shadow-sm h-100">
-            <div class="card-body">
-                <div class="d-flex align-items-center">
-                    <i class="bi bi-activity fs-3 text-warning me-3"></i>
-                    <div>
-                        <div class="small text-muted">System Health</div>
-                        <div class="fs-5 fw-semibold">OK</div>
-                    </div>
-                </div>
-                <!-- TODO: Replace with real health status from monitoring/AI -->
-            </div>
-        </div>
-    </div>
-    <!-- TODO: Add additional cards for pending approvals, recent signups, etc. -->
-    <!-- TODO: Consider htmx swaps for live refreshing of KPI values -->
-    <!-- TODO: Add accessibility review for color contrast on badges/icons -->
+<div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-3">
+  @{
+      var tiles = new[]
+      {
+          new DashboardTile("Manage Users", "Accounts, roles, and access.", "bi bi-people", "Admin", "/Users/Test"),
+          new DashboardTile("Social Sites", "Edit social platforms and URL formats.", "bi bi-share", "Admin", "/Catalog/Test"),
+          new DashboardTile("Expertise / Sectors", "Organize domains and specializations.", "bi bi-diagram-3", "Admin", "/Catalog/Test"),
+          new DashboardTile("Settings", "Templates and feature flags.", "bi bi-gear", "Admin", "/Settings/Index"),
+          new DashboardTile("Reports", "Usage and operational analytics.", "bi bi-graph-up", "Admin", "/Reports/Test")
+      };
+      foreach (var t in tiles)
+      {
+          @await Html.PartialAsync("~/Areas/Admin/Pages/Shared/_DashboardTile.cshtml", t)
+      }
+  }
 </div>
 
-<div class="row g-3">
-    <div class="col-12 col-lg-6">
-        <div class="card shadow-sm h-100">
-            <div class="card-header d-flex align-items-center">
-                <i class="bi bi-tools me-2"></i>
-                Quick Management Links
-            </div>
-            <div class="list-group list-group-flush">
-                <a class="list-group-item list-group-item-action d-flex align-items-center" href="#">
-                    <i class="bi bi-people me-2"></i>
-                    Users
-                    <span class="ms-auto badge text-bg-light">Coming soon</span>
-                </a>
-                <a class="list-group-item list-group-item-action d-flex align-items-center" href="#">
-                    <i class="bi bi-journal-text me-2"></i>
-                    Content
-                    <span class="ms-auto badge text-bg-light">Coming soon</span>
-                </a>
-                <a class="list-group-item list-group-item-action d-flex align-items-center" href="#">
-                    <i class="bi bi-gear me-2"></i>
-                    Settings
-                    <span class="ms-auto badge text-bg-light">Coming soon</span>
-                </a>
-            </div>
-            <!-- TODO: Replace '#' with actual admin pages as they are implemented -->
-        </div>
-    </div>
-    <div class="col-12 col-lg-6">
-        <div class="card shadow-sm h-100">
-            <div class="card-header d-flex align-items-center">
-                <i class="bi bi-info-circle me-2"></i>
-                Notes
-            </div>
-            <div class="card-body">
-                <p class="mb-2">This is a placeholder dashboard. Replace these sections with live widgets as features roll out.</p>
-                <ul class="mb-0">
-                    <li>Integrate with Identity to show recent signups.</li>
-                    <li>Add moderation queue counts.</li>
-                    <li>Surface key errors/alerts from Application Insights.</li>
-                </ul>
-                <!-- TODO: Add Application Insights summary via API if desired -->
-            </div>
-        </div>
-    </div>
-</div>
+@section Scripts {
+  <script>
+    // Optional telemetry: track Admin dashboard page view if AI SDK is present
+    if (window.appInsights && typeof window.appInsights.trackPageView === 'function') {
+      window.appInsights.trackPageView({ name: 'Admin/Dashboard', properties: { area: 'Admin' } });
+    }
+  </script>
+}

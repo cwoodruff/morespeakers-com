@@ -1,0 +1,17 @@
+@model MoreSpeakers.Web.Areas.Admin.Pages.Shared.DashboardTile
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<div class="col">
+  <a class="text-decoration-none" asp-area="@Model.Area" asp-page="@Model.Page" aria-label="@Model.Title">
+    <div class="card h-100">
+      <div class="card-body">
+        <div class="d-flex align-items-center mb-2">
+          <i class="@Model.IconClass me-2 fs-4" aria-hidden="true"></i>
+          <h2 class="h5 m-0">@Model.Title</h2>
+        </div>
+        <p class="text-muted mb-0">@Model.Description</p>
+      </div>
+    </div>
+  </a>
+  @* NOTE: Server-side authorization remains authoritative; this tile is purely navigational. *@
+</div>
