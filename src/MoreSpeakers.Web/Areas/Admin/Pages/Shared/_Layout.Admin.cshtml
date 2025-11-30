@@ -10,17 +10,19 @@
     <environment include="Production">
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha256-2FMn2Zx6PuH5tdBQDRNwrOo60ts5wWPC9R8jK67b3t4=" crossorigin="anonymous">
         <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" rel="stylesheet" integrity="sha256-pdY4ejLKO67E0CM2tbPtq1DJ3VGDVVdqAR6j3ZwdiE4=" crossorigin="anonymous">
-        <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.8/dist/darkly/bootstrap.min.css" rel="stylesheet" >
+        <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.8/dist/united/bootstrap.min.css" rel="stylesheet" >
+        <link href="https://cdn.jsdelivr.net/npm/@@fortawesome/fontawesome-free@7.1.0/css/fontawesome.min.css" rel="stylesheet" integrity="sha256-G5bovI+uHM2gCO6EwO9PFQcclSBYzTaxY6DXks3YxBU=" crossorigin="anonymous">
     </environment>
     <environment exclude="Production">
-        <link rel="stylesheet" href="~/lib/bootswatch/dist/darkly/bootstrap.css" />
-        <link rel="stylesheet" href="~/lib/bootstrap-icons/font/bootstrap-icons.css" />
+        <link rel="stylesheet" href="~/lib/bootswatch/dist/united/bootstrap.css" />
+        <link rel="stylesheet" href="~/lib/bootstrap-icons/font/bootstrap-icons.css"/>
+        <link rel="stylesheet" href="~/lib/fontawesome-free/css/all.css"/>
     </environment>
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
 </head>
 <body>
 <header>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <nav class="navbar navbar-expand-lg fixed-top bg-primary">
         <div class="container">
             <a class="navbar-brand" asp-area="Admin" asp-page="/Index">
                 <i class="bi bi-shield-lock me-2"></i>Admin
