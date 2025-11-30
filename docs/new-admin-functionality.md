@@ -171,6 +171,231 @@ If you prefer Razor Pages, the same routes can be expressed with pages under the
 
 ---
 
+### MVC controllers (optional): applying Admin policies with Areas
+
+Even though the Admin implementation is Razor Pages–first, you can add MVC controllers inside the Admin area later and reuse the same least‑privilege policies.
+
+#### Controller attributes
+- Decorate Admin controllers with the Area attribute and the appropriate policy for that controller or action:
+
+```csharp
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+namespace MoreSpeakers.Web.Areas.Admin.Controllers;
+
+[Area("Admin")]
+[Authorize(Policy = "ManageUsers")] // Controller-level: all actions require ManageUsers
+public class UsersController : Controller
+{
+    // Alternatively, apply per action to mix requirements
+    [HttpGet]
+    public IActionResult Index() => View(); // GET /Admin/Users
+
+    [Authorize(Policy = "ManageUsers")] // explicit (redundant here, but shows per-action usage)
+    [HttpPost]
+    public IActionResult Lock(Guid id) { /* ... */ return RedirectToAction("Index"); }
+}
+
+[Area("Admin")]
+[Authorize(Policy = "ManageCatalog")] // Catalog/content management
+public class CatalogController : Controller
+{
+    [HttpGet]
+    public IActionResult Index() => View(); // GET /Admin/Catalog
+}
+
+[Area("Admin")]
+[Authorize(Policy = "ViewReports")] // Reports/analytics
+public class ReportsController : Controller
+{
+    [HttpGet]
+    public IActionResult Index() => View(); // GET /Admin/Reports
+}
+```
+
+Notes:
+- Keep `Administrator` full access by ensuring each policy includes the `Administrator` role (already configured in `Program.cs`).
+- You can mix controller‑level and action‑level `[Authorize]` depending on granularity needed.
+
+#### Route mapping for Areas (Program.cs)
+If/when you introduce MVC controllers, ensure area routing is mapped in `Program.cs` in addition to `app.MapRazorPages()`:
+
+```csharp
+// After app.UseRouting(); app.UseAuthentication(); app.UseAuthorization();
+
+// Enable MVC area routes for Admin controllers
+app.MapControllerRoute(
+    name: "areas",
+    pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
+
+app.MapRazorPages(); // keep Razor Pages mapping
+```
+
+This preserves the Razor Pages baseline while enabling URLs like `/Admin/Users`, `/Admin/Catalog`, and `/Admin/Reports` to resolve to MVC controllers protected by the same policies.
+
+#### When to choose MVC vs Razor Pages in Admin
+- Prefer Razor Pages for page‑centric CRUD workflows.
+- Consider MVC controllers when you need:
+  - Action‑oriented endpoints (POST‑heavy flows, AJAX/JSON APIs),
+  - Complex controller filters or custom action constraints,
+  - To share controllers across multiple views.
+
+Either approach reuses the same `ManageUsers`, `ManageCatalog`, and `ViewReports` policies and the `AdminOnly` area baseline.
+
+---
+
+### Admin Policies and Least‑Privilege Roles (Razor Pages)
+
+This section documents how the Admin policies are modeled, where they are registered, and how Razor Pages conventions are used so new Admin pages automatically inherit the correct, least‑privilege requirements.
+
+#### Policy definitions and intent
+- `ManageUsers` — For user and role administration: list/search users, view sensitive details, lock/unlock, assign roles, reset passwords, etc.
+- `ManageCatalog` — For content/catalog management: speakers, bios, tags/categories, media assets, metadata, etc.
+- `ViewReports` — For analytics and operational reports: usage, health, exports, audits (view only).
+
+Notes:
+- The `Administrator` role must retain universal access and is included in all policies by design.
+- Future least‑privilege roles (examples) can be mapped without changing pages:
+  - `UserManager` → `ManageUsers`
+  - `CatalogManager` → `ManageCatalog`
+  - `Reporter` → `ViewReports`
+  - `Moderator` → `ManageCatalog`, `ViewReports`
+
+#### Where and how policies are registered (Program.cs)
+Policies are registered in `src/MoreSpeakers.Web/Program.cs` within the existing `AddAuthorization` block, using centralized constants in `MoreSpeakers.Web.Authorization` (`PolicyNames`, `AppRoles`).
+
+```csharp
+using MoreSpeakers.Web.Authorization;
+
+builder.Services.AddAuthorization(options =>
+{
+    // Baseline Admin area policy: only Administrators can enter Admin area
+    options.AddPolicy("AdminOnly", p => p.RequireRole(AppRoles.Administrator));
+
+    // Fine‑grained Admin policies (role‑based, least privilege)
+    options.AddPolicy(PolicyNames.ManageUsers,
+        p => p.RequireRole(AppRoles.Administrator, AppRoles.UserManager, AppRoles.Moderator));
+
+    options.AddPolicy(PolicyNames.ManageCatalog,
+        p => p.RequireRole(AppRoles.Administrator, AppRoles.CatalogManager, AppRoles.Moderator));
+
+    options.AddPolicy(PolicyNames.ViewReports,
+        p => p.RequireRole(AppRoles.Administrator, AppRoles.Reporter, AppRoles.Moderator));
+
+    // Administrator must remain included in every policy to preserve full access.
+    // Role mappings may evolve as least‑privilege roles are introduced and seeded.
+
+    /* Future (claims‑based) example — migrate to permission claims without
+     * changing page attributes or folder conventions:
+     *
+     * options.AddPolicy(PolicyNames.ManageUsers,   p => p.RequireClaim("Permission", PolicyNames.ManageUsers));
+     * options.AddPolicy(PolicyNames.ManageCatalog, p => p.RequireClaim("Permission", PolicyNames.ManageCatalog));
+     * options.AddPolicy(PolicyNames.ViewReports,   p => p.RequireClaim("Permission", PolicyNames.ViewReports));
+     *
+     * Keep Administrator full access by either seeding these claims to Admin
+     * or adding a custom IAuthorizationHandler that succeeds for Administrator.
+     */
+});
+```
+
+#### Razor Pages conventions mapping folders to policies
+Razor Pages conventions centralize authorization so new pages automatically inherit the correct policy based on folder placement. This is configured in `Program.cs` inside `AddRazorPages`:
+
+```csharp
+using MoreSpeakers.Web.Authorization;
+
+builder.Services.AddRazorPages(options =>
+{
+    // Baseline: protect the entire Admin area
+    options.Conventions.AuthorizeAreaFolder("Admin", "/", policy: "AdminOnly");
+
+    // Sub‑folders with least‑privilege policies
+    options.Conventions.AuthorizeAreaFolder("Admin", "/Users",   policy: PolicyNames.ManageUsers);
+    options.Conventions.AuthorizeAreaFolder("Admin", "/Catalog", policy: PolicyNames.ManageCatalog);
+    options.Conventions.AuthorizeAreaFolder("Admin", "/Reports", policy: PolicyNames.ViewReports);
+});
+```
+
+Keep `Areas/Admin/Pages/Index.cshtml` (the dashboard) under `AdminOnly` only. Do not attach a granular policy to it.
+
+#### Guidance for adding new Admin pages (inheritance by folder)
+Place pages under the correct sub‑folder to inherit the intended policy automatically:
+- Users and role administration → `Areas/Admin/Pages/Users/*`
+- Catalog/content management → `Areas/Admin/Pages/Catalog/*`
+- Reports/analytics (read‑only) → `Areas/Admin/Pages/Reports/*`
+
+Examples:
+- `Areas/Admin/Pages/Users/Index.cshtml` → requires `ManageUsers`.
+- `Areas/Admin/Pages/Catalog/Edit.cshtml` → requires `ManageCatalog`.
+- `Areas/Admin/Pages/Reports/Usage.cshtml` → requires `ViewReports`.
+
+#### Guidance for exceptions (page‑level attributes or targeted conventions)
+If a specific page needs different access than its folder default (rare), use one of:
+
+- PageModel attribute:
+
+```csharp
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc.RazorPages;
+using MoreSpeakers.Web.Authorization;
+
+[Authorize(Policy = PolicyNames.ManageUsers)]
+public class InviteModel : PageModel { /* ... */ }
+```
+
+- Targeted Razor Pages conventions in `Program.cs`:
+
+```csharp
+options.Conventions.AuthorizeAreaPage("Admin", "/Users/Invite", policy: PolicyNames.ManageUsers);
+// Very rare in Admin, but supported:
+options.Conventions.AllowAnonymousToAreaPage("Admin", "/Reports/Public");
+```
+
+Server‑side authorization is authoritative even if UI links are hidden/shown conditionally.
+
+#### Administrator full access and future sub‑role mapping
+- `Administrator` is part of every policy and passes all checks.
+- As sub‑roles are introduced, map them to policy lists (role‑based) or grant them `Permission` claims if migrating to claims:
+  - `UserManager` → `ManageUsers`
+  - `CatalogManager` → `ManageCatalog`
+  - `Reporter` → `ViewReports`
+  - `Moderator` → `ManageCatalog`, `ViewReports`
+
+Keep names centralized in `MoreSpeakers.Web.Authorization.AppRoles` to avoid typos and drift.
+
+#### Testing approach (integration)
+Integration tests use `WebApplicationFactory<Program>` with a fake authentication handler to issue principals with roles via headers. Minimal test pages exist with unique markers:
+- `/Admin/Users/Test` → contains `Users Test`
+- `/Admin/Catalog/Test` → contains `Catalog Test`
+- `/Admin/Reports/Test` → contains `Reports Test`
+
+Test matrix (see `MoreSpeakers.Web.Tests/AdminPoliciesTests.cs`):
+- Anonymous → 302 redirect to `/Identity/Account/Login?ReturnUrl=...`
+- Authenticated without relevant roles → 403 (or AccessDenied per cookie policy)
+- `Administrator` → 200 and contains the page marker for all three
+- `Moderator` → currently 403 for all due to the `AdminOnly` baseline; if the baseline is relaxed later, expect 200 for Catalog/Reports and 403 for Users
+
+Example role setup in tests using headers (see `Infrastructure/TestAuthHandler`):
+
+```csharp
+var client = factory.CreateClient(new() { AllowAutoRedirect = false });
+client.DefaultRequestHeaders.Add("X-Test-User", "admin");
+client.DefaultRequestHeaders.Add("X-Test-Roles", AppRoles.Administrator);
+```
+
+#### Future migration path to claim‑based permissions (`Permission`)
+To decouple policies from specific role names and support many‑to‑many role→permission mapping:
+1) Change the policy registrations to require a `Permission` claim:
+   - `RequireClaim("Permission", PolicyNames.ManageUsers)` (and similarly for the others).
+2) Update role/user seeding so roles grant the appropriate `Permission` claims.
+3) Preserve Administrator’s universal access by either seeding all permissions to Administrator or adding a custom `IAuthorizationHandler` that succeeds for `Administrator`.
+4) During migration, you may temporarily support both role‑based and claim‑based requirements to avoid cutover regressions.
+
+This migration does not require changing Razor Pages folder conventions or page attributes.
+
+---
+
 ### Phased delivery (pragmatic order)
 
 Each phase will be a new issue.
