@@ -42,16 +42,12 @@ public partial class RegisterModel : PageModel
     [BindProperty]
     public InputModel Input { get; set; }
 
-    // Property to expose selected expertise IDs for registration completion (step 5)
-    public int[] ExpertiseIds => Input.SelectedExpertiseIds ?? [];
-    public ExpertiseListDisplayViewModel ExpertiseListDisplay { get; set; }
-    
     // Lookup values
     public IEnumerable<Expertise> AvailableExpertises { get; set; } = new List<Expertise>();
     public IEnumerable<SpeakerType> SpeakerTypes { get; set; } = new List<SpeakerType>();
     
     // Properties required by _RegistrationContainer.cshtml
-    public int CurrentStep { get; set; } = Models.RegistrationProgressions.SpeakerProfileNeeded;
+    public int CurrentStep { get; set; } = RegistrationProgressions.SpeakerProfileNeeded;
     public bool HasValidationErrors { get; set; }
     public string ValidationMessage { get; set; } = string.Empty;
     public string SuccessMessage { get; set; } = string.Empty;
@@ -299,11 +295,6 @@ public partial class RegisterModel : PageModel
     {
         AvailableExpertises = await _expertiseManager.GetAllAsync();
         SpeakerTypes = await _userManager.GetSpeakerTypesAsync();
-        ExpertiseListDisplay = new ExpertiseListDisplayViewModel
-        {
-            AvailableExpertises = AvailableExpertises
-        };
-        ExpertiseListDisplay.SelectedExpertiseIds = Input?.SelectedExpertiseIds ?? [];
     }
 
     private bool ValidateStep(int step)
@@ -562,7 +553,7 @@ public partial class RegisterModel : PageModel
         try
         {
             socialMediaSitesCount++;
-            var model = new UserSocialMediaSiteRow
+            var model = new UserSocialMediaSiteRowViewModel
             {
                 UserSocialMediaSite = null,
                 SocialMediaSites = await _socialMediaSiteManager.GetAllAsync(),
