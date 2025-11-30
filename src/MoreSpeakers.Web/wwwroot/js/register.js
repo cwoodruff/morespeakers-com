@@ -2,7 +2,6 @@
 document.addEventListener('DOMContentLoaded', function() {
     initializeRegistrationForm();
     handleEmailValidation();
-    handleNewExpertiseValidation();
 });
 
 function initializeRegistrationForm() {
@@ -22,6 +21,10 @@ function initializeRegistrationForm() {
         } else if (button.id === 'prevBtn') {
             button.disabled = true;
             button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Loading...';
+    
+        } else if (button.id === 'submitExpertise') {
+            button.disabled = true;
+            button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Creating Expertise Area...';
         }
     });
 
@@ -30,7 +33,9 @@ function initializeRegistrationForm() {
         const originalContent = button.getAttribute('data-original-content');
 
         if (originalContent) {
-            button.disabled = false;
+            if (button.id !== 'submitExpertise') {
+                button.disabled = false;
+            }
             button.innerHTML = originalContent;
             button.removeAttribute('data-original-content');
         }
@@ -47,55 +52,20 @@ function handleEmailValidation() {
 
             if (response.isValid) {
                 messageDiv.innerHTML = response.message ? '<i class="bi bi-check-circle me-1"></i>' + response.message : '';
-                messageDiv.className = 'small mt-1 text-success';
+                messageDiv.classList.remove('text-danger');
+                messageDiv.classList.add('text-success');
                 emailInput.classList.remove('is-invalid');
                 emailInput.classList.add('is-valid');
             } else {
                 messageDiv.innerHTML = '<i class="bi bi-exclamation-triangle me-1"></i>' + response.message;
-                messageDiv.className = 'small mt-1 text-danger';
+                messageDiv.classList.add('text-danger');
+                messageDiv.classList.remove('text-success');
                 emailInput.classList.remove('is-valid');
                 emailInput.classList.add('is-invalid');
             }
         }
     });
 }
-
-function handleNewExpertiseValidation() {
-    document.body.addEventListener('htmx:afterRequest', function(event) {
-
-        if (event.detail.elt.name !== 'Input.NewExpertise' || event.detail.successful !== true) {
-            return;
-        }
-
-        try {
-            const jsonData = JSON.parse(event.detail.xhr.responseText);
-            const messageDiv = event.detail.target;
-            const newExpertiseInput = event.detail.elt;   
-            
-            let submitButton = document.getElementById('submitExpertise');
-            if (!submitButton) {
-                console.log ("Could not find submit button!");
-                return;
-            }
-            submitButton.disabled = !jsonData.isValid;
-            if (jsonData.isValid) {
-                messageDiv.innerHTML = jsonData.message ? '<i class="bi bi-check-circle me-1"></i>' + jsonData.message : '';
-                messageDiv.className = 'small mt-1 text-success';
-                newExpertiseInput.classList.remove('is-invalid');
-                newExpertiseInput.classList.add('is-valid');
-            } else {
-                messageDiv.innerHTML = '<i class="bi bi-exclamation-triangle me-1"></i>' + jsonData.message;
-                messageDiv.className = 'small mt-1 text-danger';
-                newExpertiseInput.classList.remove('is-valid');
-                newExpertiseInput.classList.add('is-invalid');
-            }
-        }
-        catch {
-            console.log("Failed to parse JSON");
-        }
-    });
-}
-
 
 // Custom validation for the registration form
 function validateRegistrationForm(form) {
