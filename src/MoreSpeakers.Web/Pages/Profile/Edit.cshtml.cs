@@ -459,7 +459,7 @@ public async Task<IActionResult> OnGetAsync()
         try
         {
             socialMediaSitesCount++;
-            var model = new UserSocialMediaSiteRow
+            var model = new UserSocialMediaSiteRowViewModel
             {
                 UserSocialMediaSite = null,
                 SocialMediaSites = await socialMediaSiteManager.GetAllAsync(),
