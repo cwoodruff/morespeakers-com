@@ -20,7 +20,6 @@ public partial class RegisterModel : PageModel
     private readonly IUserManager _userManager;
     private readonly ITemplatedEmailSender _templatedEmailSender;
     private readonly ISocialMediaSiteManager _socialMediaSiteManager;
-    private readonly IRazorPartialToStringRenderer _partialRenderer;
     private readonly TelemetryClient _telemetryClient;
     private readonly ILogger<RegisterModel> _logger;
     
@@ -29,7 +28,6 @@ public partial class RegisterModel : PageModel
         IUserManager userManager,
         ITemplatedEmailSender templatedEmailSender,
         ISocialMediaSiteManager socialMediaSiteManager,
-        IRazorPartialToStringRenderer partialRenderer,
         TelemetryClient telemetryClient,
         ILogger<RegisterModel> logger)
     {
@@ -37,7 +35,6 @@ public partial class RegisterModel : PageModel
         _userManager = userManager;
         _templatedEmailSender = templatedEmailSender;
         _socialMediaSiteManager = socialMediaSiteManager;
-        _partialRenderer = partialRenderer;
         _telemetryClient = telemetryClient;
         _logger = logger;
     }
@@ -54,6 +51,10 @@ public partial class RegisterModel : PageModel
     public bool HasValidationErrors { get; set; }
     public string ValidationMessage { get; set; } = string.Empty;
     public string SuccessMessage { get; set; } = string.Empty;
+    
+    // Properties required for NewExpertise setup
+    public NewExpertiseCreatedResponse NewExpertiseResponse { get; set; } = new();
+
 
     public async Task OnGetAsync()
     {
@@ -125,23 +126,6 @@ public partial class RegisterModel : PageModel
             SuccessMessage = GetSuccessMessage(step);
             CurrentStep = nextStep;
             ValidationMessage = string.Empty;
-
-            // Return complete registration container with next step
-            // if (nextStep == RegistrationProgressions.ExpertiseNeeded)
-            // {
-            //     var registerStep3ContainerHtml =
-            //         await _partialRenderer.RenderPartialToStringAsync(
-            //             "~/Areas/Identity/Pages/Account/_RegisterStep3.cshtml", this);
-            //     var expertiseListContainer =
-            //         await _partialRenderer.RenderPartialToStringAsync("~/Pages/Shared/_ExpertiseListDisplay.cshtml", new ExpertiseListDisplayViewModel()
-            //         {
-            //             AvailableExpertises = AvailableExpertises,
-            //             SelectedExpertiseIds = Input.SelectedExpertiseIds
-            //         });
-            //
-            //     return Content(registerStep3ContainerHtml + expertiseListContainer, "text/html");
-            // }
-
             return Partial("_RegistrationContainer", this);
         }
 
@@ -257,7 +241,6 @@ public partial class RegisterModel : PageModel
             {
                 IsValid = false,
                 Message = $"Similar expertise found: {suggestions}. Consider selecting from existing options.",
-                Expertises = expertises
             });
         }
 
@@ -271,7 +254,11 @@ public partial class RegisterModel : PageModel
     {
         if (string.IsNullOrWhiteSpace(Input.NewExpertise))
         {
-            return new JsonResult(new NewExpertiseResponse { IsValid = false, Message = "No expertise name was provided."});
+            this.NewExpertiseResponse = new NewExpertiseCreatedResponse()
+            {
+                SavingExpertiseFailed = true, SaveExpertiseMessage = "No expertise name was provided."
+            };
+            return Partial("_RegisterStep3", this);
         }
 
         var expertiseName = Input.NewExpertise;
@@ -283,10 +270,11 @@ public partial class RegisterModel : PageModel
             var existingExpertise = await _expertiseManager.DoesExpertiseWithNameExistsAsync(trimmedName);
             if (existingExpertise)
             {
-                return new JsonResult(new NewExpertiseResponse
+                this.NewExpertiseResponse = new NewExpertiseCreatedResponse()
                 {
-                    IsValid = false, Message = $"Expertise '{expertiseName}' already exists."
-                });
+                    SavingExpertiseFailed = true, SaveExpertiseMessage =  $"Expertise '{expertiseName}' already exists."
+                };
+                return Partial("_RegisterStep3", this);
             }
 
             // Attempt to save the expertise
@@ -294,31 +282,30 @@ public partial class RegisterModel : PageModel
 
             if (expertiseId == 0)
             {
-                return new JsonResult(new NewExpertiseResponse { IsValid = false, Message = "Failed to create expertise." });
+                this.NewExpertiseResponse = new NewExpertiseCreatedResponse
+                {
+                    SavingExpertiseFailed = true, SaveExpertiseMessage =  $"Failed to create the expertise '{expertiseName}'."
+                };
+                return Partial("_RegisterStep3", this);
             }
-            
-            var newExpertiseResponse = new NewExpertiseResponse { IsValid = true, NewId = expertiseId };
-
+            AvailableExpertises = await _expertiseManager.GetAllAsync();
             Input.SelectedExpertiseIds = Input.SelectedExpertiseIds.Concat([expertiseId]).ToArray();
-            var expertiseDisplay = new ExpertiseListDisplayViewModel()
+            this.NewExpertiseResponse = new NewExpertiseCreatedResponse
             {
-                AvailableExpertises = AvailableExpertises, SelectedExpertiseIds = Input.SelectedExpertiseIds
+                SavingExpertiseFailed = false, SaveExpertiseMessage =  string.Empty
             };
-            var expertiseListHtml = await _partialRenderer.RenderPartialToStringAsync("~/Pages/Shared/_ExpertiseListDisplay.cshtml", expertiseDisplay);
-
-            return Content(newExpertiseResponse + expertiseListHtml, "text/html");
-
-
+            return Partial("_RegisterStep3", this);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error submitting new expertise");
-            return new JsonResult(new NewExpertiseResponse
+            AvailableExpertises = await _expertiseManager.GetAllAsync();
+            this.NewExpertiseResponse = new NewExpertiseCreatedResponse
             {
-                IsValid = false, Message = "Failed to save the expertise."
-            });
+                SavingExpertiseFailed = true, SaveExpertiseMessage =  $"Failed to create the expertise '{expertiseName}'."
+            };
+            return Partial("_RegisterStep3", this);
         }
-        
     }
 
     private async Task LoadFormLookupListsAsync()

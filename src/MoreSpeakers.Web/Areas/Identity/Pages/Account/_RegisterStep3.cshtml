@@ -1,7 +1,6 @@
 @using MoreSpeakers.Web.Models.ViewModels
 @model MoreSpeakers.Web.Areas.Identity.Pages.Account.RegisterModel
-
-<div class="form-step" data-step="3">
+<div class="form-step" data-step="3" id="form-step" >
     @if (ViewData["HasValidationErrors"] as bool? == true)
     {
         <div class="alert alert-danger mb-3">
@@ -27,7 +26,7 @@
         }
         <span asp-validation-for="Input.SelectedExpertiseIds" class="text-danger small"></span>
     </div>
-    <partial name="_NewExpertise" />
+    <partial name="_NewExpertise" model="@Model.NewExpertiseResponse" />
 </div>
 
 <!-- Persist Steps 1-2 values across HTMX steps -->

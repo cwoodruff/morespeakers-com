@@ -10,7 +10,7 @@
                        id="expertise_@expertise.Id"
                        @if (Model.SelectedExpertiseIds is not null && Model.SelectedExpertiseIds.Length > 0)
                        {
-                           @(Model.SelectedExpertiseIds?.Contains(expertise.Id) == true ? "checked" : "")
+                           @(Model.SelectedExpertiseIds.Contains(expertise.Id) ? "checked" : "")
                        }
                 />
                 <label class="form-check-label" for="expertise_@expertise.Id">
