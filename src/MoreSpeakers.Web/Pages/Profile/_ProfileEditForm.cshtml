@@ -17,7 +17,8 @@
 <form hx-post="/Profile/Edit?handler=UpdateProfile" 
       hx-target="#tabContent" 
       hx-swap="innerHTML" 
-      hx-indicator="#loadingSpinner">
+      hx-indicator="#loadingSpinner"
+      id="form-step">
       
     <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
 
@@ -165,16 +166,18 @@
             </h5>
             <div class="form-text mb-3">Select the technologies and topics you're knowledgeable about.</div>
         </div>
-        <div class="row mb-4" hx-swap-oob="true" id="expertise-list-display">
+        <div class="row mb-4">
             @{
                 var expertiseListDisplay = new ExpertiseListDisplayViewModel
                 {
                     AvailableExpertises = Model.AvailableExpertises,
                     SelectedExpertiseIds = Model.Input.SelectedExpertiseIds
-                }; 
-                @await Html.PartialAsync("_ExpertiseListDisplay", expertiseListDisplay); 
+                };
+                @await Html.PartialAsync("_ExpertiseListDisplay", expertiseListDisplay)
             }
+            <span asp-validation-for="Input.SelectedExpertiseIds" class="text-danger small"></span>
         </div>
+        <partial name="_NewExpertise" model="@Model.NewExpertiseResponse" />
     </div>
 
     <!-- Social Media Links -->

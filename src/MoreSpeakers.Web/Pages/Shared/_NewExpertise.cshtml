@@ -6,14 +6,14 @@
             <input type="text" name="Input.NewExpertise" id="Input.NewExpertise"
                    class="form-control @(Model.SavingExpertiseFailed is true ? "is-invalid": "")"
                    placeholder="Enter a new expertise area"
-                   hx-post="/Register?handler=ValidateNewExpertise"
+                   hx-post="@Url.RouteUrl(ViewContext.RouteData.Values)?handler=ValidateNewExpertise"
                    hx-trigger="blur, keyup changed delay:500ms"
                    hx-target="#newExpertiseValidationMessage"
                    hx-include="this"
                    hx-indicator="#newExpertiseStatus"
                    />
             <button type="button" class="btn btn-outline-primary" id="submitExpertise" disabled="disabled"
-                    hx-post="/Register?handler=SubmitNewExpertise"
+                    hx-post="@Url.RouteUrl(ViewContext.RouteData.Values)?handler=SubmitNewExpertise"
                     hx-target="#form-step"
                     hx-include="[name='Input.NewExpertise']"
                     hx-indicator="#newExpertiseStatus">
