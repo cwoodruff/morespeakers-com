@@ -20,6 +20,7 @@ public partial class RegisterModel : PageModel
     private readonly IUserManager _userManager;
     private readonly ITemplatedEmailSender _templatedEmailSender;
     private readonly ISocialMediaSiteManager _socialMediaSiteManager;
+    private readonly IRazorPartialToStringRenderer _partialRenderer;
     private readonly TelemetryClient _telemetryClient;
     private readonly ILogger<RegisterModel> _logger;
     
@@ -28,6 +29,7 @@ public partial class RegisterModel : PageModel
         IUserManager userManager,
         ITemplatedEmailSender templatedEmailSender,
         ISocialMediaSiteManager socialMediaSiteManager,
+        IRazorPartialToStringRenderer partialRenderer,
         TelemetryClient telemetryClient,
         ILogger<RegisterModel> logger)
     {
@@ -35,6 +37,7 @@ public partial class RegisterModel : PageModel
         _userManager = userManager;
         _templatedEmailSender = templatedEmailSender;
         _socialMediaSiteManager = socialMediaSiteManager;
+        _partialRenderer = partialRenderer;
         _telemetryClient = telemetryClient;
         _logger = logger;
     }
@@ -124,6 +127,21 @@ public partial class RegisterModel : PageModel
             ValidationMessage = string.Empty;
 
             // Return complete registration container with next step
+            // if (nextStep == RegistrationProgressions.ExpertiseNeeded)
+            // {
+            //     var registerStep3ContainerHtml =
+            //         await _partialRenderer.RenderPartialToStringAsync(
+            //             "~/Areas/Identity/Pages/Account/_RegisterStep3.cshtml", this);
+            //     var expertiseListContainer =
+            //         await _partialRenderer.RenderPartialToStringAsync("~/Pages/Shared/_ExpertiseListDisplay.cshtml", new ExpertiseListDisplayViewModel()
+            //         {
+            //             AvailableExpertises = AvailableExpertises,
+            //             SelectedExpertiseIds = Input.SelectedExpertiseIds
+            //         });
+            //
+            //     return Content(registerStep3ContainerHtml + expertiseListContainer, "text/html");
+            // }
+
             return Partial("_RegistrationContainer", this);
         }
 
@@ -274,9 +292,21 @@ public partial class RegisterModel : PageModel
             // Attempt to save the expertise
             var expertiseId = await _expertiseManager.CreateExpertiseAsync(trimmedName);
 
-            return expertiseId == 0
-                ? new JsonResult(new NewExpertiseResponse { IsValid = false, Message = "Failed to create expertise." })
-                : new JsonResult(new NewExpertiseResponse { IsValid = true, NewId = expertiseId });
+            if (expertiseId == 0)
+            {
+                return new JsonResult(new NewExpertiseResponse { IsValid = false, Message = "Failed to create expertise." });
+            }
+            
+            var newExpertiseResponse = new NewExpertiseResponse { IsValid = true, NewId = expertiseId };
+
+            Input.SelectedExpertiseIds = Input.SelectedExpertiseIds.Concat([expertiseId]).ToArray();
+            var expertiseDisplay = new ExpertiseListDisplayViewModel()
+            {
+                AvailableExpertises = AvailableExpertises, SelectedExpertiseIds = Input.SelectedExpertiseIds
+            };
+            var expertiseListHtml = await _partialRenderer.RenderPartialToStringAsync("~/Pages/Shared/_ExpertiseListDisplay.cshtml", expertiseDisplay);
+
+            return Content(newExpertiseResponse + expertiseListHtml, "text/html");
 
 
         }

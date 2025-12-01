@@ -2,6 +2,8 @@
 document.addEventListener('DOMContentLoaded', function() {
     handleNewExpertiseValidation();
     handleNewExpertiseCreated();
+    handlePageSettle();
+    handleHtmlError();
 });
 
 function handleNewExpertiseValidation() {
@@ -37,7 +39,7 @@ function handleNewExpertiseValidation() {
             }
         }
         catch {
-            console.log("Failed to parse JSON");
+            console.log("Failed to process JSON response from server.");
         }
     });
 }
@@ -75,7 +77,33 @@ function handleNewExpertiseCreated() {
             }
         }
         catch {
-            console.log("Failed to parse JSON");
+            console.log("Failed to process JSON response from server.");
         }
+    });
+}
+
+function handlePageSettle() {
+    document.body.addEventListener('htmx:afterSettle', function (event) {
+
+        const step = document.getElementById('CurrentStep');
+        if (!step) return;
+        
+        if (event.detail.elt.id !== 'registrationContainer' || step.value !== "3") {
+            return;
+        }
+
+        const expertiseLists = document.getElementById('expertise-list-display');
+        expertiseLists.setAttribute('hx-swap-oob', 'true');
+        expertiseLists.setAttribute('hx-swap', 'outerHTML');
+        
+    });
+}
+
+function handleHtmlError() {
+    document.body.addEventListener('htmx:onLoadError', function(event) {
+        console.log("Failed to process HTML response from server.");
+    });
+    document.body.addEventListener('htmx:oobErrorNoTarget', function(event) {
+        console.log("Failed to process HTML response from server.");
     });
 }

@@ -14,19 +14,17 @@
             <i class="bi bi-check-circle me-2"></i>@ViewData["SuccessMessage"]
         </div>
     }
-    <h5 class="mb-4">Areas of Expertise</h5>
+    <h5>Areas of Expertise</h5>
     <p class="text-muted mb-4">Select the technologies, topics, and areas where you have experience or interest.</p>
     <div class="row mb-4">
-        <div class="row mb-4" id="expertise-list-display">
-            @{
-                var expertiseListDisplay = new ExpertiseListDisplayViewModel
-                {
-                    AvailableExpertises = Model.AvailableExpertises,
-                    SelectedExpertiseIds = Model.Input.SelectedExpertiseIds
-                };
-                @await Html.PartialAsync("_ExpertiseListDisplay", expertiseListDisplay)
-            }
-        </div>
+        @{
+            var expertiseListDisplay = new ExpertiseListDisplayViewModel
+            {
+                AvailableExpertises = Model.AvailableExpertises,
+                SelectedExpertiseIds = Model.Input.SelectedExpertiseIds
+            };
+            @await Html.PartialAsync("_ExpertiseListDisplay", expertiseListDisplay)
+        }
         <span asp-validation-for="Input.SelectedExpertiseIds" class="text-danger small"></span>
     </div>
     <partial name="_NewExpertise" />
