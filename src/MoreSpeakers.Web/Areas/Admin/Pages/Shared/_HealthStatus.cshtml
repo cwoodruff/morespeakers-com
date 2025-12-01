@@ -1,0 +1,33 @@
+@* Admin System Health placeholder partial
+   Purpose: show a simple, non-blocking health summary. Replace with real checks later. *@
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<div class="card shadow-sm">
+  <div class="card-header d-flex align-items-center">
+    <i class="bi bi-activity me-2"></i>
+    <span>System Health</span>
+  </div>
+  <div class="card-body">
+    <div class="mb-2">
+      Overall: <span class="badge bg-secondary" title="Placeholder">Unknown</span>
+    </div>
+    <ul class="list-group list-group-flush">
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        Database <span class="badge bg-secondary" title="Placeholder">Unknown</span>
+      </li>
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        Email <span class="badge bg-secondary" title="Placeholder">Unknown</span>
+      </li>
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        Storage <span class="badge bg-secondary" title="Placeholder">Unknown</span>
+      </li>
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        Background Jobs <span class="badge bg-secondary" title="Placeholder">Unknown</span>
+      </li>
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        Telemetry <span class="badge bg-secondary" title="Placeholder">Unknown</span>
+      </li>
+    </ul>
+    <div class="text-muted small mt-2">Placeholder — wire real checks later.</div>
+  </div>
+</div>

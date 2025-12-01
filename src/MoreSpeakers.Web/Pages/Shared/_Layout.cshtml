@@ -14,7 +14,7 @@
     <link rel="apple-touch-icon" sizes="144x144" href="/images/favicons/apple-icon-144x144.png">
     <link rel="apple-touch-icon" sizes="152x152" href="/images/favicons/apple-icon-152x152.png">
     <link rel="apple-touch-icon" sizes="180x180" href="/images/favicons/apple-icon-180x180.png">
-    <link rel="icon" type="image/png" sizes="192x192"  href="/images/favicons/android-icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/images/favicons/android-icon-192x192.png">
     <link rel="icon" type="image/png" sizes="32x32" href="/images/favicons/favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="96x96" href="/images/favicons/favicon-96x96.png">
     <link rel="icon" type="image/png" sizes="16x16" href="/images/favicons/favicon-16x16.png">
@@ -23,23 +23,29 @@
     <meta name="msapplication-TileImage" content="/images/favicons/ms-icon-144x144.png">
 
     <environment include="Production">
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha256-2FMn2Zx6PuH5tdBQDRNwrOo60ts5wWPC9R8jK67b3t4=" crossorigin="anonymous">
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" rel="stylesheet" integrity="sha256-pdY4ejLKO67E0CM2tbPtq1DJ3VGDVVdqAR6j3ZwdiE4=" crossorigin="anonymous">
-        <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.8/dist/united/bootstrap.min.css" rel="stylesheet" >
-        <link href="https://cdn.jsdelivr.net/npm/@@fortawesome/fontawesome-free@7.1.0/css/fontawesome.min.css" rel="stylesheet" integrity="sha256-G5bovI+uHM2gCO6EwO9PFQcclSBYzTaxY6DXks3YxBU=" crossorigin="anonymous">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
+              integrity="sha256-2FMn2Zx6PuH5tdBQDRNwrOo60ts5wWPC9R8jK67b3t4=" crossorigin="anonymous">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" rel="stylesheet"
+              integrity="sha256-pdY4ejLKO67E0CM2tbPtq1DJ3VGDVVdqAR6j3ZwdiE4=" crossorigin="anonymous">
+        <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.8/dist/united/bootstrap.min.css" rel="stylesheet">
+        <link href="https://cdn.jsdelivr.net/npm/@@fortawesome/fontawesome-free@7.1.0/css/fontawesome.min.css"
+              rel="stylesheet" integrity="sha256-G5bovI+uHM2gCO6EwO9PFQcclSBYzTaxY6DXks3YxBU=" crossorigin="anonymous">
     </environment>
     <environment exclude="Production">
-        <link rel="stylesheet" href="~/lib/bootswatch/dist/united/bootstrap.css" />
+        <link rel="stylesheet" href="~/lib/bootswatch/dist/united/bootstrap.css"/>
         <link rel="stylesheet" href="~/lib/bootstrap-icons/font/bootstrap-icons.css"/>
         <link rel="stylesheet" href="~/lib/fontawesome-free/css/all.css"/>
     </environment>
-    
+
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true"/>
-    
+
     <environment include="Production">
-        <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.7/dist/htmx.min.js" integrity="sha256-YCMa5rqds4JesVomESLV9VkhxNU7Zr9jfcGLTuJ8efk=" crossorigin="anonymous"></script>
-        <script src="https://cdn.jsdelivr.net/npm/hyperscript.org@0.9.14/dist/_hyperscript.min.js" crossorigin="anonymous"></script>
-        <script src="https://cdn.jsdelivr.net/npm/hyperscript.org@0.9.14/dist/hdb.min.js" integrity="sha256-eqsD5t9zqxRfgY93GIt7yy5ckoxF/aiU5MRHMiAFnq4=" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.7/dist/htmx.min.js"
+                integrity="sha256-YCMa5rqds4JesVomESLV9VkhxNU7Zr9jfcGLTuJ8efk=" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/hyperscript.org@0.9.14/dist/_hyperscript.min.js"
+                crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/hyperscript.org@0.9.14/dist/hdb.min.js"
+                integrity="sha256-eqsD5t9zqxRfgY93GIt7yy5ckoxF/aiU5MRHMiAFnq4=" crossorigin="anonymous"></script>
     </environment>
     <environment exclude="Production">
         <script src="~/lib/htmx-org/dist/htmx.js"></script>
@@ -52,7 +58,8 @@
     <nav class="navbar navbar-expand-lg fixed-top bg-primary">
         <div class="container">
             <a class="navbar-brand" href="~/">
-                <img src="/images/favicons/favicon-32x32.png" alt="More Speakers Logo" width="30" height="24" class="d-inline-block align-text-top" />
+                <img src="/images/favicons/favicon-32x32.png" alt="More Speakers Logo" width="30" height="24"
+                     class="d-inline-block align-text-top"/>
                 MoreSpeakers.com
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse"
@@ -71,7 +78,8 @@
                     @if (User.Identity?.IsAuthenticated == true)
                     {
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                               aria-expanded="false">
                                 <i class="bi bi-people me-1"></i>Mentorship
                             </a>
                             <ul class="dropdown-menu">
@@ -81,10 +89,10 @@
                                 <li><a class="dropdown-item" asp-page="/Mentorship/Requests">
                                         <i class="bi bi-inbox me-2"></i>My Requests
                                         <span id="nav-notification-badge"
-                                             hx-get="/Mentorship/Requests?handler=NotificationCount"
-                                             hx-trigger="load, every 60s"
-                                             hx-swap="innerHTML"
-                                             class="d-inline"></span>
+                                              hx-get="/Mentorship/Requests?handler=NotificationCount"
+                                              hx-trigger="load, every 60s"
+                                              hx-swap="innerHTML"
+                                              class="d-inline"></span>
                                     </a></li>
                                 <li><a class="dropdown-item" asp-page="/Mentorship/Active">
                                         <i class="bi bi-chat-dots me-2"></i>Active Mentorships
@@ -95,7 +103,8 @@
                     @if (User.Identity?.IsAuthenticated == true && User.IsInRole("Administrator"))
                     {
                         <li class="nav-item">
-                            <a class="nav-link" asp-area="Admin" asp-page="/Index"><i class="bi bi-shield-lock me-1"></i>Admin</a>
+                            <a class="nav-link" asp-area="Admin" asp-page="/Index"><i
+                                    class="bi bi-shield-lock me-1"></i>Admin</a>
                         </li>
                     }
                     <li class="nav-item">
@@ -104,30 +113,36 @@
                 </ul>
                 <ul class="navbar-nav">
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="theme-menu" aria-expanded="false" data-bs-toggle="dropdown" data-bs-display="static" aria-label="Toggle theme">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="theme-menu"
+                           aria-expanded="false" data-bs-toggle="dropdown" data-bs-display="static"
+                           aria-label="Toggle theme">
                             <i class="bi bi-circle-half"></i>
                             <span class="d-lg-none ms-2">Toggle theme</span>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
                             <li>
-                                <button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="light" aria-pressed="false">
+                                <button type="button" class="dropdown-item d-flex align-items-center"
+                                        data-bs-theme-value="light" aria-pressed="false">
                                     <i class="bi bi-sun-fill"></i><span class="ms-2">Light</span>
                                 </button>
                             </li>
                             <li>
-                                <button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="dark" aria-pressed="true">
+                                <button type="button" class="dropdown-item d-flex align-items-center"
+                                        data-bs-theme-value="dark" aria-pressed="true">
                                     <i class="bi bi-moon-stars-fill"></i><span class="ms-2">Dark</span>
                                 </button>
                             </li>
                             <li>
-                                <button type="button" class="dropdown-item d-flex align-items-center" data-bs-theme-value="auto" aria-pressed="true">
+                                <button type="button" class="dropdown-item d-flex align-items-center"
+                                        data-bs-theme-value="auto" aria-pressed="true">
                                     <i class="bi bi-circle-half"></i><span class="ms-2">Auto</span>
                                 </button>
                             </li>
                         </ul>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="https://github.com/cwoodruff/morespeakers-com" target="_blank" title="View on GitHub">
+                        <a class="nav-link" href="https://github.com/cwoodruff/morespeakers-com" target="_blank"
+                           title="View on GitHub">
                             <i class="bi bi-github"></i>
                         </a>
                     </li>
@@ -181,7 +196,7 @@
 
 <main role="main" class="pt-3">
     <div class="container my-5">
-    @RenderBody()
+        @RenderBody()
     </div>
 </main>
 
@@ -199,9 +214,10 @@
                     <li class="mb-1"><a href="~/" class="text-decoration-none">Home</a></li>
                     <li class="mb-1"><a asp-page="/Speakers/Index" class="text-decoration-none">Browse Speakers</a></li>
                     <li class="mb-1"><a asp-page="/About" class="text-decoration-none">About</a></li>
-                    <li class="mb-1"><a href="https://github.com/cwoodruff/morespeakers-com" target="_blank" class="text-decoration-none">
-                        GitHub Repo
-                    </a></li>
+                    <li class="mb-1"><a href="https://github.com/cwoodruff/morespeakers-com" target="_blank"
+                                        class="text-decoration-none">
+                            GitHub Repo
+                        </a></li>
                     <li class="mb-1"><a asp-page="/Privacy" class="text-decoration-none">Privacy Policy</a></li>
                     <li class="mb-0"><a asp-page="/TermsOfService" class="text-decoration-none">Terms of Service</a>
                     </li>
@@ -227,13 +243,17 @@
 
 <!-- Version Display -->
 <div class="position-fixed bottom-0 end-0 p-2" style="z-index: 1000;">
-    <small class="text-muted opacity-50" style="font-size: 0.7rem;">@System.Reflection.Assembly.GetExecutingAssembly().GetName().Version</small>
+    <small class="text-muted opacity-50"
+           style="font-size: 0.7rem;">@System.Reflection.Assembly.GetExecutingAssembly().GetName().Version</small>
 </div>
 
 <environment include="Production">
-    <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha256-5P1JGBOIxI7FBAvT/mb1fCnI5n/NhQKzNUuW7Hq0fMc=" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@@fortawesome/fontawesome-free@7.1.0/js/all.min.js" integrity="sha256-Z6/mj/QZDUfTjL6nkq7pwkHNZpkVY8Xk8Appn4bTLXs=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"
+            integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+            integrity="sha256-5P1JGBOIxI7FBAvT/mb1fCnI5n/NhQKzNUuW7Hq0fMc=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@@fortawesome/fontawesome-free@7.1.0/js/all.min.js"
+            integrity="sha256-Z6/mj/QZDUfTjL6nkq7pwkHNZpkVY8Xk8Appn4bTLXs=" crossorigin="anonymous"></script>
 </environment>
 <environment exclude="Production">
     <script src="~/lib/jquery/dist/jquery.js"></script>
