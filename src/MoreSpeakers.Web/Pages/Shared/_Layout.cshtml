@@ -52,32 +52,6 @@
         <script src="~/lib/hyperscript-org/dist/_hyperscript.js"></script>
     </environment>
     <script src="~/js/theme-support.js" asp-append-version="true"></script>
-
-    <script type="text/javascript">
-        var appInsights = window.appInsights || function (config) {
-            function r(config) { t[config] = function () { var i = arguments; t.queue.push(function () { t[config].apply(t, i) }) } }
-            var t = { config: config }, u = document, e = window, o = "script", s = "AuthenticatedUserContext", h = "startTrackPage", c = "stopTrackPage",
-                l = "trackEvent", a = "trackPageView", v = "trackException", y = "trackTrace", p = "trackDependencyData", m = "setAuthenticatedUserContext",
-                g = "clearAuthenticatedUserContext";
-            t.queue = [];
-            var f = ["Event", "PageView", "Exception", "Trace", "DependencyData"];
-            while (f.length) { r("track" + f.pop()) }
-            r("setAuthenticatedUserContext");
-            r("clearAuthenticatedUserContext");
-            r("startTrackPage");
-            r("stopTrackPage");
-            var n = u.createElement(o);
-            n.src = "https://js.monitor.azure.com/scripts/b/ai.2.min.js";
-            u.getElementsByTagName("head")[0].appendChild(n);
-            e.appInsights = t;
-        }({
-            // connectionString: "InstrumentationKey=YOUR_KEY;IngestionEndpoint=https://YOUR_REGION.in.applicationinsights.azure.com/"
-        });
-        
-        window.appInsights = appInsights;
-    </script>
-
-
 </head>
 <body>
 <header>
@@ -287,7 +261,6 @@
     <script src="~/lib/fontawesome-free/js/all.js"></script>
 </environment>
 <script src="~/js/site.js" asp-append-version="true"></script>
-@await Html.PartialAsync("~/Pages/Shared/_AppInsights.cshtml")
 @await RenderSectionAsync("Scripts", false)
 </body>
 </html>
