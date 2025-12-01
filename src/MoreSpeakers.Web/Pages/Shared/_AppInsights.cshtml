@@ -1,0 +1,23 @@
+<script>
+  (function() {
+    if (!window.appInsights || typeof window.appInsights.trackPageView !== 'function') return;
+
+    var area = '@(ViewContext.RouteData.Values["area"]?.ToString() ?? "")';
+    var page = '@(ViewContext.RouteData.Values["page"]?.ToString() ?? "")'; // Razor Pages
+    var controller = '@(ViewContext.RouteData.Values["controller"]?.ToString() ?? "")';
+    var action = '@(ViewContext.RouteData.Values["action"]?.ToString() ?? "")';
+
+    var name = page || [area, controller, action].filter(Boolean).join('/') || window.location.pathname;
+
+    console.info("Info:", name);
+
+    window.appInsights.trackPageView({
+      name: name,
+      properties: {
+        area: area || 'Public',
+        path: window.location.pathname,
+        method: '@Context?.Request?.Method'
+      }
+    });
+  })();
+</script>
