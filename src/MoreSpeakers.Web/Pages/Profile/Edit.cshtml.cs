@@ -525,7 +525,12 @@ public async Task<IActionResult> OnGetAsync()
 
     public async Task<IActionResult> OnPostSubmitNewExpertiseAsync()
     {
-        await UpdateModelFromUserAsync(User);
+        var profileUser = await UpdateModelFromUserAsync(User);
+
+        if (profileUser is not null)
+        {
+            ProfileUser = profileUser;
+        }
         if (string.IsNullOrWhiteSpace(Input.NewExpertise))
         {
             this.NewExpertiseResponse = new NewExpertiseCreatedResponse()
@@ -563,6 +568,7 @@ public async Task<IActionResult> OnGetAsync()
                 return Partial("_ProfileEditForm", this);
             }
             AvailableExpertises = await expertiseManager.GetAllAsync();
+            SocialMediaSites = await socialMediaSiteManager.GetAllAsync();
             Input.SelectedExpertiseIds = Input.SelectedExpertiseIds.Concat([expertiseId]).ToArray();
             
             this.NewExpertiseResponse = new NewExpertiseCreatedResponse
