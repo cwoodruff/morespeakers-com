@@ -1,4 +1,6 @@
-@using Microsoft.AspNetCore.Identity
+@using MoreSpeakers.Domain.Interfaces
+@using MoreSpeakers.Domain.Models
+@inject ISettings Settings
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="light">
@@ -6,7 +8,12 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Admin • MoreSpeakers.com</title>
-
+    <script>
+        const ai_connectionString = "@Settings.ApplicationInsights.ConnectionString";
+        const ai_disableExceptionTracking = @Settings.ApplicationInsights.DisableExceptionTracking.ToString().ToLower();
+        const ai_enableDebug = @Settings.ApplicationInsights.EnableDebug.ToString().ToLower();
+    </script>
+    <script src="~/js/ai.js"></script>
     <environment include="Production">
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha256-2FMn2Zx6PuH5tdBQDRNwrOo60ts5wWPC9R8jK67b3t4=" crossorigin="anonymous">
         <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" rel="stylesheet" integrity="sha256-pdY4ejLKO67E0CM2tbPtq1DJ3VGDVVdqAR6j3ZwdiE4=" crossorigin="anonymous">

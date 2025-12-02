@@ -30,10 +30,12 @@ var settings = new Settings
 {
     Email = null!,
     GitHub = null!,
-    AutoMapper = null!
+    AutoMapper = null!,
+    ApplicationInsights = null!
 };
 builder.Configuration.AddEnvironmentVariables();
 builder.Configuration.Bind("Settings", settings);
+settings.ApplicationInsights.ConnectionString = builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"] ?? string.Empty;
 builder.Services.AddSingleton<ISettings>(settings);
 builder.Services.AddSingleton<IAutoMapperSettings>(settings.AutoMapper);
 
