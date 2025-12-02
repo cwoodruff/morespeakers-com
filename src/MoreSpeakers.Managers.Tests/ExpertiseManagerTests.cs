@@ -78,16 +78,15 @@ public class ExpertiseManagerTests
     }
 
     [Fact]
-    public async Task SearchExpertiseAsync_should_delegate()
+    public async Task DoesExpertiseWithNameExistsAsync_should_delegate()
     {
-        var expected = new List<Expertise> { new() { Id = 3 } };
-        _dataStoreMock.Setup(d => d.SearchExpertiseAsync("cloud")).ReturnsAsync(expected);
+        _dataStoreMock.Setup(d => d.DoesExpertiseWithNameExistsAsync("cloud")).ReturnsAsync(true);
         var sut = CreateSut();
 
-        var result = await sut.SearchExpertiseAsync("cloud");
+        var result = await sut.DoesExpertiseWithNameExistsAsync("cloud");
 
-        result.Should().BeSameAs(expected);
-        _dataStoreMock.Verify(d => d.SearchExpertiseAsync("cloud"), Times.Once);
+        result.Should().BeTrue();
+        _dataStoreMock.Verify(d => d.DoesExpertiseWithNameExistsAsync("cloud"), Times.Once);
     }
 
     [Fact]
@@ -120,48 +119,24 @@ public class ExpertiseManagerTests
     }
 
     [Fact]
-    public async Task UpdateExpertiseAsync_should_return_true_on_success()
+    public async Task DoesExpertiseWithNameExistsAsync_should_delegate_for_different_input()
     {
-        _dataStoreMock.Setup(d => d.SaveAsync(It.Is<Expertise>(e => e.Id == 7 && e.Name == "AI"))).ReturnsAsync(new Expertise());
+        _dataStoreMock.Setup(d => d.DoesExpertiseWithNameExistsAsync("AI")).ReturnsAsync(false);
         var sut = CreateSut();
 
-        var result = await sut.UpdateExpertiseAsync(7, "AI", "desc");
-
-        result.Should().BeTrue();
-        _dataStoreMock.Verify(d => d.SaveAsync(It.IsAny<Expertise>()), Times.Once);
-    }
-
-    [Fact]
-    public async Task UpdateExpertiseAsync_should_return_false_on_exception()
-    {
-        _dataStoreMock.Setup(d => d.SaveAsync(It.IsAny<Expertise>())).ThrowsAsync(new Exception("boom"));
-        var sut = CreateSut();
-
-        var result = await sut.UpdateExpertiseAsync(8, "ML");
+        var result = await sut.DoesExpertiseWithNameExistsAsync("AI");
 
         result.Should().BeFalse();
+        _dataStoreMock.Verify(d => d.DoesExpertiseWithNameExistsAsync("AI"), Times.Once);
     }
 
     [Fact]
-    public async Task SearchForExpertiseExistsAsync_should_delegate()
-    {
-        var expected = new Expertise { Id = 1, Name = "AI" };
-        _dataStoreMock.Setup(d => d.SearchForExpertiseExistsAsync("AI")).ReturnsAsync(expected);
-        var sut = CreateSut();
-
-        var result = await sut.SearchForExpertiseExistsAsync("AI");
-
-        result.Should().BeSameAs(expected);
-        _dataStoreMock.Verify(d => d.SearchForExpertiseExistsAsync("AI"), Times.Once);
-    }
-
-    [Fact]
-    public async Task DeleteExpertiseAsync_should_delegate()
+    public async Task DeleteAsync_by_id_should_delegate_again()
     {
         _dataStoreMock.Setup(d => d.DeleteAsync(10)).ReturnsAsync(true);
         var sut = CreateSut();
 
-        var result = await sut.DeleteExpertiseAsync(10);
+        var result = await sut.DeleteAsync(10);
 
         result.Should().BeTrue();
         _dataStoreMock.Verify(d => d.DeleteAsync(10), Times.Once);

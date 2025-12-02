@@ -17,7 +17,8 @@
 <form hx-post="/Profile/Edit?handler=UpdateProfile" 
       hx-target="#tabContent" 
       hx-swap="innerHTML" 
-      hx-indicator="#loadingSpinner">
+      hx-indicator="#loadingSpinner"
+      id="form-step">
       
     <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
 
@@ -166,22 +167,17 @@
             <div class="form-text mb-3">Select the technologies and topics you're knowledgeable about.</div>
         </div>
         <div class="row mb-4">
-            @foreach (var expertise in Model.AvailableExpertise)
-            {
-                <div class="col-md-3 col-sm-6 mb-2">
-                    <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" role="switch" switch
-                               name="Input.SelectedExpertiseIds" 
-                               value="@expertise.Id"
-                               id="expertise_@expertise.Id"
-                               @(Model.Input.SelectedExpertiseIds?.Contains(expertise.Id) == true ? "checked" : "") />
-                        <label class="form-check-label" for="expertise_@expertise.Id">
-                            @expertise.Name
-                        </label>
-                    </div>
-                </div>
+            @{
+                var expertiseListDisplay = new ExpertiseListDisplayViewModel
+                {
+                    AvailableExpertises = Model.AvailableExpertises,
+                    SelectedExpertiseIds = Model.Input.SelectedExpertiseIds
+                };
+                @await Html.PartialAsync("_ExpertiseListDisplay", expertiseListDisplay)
             }
+            <span asp-validation-for="Input.SelectedExpertiseIds" class="text-danger small"></span>
         </div>
+        <partial name="_NewExpertise" model="@Model.NewExpertiseResponse" />
     </div>
 
     <!-- Social Media Links -->
@@ -202,7 +198,7 @@
             {
                 foreach (var userSocialMediaSite in Model.ProfileUser.UserSocialMediaSites)
                 {
-                    var model = new UserSocialMediaSiteRow
+                    var model = new UserSocialMediaSiteRowViewModel
                     {
                         UserSocialMediaSite = userSocialMediaSite,
                         SocialMediaSites = socialMediaSites,
@@ -212,7 +208,7 @@
                     @await Html.PartialAsync("_UserSocialMediaSiteRow", model)
                 }
             }
-            <input type="hidden" name="socialMediaSitesCount" value="@index" />
+            <input type="hidden" name="socialMediaSitesCount" value="@index"/>
         </div>
         <div id="replaceSocialMediaRow">
             <div id="addingRowSpinner" class="htmx-indicator">

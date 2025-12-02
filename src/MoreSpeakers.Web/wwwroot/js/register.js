@@ -1,35 +1,10 @@
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
     initializeRegistrationForm();
+    handleEmailValidation();
 });
 
-// Registration form specific functions
-function handleEmailValidation() {
-    document.body.addEventListener('htmx:afterRequest', function(evt) {
-        if (evt.detail.target.id === 'email-validation-message') {
-            const response = JSON.parse(evt.detail.xhr.responseText);
-            const messageDiv = document.getElementById('email-validation-message');
-            const emailInput = document.querySelector('input[name="Input.Email"]');
-
-            if (response.isValid) {
-                messageDiv.innerHTML = response.message ? '<i class="bi bi-check-circle me-1"></i>' + response.message : '';
-                messageDiv.className = 'small mt-1 text-success';
-                emailInput.classList.remove('is-invalid');
-                emailInput.classList.add('is-valid');
-            } else {
-                messageDiv.innerHTML = '<i class="bi bi-exclamation-triangle me-1"></i>' + response.message;
-                messageDiv.className = 'small mt-1 text-danger';
-                emailInput.classList.remove('is-valid');
-                emailInput.classList.add('is-invalid');
-            }
-        }
-    });
-}
-
 function initializeRegistrationForm() {
-
-    // Handle email validation
-    handleEmailValidation();
 
     // Enhanced HTMX handlers for registration
     document.addEventListener('htmx:beforeRequest', function (event) {
@@ -46,6 +21,10 @@ function initializeRegistrationForm() {
         } else if (button.id === 'prevBtn') {
             button.disabled = true;
             button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Loading...';
+    
+        } else if (button.id === 'submitExpertise') {
+            button.disabled = true;
+            button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Creating Expertise Area...';
         }
     });
 
@@ -54,11 +33,37 @@ function initializeRegistrationForm() {
         const originalContent = button.getAttribute('data-original-content');
 
         if (originalContent) {
-            button.disabled = false;
+            if (button.id !== 'submitExpertise') {
+                button.disabled = false;
+            }
             button.innerHTML = originalContent;
             button.removeAttribute('data-original-content');
         }
         updatePageHeader();
+    });
+}
+
+function handleEmailValidation() {
+    document.body.addEventListener('htmx:afterRequest', function(event) {
+        if (event.detail.target.id === 'email-validation-message') {
+            const response = JSON.parse(event.detail.xhr.responseText);
+            const messageDiv = event.detail.target;
+            const emailInput = event.detail.elt;
+
+            if (response.isValid) {
+                messageDiv.innerHTML = response.message ? '<i class="bi bi-check-circle me-1"></i>' + response.message : '';
+                messageDiv.classList.remove('text-danger');
+                messageDiv.classList.add('text-success');
+                emailInput.classList.remove('is-invalid');
+                emailInput.classList.add('is-valid');
+            } else {
+                messageDiv.innerHTML = '<i class="bi bi-exclamation-triangle me-1"></i>' + response.message;
+                messageDiv.classList.add('text-danger');
+                messageDiv.classList.remove('text-success');
+                emailInput.classList.remove('is-valid');
+                emailInput.classList.add('is-invalid');
+            }
+        }
     });
 }
 

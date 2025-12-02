@@ -53,4 +53,7 @@ public class ProfileEditInputModel
 
     [Display(Name = "Upload Headshot")] 
     public IFormFile? HeadshotFile { get; set; }
+    
+    [Display(Name = "New Expertise")] 
+    public string NewExpertise { get; set; } = string.Empty;
 }

@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models;
+using MoreSpeakers.Web.Models;
 using MoreSpeakers.Web.Models.ViewModels;
 using MoreSpeakers.Web.Services;
 
@@ -25,7 +26,7 @@ public class EditModel(
     [BindProperty] public PasswordChangeInputModel PasswordInput { get; set; } = new();
 
     public User ProfileUser { get; set; } = null!;
-    public IEnumerable<Expertise> AvailableExpertise { get; set; } = new List<Expertise>();
+    public IEnumerable<Expertise> AvailableExpertises { get; set; } = new List<Expertise>();
     public IEnumerable<SocialMediaSite> SocialMediaSites { get; set; } = new List<SocialMediaSite>();
 
     // Properties for HTMX state management
@@ -34,7 +35,9 @@ public class EditModel(
     public string ValidationMessage { get; set; } = string.Empty;
     public string SuccessMessage { get; set; } = string.Empty;
 
-
+    // Properties required for NewExpertise setup
+    public NewExpertiseCreatedResponse NewExpertiseResponse { get; set; } = new();
+    
 public async Task<IActionResult> OnGetAsync()
     {
         
@@ -48,7 +51,7 @@ public async Task<IActionResult> OnGetAsync()
         }
 
         ProfileUser = user;
-        AvailableExpertise = await expertiseManager.GetAllAsync();
+        AvailableExpertises = await expertiseManager.GetAllAsync();
         SocialMediaSites = await socialMediaSiteManager.GetAllAsync();
         ActiveTab = "profile";
         return Page();
@@ -97,7 +100,7 @@ public async Task<IActionResult> OnGetAsync()
             }
 
             ProfileUser = userProfile;
-            AvailableExpertise = await expertiseManager.GetAllAsync();
+            AvailableExpertises = await expertiseManager.GetAllAsync();
             SocialMediaSites = await socialMediaSiteManager.GetAllAsync();
             
             HasValidationErrors = false;
@@ -205,7 +208,7 @@ public async Task<IActionResult> OnGetAsync()
         }
 
         ProfileUser = user;
-        AvailableExpertise = await expertiseManager.GetAllAsync();
+        AvailableExpertises = await expertiseManager.GetAllAsync();
         SocialMediaSites = await socialMediaSiteManager.GetAllAsync();
         ActiveTab = tab;
         
@@ -459,7 +462,7 @@ public async Task<IActionResult> OnGetAsync()
         try
         {
             socialMediaSitesCount++;
-            var model = new UserSocialMediaSiteRow
+            var model = new UserSocialMediaSiteRowViewModel
             {
                 UserSocialMediaSite = null,
                 SocialMediaSites = await socialMediaSiteManager.GetAllAsync(),
@@ -472,5 +475,117 @@ public async Task<IActionResult> OnGetAsync()
             logger.LogError(ex, "Failed to add a social media row");
         }
         return Content("");
+    }
+    
+    
+    public async Task<IActionResult> OnPostValidateNewExpertiseAsync()
+    {
+        if (string.IsNullOrWhiteSpace(Input.NewExpertise))
+        {
+            return new JsonResult(new NewExpertiseResponse
+            {
+                IsValid = false
+            });
+        }
+
+        var expertiseName = Input.NewExpertise;
+        var trimmedName = expertiseName.Trim();
+
+        // Search to see if the name exists
+        var existingExpertise = await expertiseManager.DoesExpertiseWithNameExistsAsync(trimmedName);
+        if (existingExpertise)
+        {
+            return new JsonResult(new NewExpertiseResponse
+            {
+                IsValid = false,
+                Message = $"Expertise '{expertiseName}' already exists."
+            });
+        }
+        
+        // Check for similar expertise (fuzzy matching for suggestions)
+        var similarExpertise = await expertiseManager.FuzzySearchForExistingExpertise(trimmedName, 5);
+
+        List<Expertise> expertises = similarExpertise.ToList();
+        if (expertises.Any())
+        {
+            
+            var suggestions = string.Join(", ", expertises.Select(s => s.Name));
+            return new JsonResult(new NewExpertiseResponse
+            {
+                IsValid = false,
+                Message = $"Similar expertise found: {suggestions}. Consider selecting from existing options.",
+            });
+        }
+
+        return new JsonResult(new NewExpertiseResponse
+        {
+            IsValid = true
+        });
+    }
+
+    public async Task<IActionResult> OnPostSubmitNewExpertiseAsync()
+    {
+        var profileUser = await UpdateModelFromUserAsync(User);
+
+        if (profileUser is not null)
+        {
+            ProfileUser = profileUser;
+        }
+        if (string.IsNullOrWhiteSpace(Input.NewExpertise))
+        {
+            this.NewExpertiseResponse = new NewExpertiseCreatedResponse()
+            {
+                SavingExpertiseFailed = true, SaveExpertiseMessage = "No expertise name was provided."
+            };
+            return Partial("_ProfileEditForm", this);
+        }
+
+        var expertiseName = Input.NewExpertise;
+        var trimmedName = expertiseName.Trim();
+
+        try
+        {
+            // Search to see if the name exists
+            var existingExpertise = await expertiseManager.DoesExpertiseWithNameExistsAsync(trimmedName);
+            if (existingExpertise)
+            {
+                this.NewExpertiseResponse = new NewExpertiseCreatedResponse()
+                {
+                    SavingExpertiseFailed = true, SaveExpertiseMessage =  $"Expertise '{expertiseName}' already exists."
+                };
+                return Partial("_ProfileEditForm", this);
+            }
+
+            // Attempt to save the expertise
+            var expertiseId = await expertiseManager.CreateExpertiseAsync(trimmedName);
+
+            if (expertiseId == 0)
+            {
+                this.NewExpertiseResponse = new NewExpertiseCreatedResponse
+                {
+                    SavingExpertiseFailed = true, SaveExpertiseMessage =  $"Failed to create the expertise '{expertiseName}'."
+                };
+                return Partial("_ProfileEditForm", this);
+            }
+            AvailableExpertises = await expertiseManager.GetAllAsync();
+            SocialMediaSites = await socialMediaSiteManager.GetAllAsync();
+            Input.SelectedExpertiseIds = Input.SelectedExpertiseIds.Concat([expertiseId]).ToArray();
+            
+            this.NewExpertiseResponse = new NewExpertiseCreatedResponse
+            {
+                SavingExpertiseFailed = false, SaveExpertiseMessage =  string.Empty
+            };
+            return Partial("_ProfileEditForm", this);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error submitting new expertise");
+            AvailableExpertises = await expertiseManager.GetAllAsync();
+            this.NewExpertiseResponse = new NewExpertiseCreatedResponse
+            {
+                SavingExpertiseFailed = true, SaveExpertiseMessage =  $"Failed to create the expertise '{expertiseName}'."
+            };
+            return Partial("_ProfileEditForm", this);
+        }
     }
 }

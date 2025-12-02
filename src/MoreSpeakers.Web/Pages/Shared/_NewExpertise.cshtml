@@ -1,0 +1,40 @@
+@model Web.Models.NewExpertiseCreatedResponse
+<div class="mb-3" id="newExpertiseContainer">
+    <label class="form-label fw-medium">Are we missing an expertise? Add new one!</label>
+    <div>
+        <div class="input-group mb-2" data-expertise-index="0">
+            <input type="text" name="Input.NewExpertise" id="Input.NewExpertise"
+                   class="form-control @(Model.SavingExpertiseFailed is true ? "is-invalid": "")"
+                   placeholder="Enter a new expertise area"
+                   hx-post="@Url.RouteUrl(ViewContext.RouteData.Values)?handler=ValidateNewExpertise"
+                   hx-trigger="blur, keyup changed delay:500ms"
+                   hx-target="#newExpertiseValidationMessage"
+                   hx-include="this"
+                   hx-indicator="#newExpertiseStatus"
+                   />
+            <button type="button" class="btn btn-outline-primary" id="submitExpertise" disabled="disabled"
+                    hx-post="@Url.RouteUrl(ViewContext.RouteData.Values)?handler=SubmitNewExpertise"
+                    hx-target="#form-step"
+                    hx-include="[name='Input.NewExpertise']"
+                    hx-indicator="#newExpertiseStatus">
+                <i class="bi bi-plus mt-2"></i>Add
+            </button>
+            <div id="newExpertiseStatus">
+                <div class="htmx-indicator position-absolute">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Checking...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="newExpertiseValidationMessage" class="small mt-1">
+            @if (Model.SavingExpertiseFailed is true)
+            {
+                @Model.SaveExpertiseMessage
+            }
+        </div>
+    </div>
+    <div class="form-text">
+        <small class="text-muted">Add expertise areas not listed above</small>
+    </div>
+</div>
