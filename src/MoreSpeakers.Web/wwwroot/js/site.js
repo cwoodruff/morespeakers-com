@@ -6,6 +6,8 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeFormValidation();
     initializeHtmxEnhancements();
     initializeFadeInAnimations();
+    const speakerImages = document.querySelectorAll("img.speaker-img");
+    speakerImages.forEach(fixMissingSpeakerImage);
 });
 
 // Bootstrap tooltips initialization
@@ -183,4 +185,20 @@ function initializeFadeInAnimations() {
     document.querySelectorAll('.card, section').forEach(element => {
         observer.observe(element);
     });
+}
+
+function fixMissingSpeakerImage(image) {
+
+    if (image.nodeName.toLowerCase() !== "img" || image.naturalWidth !== 0 || image.naturalHeight !== 0) {
+        return;
+    }
+
+    const imageParent = image.parentNode;
+    const placeHolderDiv = document.createElement('div');
+    placeHolderDiv.className = "align-items-center justify-content-center";
+    const placeHolder = document.createElement('i');
+    placeHolder.className = "bi bi-person-fill d-flex justify-content-center align-items-center";
+    placeHolder.style.fontSize = "8rem";
+    placeHolderDiv.appendChild(placeHolder);
+    imageParent.replaceChild(placeHolderDiv, image);
 }
