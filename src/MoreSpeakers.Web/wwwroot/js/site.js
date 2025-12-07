@@ -39,6 +39,25 @@ function initializeFormValidation() {
             });
         });
     });
+
+    jQuery.validator.addMethod("is-img-url", function (value, element) {
+
+        let isValid = false;
+
+        $.ajax({
+            type: "HEAD",
+            async: false,
+            url: value,
+            success: function(data, textStatus, jqXHR) {
+                let header = jqXHR.getResponseHeader('content-type');
+                isValid = !!header.includes('image');
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                isValid = false;
+            }}
+        );
+        return this.optional(element) || isValid;
+    }, "Could not verify that this URL is a valid image");
 }
 
 // Validate individual form field
@@ -73,6 +92,9 @@ function validateForm(form) {
 
     return isValid;
 }
+
+
+
 
 // HTMX enhancements
 function initializeHtmxEnhancements() {
