@@ -128,26 +128,31 @@
     }
 
     async function deletePasskey(id, btn) {
-        // Disable buttons to prevent double-clicks
+        // Capture the list item reference BEFORE modifying the DOM
+        // modifying btnGroup.innerHTML detaches 'btn' from the DOM tree
+        const li = btn.closest('li');
         const btnGroup = btn.closest('.btn-group');
+
+        // Disable buttons to prevent double-clicks
         btnGroup.innerHTML = '<span class="spinner-border spinner-border-sm text-danger"></span>';
 
         try {
             await Passkeys.delete(id);
             
-            const li = btn.closest('li');
-            // Fade out animation
-            li.style.transition = 'opacity 0.3s';
-            li.style.opacity = '0';
+            if (li) {
+                // Fade out animation
+                li.style.transition = 'opacity 0.3s';
+                li.style.opacity = '0';
 
-            setTimeout(() => {
-                li.remove();
-                // If list is empty, show empty message
-                const list = document.getElementById('passkeysList');
-                if (list.children.length === 0) {
-                    list.innerHTML = '<li class="list-group-item text-center text-muted py-4">No passkeys added yet.</li>';
-                }
-            }, 300);
+                setTimeout(() => {
+                    li.remove();
+                    // If list is empty, show empty message
+                    const list = document.getElementById('passkeysList');
+                    if (list && list.children.length === 0) {
+                        list.innerHTML = '<li class="list-group-item text-center text-muted py-4">No passkeys added yet.</li>';
+                    }
+                }, 300);
+            }
             
             renderPasskeyAlert('Passkey removed successfully.', 'success');
 
