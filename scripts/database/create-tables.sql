@@ -134,6 +134,18 @@ create table AspNetUserTokens
 )
 go
 
+create table AspNetUserPasskeys
+(
+    UserId       uniqueidentifier not null
+        constraint FK_AspNetUserPasskeys_AspNetUsers_UserId
+            references AspNetUsers
+            on delete cascade,
+    CredentialId varbinary(900)   not null,
+    Data         nvarchar(max)    not null,
+    primary key (UserId, CredentialId)
+)
+go
+
 create table Expertises
 (
     Id          int identity

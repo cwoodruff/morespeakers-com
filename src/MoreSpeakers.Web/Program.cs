@@ -7,6 +7,7 @@ using MoreSpeakers.Domain.Models;
 using MoreSpeakers.Managers;
 using MoreSpeakers.Web.Services;
 using MoreSpeakers.Data;
+using MoreSpeakers.Web.Endpoints;
 
 using Serilog;
 using Serilog.Exceptions;
@@ -58,6 +59,9 @@ builder.EnrichSqlServerDbContext<MoreSpeakersDbContext>(
 // Add Identity services
 builder.Services.AddDefaultIdentity<MoreSpeakers.Data.Models.User>(options =>
     {
+        // Stores settings - required for passkey support
+        options.Stores.SchemaVersion = IdentitySchemaVersions.Version3;
+
         // Password settings
         options.Password.RequireDigit = true;
         options.Password.RequireLowercase = true;
@@ -81,6 +85,16 @@ builder.Services.AddDefaultIdentity<MoreSpeakers.Data.Models.User>(options =>
     })
     .AddRoles<IdentityRole<Guid>>()
     .AddEntityFrameworkStores<MoreSpeakersDbContext>();
+    
+// Configure Passkey Options
+builder.Services.Configure<IdentityPasskeyOptions>(options =>
+{
+    var serverDomain = builder.Configuration["Identity:Passkeys:ServerDomain"];
+    if (!string.IsNullOrEmpty(serverDomain))
+    {
+        options.ServerDomain = serverDomain;
+    }
+});
 
 // Configure cookie paths explicitly to ensure expected redirects
 builder.Services.ConfigureApplicationCookie(options =>
@@ -202,6 +216,7 @@ app.UseSession();
 
 app.MapDefaultEndpoints();
 app.MapRazorPages();
+app.MapPasskeyEndpoints(); // Enable passkey endpoints
 
 app.Run();
 
