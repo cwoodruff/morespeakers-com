@@ -8,6 +8,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Text;
 
 using MoreSpeakers.Domain.Interfaces;
+using MoreSpeakers.Web.Models;
 using MoreSpeakers.Web.Models.ViewModels;
 using MoreSpeakers.Web.Services;
 
@@ -38,30 +39,27 @@ public partial class RegisterModel : PageModel
         _logger = logger;
     }
 
-    /// <summary>
-    ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
-    ///     directly from your code. This API may change or be removed in future releases.
-    /// </summary>
     [BindProperty]
     public InputModel Input { get; set; }
 
-    // Property to expose selected expertise IDs for registration completion (step 5)
-    public int[] ExpertiseIds => Input.SelectedExpertiseIds ?? [];
-    
     // Lookup values
     public IEnumerable<Expertise> AvailableExpertises { get; set; } = new List<Expertise>();
     public IEnumerable<SpeakerType> SpeakerTypes { get; set; } = new List<SpeakerType>();
     
     // Properties required by _RegistrationContainer.cshtml
-    public int CurrentStep { get; set; } = Models.RegistrationProgressions.SpeakerProfileNeeded;
+    public int CurrentStep { get; set; } = RegistrationProgressions.SpeakerProfileNeeded;
     public bool HasValidationErrors { get; set; }
     public string ValidationMessage { get; set; } = string.Empty;
     public string SuccessMessage { get; set; } = string.Empty;
+    
+    // Properties required for NewExpertise setup
+    public NewExpertiseCreatedResponse NewExpertiseResponse { get; set; } = new();
+
 
     public async Task OnGetAsync()
     {
         // Initialize registration state
-        CurrentStep = Models.RegistrationProgressions.SpeakerProfileNeeded;
+        CurrentStep = RegistrationProgressions.SpeakerProfileNeeded;
         HasValidationErrors = false;
         ValidationMessage = string.Empty;
         SuccessMessage = string.Empty;
@@ -77,7 +75,7 @@ public partial class RegisterModel : PageModel
     public async Task<IActionResult> OnPostValidateStepAsync(int step)
     {
         // Validate step number
-        if (!Models.RegistrationProgressions.IsValid(step))
+        if (!RegistrationProgressions.IsValid(step))
         {
             ModelState.AddModelError("", "Invalid step number.");
             return BadRequest();
@@ -90,7 +88,7 @@ public partial class RegisterModel : PageModel
         var stepValid = ValidateStep(step);
 
         // Additional async validations for step 1 (e.g., email uniqueness)
-        if (step == Models.RegistrationProgressions.SpeakerProfileNeeded && stepValid)
+        if (step == RegistrationProgressions.SpeakerProfileNeeded && stepValid)
         {
             if (!string.IsNullOrWhiteSpace(Input.Email))
             {
@@ -122,14 +120,12 @@ public partial class RegisterModel : PageModel
 
         // All validation passed - move to the next step
         var nextStep = step + 1;
-        if (nextStep <= Models.RegistrationProgressions.SocialMediaNeeded)
+        if (nextStep <= RegistrationProgressions.SocialMediaNeeded)
         {
             HasValidationErrors = false;
             SuccessMessage = GetSuccessMessage(step);
             CurrentStep = nextStep;
             ValidationMessage = string.Empty;
-
-            // Return complete registration container with next step
             return Partial("_RegistrationContainer", this);
         }
 
@@ -145,10 +141,10 @@ public partial class RegisterModel : PageModel
     {
         return step switch
         {
-            Models.RegistrationProgressions.SpeakerProfileNeeded => "Please complete all required account information before proceeding.",
-            Models.RegistrationProgressions.RequiredInformationNeeded => "Please fill out your speaker profile completely.",
-            Models.RegistrationProgressions.ExpertiseNeeded => "Please select at least one area of expertise.",
-            Models.RegistrationProgressions.SocialMediaNeeded => "Please add at least one social media account.",
+            RegistrationProgressions.SpeakerProfileNeeded => "Please complete all required account information before proceeding.",
+            RegistrationProgressions.RequiredInformationNeeded => "Please fill out your speaker profile completely.",
+            RegistrationProgressions.ExpertiseNeeded => "Please select at least one area of expertise.",
+            RegistrationProgressions.SocialMediaNeeded => "Please add at least one social media account.",
             _ => "Please complete the required information."
         };
     }
@@ -157,9 +153,9 @@ public partial class RegisterModel : PageModel
     {
         return step switch
         {
-            Models.RegistrationProgressions.SpeakerProfileNeeded => "Account information saved successfully!",
-            Models.RegistrationProgressions.RequiredInformationNeeded => "Profile information saved successfully!",
-            Models.RegistrationProgressions.ExpertiseNeeded => "Expertise areas saved successfully!",
+            RegistrationProgressions.SpeakerProfileNeeded => "Account information saved successfully!",
+            RegistrationProgressions.RequiredInformationNeeded => "Profile information saved successfully!",
+            RegistrationProgressions.ExpertiseNeeded => "Expertise areas saved successfully!",
             _ => "Information saved successfully!"
         };
     }
@@ -171,9 +167,9 @@ public partial class RegisterModel : PageModel
 
         // Return previous step without validation
         var prevStep = step - 1;
-        if (prevStep < Models.RegistrationProgressions.SpeakerProfileNeeded)
+        if (prevStep < RegistrationProgressions.SpeakerProfileNeeded)
         {
-            prevStep = Models.RegistrationProgressions.SpeakerProfileNeeded;
+            prevStep = RegistrationProgressions.SpeakerProfileNeeded;
         }
 
         CurrentStep = prevStep;
@@ -209,46 +205,107 @@ public partial class RegisterModel : PageModel
         return new JsonResult(new { isValid = true, message = "" });
     }
 
-    public async Task<IActionResult> OnPostValidateCustomExpertiseAsync(string expertiseName)
+    public async Task<IActionResult> OnPostValidateNewExpertiseAsync()
     {
-        // This is not implemented until we add the ability to create custom expertise
-        if (string.IsNullOrWhiteSpace(expertiseName))
+        if (string.IsNullOrWhiteSpace(Input.NewExpertise))
         {
-            return new JsonResult(new { isValid = true, message = "", suggestion = "" });
+            return new JsonResult(new NewExpertiseResponse
+            {
+                IsValid = false
+            });
         }
 
+        var expertiseName = Input.NewExpertise;
         var trimmedName = expertiseName.Trim();
 
-        // Check if expertise already exists (case-insensitive)
-        var existingExpertise = await _expertiseManager.SearchForExpertiseExistsAsync(trimmedName);
-
-        if (existingExpertise != null)
+        // Search to see if the name exists
+        var existingExpertise = await _expertiseManager.DoesExpertiseWithNameExistsAsync(trimmedName);
+        if (existingExpertise)
         {
-            return new JsonResult(new
+            return new JsonResult(new NewExpertiseResponse
             {
-                isValid = false,
-                message = $"'{existingExpertise.Name}' already exists in our database.",
-                suggestion = $"Consider selecting '{existingExpertise.Name}' from the list above instead.",
-                existingId = existingExpertise.Id
+                IsValid = false,
+                Message = $"Expertise '{expertiseName}' already exists."
             });
         }
-
+        
         // Check for similar expertise (fuzzy matching for suggestions)
-        var similarExpertise = await _expertiseManager.FuzzySearchForExistingExpertise(trimmedName);
+        var similarExpertise = await _expertiseManager.FuzzySearchForExistingExpertise(trimmedName, 5);
 
-        if (similarExpertise.Any())
+        List<Expertise> expertises = similarExpertise.ToList();
+        if (expertises.Any())
         {
-            var suggestions = string.Join(", ", similarExpertise.Select(s => s.Name));
-            return new JsonResult(new
+            
+            var suggestions = string.Join(", ", expertises.Select(s => s.Name));
+            return new JsonResult(new NewExpertiseResponse
             {
-                isValid = true,
-                message = "",
-                suggestion = $"Similar expertise found: {suggestions}. Consider selecting from existing options.",
-                similarItems = similarExpertise
+                IsValid = false,
+                Message = $"Similar expertise found: {suggestions}. Consider selecting from existing options.",
             });
         }
 
-        return new JsonResult(new { isValid = true, message = "", suggestion = "" });
+        return new JsonResult(new NewExpertiseResponse
+        {
+            IsValid = true
+        });
+    }
+
+    public async Task<IActionResult> OnPostSubmitNewExpertiseAsync()
+    {
+        if (string.IsNullOrWhiteSpace(Input.NewExpertise))
+        {
+            this.NewExpertiseResponse = new NewExpertiseCreatedResponse()
+            {
+                SavingExpertiseFailed = true, SaveExpertiseMessage = "No expertise name was provided."
+            };
+            return Partial("_RegisterStep3", this);
+        }
+
+        var expertiseName = Input.NewExpertise;
+        var trimmedName = expertiseName.Trim();
+
+        try
+        {
+            // Search to see if the name exists
+            var existingExpertise = await _expertiseManager.DoesExpertiseWithNameExistsAsync(trimmedName);
+            if (existingExpertise)
+            {
+                this.NewExpertiseResponse = new NewExpertiseCreatedResponse()
+                {
+                    SavingExpertiseFailed = true, SaveExpertiseMessage =  $"Expertise '{expertiseName}' already exists."
+                };
+                return Partial("_RegisterStep3", this);
+            }
+
+            // Attempt to save the expertise
+            var expertiseId = await _expertiseManager.CreateExpertiseAsync(trimmedName);
+
+            if (expertiseId == 0)
+            {
+                this.NewExpertiseResponse = new NewExpertiseCreatedResponse
+                {
+                    SavingExpertiseFailed = true, SaveExpertiseMessage =  $"Failed to create the expertise '{expertiseName}'."
+                };
+                return Partial("_RegisterStep3", this);
+            }
+            AvailableExpertises = await _expertiseManager.GetAllAsync();
+            Input.SelectedExpertiseIds = Input.SelectedExpertiseIds.Concat([expertiseId]).ToArray();
+            this.NewExpertiseResponse = new NewExpertiseCreatedResponse
+            {
+                SavingExpertiseFailed = false, SaveExpertiseMessage =  string.Empty
+            };
+            return Partial("_RegisterStep3", this);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error submitting new expertise");
+            AvailableExpertises = await _expertiseManager.GetAllAsync();
+            this.NewExpertiseResponse = new NewExpertiseCreatedResponse
+            {
+                SavingExpertiseFailed = true, SaveExpertiseMessage =  $"Failed to create the expertise '{expertiseName}'."
+            };
+            return Partial("_RegisterStep3", this);
+        }
     }
 
     private async Task LoadFormLookupListsAsync()
@@ -264,7 +321,7 @@ public partial class RegisterModel : PageModel
 
         switch (step)
         {
-            case Models.RegistrationProgressions.SpeakerProfileNeeded: // Account step
+            case RegistrationProgressions.SpeakerProfileNeeded: // Account step
                 if (string.IsNullOrWhiteSpace(Input.FirstName))
                 {
                     ModelState.AddModelError("Input.FirstName", "First name is required.");
@@ -324,7 +381,7 @@ public partial class RegisterModel : PageModel
                     ModelState.AddModelError("Input.ConfirmPassword", "Passwords do not match.");
                 }
                 break;
-            case Models.RegistrationProgressions.RequiredInformationNeeded: // Profile step
+            case RegistrationProgressions.RequiredInformationNeeded: // Profile step
                 if (Input.SpeakerTypeId <= 0)
                     ModelState.AddModelError("Input.SpeakerTypeId", "Please select a speaker type.");
                 if (string.IsNullOrWhiteSpace(Input.Bio))
@@ -332,12 +389,12 @@ public partial class RegisterModel : PageModel
                 if (string.IsNullOrWhiteSpace(Input.Goals))
                     ModelState.AddModelError("Input.Goals", "Goals are required.");
                 break;
-            case Models.RegistrationProgressions.ExpertiseNeeded: // Expertise step
-                if ((Input.SelectedExpertiseIds?.Length ?? 0) == 0 && (Input.CustomExpertise?.Length ?? 0) == 0)
+            case RegistrationProgressions.ExpertiseNeeded: // Expertise step
+                if (Input.SelectedExpertiseIds?.Length == 0)
                     ModelState.AddModelError("Input.SelectedExpertiseIds",
                         "Please select at least one area of expertise.");
                 break;
-            case Models.RegistrationProgressions.SocialMediaNeeded: // Social step - optional, no validation needed
+            case RegistrationProgressions.SocialMediaNeeded: // Social step - optional, no validation needed
                 break;
         }
 
@@ -351,7 +408,7 @@ public partial class RegisterModel : PageModel
 
         // Validate all steps before final submission
         var allStepsValid = true;
-        foreach (var i in Models.RegistrationProgressions.All)
+        foreach (var i in RegistrationProgressions.All)
             if (!ValidateStep(i))
                 allStepsValid = false;
 
@@ -360,7 +417,7 @@ public partial class RegisterModel : PageModel
             // If we got this far, something failed, redisplay form with the current state
             await LoadFormLookupListsAsync();
             CurrentStep =
-                Models.RegistrationProgressions.SpeakerProfileNeeded; // Reset to the first step on major failure
+                RegistrationProgressions.SpeakerProfileNeeded; // Reset to the first step on major failure
             HasValidationErrors = true;
             ValidationMessage = "Registration failed. Please check the errors and try again.";
             return Partial("_RegistrationContainer", this);
@@ -390,10 +447,9 @@ public partial class RegisterModel : PageModel
             _logger.LogError(ex, "Failed to save new user account");
             await LoadFormLookupListsAsync();
             // Reset to the first step on major failure
-            CurrentStep = Models.RegistrationProgressions.SpeakerProfileNeeded;
+            CurrentStep = RegistrationProgressions.SpeakerProfileNeeded;
             HasValidationErrors = true;
             ValidationMessage = "The saving of registration failed. Please check the errors and try again.";
-            // TODO: This is loads the RegistrationContainer inside itself, which is not ideal.
             return Partial("_RegistrationContainer", this);
         }
 
@@ -405,10 +461,9 @@ public partial class RegisterModel : PageModel
             }
 
             // Reset to the first step on major failure
-            CurrentStep = Models.RegistrationProgressions.SpeakerProfileNeeded;
+            CurrentStep = RegistrationProgressions.SpeakerProfileNeeded;
             HasValidationErrors = true;
             ValidationMessage = "The saving of registration failed. Please check the errors and try again.";
-            // TODO: This is loads the RegistrationContainer inside itself, which is not ideal.
             return Partial("_RegistrationContainer", this);
         }
 
@@ -421,10 +476,9 @@ public partial class RegisterModel : PageModel
             _logger.LogError("Failed to find user after saving registration. Email: '{Email}'", Input.Email);
             await LoadFormLookupListsAsync();
             // Reset to the first step on major failure
-            CurrentStep = Models.RegistrationProgressions.SpeakerProfileNeeded;
+            CurrentStep = RegistrationProgressions.SpeakerProfileNeeded;
             HasValidationErrors = true;
             ValidationMessage = "Could not find user after saving registration. Please try again.";
-            // TODO: This is loads the RegistrationContainer inside itself, which is not ideal.
             return Partial("_RegistrationContainer", this);
         }
         
@@ -460,10 +514,9 @@ public partial class RegisterModel : PageModel
             _logger.LogError(ex, "Failed to save the user's expertise's and social media sites. Email: '{Email}'", Input.Email);
             await LoadFormLookupListsAsync();
             // Reset to the first step on major failure
-            CurrentStep = Models.RegistrationProgressions.SpeakerProfileNeeded;
+            CurrentStep = RegistrationProgressions.SpeakerProfileNeeded;
             HasValidationErrors = true;
             ValidationMessage = "Failed to save your expertise and social media sites. Please try again.";
-            // TODO: This is loads the RegistrationContainer inside itself, which is not ideal.
             return Partial("_RegistrationContainer", this);
         }
 
@@ -473,7 +526,7 @@ public partial class RegisterModel : PageModel
             "Welcome to MoreSpeakers.com - Your Speaking Journey Begins!", user, user);
         if (!emailSent)
         {
-            _logger.LogError("Failed to send mentorship declined email to mentee");
+            _logger.LogError("Failed to send the welcome email");
             // TODO: Create a visual indicator that the email was not sent
         }
 
@@ -503,7 +556,7 @@ public partial class RegisterModel : PageModel
         // Load data needed for registration completion (step 5) display
         await LoadFormLookupListsAsync();
 
-        CurrentStep = Models.RegistrationProgressions.Complete;
+        CurrentStep = RegistrationProgressions.Complete;
         HasValidationErrors = false;
         ValidationMessage = string.Empty;
         SuccessMessage = "Registration completed successfully!";
@@ -517,7 +570,7 @@ public partial class RegisterModel : PageModel
         try
         {
             socialMediaSitesCount++;
-            var model = new UserSocialMediaSiteRow
+            var model = new UserSocialMediaSiteRowViewModel
             {
                 UserSocialMediaSite = null,
                 SocialMediaSites = await _socialMediaSiteManager.GetAllAsync(),

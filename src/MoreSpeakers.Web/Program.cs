@@ -11,6 +11,7 @@ using MoreSpeakers.Web.Endpoints;
 
 using Serilog;
 using Serilog.Exceptions;
+using MoreSpeakers.Web.Authorization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,11 +30,22 @@ ConfigureLogging(builder.Configuration, builder.Services, fullyQualifiedLogFile,
 var settings = new Settings
 {
     Email = null!,
-    GitHub = null!
+    GitHub = null!,
+    AutoMapper = null!,
+    ApplicationInsights = null!
 };
 builder.Configuration.AddEnvironmentVariables();
 builder.Configuration.Bind("Settings", settings);
+settings.ApplicationInsights.ConnectionString = builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"] ?? string.Empty;
 builder.Services.AddSingleton<ISettings>(settings);
+builder.Services.AddSingleton<IAutoMapperSettings>(settings.AutoMapper);
+
+// Add in AutoMapper
+builder.Services.AddAutoMapper(config =>
+{
+    config.LicenseKey = settings.AutoMapper.LicenseKey;
+    config.AddProfile<MoreSpeakers.Data.MappingProfiles.MoreSpeakersProfile>();
+}, typeof(Program));
 
 // Add database context
 builder.AddSqlServerDbContext<MoreSpeakersDbContext>("sqldb");
@@ -84,14 +96,58 @@ builder.Services.Configure<IdentityPasskeyOptions>(options =>
     }
 });
 
+// Configure cookie paths explicitly to ensure expected redirects
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath = "/Identity/Account/Login";
+    options.AccessDeniedPath = "/Identity/Account/AccessDenied";
+});
+
+// Add Authorization with AdminOnly policy
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminOnly", policy =>
+        policy.RequireRole("Administrator"));
+});
+
 // Add Razor Pages
 builder.Services.AddRazorPages(options =>
 {
     options.Conventions.AuthorizeAreaFolder("Identity", "/Account/Manage");
     options.Conventions.AuthorizeAreaPage("Identity", "/Account/Logout");
+
+    // Admin area baseline: require AdminOnly for all pages under /Admin
+    // Keep the dashboard (Index) under AdminOnly only; granular policies apply to sub-folders below.
+    options.Conventions.AuthorizeAreaFolder("Admin", "/", policy: "AdminOnly");
+
+    // Granular least-privilege policies by sub-folder within the Admin area
+    // Users management pages → ManageUsers policy
+    options.Conventions.AuthorizeAreaFolder("Admin", "/Users", policy: PolicyNames.ManageUsers);
+    // Catalog/content management pages → ManageCatalog policy
+    options.Conventions.AuthorizeAreaFolder("Admin", "/Catalog", policy: PolicyNames.ManageCatalog);
+    // Reports/analytics pages → ViewReports policy
+    options.Conventions.AuthorizeAreaFolder("Admin", "/Reports", policy: PolicyNames.ViewReports);
 });
 builder.Services.AddMvcCore().AddRazorViewEngine();
 builder.Services.AddControllersWithViews();
+
+// Add authorization policies for least-privilege admin operations
+builder.Services.AddAuthorization(options =>
+{
+    // Baseline Admin area policy: only Administrators can enter the Admin area
+    options.AddPolicy("AdminOnly", policy =>
+        policy.RequireRole(AppRoles.Administrator));
+
+    // Keep Administrator with full access to all policies
+    options.AddPolicy(PolicyNames.ManageUsers, policy =>
+        policy.RequireRole(AppRoles.Administrator, AppRoles.UserManager, AppRoles.Moderator));
+
+    options.AddPolicy(PolicyNames.ManageCatalog, policy =>
+        policy.RequireRole(AppRoles.Administrator, AppRoles.CatalogManager, AppRoles.Moderator));
+
+    options.AddPolicy(PolicyNames.ViewReports, policy =>
+        policy.RequireRole(AppRoles.Administrator, AppRoles.Reporter, AppRoles.Moderator));
+});
 
 // Add Azure Storage services
 builder.AddAzureBlobServiceClient("AzureStorageBlobs");
@@ -137,11 +193,11 @@ builder.Services.AddSession(options =>
 });
 
 var app = builder.Build();
-
-app.MapDefaultEndpoints();
-
-// Configure the HTTP request pipeline
-if (!app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+}
+else
 {
     app.UseExceptionHandler("/Error");
     app.UseHsts();
@@ -158,6 +214,7 @@ app.UseAuthorization();
 
 app.UseSession();
 
+app.MapDefaultEndpoints();
 app.MapRazorPages();
 app.MapPasskeyEndpoints(); // Enable passkey endpoints
 
@@ -189,3 +246,6 @@ void ConfigureLogging(IConfigurationRoot configurationRoot, IServiceCollection s
         loggingBuilder.AddSerilog(logger);
     });
 }
+
+// Expose Program for WebApplicationFactory in integration tests
+public partial class Program { }

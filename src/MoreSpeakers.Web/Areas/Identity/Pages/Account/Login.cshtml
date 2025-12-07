@@ -55,7 +55,7 @@
                                         <i class="bi bi-envelope"></i>
                                     </span>
                                     <input asp-for="Input.Email" class="form-control border-start-0"
-                                           autocomplete="username" aria-required="true" placeholder="Enter your email"/>
+                                           autocomplete="username" aria-required="true" placeholder="Enter your email" />
                                 </div>
                                 <span asp-validation-for="Input.Email" class="text-danger small"></span>
                             </div>
@@ -68,13 +68,13 @@
                                     </span>
                                     <input asp-for="Input.Password" class="form-control border-start-0"
                                            autocomplete="current-password" aria-required="true"
-                                           placeholder="Enter your password"/>
+                                           placeholder="Enter your password" />
                                 </div>
                                 <span asp-validation-for="Input.Password" class="text-danger small"></span>
                             </div>
 
                             <div class="form-check mb-4">
-                                <input class="form-check-input" asp-for="Input.RememberMe"/>
+                                <input class="form-check-input" asp-for="Input.RememberMe" />
                                 <label class="form-check-label" asp-for="Input.RememberMe">
                                     Remember me on this device
                                 </label>
@@ -84,7 +84,7 @@
                                 <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
                             </button>
                         </form>
-                        
+
                         <div class="d-flex align-items-center mb-3">
                             <hr class="flex-grow-1">
                             <span class="px-3 text-muted small">or sign in with</span>
@@ -156,6 +156,6 @@
 </div>
 
 @section Scripts {
-    <script src="/js/passkeys.js"></script>
-    <partial name="_ValidationScriptsPartial"/>
+    <partial name="~/Pages/Shared/_ValidationScriptsPartial.cshtml" />
+    <script src="~/js/passkeys.js" asp-append-version="true"></script>
 }

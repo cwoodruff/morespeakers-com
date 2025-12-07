@@ -174,12 +174,16 @@ public class BrowseModel : PageModel
                 return Unauthorized();
             }
 
-            // Check if can request
+            // Check if the user can request
             var canRequest = await _mentoringManager.CanRequestMentorshipAsync(currentUser.Id, targetId);
             if (!canRequest)
             {
-                return Content(
-                    "<div class='alert alert-warning'>You already have a pending or active connection with this person.</div>");
+                return Partial("~/Pages/Shared/_AlertDialog.cshtml",
+                    new AlertDialogViewModel
+                    {
+                        AlertType = AlertTypeEnum.Warning,
+                        Message = "You already have a pending or active connection with this person."
+                    });
             }
 
             mentorship = await _mentoringManager.RequestMentorshipWithDetailsAsync(
@@ -187,7 +191,12 @@ public class BrowseModel : PageModel
 
             if (mentorship == null)
             {
-                return Content("<div class='alert alert-danger'>Failed to send request. Please try again.</div>");
+                return Partial("~/Pages/Shared/_AlertDialog.cshtml",
+                    new AlertDialogViewModel
+                    {
+                        AlertType = AlertTypeEnum.Danger,
+                        Message = "Failed to send request. Please try again."
+                    });
             }
         }
         catch (Exception ex)
@@ -239,20 +248,22 @@ public class BrowseModel : PageModel
                 return NotFound();
             }
 
-            // TODO: Convert to a partial view
-            return Content("<div class='alert alert-info'>Request cancelled successfully.</div>");
+            return Partial("~/Pages/Shared/_AlertDialog.cshtml",
+                new AlertDialogViewModel
+                {
+                    AlertType = AlertTypeEnum.Info,
+                    Message = "Request cancelled successfully."
+                });
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error cancelling mentorship request for user '{User}'", currentUser?.Id);
-            return Content("<div class='alert alert-danger'>An error happened while cancelling the request.</div>");
+            return Partial("~/Pages/Shared/_AlertDialog.cshtml",
+                new AlertDialogViewModel
+                {
+                    AlertType = AlertTypeEnum.Danger,
+                    Message = "An error happened while cancelling the request."
+                });
         }
-    }
-
-    private async Task LoadMentorsddd(BrowseMentorsViewModel model)
-    {
-        var mentors = await _mentoringManager.GetMentorsExceptForUserAsync(model.CurrentUser.Id, model.MentorshipType,
-            model.SelectedExpertise, model.AvailableNow);
-        model.Mentors = mentors;
     }
 }

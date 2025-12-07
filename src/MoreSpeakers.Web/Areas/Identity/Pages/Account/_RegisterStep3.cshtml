@@ -1,6 +1,6 @@
+@using MoreSpeakers.Web.Models.ViewModels
 @model MoreSpeakers.Web.Areas.Identity.Pages.Account.RegisterModel
-
-<div class="form-step" data-step="3">
+<div class="form-step" data-step="3" id="form-step" >
     @if (ViewData["HasValidationErrors"] as bool? == true)
     {
         <div class="alert alert-danger mb-3">
@@ -13,66 +13,26 @@
             <i class="bi bi-check-circle me-2"></i>@ViewData["SuccessMessage"]
         </div>
     }
-    <h5 class="mb-4">Areas of Expertise</h5>
+    <h5>Areas of Expertise</h5>
     <p class="text-muted mb-4">Select the technologies, topics, and areas where you have experience or interest.</p>
-
     <div class="row mb-4">
-        <label class="form-label fw-medium">Select Your Expertise Areas</label>
-        <div class="row mb-4">
-            @foreach (var expertise in Model.AvailableExpertises)
+        @{
+            var expertiseListDisplay = new ExpertiseListDisplayViewModel
             {
-                <div class="col-md-3 col-sm-6 mb-2">
-                    <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" role="switch" switch
-                               name="Input.SelectedExpertiseIds" 
-                               value="@expertise.Id"
-                               id="expertise_@expertise.Id"/>
-                        <label class="form-check-label" for="expertise_@expertise.Id">
-                            @expertise.Name
-                        </label>
-                    </div>
-                </div>
-            }
-        </div>
+                AvailableExpertises = Model.AvailableExpertises,
+                SelectedExpertiseIds = Model.Input.SelectedExpertiseIds
+            };
+            @await Html.PartialAsync("_ExpertiseListDisplay", expertiseListDisplay)
+        }
         <span asp-validation-for="Input.SelectedExpertiseIds" class="text-danger small"></span>
     </div>
-
-    <div class="mb-3 d-none">
-        <label class="form-label fw-medium">Custom Expertise Areas</label>
-        <div id="customExpertiseContainer">
-            <div class="input-group mb-2 custom-expertise-input" data-expertise-index="0">
-                <input type="text" name="Input.CustomExpertise" class="form-control custom-expertise-field"
-                       placeholder="Enter a custom expertise area"
-                       hx-post="/Register?handler=ValidateCustomExpertise"
-                       hx-trigger="blur, keyup changed delay:500ms"
-                       hx-target="next .custom-expertise-validation"
-                       hx-include="this"
-                       hx-indicator="next .custom-expertise-validation .htmx-indicator"/>
-                <button type="button" class="btn btn-outline-primary" 
-                        onclick="addCustomExpertise()">
-                    <i class="bi bi-plus"></i>
-                </button>
-                <div class="custom-expertise-validation position-relative">
-                    <div class="htmx-indicator position-absolute" style="top: 8px; right: 8px;">
-                        <div class="spinner-border spinner-border-sm text-primary" role="status">
-                            <span class="visually-hidden">Checking...</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div id="customExpertiseValidation0" class="custom-expertise-message small mt-1"></div>
-        </div>
-        <div class="form-text">
-            <small class="text-muted">Add expertise areas not listed above</small>
-        </div>
-    </div>
+    <partial name="_NewExpertise" model="@Model.NewExpertiseResponse" />
 </div>
 
-
-
 <!-- Persist Steps 1-2 values across HTMX steps -->
-<div aria-hidden="true" style="display:none;visibility:hidden;">
+<div aria-hidden="true" class="d-none">
     <!-- Step 1 fields -->
+    <input type="hidden" asp-for="CurrentStep" />
     <input type="hidden" asp-for="Input.FirstName" />
     <input type="hidden" asp-for="Input.LastName" />
     <input type="hidden" asp-for="Input.Email" />

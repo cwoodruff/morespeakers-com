@@ -72,7 +72,8 @@ public partial class RegisterModel
         [Display(Name = "Areas of Expertise")]
         public int[] SelectedExpertiseIds { get; set; } = Array.Empty<int>();
 
-        [Display(Name = "Custom Expertise")] public string[] CustomExpertise { get; set; } = Array.Empty<string>();
+        [Display(Name = "New Expertise")] 
+        public string NewExpertise { get; set; } = string.Empty;
 
         [Display(Name = "Social Media Sites")] 
         public List<Domain.Models.UserSocialMediaSite> UserSocialMediaSites { get; set; } = [];

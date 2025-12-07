@@ -41,19 +41,14 @@ public class ExpertiseManager: IExpertiseManager
         return await _dataStore.DeleteAsync(entity);
     }
 
-    public async Task<IEnumerable<Expertise>> SearchExpertiseAsync(string searchTerm)
-    {
-        return await _dataStore.SearchExpertiseAsync(searchTerm);
-    }
-
     public async Task<int> CreateExpertiseAsync(string name, string? description = null)
     {
         var expertise = new Expertise { Name = name, Description = description };
         
         try
         {
-            await _dataStore.SaveAsync(expertise);
-            return expertise.Id;  
+            var savedExpertise = await _dataStore.SaveAsync(expertise);
+            return savedExpertise.Id;  
         }
         catch(Exception ex)
         {
@@ -61,41 +56,18 @@ public class ExpertiseManager: IExpertiseManager
             return 0;
         }
     }
-
-    public async Task<bool> UpdateExpertiseAsync(int id, string name, string? description = null)
-    {
-        var expertise = new Expertise { Id = id, Name = name, Description = description };
-        
-        try
-        {
-            await _dataStore.SaveAsync(expertise);
-            return true;
-        }
-        catch
-        {
-            _logger.LogError(
-                "Failed to update expertise with the id of '{Id}'. Name:'{Name}', Description:'{Description}", id, name,
-                description);
-            return false;
-        }
-    }
-
-    public async Task<Expertise?> SearchForExpertiseExistsAsync(string name)
-    {
-        return await _dataStore.SearchForExpertiseExistsAsync(name);   
-    }
-
-    public async Task<bool> DeleteExpertiseAsync(int id)
-    {
-        return await _dataStore.DeleteAsync(id);
-    }
-
+    
     public async Task<IEnumerable<Expertise>> GetPopularExpertiseAsync(int count = 10)
     {
         return await _dataStore.GetPopularExpertiseAsync(count);
     }
 
-    public async Task<List<Expertise>> FuzzySearchForExistingExpertise(string name, int count = 3)
+    public async Task<bool> DoesExpertiseWithNameExistsAsync(string expertiseName)
+    {
+        return await _dataStore.DoesExpertiseWithNameExistsAsync(expertiseName);
+    }
+    
+    public async Task<IEnumerable<Expertise>> FuzzySearchForExistingExpertise(string name, int count = 3)
     {
         return await _dataStore.FuzzySearchForExistingExpertise(name, count);
     }

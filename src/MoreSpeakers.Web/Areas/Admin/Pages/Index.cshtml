@@ -1,0 +1,46 @@
+@page
+@{
+    ViewData["Title"] = "Admin • Dashboard";
+}
+@using MoreSpeakers.Web.Areas.Admin.Pages.Shared
+
+<h1 class="mb-4">Admin • Dashboard</h1>
+
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a asp-area="Admin" asp-page="/Index">Admin</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Dashboard</li>
+  </ol>
+  <!-- Breadcrumb is optional; included for improved orientation -->
+</nav>
+
+<div class="mb-4">
+  <partial name="~/Areas/Admin/Pages/Shared/_HealthStatus.cshtml" />
+  <!-- Health card is a placeholder and can be replaced with live checks later -->
+</div>
+
+<div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-3">
+  @{
+      var tiles = new[]
+      {
+          new DashboardTile("Manage Users", "Accounts, roles, and access.", "bi bi-people", "Admin", "/Users/Test"),
+          new DashboardTile("Social Sites", "Edit social platforms and URL formats.", "bi bi-share", "Admin", "/Catalog/Test"),
+          new DashboardTile("Expertise / Sectors", "Organize domains and specializations.", "bi bi-diagram-3", "Admin", "/Catalog/Test"),
+          new DashboardTile("Settings", "Templates and feature flags.", "bi bi-gear", "Admin", "/Settings/Index"),
+          new DashboardTile("Reports", "Usage and operational analytics.", "bi bi-graph-up", "Admin", "/Reports/Test")
+      };
+      foreach (var t in tiles)
+      {
+          @await Html.PartialAsync("~/Areas/Admin/Pages/Shared/_DashboardTile.cshtml", t)
+      }
+  }
+</div>
+
+@section Scripts {
+  <script>
+    // Optional telemetry: track Admin dashboard page view if AI SDK is present
+    if (window.appInsights && typeof window.appInsights.trackPageView === 'function') {
+      window.appInsights.trackPageView({ name: 'Admin/Dashboard', properties: { area: 'Admin' } });
+    }
+  </script>
+}

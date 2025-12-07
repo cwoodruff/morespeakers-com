@@ -61,7 +61,8 @@ Open up the user secrets for this project.  Add the following secrets:
 {
 
   "APPLICATIONINSIGHTS_CONNECTION_STRING": "InstrumentationKey=<Replace_Me>;IngestionEndpoint=https://centralus-2.in.applicationinsights.azure.com/;LiveEndpoint=https://centralus.livediagnostics.monitor.azure.com/;ApplicationId=<Replace_Me>",
-  "APPINSIGHTS_INSTRUMENTATIONKEY": ""
+  "APPINSIGHTS_INSTRUMENTATIONKEY": "",
+  "Settings:AutoMapper:LicenseKey": ""
 }
 ```
 
@@ -69,6 +70,7 @@ Or execute the following commands in the terminal/Developer PowerShell:
 ```bash
 dotnet user-secrets set APPLICATIONINSIGHTS_CONNECTION_STRING "InstrumentationKey=<Replace_Me>;IngestionEndpoint=https://centralus-2.in.applicationinsights.azure.com/;LiveEndpoint=https://centralus.livediagnostics.monitor.azure.com/;ApplicationId=<Replace_Me>"
 dotnet user-secrets set APPINSIGHTS_INSTRUMENTATIONKEY "<Replace_Me"
+dotnet user-secrets set Settings:AutoMapper:LicenseKey ""
 ```
 
 ### MoreSpeakers.Functions
@@ -96,6 +98,8 @@ This file will contain the following:
   }
 }
 ```
+
+***Tip***: You can disable the functions by setting the `Disabled` property to `true`.
 
 #### User Secrets
 

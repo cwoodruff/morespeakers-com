@@ -99,8 +99,8 @@
                     <!-- Mentorship Type Info -->
                     <div class="alert alert-info">
                         <i class="bi bi-info-circle me-2"></i>
-                        <strong>@(Model.MentorshipType == MoreSpeakers.Domain.Models.MentorshipType.NewToExperienced ? "New Speaker Mentorship" : "Peer Mentorship")</strong><br>
-                        @if (Model.MentorshipType == MoreSpeakers.Domain.Models.MentorshipType.NewToExperienced)
+                        <strong>@(Model.MentorshipType == Domain.Models.MentorshipType.NewToExperienced ? "New Speaker Mentorship" : "Peer Mentorship")</strong><br>
+                        @if (Model.MentorshipType == Domain.Models.MentorshipType.NewToExperienced)
                         {
                             <small>You're requesting guidance as a new speaker. Your mentor will help you develop speaking skills, find opportunities, and grow your confidence.</small>
                         }
@@ -115,7 +115,6 @@
                     <span id="request-loading" class="htmx-indicator spinner-border spinner-border-sm me-2"></span>
                     <button type="button" class="btn btn-secondary gap-2" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" class="btn btn-primary">
-
                         <i class="bi bi-people me-2"></i>Send Request
                     </button>
                 </div>

@@ -97,11 +97,12 @@
 
 <!-- Persist Step 1 values across HTMX steps -->
 <div aria-hidden="true" class="d-none">
-    <input type="hidden" asp-for="Input.FirstName" />
-    <input type="hidden" asp-for="Input.LastName" />
-    <input type="hidden" asp-for="Input.Email" />
-    <input type="hidden" asp-for="Input.PhoneNumber" />
-    <input type="hidden" asp-for="Input.Password" />
-    <input type="hidden" asp-for="Input.ConfirmPassword" />
+    <input type="hidden" asp-for="CurrentStep" />
+    <input type="hidden" asp-for="Input.FirstName"/>
+    <input type="hidden" asp-for="Input.LastName"/>
+    <input type="hidden" asp-for="Input.Email"/>
+    <input type="hidden" asp-for="Input.PhoneNumber"/>
+    <input type="hidden" asp-for="Input.Password"/>
+    <input type="hidden" asp-for="Input.ConfirmPassword"/>
 </div>
 

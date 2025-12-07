@@ -1,4 +1,6 @@
-using MoreSpeakers.Functions.Interfaces;
+using MoreSpeakers.Domain.Interfaces;
+
+using ISettings = MoreSpeakers.Functions.Interfaces.ISettings;
 
 namespace MoreSpeakers.Functions.Models;
 

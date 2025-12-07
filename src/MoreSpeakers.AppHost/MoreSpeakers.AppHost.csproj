@@ -18,7 +18,7 @@
 
     <PropertyGroup>
         <VersionMajor>1</VersionMajor>
-        <VersionMinor>3</VersionMinor>
+        <VersionMinor>4</VersionMinor>
         <VersionBuild>1</VersionBuild>
     </PropertyGroup>
     <PropertyGroup>
@@ -44,11 +44,11 @@
         <DocumentationFile>bin\Release\MoreSpeakers.Web.xml</DocumentationFile>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="Aspire.Hosting.AppHost" Version="13.0.0" />
+        <PackageReference Include="Aspire.Hosting.AppHost" Version="13.0.2" />
         <PackageReference Include="Aspire.Hosting.Azure.Functions" Version="13.0.0-preview.1.25560.3" />
-        <PackageReference Include="Aspire.Hosting.Azure.Storage" Version="13.0.0" />
-        <PackageReference Include="Aspire.Hosting.SqlServer" Version="13.0.0" />
-        <PackageReference Include="Aspire.Microsoft.EntityFrameworkCore.SqlServer" Version="13.0.0" />
+        <PackageReference Include="Aspire.Hosting.Azure.Storage" Version="13.0.2" />
+        <PackageReference Include="Aspire.Hosting.SqlServer" Version="13.0.2" />
+        <PackageReference Include="Aspire.Microsoft.EntityFrameworkCore.SqlServer" Version="13.0.2" />
     </ItemGroup>
 
     <ItemGroup>

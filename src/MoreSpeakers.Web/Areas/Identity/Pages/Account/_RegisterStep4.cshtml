@@ -16,9 +16,9 @@
     <div class="row mb-4">
         <div class="col-12">
             <h5 class="border-bottom pb-2 mb-3">
-                <i class="bi bi-gear-fill me-2"></i>Areas of Expertise
+                <i class="bi bi-gear-fill me-2"></i>Social Media & Professional Links
             </h5>
-            <div class="form-text mb-3">Select the technologies and topics you're knowledgeable about.</div>
+            <div class="form-text mb-3">Share your professional social media profiles to help others connect with you.</div>
         </div>
         <div class="col-12" id="socialMediaContainer">
             <input type="hidden" name="socialMediaSitesCount" value="0" />
@@ -44,8 +44,9 @@
 </div>
 
 <!-- Persist Steps 1-3 values across HTMX steps for final submit -->
-<div aria-hidden="true" style="display:none;visibility:hidden;">
+<div aria-hidden="true" class="d-none">
     <!-- Step 1 fields -->
+    <input type="hidden" asp-for="CurrentStep" />
     <input type="hidden" asp-for="Input.FirstName" />
     <input type="hidden" asp-for="Input.LastName" />
     <input type="hidden" asp-for="Input.Email" />
@@ -68,16 +69,7 @@
             <input type="hidden" name="Input.SelectedExpertiseIds" value="@id" />
         }
     }
-    @if (Model?.Input?.CustomExpertise != null)
-    {
-        foreach (var ce in Model.Input.CustomExpertise)
-        {
-            if (!string.IsNullOrWhiteSpace(ce))
-            {
-                <input type="hidden" name="Input.CustomExpertise" value="@ce" />
-            }
-        }
-    }
+   
     @if (Model?.Input?.UserSocialMediaSites != null)
     {
         foreach (var usms in Model.Input.UserSocialMediaSites)

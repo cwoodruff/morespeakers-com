@@ -26,7 +26,7 @@
     <!-- Progress Indicator -->
     <div class="mb-4">
         <div class="row text-center" id="stepIndicator">
-            @for (int i = 1; i <= 5; i++)
+            @for (int i = 1; i <= RegistrationProgressions.Complete; i++)
             {
                 <div class="col">
                     @if (i == RegistrationProgressions.Complete && currentStep == RegistrationProgressions.Complete)
@@ -38,7 +38,7 @@
                         <i class="bi bi-@i-circle@(i < currentStep ? "-fill text-success" : i == currentStep ? "-fill text-primary" : " text-secondary")" data-step="@i" style="font-size:2rem;"></i>    
                     }
                     <p class="text-sm mb-0">
-                        @(i switch { 1 => "Account", 2 => "Profile", 3 => "Expertise", 4 => "Social", 5 => "Complete", _ => "" })
+                        @(i switch { RegistrationProgressions.SpeakerProfileNeeded => "Account", RegistrationProgressions.RequiredInformationNeeded => "Profile", RegistrationProgressions.ExpertiseNeeded => "Expertise", RegistrationProgressions.SocialMediaNeeded => "Social", RegistrationProgressions.Complete => "Complete", _ => "" })
                     </p>
                 </div>
             }
@@ -49,26 +49,26 @@
     <div id="stepContainer">
         @switch (currentStep)
         {
-            case 1:
+            case RegistrationProgressions.SpeakerProfileNeeded:
                 <partial name="_RegisterStep1" model="Model"/>
                 break;
-            case 2:
+            case RegistrationProgressions.RequiredInformationNeeded:
                 <partial name="_RegisterStep2" model="Model"/>
                 break;
-            case 3:
+            case RegistrationProgressions.ExpertiseNeeded:
                 <partial name="_RegisterStep3" model="Model"/>
                 break;
-            case 4:
+            case RegistrationProgressions.SocialMediaNeeded:
                 <partial name="_RegisterStep4" model="Model"/>
                 break;
-            case 5:
+            case RegistrationProgressions.Complete:
                 <partial name="_RegisterStep5" model="Model"/>
                 break;
         }
     </div>
 
     <!-- Navigation Buttons -->
-    @if (currentStep < 5)
+    @if (currentStep < RegistrationProgressions.Complete)
     {
         <div class="d-flex justify-content-between mt-4" id="navigationButtons">
             <button type="button" id="prevBtn" 
@@ -80,7 +80,7 @@
                     hx-swap="innerHTML">
                 <i class="bi bi-arrow-left me-2"></i>Previous
             </button>
-            @if (currentStep < 4)
+            @if (currentStep < RegistrationProgressions.SocialMediaNeeded)
             {
                 <button type="button" id="nextBtn" class="btn btn-primary"
                         hx-post="/Register?handler=ValidateStep"
@@ -104,7 +104,3 @@
         </div>
     }
 </form>
-
-<script>
-    updatePageHeader(@currentStep);
-</script>

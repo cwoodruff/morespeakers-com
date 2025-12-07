@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
 
+using Microsoft.Extensions.Logging;
+
 namespace MoreSpeakers.Data.Tests;
 
 public class MappingTests
@@ -10,7 +12,7 @@ public class MappingTests
         var configuration = new MapperConfiguration(cfg =>
         {
             cfg.AddProfile<MappingProfiles.MoreSpeakersProfile>();
-        });
+        }, new LoggerFactory());
 
         try
         {
