@@ -1,0 +1,173 @@
+@model MoreSpeakers.Web.Pages.Profile.EditModel
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <!-- Alert Messages -->
+        <div id="passkeyAlert" class="d-none"></div>
+
+        <div class="text-center mb-4">
+            <div class="display-1 text-primary mb-3">
+                <i class="bi bi-fingerprint"></i>
+            </div>
+            <h4>Passkeys</h4>
+            <p class="text-muted">
+                Passkeys are a safer and easier replacement for passwords.
+                With passkeys, you can sign in using your fingerprint, face, screen lock, or hardware security key.
+            </p>
+        </div>
+
+        <div class="d-grid gap-2 mb-4">
+            <button type="button" class="btn btn-primary" onclick="registerPasskey()">
+                <i class="bi bi-plus-circle me-2"></i>Add a Passkey
+            </button>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">Your Passkeys</h6>
+            </div>
+            <ul class="list-group list-group-flush" id="passkeysList">
+                @if (Model.UserPasskeys != null && Model.UserPasskeys.Any())
+                {
+                    @foreach (var passkey in Model.UserPasskeys)
+                    {
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-0">@passkey.FriendlyName</h6>
+                            </div>
+                            <div class="btn-group" role="group">
+                                <button class="btn btn-sm btn-outline-danger delete-btn"
+                                        onclick="confirmDelete('@passkey.Id', this)"
+                                        title="Remove Passkey">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </li>
+                    }
+                }
+                else
+                {
+                    <li class="list-group-item text-center text-muted py-4">
+                        No passkeys added yet.
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Scoped helper functions for displaying messages on this tab
+    function renderPasskeyAlert(message, type) {
+        const alertDiv = document.getElementById('passkeyAlert');
+        const icon = type === 'success' ? 'bi-check-circle' : 'bi-exclamation-triangle';
+
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show mb-3`;
+        alertDiv.innerHTML = `
+            <i class="bi ${icon} me-2"></i>${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        alertDiv.classList.remove('d-none');
+
+        // Auto-dismiss success messages after 5 seconds
+        if (type === 'success') {
+            setTimeout(() => {
+                alertDiv.classList.add('d-none');
+            }, 5000);
+        }
+
+        // Scroll to alert
+        alertDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    async function registerPasskey() {
+        try {
+            await Passkeys.register();
+            renderPasskeyAlert('Passkey added successfully!', 'success');
+            // Reload the tab to show the new key (using HTMX or full reload)
+            setTimeout(() => {
+               // Trigger a reload of the tab via HTMX if possible, or full reload
+               const tabBtn = document.querySelector('.nav-link.active');
+               if (tabBtn && typeof htmx !== 'undefined') {
+                   htmx.trigger(tabBtn, 'click');
+               } else {
+                   window.location.reload();
+               }
+            }, 1000);
+        } catch (err) {
+            renderPasskeyAlert(err.message, 'danger');
+        }
+    }
+
+    function confirmDelete(id, btn) {
+        const btnGroup = btn.closest('.btn-group');
+
+        // Replace with confirm/cancel buttons
+        // Note: id is passed as a string, so we wrap it in quotes for the calls
+        btnGroup.innerHTML = `
+            <button class="btn btn-sm btn-success" onclick="deletePasskey('${id}', this)" title="Confirm deletion">
+                <i class="bi bi-check-lg"></i>
+            </button>
+            <button class="btn btn-sm btn-secondary" onclick="cancelDelete('${id}', this)" title="Cancel">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        `;
+    }
+
+    function cancelDelete(id, btn) {
+        const btnGroup = btn.closest('.btn-group');
+
+        // Restore original delete button
+        btnGroup.innerHTML = `
+            <button class="btn btn-sm btn-outline-danger delete-btn"
+                    onclick="confirmDelete('${id}', this)"
+                    title="Remove Passkey">
+                <i class="bi bi-trash"></i>
+            </button>
+        `;
+    }
+
+    async function deletePasskey(id, btn) {
+        // Capture the list item reference BEFORE modifying the DOM
+        // modifying btnGroup.innerHTML detaches 'btn' from the DOM tree
+        const li = btn.closest('li');
+        const btnGroup = btn.closest('.btn-group');
+
+        // Disable buttons to prevent double-clicks
+        btnGroup.innerHTML = '<span class="spinner-border spinner-border-sm text-danger"></span>';
+
+        try {
+            await Passkeys.delete(id);
+            
+            if (li) {
+                // Fade out animation
+                li.style.transition = 'opacity 0.3s';
+                li.style.opacity = '0';
+
+                setTimeout(() => {
+                    li.remove();
+                    // If list is empty, show empty message
+                    const list = document.getElementById('passkeysList');
+                    if (list && list.children.length === 0) {
+                        list.innerHTML = '<li class="list-group-item text-center text-muted py-4">No passkeys added yet.</li>';
+                    }
+                }, 300);
+            }
+            
+            renderPasskeyAlert('Passkey removed successfully.', 'success');
+
+        } catch (error) {
+            console.error('Error deleting passkey:', error);
+            renderPasskeyAlert('Failed to remove passkey. ' + error.message, 'danger');
+            
+            // Restore delete button on error
+            btnGroup.innerHTML = `
+                <button class="btn btn-sm btn-outline-danger delete-btn"
+                        onclick="confirmDelete('${id}', this)"
+                        title="Remove Passkey">
+                    <i class="bi bi-trash"></i>
+                </button>
+            `;
+        }
+    }
+</script>
