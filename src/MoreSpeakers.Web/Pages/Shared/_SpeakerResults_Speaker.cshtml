@@ -7,7 +7,7 @@
             @if (!string.IsNullOrEmpty(Model.Speaker.HeadshotUrl))
             {
                 <img hx-preserve src="@Model.Speaker.HeadshotUrl" alt="@Model.Speaker.FullName"
-                     class="object-fit-contain border image-thumbnail rounded float-start" style="width:8rem; height:8rem;">
+                     class="object-fit-contain border image-thumbnail rounded float-start speaker-img" style="width:8rem; height:8rem;">
             }
             else
             {

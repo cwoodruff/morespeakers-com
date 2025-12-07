@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize any additional functionality
-
+    
     // Auto-hide success messages after 5 seconds
     setTimeout(function() {
         const successAlerts = document.querySelectorAll('.alert-success');
@@ -26,3 +26,4 @@ document.addEventListener('htmx:afterRequest', function(event) {
         tabs[0].classList.add('active');
     }
 });
+

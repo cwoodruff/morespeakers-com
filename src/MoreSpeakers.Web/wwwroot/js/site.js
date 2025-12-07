@@ -6,6 +6,8 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeFormValidation();
     initializeHtmxEnhancements();
     initializeFadeInAnimations();
+    const speakerImages = document.querySelectorAll("img.speaker-img");
+    speakerImages.forEach(fixMissingSpeakerImage);
 });
 
 // Bootstrap tooltips initialization
@@ -37,6 +39,25 @@ function initializeFormValidation() {
             });
         });
     });
+
+    jQuery.validator.addMethod("is-img-url", function (value, element) {
+
+        let isValid = false;
+
+        $.ajax({
+            type: "HEAD",
+            async: false,
+            url: value,
+            success: function(data, textStatus, jqXHR) {
+                let header = jqXHR.getResponseHeader('content-type');
+                isValid = header && header.includes('image');
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                isValid = false;
+            }}
+        );
+        return this.optional(element) || isValid;
+    }, "Could not verify that this URL is a valid image");
 }
 
 // Validate individual form field
@@ -71,6 +92,9 @@ function validateForm(form) {
 
     return isValid;
 }
+
+
+
 
 // HTMX enhancements
 function initializeHtmxEnhancements() {
@@ -183,4 +207,20 @@ function initializeFadeInAnimations() {
     document.querySelectorAll('.card, section').forEach(element => {
         observer.observe(element);
     });
+}
+
+function fixMissingSpeakerImage(image) {
+
+    if (image.nodeName.toLowerCase() !== "img" || image.naturalWidth > 0 || image.naturalHeight > 0) {
+        return;
+    }
+
+    const imageParent = image.parentNode;
+    const placeHolderDiv = document.createElement('div');
+    placeHolderDiv.className = "align-items-center justify-content-center";
+    const placeHolder = document.createElement('i');
+    placeHolder.className = "bi bi-person-fill d-flex justify-content-center align-items-center";
+    placeHolder.style.fontSize = "8rem";
+    placeHolderDiv.appendChild(placeHolder);
+    imageParent.replaceChild(placeHolderDiv, image);
 }
