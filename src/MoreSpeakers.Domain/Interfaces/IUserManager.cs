@@ -19,11 +19,6 @@ public interface IUserManager
     Task<string> GenerateEmailConfirmationTokenAsync(User user);
     Task<bool> ConfirmEmailAsync(User user, string token);
     
-    // Passkey support
-    Task<IdentityResult> AddOrUpdatePasskeyAsync(User user, UserPasskeyInfo passkey);
-    Task<IEnumerable<UserPasskey>> GetUserPasskeysAsync(Guid userId);
-    Task<bool> RemovePasskeyAsync(Guid userId, string credentialIdBase64);
-    
     // ------------------------------------------
     // Application Methods
     // ------------------------------------------

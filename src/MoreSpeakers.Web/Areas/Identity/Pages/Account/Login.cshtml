@@ -42,9 +42,6 @@
 
                 <div class="card shadow-sm border-0">
                     <div class="card-body p-4">
-                        <!-- Alert for passkey errors -->
-                        <div id="passkeyLoginAlert" class="d-none"></div>
-
                         <form id="account" method="post">
                             <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
 
@@ -55,7 +52,7 @@
                                         <i class="bi bi-envelope"></i>
                                     </span>
                                     <input asp-for="Input.Email" class="form-control border-start-0"
-                                           autocomplete="username" aria-required="true" placeholder="Enter your email" />
+                                           autocomplete="username" aria-required="true" placeholder="Enter your email"/>
                                 </div>
                                 <span asp-validation-for="Input.Email" class="text-danger small"></span>
                             </div>
@@ -68,13 +65,13 @@
                                     </span>
                                     <input asp-for="Input.Password" class="form-control border-start-0"
                                            autocomplete="current-password" aria-required="true"
-                                           placeholder="Enter your password" />
+                                           placeholder="Enter your password"/>
                                 </div>
                                 <span asp-validation-for="Input.Password" class="text-danger small"></span>
                             </div>
 
                             <div class="form-check mb-4">
-                                <input class="form-check-input" asp-for="Input.RememberMe" />
+                                <input class="form-check-input" asp-for="Input.RememberMe"/>
                                 <label class="form-check-label" asp-for="Input.RememberMe">
                                     Remember me on this device
                                 </label>
@@ -84,17 +81,6 @@
                                 <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
                             </button>
                         </form>
-
-                        <div class="d-flex align-items-center mb-3">
-                            <hr class="flex-grow-1">
-                            <span class="px-3 text-muted small">or sign in with</span>
-                            <hr class="flex-grow-1">
-                        </div>
-
-                        <!-- Passkey Login -->
-                        <button type="button" class="btn btn-lg btn-outline-primary w-100 mb-3" onclick="Passkeys.handleLogin()">
-                            <i class="bi bi-fingerprint me-2"></i>Passkey
-                        </button>
 
                         <div class="text-center">
                             <div class="d-flex align-items-center mb-3">
@@ -156,6 +142,5 @@
 </div>
 
 @section Scripts {
-    <partial name="~/Pages/Shared/_ValidationScriptsPartial.cshtml" />
-    <script src="~/js/passkeys.js" asp-append-version="true"></script>
+    <partial name="~/Pages/Shared/_ValidationScriptsPartial.cshtml"/>
 }

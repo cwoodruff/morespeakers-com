@@ -1,7 +1,6 @@
 using System.Security.Claims;
 using FluentAssertions;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Logging;
 using Moq;
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models;
@@ -11,9 +10,8 @@ namespace MoreSpeakers.Managers.Tests;
 public class UserManagerTests
 {
     private readonly Mock<IUserDataStore> _dataStoreMock = new();
-    private readonly Mock<ILogger<UserManager>> _loggerMock = new();
 
-    private UserManager CreateSut() => new(_dataStoreMock.Object, _loggerMock.Object);
+    private UserManager CreateSut() => new(_dataStoreMock.Object);
 
     // ---------- Identity wrapper methods ----------
     [Fact]

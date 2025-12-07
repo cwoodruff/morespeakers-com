@@ -16,15 +16,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Handle tab switching with HTMX
 document.addEventListener('htmx:afterRequest', function(event) {
-    const trigger = event.detail.elt;
+    // Update active tab state
+    const tabs = document.querySelectorAll('#profileTabs .nav-link');
+    tabs.forEach(tab => tab.classList.remove('active'));
 
-    // Only update tabs if the request was successful and triggered by a tab link
-    if (event.detail.successful && trigger && trigger.classList.contains('nav-link') && trigger.closest('#profileTabs')) {
-        // Remove active class from all tabs
-        const tabs = document.querySelectorAll('#profileTabs .nav-link');
-        tabs.forEach(tab => tab.classList.remove('active'));
-
-        // Add active class to the clicked tab
-        trigger.classList.add('active');
+    if (event.detail.xhr.responseURL.includes('tab=password')) {
+        tabs[1].classList.add('active');
+    } else {
+        tabs[0].classList.add('active');
     }
 });
