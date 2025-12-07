@@ -1,6 +1,25 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize any additional functionality
 
+    jQuery.validator.addMethod("isimgurl", function (value, element) {
+        
+        let isValid = false;
+        
+        $.ajax({
+            type: "HEAD",
+            async: false,
+            url: value,
+            success: function(data, textStatus, jqXHR) {
+                  let header = jqXHR.getResponseHeader('content-type');
+                  isValid = !!header.includes('image');
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                isValid = false;
+            }}
+        );
+        return isValid;
+    }, "Could not verify that this URL is a valid image");
+    
     // Auto-hide success messages after 5 seconds
     setTimeout(function() {
         const successAlerts = document.querySelectorAll('.alert-success');
@@ -26,3 +45,7 @@ document.addEventListener('htmx:afterRequest', function(event) {
         tabs[0].classList.add('active');
     }
 });
+
+async function isImgUrl(url) {
+    
+}
