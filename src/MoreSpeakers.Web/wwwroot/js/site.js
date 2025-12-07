@@ -211,7 +211,7 @@ function initializeFadeInAnimations() {
 
 function fixMissingSpeakerImage(image) {
 
-    if (image.nodeName.toLowerCase() !== "img" || image.naturalWidth !== 0 || image.naturalHeight !== 0) {
+    if (image.nodeName.toLowerCase() !== "img" || image.naturalWidth > 0 || image.naturalHeight > 0) {
         return;
     }
 
