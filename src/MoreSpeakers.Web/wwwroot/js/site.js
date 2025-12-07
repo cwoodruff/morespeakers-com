@@ -50,7 +50,7 @@ function initializeFormValidation() {
             url: value,
             success: function(data, textStatus, jqXHR) {
                 let header = jqXHR.getResponseHeader('content-type');
-                isValid = !!header.includes('image');
+                isValid = header && header.includes('image');
             },
             error: function(jqXHR, textStatus, errorThrown) {
                 isValid = false;
