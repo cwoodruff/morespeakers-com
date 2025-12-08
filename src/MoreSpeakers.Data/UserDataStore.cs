@@ -128,6 +128,72 @@ public class UserDataStore : IUserDataStore
         return await _userManager.ConfirmEmailAsync(identityUser, token);
     }
 
+    // Passkey Support
+    public async Task<IdentityResult> AddOrUpdatePasskeyAsync(User user, UserPasskeyInfo passkey)
+    {
+        var identityUser = await _userManager.FindByIdAsync(user.Id.ToString());
+        if (identityUser == null)
+        {
+            return IdentityResult.Failed(new IdentityError { Description = "User not found" });
+        }
+
+        return await _userManager.AddOrUpdatePasskeyAsync(identityUser, passkey);
+    }
+
+    public async Task<IEnumerable<UserPasskey>> GetUserPasskeysAsync(Guid userId)
+    {
+        // Query standard IdentityUserPasskey table directly to list keys for management UI
+        // This avoids needing a custom table while still leveraging standard Identity storage
+        var passkeys = await _context.Set<IdentityUserPasskey<Guid>>()
+            .Where(p => p.UserId == userId)
+            .ToListAsync();
+
+        var results = new List<UserPasskey>();
+
+        foreach (var pk in passkeys)
+        {
+            // pk.Data contains metadata in .NET 10 Identity
+            // We access the Name property directly
+            var friendlyName = pk.Data?.Name ?? "Passkey";
+
+            // Convert CredentialId bytes to Base64Url safe string for ID
+            var credentialIdBase64 = Convert.ToBase64String(pk.CredentialId)
+                .Replace('+', '-')
+                .Replace('/', '_')
+                .TrimEnd('=');
+
+            results.Add(new UserPasskey
+            {
+                Id = credentialIdBase64, 
+                UserId = pk.UserId,
+                FriendlyName = friendlyName
+            });
+        }
+            
+        return results;
+    }
+
+    public async Task<bool> RemovePasskeyAsync(Guid userId, byte[] credentialId)
+    {
+        try
+        {
+            var passkey = await _context.Set<IdentityUserPasskey<Guid>>()
+                .FirstOrDefaultAsync(p => p.UserId == userId && p.CredentialId == credentialId);
+
+            if (passkey == null)
+            {
+                return false;
+            }
+
+            _context.Set<IdentityUserPasskey<Guid>>().Remove(passkey);
+            return await _context.SaveChangesAsync() > 0;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to remove passkey for user {UserId}", userId);
+            return false;
+        }
+    }
 
     // ------------------------------------------
     // Application Methods

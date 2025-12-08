@@ -1,7 +1,8 @@
 using System.Security.Claims;
 
 using Microsoft.AspNetCore.Identity;
-
+using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.Logging;
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models;
 
@@ -10,10 +11,12 @@ namespace MoreSpeakers.Managers;
 public class UserManager: IUserManager
 {
     private readonly IUserDataStore _dataStore;
+    private readonly ILogger<UserManager> _logger;
 
-    public UserManager(IUserDataStore dataStore)
+    public UserManager(IUserDataStore dataStore, ILogger<UserManager> logger)
     {
         _dataStore = dataStore;
+        _logger = logger;
     }
     
     // ------------------------------------------
@@ -54,6 +57,31 @@ public class UserManager: IUserManager
     {
         var result = await _dataStore.ConfirmEmailAsync(user, token);
         return result.Succeeded;
+    }
+
+    // Passkey Support
+    public async Task<IdentityResult> AddOrUpdatePasskeyAsync(User user, UserPasskeyInfo passkey)
+    {
+        return await _dataStore.AddOrUpdatePasskeyAsync(user, passkey);
+    }
+
+    public async Task<IEnumerable<UserPasskey>> GetUserPasskeysAsync(Guid userId)
+    {
+        return await _dataStore.GetUserPasskeysAsync(userId);
+    }
+
+    public async Task<bool> RemovePasskeyAsync(Guid userId, string credentialIdBase64)
+    {
+        try
+        {
+            var credentialIdBytes = WebEncoders.Base64UrlDecode(credentialIdBase64);
+            return await _dataStore.RemovePasskeyAsync(userId, credentialIdBytes);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to remove passkey for user {UserId}", userId);
+            return false;
+        }
     }
 
     // ------------------------------------------

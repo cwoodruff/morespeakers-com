@@ -84,7 +84,7 @@
                 <span class="input-group-text border-end-0">
                     <i class="bi bi-image text-muted"></i>
                 </span>
-                <input asp-for="Input.HeadshotUrl" class="form-control border-start-0"
+                <input asp-for="Input.HeadshotUrl" class="form-control border-start-0" data-rule-is-img-url
                        placeholder="https://example.com/your-photo.jpg"/>
             </div>
             <span asp-validation-for="Input.HeadshotUrl" class="text-danger small"></span>
