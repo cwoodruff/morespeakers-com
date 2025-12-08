@@ -1,0 +1,63 @@
+@page
+@model MoreSpeakers.Web.Areas.Admin.Pages.Catalog.SocialSites.CreateModel
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+@{
+    ViewData["Title"] = "Admin • Social Sites • Create";
+}
+
+<h1 class="mb-4">Create Social Site</h1>
+
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a asp-area="Admin" asp-page="/Index">Admin</a></li>
+    <li class="breadcrumb-item"><a asp-area="Admin" asp-page="/Catalog/SocialSites/Index">Social Sites</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Create</li>
+  </ol>
+  <!-- Keep styles consistent with site -->
+</nav>
+
+<div class="row">
+  <div class="col-12 col-lg-8">
+    <form method="post" class="card shadow-sm">
+      <div class="card-body">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+        <div class="mb-3">
+          <label asp-for="Form.Name" class="form-label">Name</label>
+          <input asp-for="Form.Name" class="form-control" />
+          <span asp-validation-for="Form.Name" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+          <label asp-for="Form.Icon" class="form-label">Icon (class)</label>
+          <input asp-for="Form.Icon" class="form-control" placeholder="e.g., bi bi-twitter or fa-brands fa-x-twitter" />
+          <div class="form-text">Preview: <i class="@Model.Form.Icon"></i> <code>@Model.Form.Icon</code></div>
+          <span asp-validation-for="Form.Icon" class="text-danger"></span>
+        </div>
+
+        <div class="mb-3">
+          <label asp-for="Form.UrlFormat" class="form-label">URL Format</label>
+          <input asp-for="Form.UrlFormat" class="form-control" placeholder="https://example.com/{handle}" />
+          <div class="form-text">Must include <code>{handle}</code>.</div>
+          <span asp-validation-for="Form.UrlFormat" class="text-danger"></span>
+        </div>
+      </div>
+      <div class="card-footer d-flex gap-2">
+        <button type="submit" class="btn btn-primary"><i class="bi bi-check2 me-1"></i>Save</button>
+        <a class="btn btn-outline-secondary" asp-page="Index">Cancel</a>
+      </div>
+    </form>
+  </div>
+  <div class="col-12 col-lg-4">
+    <div class="alert alert-info small">
+      <i class="bi bi-info-circle me-1"></i>
+      Icons can be Bootstrap Icons (e.g., <code>bi bi-twitter</code>) or Font Awesome (e.g., <code>fa-brands fa-twitter</code>).
+    </div>
+  </div>
+  
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
