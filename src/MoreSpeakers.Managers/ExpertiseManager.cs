@@ -41,9 +41,9 @@ public class ExpertiseManager: IExpertiseManager
         return await _dataStore.DeleteAsync(entity);
     }
 
-    public async Task<int> CreateExpertiseAsync(string name, string? description = null)
+    public async Task<int> CreateExpertiseAsync(string name, string? description = null, int expertiseCategoryId = 1)
     {
-        var expertise = new Expertise { Name = name, Description = description };
+        var expertise = new Expertise { Name = name, Description = description, ExpertiseCategoryId = expertiseCategoryId };
         
         try
         {
@@ -70,5 +70,30 @@ public class ExpertiseManager: IExpertiseManager
     public async Task<IEnumerable<Expertise>> FuzzySearchForExistingExpertise(string name, int count = 3)
     {
         return await _dataStore.FuzzySearchForExistingExpertise(name, count);
+    }
+
+    public async Task<List<Expertise>> GetByCategoryIdAsync(int categoryId)
+    {
+        return await _dataStore.GetByCategoryIdAsync(categoryId);
+    }
+
+    public async Task<ExpertiseCategory?> GetCategoryAsync(int id)
+    {
+        return await _dataStore.GetCategoryAsync(id);
+    }
+
+    public async Task<ExpertiseCategory> SaveCategoryAsync(ExpertiseCategory category)
+    {
+        return await _dataStore.SaveCategoryAsync(category);
+    }
+
+    public async Task<bool> DeleteCategoryAsync(int id)
+    {
+        return await _dataStore.DeleteCategoryAsync(id);
+    }
+
+    public async Task<List<ExpertiseCategory>> GetAllCategoriesAsync(bool onlyActive = true)
+    {
+        return await _dataStore.GetAllCategoriesAsync(onlyActive);
     }
 }

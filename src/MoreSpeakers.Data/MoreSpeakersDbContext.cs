@@ -17,6 +17,7 @@ public class MoreSpeakersDbContext
     
     public DbSet<SpeakerType> SpeakerType { get; set; }
     public DbSet<Expertise> Expertise { get; set; }
+    public DbSet<ExpertiseCategory> ExpertiseCategory { get; set; }
     public DbSet<UserExpertise> UserExpertise { get; set; }
     public DbSet<Mentorship> Mentorship { get; set; }
     public DbSet<MentorshipExpertise> MentorshipExpertise { get; set; }
@@ -82,6 +83,23 @@ public class MoreSpeakersDbContext
 
             entity.Property(e => e.CreatedDate)
                 .HasDefaultValueSql("GETUTCDATE()");
+
+            entity.HasIndex(e => e.ExpertiseCategoryId);
+
+            entity.HasOne(e => e.ExpertiseCategory)
+                .WithMany(c => c.Expertises)
+                .HasForeignKey(e => e.ExpertiseCategoryId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // Configure ExpertiseCategory entity
+        builder.Entity<ExpertiseCategory>(entity =>
+        {
+            entity.ToTable("ExpertiseCategories");
+            entity.HasIndex(e => e.Name).IsUnique();
+            entity.Property(e => e.Name).IsRequired();
+            entity.Property(e => e.CreatedDate).HasDefaultValueSql("GETUTCDATE()");
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
         });
 
         // Configure UserExpertise many-to-many relationship
