@@ -7,17 +7,8 @@ using MoreSpeakers.Domain.Models;
 
 namespace MoreSpeakers.Web.Areas.Admin.Pages.Catalog.SocialSites;
 
-public class DeleteModel : PageModel
+public class DeleteModel(ISocialMediaSiteManager manager, MoreSpeakersDbContext db) : PageModel
 {
-    private readonly ISocialMediaSiteManager _manager;
-    private readonly MoreSpeakersDbContext _db;
-
-    public DeleteModel(ISocialMediaSiteManager manager, MoreSpeakersDbContext db)
-    {
-        _manager = manager;
-        _db = db;
-    }
-
     [BindProperty(SupportsGet = true)]
     public int Id { get; set; }
 
@@ -27,26 +18,26 @@ public class DeleteModel : PageModel
     public async Task<IActionResult> OnGetAsync(int id)
     {
         Id = id;
-        Site = await _manager.GetAsync(id);
+        Site = await manager.GetAsync(id);
         if (Site is null)
         {
             return RedirectToPage("Index");
         }
 
-        ReferenceCount = await _db.UserSocialMediaSite.CountAsync(x => x.SocialMediaSiteId == id);
+        ReferenceCount = await db.UserSocialMediaSite.CountAsync(x => x.SocialMediaSiteId == id);
         return Page();
     }
 
     public async Task<IActionResult> OnPostAsync()
     {
         // Guard: prevent delete when referenced
-        var inUse = await _db.UserSocialMediaSite.AnyAsync(x => x.SocialMediaSiteId == Id);
+        var inUse = await db.UserSocialMediaSite.AnyAsync(x => x.SocialMediaSiteId == Id);
         if (inUse)
         {
             return RedirectToPage("Delete", new { id = Id });
         }
 
-        await _manager.DeleteAsync(Id);
+        await manager.DeleteAsync(Id);
         return RedirectToPage("Index");
     }
 }

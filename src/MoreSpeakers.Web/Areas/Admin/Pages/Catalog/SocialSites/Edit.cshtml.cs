@@ -6,15 +6,8 @@ using MoreSpeakers.Domain.Models;
 
 namespace MoreSpeakers.Web.Areas.Admin.Pages.Catalog.SocialSites;
 
-public class EditModel : PageModel
+public class EditModel(ISocialMediaSiteManager manager) : PageModel
 {
-    private readonly ISocialMediaSiteManager _manager;
-
-    public EditModel(ISocialMediaSiteManager manager)
-    {
-        _manager = manager;
-    }
-
     [BindProperty]
     public FormModel Form { get; set; } = new();
 
@@ -22,7 +15,7 @@ public class EditModel : PageModel
 
     public async Task<IActionResult> OnGetAsync(int id)
     {
-        var entity = await _manager.GetAsync(id);
+        var entity = await manager.GetAsync(id);
         if (entity is null)
         {
             return RedirectToPage("Index");
@@ -58,7 +51,7 @@ public class EditModel : PageModel
             UrlFormat = Form.UrlFormat!.Trim()
         };
 
-        await _manager.SaveAsync(entity);
+        await manager.SaveAsync(entity);
         return RedirectToPage("Index");
     }
 

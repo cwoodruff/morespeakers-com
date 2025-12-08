@@ -6,15 +6,8 @@ using MoreSpeakers.Domain.Models;
 
 namespace MoreSpeakers.Web.Areas.Admin.Pages.Catalog.SocialSites;
 
-public class CreateModel : PageModel
+public class CreateModel(ISocialMediaSiteManager manager) : PageModel
 {
-    private readonly ISocialMediaSiteManager _manager;
-
-    public CreateModel(ISocialMediaSiteManager manager)
-    {
-        _manager = manager;
-    }
-
     [BindProperty]
     public FormModel Form { get; set; } = new();
 
@@ -43,7 +36,7 @@ public class CreateModel : PageModel
             UrlFormat = Form.UrlFormat!.Trim()
         };
 
-        await _manager.SaveAsync(entity);
+        await manager.SaveAsync(entity);
         return RedirectToPage("Index");
     }
 

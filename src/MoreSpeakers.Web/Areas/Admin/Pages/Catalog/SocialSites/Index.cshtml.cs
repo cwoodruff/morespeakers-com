@@ -5,15 +5,8 @@ using MoreSpeakers.Domain.Models;
 
 namespace MoreSpeakers.Web.Areas.Admin.Pages.Catalog.SocialSites;
 
-public class IndexModel : PageModel
+public class IndexModel(ISocialMediaSiteManager manager) : PageModel
 {
-    private readonly ISocialMediaSiteManager _manager;
-
-    public IndexModel(ISocialMediaSiteManager manager)
-    {
-        _manager = manager;
-    }
-
     [BindProperty(SupportsGet = true)]
     public string? Q { get; set; }
 
@@ -21,7 +14,7 @@ public class IndexModel : PageModel
 
     public async Task OnGet()
     {
-        var all = await _manager.GetAllAsync();
+        var all = await manager.GetAllAsync();
         if (!string.IsNullOrWhiteSpace(Q))
         {
             var q = Q.Trim();
