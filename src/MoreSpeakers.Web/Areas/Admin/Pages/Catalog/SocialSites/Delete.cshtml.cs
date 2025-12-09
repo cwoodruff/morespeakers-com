@@ -24,14 +24,14 @@ public class DeleteModel(ISocialMediaSiteManager manager, MoreSpeakersDbContext 
             return RedirectToPage("Index");
         }
 
-        ReferenceCount = await db.UserSocialMediaSite.CountAsync(x => x.SocialMediaSiteId == id);
+        ReferenceCount = await manager.RefCountAsync(Id);
         return Page();
     }
 
     public async Task<IActionResult> OnPostAsync()
     {
         // Guard: prevent delete when referenced
-        var inUse = await db.UserSocialMediaSite.AnyAsync(x => x.SocialMediaSiteId == Id);
+        var inUse = await manager.InUseAsync(Id);
         if (inUse)
         {
             return RedirectToPage("Delete", new { id = Id });
