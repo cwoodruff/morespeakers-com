@@ -9,7 +9,12 @@ namespace MoreSpeakers.Web.Areas.Admin.Pages.Catalog.SocialSites;
 public class CreateModel(ISocialMediaSiteManager manager) : PageModel
 {
     [BindProperty]
-    public FormModel Form { get; set; } = new();
+    public SocialMediaSite Form { get; set; } = new()
+    {
+        Name = null,
+        Icon = null,
+        UrlFormat = null
+    };
 
     public string UrlExample => BuildExample(Form.UrlFormat);
 
@@ -29,14 +34,7 @@ public class CreateModel(ISocialMediaSiteManager manager) : PageModel
             return Page();
         }
 
-        var entity = new SocialMediaSite
-        {
-            Name = Form.Name!.Trim(),
-            Icon = Form.Icon!.Trim(),
-            UrlFormat = Form.UrlFormat!.Trim()
-        };
-
-        await manager.SaveAsync(entity);
+        await manager.SaveAsync(Form);
         return RedirectToPage("Index");
     }
 
@@ -51,15 +49,5 @@ public class CreateModel(ISocialMediaSiteManager manager) : PageModel
     private static string BuildExample(string? fmt)
     {
         return string.IsNullOrWhiteSpace(fmt) ? string.Empty : fmt.Replace("{handle}", "example");
-    }
-
-    public class FormModel
-    {
-        [Required]
-        public string? Name { get; set; }
-        [Required]
-        public string? Icon { get; set; }
-        [Required]
-        public string? UrlFormat { get; set; }
     }
 }
