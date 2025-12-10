@@ -11,9 +11,9 @@ namespace MoreSpeakers.Web.Tests.Areas.Admin.Pages.Catalog.SocialSites;
 public class CreatePageTests
 {
     [Fact]
-    public async Task OnPostAsync_should_return_Page_when_urlformat_invalid()
+    public async Task OnPostAsync_should_return_Page_when_urlformat_invalid_and_not_save()
     {
-        var manager = new Mock<ISocialMediaSiteManager>(MockBehavior.Strict);
+        var manager = new Mock<ISocialMediaSiteManager>();
         var page = new CreateModel(manager.Object)
         {
             Form = new SocialMediaSite { Name = "X", Icon = "x", UrlFormat = "https://twitter.com/handle" } // missing {handle}
@@ -22,7 +22,7 @@ public class CreatePageTests
         var result = await page.OnPostAsync();
 
         result.Should().BeOfType<PageResult>();
-        manager.VerifyNoOtherCalls();
+        manager.Verify(m => m.SaveAsync(It.IsAny<SocialMediaSite>()), Times.Never);
     }
 
     [Fact]

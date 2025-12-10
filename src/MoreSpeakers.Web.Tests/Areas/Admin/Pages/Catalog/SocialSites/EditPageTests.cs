@@ -35,8 +35,8 @@ public class EditPageTests
 
         result.Should().BeOfType<PageResult>();
         page.Form.Id.Should().Be(5);
-        page.Form.Name.Should().Be("GitHub");
-        page.Form.Icon.Should().Be("gh");
+        page.Form.Name.Should().Be("Apple");
+        page.Form.Icon.Should().Be("fa-brands fa-apple");
         page.Form.UrlFormat.Should().Be("https://apple.com/{handle}");
     }
 
@@ -46,7 +46,7 @@ public class EditPageTests
         var manager = new Mock<ISocialMediaSiteManager>(MockBehavior.Strict);
         var page = new EditModel(manager.Object)
         {
-            Form = new SocialMediaSite { Id = 7, Name = "AppleXXX", Icon = "fa-brands fa-apple", UrlFormat = "https://apple.com/{handle}" }
+            Form = new SocialMediaSite { Id = 7, Name = "AppleXXX", Icon = "fa-brands fa-apple", UrlFormat = "https://apple.com/handle" }
         };
 
         var result = await page.OnPostAsync();
