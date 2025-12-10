@@ -25,9 +25,9 @@ public class DeletePageTests
     public async Task OnGetAsync_should_redirect_to_index_when_site_not_found()
     {
         var manager = new Mock<ISocialMediaSiteManager>();
-        manager.Setup(m => m.GetAsync(10)).ReturnsAsync((DomainSite?)null);
+        manager.Setup(m => m.GetAsync(10))!.ReturnsAsync((DomainSite?)null);
         await using var db = CreateDb(nameof(OnGetAsync_should_redirect_to_index_when_site_not_found));
-        var page = new DeleteModel(manager.Object, db);
+        var page = new DeleteModel(manager.Object);
 
         var result = await page.OnGetAsync(10);
 
@@ -48,7 +48,7 @@ public class DeletePageTests
         db.UserSocialMediaSite.Add(new UserSocialMediaSites { Id = 2, SocialMediaSiteId = 5, UserId = Guid.NewGuid(), SocialId = "def" });
         await db.SaveChangesAsync();
 
-        var page = new DeleteModel(manager.Object, db);
+        var page = new DeleteModel(manager.Object);
 
         var result = await page.OnGetAsync(5);
 
@@ -67,7 +67,7 @@ public class DeletePageTests
         db.UserSocialMediaSite.Add(new UserSocialMediaSites { Id = 1, SocialMediaSiteId = 7, UserId = Guid.NewGuid(), SocialId = "h" });
         await db.SaveChangesAsync();
 
-        var page = new DeleteModel(manager.Object, db) { Id = 7 };
+        var page = new DeleteModel(manager.Object) { Id = 7 };
 
         var result = await page.OnPostAsync();
 
@@ -83,7 +83,7 @@ public class DeletePageTests
         manager.Setup(m => m.DeleteAsync(7)).ReturnsAsync(true);
         await using var db = CreateDb(nameof(OnPostAsync_should_delete_and_redirect_when_not_in_use));
 
-        var page = new DeleteModel(manager.Object, db) { Id = 7 };
+        var page = new DeleteModel(manager.Object) { Id = 7 };
 
         var result = await page.OnPostAsync();
 
