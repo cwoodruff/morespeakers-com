@@ -7,7 +7,7 @@ using MoreSpeakers.Domain.Models;
 
 namespace MoreSpeakers.Web.Areas.Admin.Pages.Catalog.SocialSites;
 
-public class DeleteModel(ISocialMediaSiteManager manager, MoreSpeakersDbContext db) : PageModel
+public class DeleteModel(ISocialMediaSiteManager manager) : PageModel
 {
     [BindProperty(SupportsGet = true)]
     public int Id { get; set; }
