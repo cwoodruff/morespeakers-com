@@ -1,0 +1,36 @@
+@page
+@model MoreSpeakers.Web.Areas.Admin.Pages.Catalog.SocialSites.IndexModel
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+@{
+    ViewData["Title"] = "Admin • Social Sites";
+}
+
+<h1 class="mb-4">Social Sites</h1>
+
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a asp-area="Admin" asp-page="/Index">Admin</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Social Sites</li>
+  </ol>
+</nav>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="input-group w-auto">
+        <span class="input-group-text"><i class="bi bi-search"></i></span>
+        <input name="q" id="q" class="form-control" placeholder="Search by name…"
+               value="@Model.Q"
+               hx-get="@Url.Page("/Admin/Catalog/SocialSites/Index")"
+               hx-trigger="keyup changed delay:300ms"
+               hx-include="#q"
+               hx-select="#social-sites-container"
+               hx-target="#social-sites-container"
+               hx-swap="outerHTML" />
+    </div>
+
+    <a class="btn btn-primary" asp-page="Create"><i class="bi bi-plus-lg me-1"></i>New Social Site</a>
+</div>
+
+<div id="social-sites-container">
+    @await Html.PartialAsync("_SocialMediaListTable", Model.Items)
+</div>

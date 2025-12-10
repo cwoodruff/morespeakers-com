@@ -89,4 +89,14 @@ public class SocialMediaSiteDataStore: ISocialMediaSiteDataStore
         }
         return false;
     }
+
+    public async Task<int> RefCountAsync(int primaryKey)
+    {
+        return await _context.UserSocialMediaSite.CountAsync(x => x.SocialMediaSiteId == primaryKey);
+    }
+
+    public async Task<bool> InUseAsync(int primaryKey)
+    {
+        return await _context.UserSocialMediaSite.AnyAsync(x => x.SocialMediaSiteId == primaryKey);
+    }
 }
