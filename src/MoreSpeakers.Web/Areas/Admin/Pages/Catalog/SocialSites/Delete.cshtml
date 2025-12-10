@@ -1,0 +1,54 @@
+@page "{id:int}"
+@model MoreSpeakers.Web.Areas.Admin.Pages.Catalog.SocialSites.DeleteModel
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+@{
+    ViewData["Title"] = "Admin • Social Sites • Delete";
+}
+
+<h1 class="mb-4">Delete Social Site</h1>
+
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a asp-area="Admin" asp-page="/Index">Admin</a></li>
+    <li class="breadcrumb-item"><a asp-area="Admin" asp-page="/Catalog/SocialSites/Index">Social Sites</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Delete</li>
+  </ol>
+</nav>
+
+<div class="row">
+  <div class="col-12 col-lg-8">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h2 class="h5 mb-3">@Model.Site?.Name</h2>
+        <dl class="row">
+          <dt class="col-sm-3">Icon</dt>
+          <dd class="col-sm-9"><i class="@Model.Site?.Icon"></i> <code>@Model.Site?.Icon</code></dd>
+          <dt class="col-sm-3">URL Format</dt>
+          <dd class="col-sm-9"><code>@Model.Site?.UrlFormat</code></dd>
+        </dl>
+
+        @if (Model.ReferenceCount > 0)
+        {
+          <div class="alert alert-warning">
+            <i class="bi bi-exclamation-triangle me-1"></i>
+            This social site is currently in use by <strong>@Model.ReferenceCount</strong> user(s). Deletion is prevented. Consider migrating user links first.
+          </div>
+          <a class="btn btn-outline-secondary" asp-page="Index">Back</a>
+        }
+        else
+        {
+          <div class="alert alert-danger">
+            <i class="bi bi-trash3 me-1"></i>
+            This action cannot be undone. Are you sure you want to delete this social site?
+          </div>
+          <form method="post" class="d-inline">
+              <input type="hidden" asp-for="Id" />
+              <button type="submit" class="btn btn-danger"><i class="bi bi-trash3 me-1"></i>Delete</button>
+          </form>
+          <a class="btn btn-outline-secondary ms-2" asp-page="Index">Cancel</a>
+        }
+      </div>
+    </div>
+  </div>
+</div>

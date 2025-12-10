@@ -9,5 +9,7 @@ public interface ISocialMediaSiteManager
     public Task<SocialMediaSite> SaveAsync(SocialMediaSite entity);
     public Task<List<SocialMediaSite>> GetAllAsync();
     public Task<bool> DeleteAsync(SocialMediaSite entity);
-    
+
+    Task<int> RefCountAsync(int primaryKey);
+    Task<bool> InUseAsync(int primaryKey);
 }
