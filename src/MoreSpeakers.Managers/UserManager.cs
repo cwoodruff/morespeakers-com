@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models;
+using MoreSpeakers.Domain.Models.AdminUsers;
 
 namespace MoreSpeakers.Managers;
 
@@ -180,5 +181,19 @@ public class UserManager: IUserManager
     public async Task<IEnumerable<SpeakerType>> GetSpeakerTypesAsync()
     {
         return await _dataStore.GetSpeakerTypesAsync();
+    }
+
+    // ------------------------------------------
+    // Admin Users (List/Search)
+    // ------------------------------------------
+
+    public async Task<PagedResult<UserListRow>> AdminSearchUsersAsync(UserAdminFilter filter, UserAdminSort sort, int page, int pageSize)
+    {
+        return await _dataStore.AdminSearchUsersAsync(filter, sort, page, pageSize);
+    }
+
+    public async Task<IReadOnlyList<string>> GetAllRoleNamesAsync()
+    {
+        return await _dataStore.GetAllRoleNamesAsync();
     }
 }
