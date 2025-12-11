@@ -13,4 +13,9 @@ public class ExpertiseListDisplayViewModel
     /// An array of the current expertise ids selected by the user
     /// </summary>
     public int[] SelectedExpertiseIds { get; set; } = [];
+    
+    /// <summary>
+    /// The expertise categories
+    /// </summary>
+    public IEnumerable<ExpertiseCategory> ExpertiseCategories { get; set; } = [];
 }

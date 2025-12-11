@@ -16,7 +16,7 @@ public class Expertise
     public int ExpertiseCategoryId { get; set; }
 
     // Navigation properties
-    public ExpertiseCategory? ExpertiseCategory { get; set; }
+    public ExpertiseCategory ExpertiseCategory { get; set; }
 
     // Navigation properties
     public ICollection<UserExpertise> UserExpertise { get; set; } = new List<UserExpertise>();

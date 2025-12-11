@@ -85,7 +85,11 @@ public class ExpertiseDataStore : IExpertiseDataStore
 
     public async Task<List<Expertise>> GetAllAsync()
     {
-        var expertises = await _context.Expertise.OrderBy(e => e.Name).ToListAsync();
+        var expertises = await _context.Expertise
+            .Include(e => e.ExpertiseCategory)
+            .OrderBy(e => e.ExpertiseCategory.Name)
+            .ThenBy(e => e.Name)
+            .ToListAsync();
         return _mapper.Map<List<Expertise>>(expertises);
     }
 
@@ -155,13 +159,13 @@ public class ExpertiseDataStore : IExpertiseDataStore
     }
 
     // Category operations
-    public async Task<Domain.Models.ExpertiseCategory?> GetCategoryAsync(int id)
+    public async Task<ExpertiseCategory?> GetCategoryAsync(int id)
     {
         var entity = await _context.ExpertiseCategory.FirstOrDefaultAsync(c => c.Id == id);
-        return _mapper.Map<Domain.Models.ExpertiseCategory?>(entity);
+        return _mapper.Map<ExpertiseCategory?>(entity);
     }
 
-    public async Task<Domain.Models.ExpertiseCategory> SaveCategoryAsync(Domain.Models.ExpertiseCategory category)
+    public async Task<ExpertiseCategory> SaveCategoryAsync(ExpertiseCategory category)
     {
         var dbEntity = _mapper.Map<Models.ExpertiseCategory>(category);
         _context.Entry(dbEntity).State = dbEntity.Id == 0 ? EntityState.Added : EntityState.Modified;
@@ -171,7 +175,7 @@ public class ExpertiseDataStore : IExpertiseDataStore
             var result = await _context.SaveChangesAsync() != 0;
             if (result)
             {
-                return _mapper.Map<Domain.Models.ExpertiseCategory>(dbEntity);
+                return _mapper.Map<ExpertiseCategory>(dbEntity);
             }
 
             _logger.LogError("Failed to save the expertise category. Name: '{Name}'", category.Name);
@@ -196,7 +200,7 @@ public class ExpertiseDataStore : IExpertiseDataStore
         var hasExpertises = entity.Expertises.Any();
         if (hasExpertises)
         {
-            _logger.LogWarning("Attempted to delete category with id {Id} that still has expertises.", id);
+            _logger.LogWarning("Attempted to delete category with id {Id} that still has expertises", id);
             return false;
         }
 
@@ -212,7 +216,7 @@ public class ExpertiseDataStore : IExpertiseDataStore
         }
     }
 
-    public async Task<List<Domain.Models.ExpertiseCategory>> GetAllCategoriesAsync(bool onlyActive = true)
+    public async Task<List<ExpertiseCategory>> GetAllCategoriesAsync(bool onlyActive = true)
     {
         var query = _context.ExpertiseCategory.AsQueryable();
         if (onlyActive)
@@ -220,6 +224,6 @@ public class ExpertiseDataStore : IExpertiseDataStore
             query = query.Where(c => c.IsActive);
         }
         var entities = await query.OrderBy(c => c.Name).ToListAsync();
-        return _mapper.Map<List<Domain.Models.ExpertiseCategory>>(entities);
+        return _mapper.Map<List<ExpertiseCategory>>(entities);
     }
 }

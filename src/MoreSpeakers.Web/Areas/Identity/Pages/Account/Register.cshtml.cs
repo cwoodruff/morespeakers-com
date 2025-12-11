@@ -45,6 +45,7 @@ public partial class RegisterModel : PageModel
     // Lookup values
     public IEnumerable<Expertise> AvailableExpertises { get; set; } = new List<Expertise>();
     public IEnumerable<SpeakerType> SpeakerTypes { get; set; } = new List<SpeakerType>();
+    public IEnumerable<ExpertiseCategory> ExpertiseCategories { get; set; } = new List<ExpertiseCategory>();
     
     // Properties required by _RegistrationContainer.cshtml
     public int CurrentStep { get; set; } = RegistrationProgressions.SpeakerProfileNeeded;
@@ -311,6 +312,7 @@ public partial class RegisterModel : PageModel
     private async Task LoadFormLookupListsAsync()
     {
         AvailableExpertises = await _expertiseManager.GetAllAsync();
+        ExpertiseCategories = await _expertiseManager.GetAllCategoriesAsync();
         SpeakerTypes = await _userManager.GetSpeakerTypesAsync();
     }
 

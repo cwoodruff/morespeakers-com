@@ -27,7 +27,9 @@ public class EditModel(
 
     public User ProfileUser { get; set; } = null!;
     public IEnumerable<Expertise> AvailableExpertises { get; set; } = new List<Expertise>();
+    public IEnumerable<ExpertiseCategory> ExpertiseCategories { get; set; } = new List<ExpertiseCategory>();
     public IEnumerable<SocialMediaSite> SocialMediaSites { get; set; } = new List<SocialMediaSite>();
+    
     public IEnumerable<UserPasskey> UserPasskeys { get; set; } = new List<UserPasskey>();
 
     // Properties for HTMX state management
@@ -53,6 +55,7 @@ public class EditModel(
 
         ProfileUser = user;
         AvailableExpertises = await expertiseManager.GetAllAsync();
+        ExpertiseCategories = await expertiseManager.GetAllCategoriesAsync();
         SocialMediaSites = await socialMediaSiteManager.GetAllAsync();
         UserPasskeys = await userManager.GetUserPasskeysAsync(user.Id);
         ActiveTab = "profile";
@@ -103,6 +106,7 @@ public class EditModel(
 
             ProfileUser = userProfile;
             AvailableExpertises = await expertiseManager.GetAllAsync();
+            ExpertiseCategories = await expertiseManager.GetAllCategoriesAsync();
             SocialMediaSites = await socialMediaSiteManager.GetAllAsync();
             UserPasskeys = await userManager.GetUserPasskeysAsync(userProfile.Id);
 
@@ -213,6 +217,7 @@ public class EditModel(
 
         ProfileUser = user;
         AvailableExpertises = await expertiseManager.GetAllAsync();
+        ExpertiseCategories = await expertiseManager.GetAllCategoriesAsync();
         SocialMediaSites = await socialMediaSiteManager.GetAllAsync();
         UserPasskeys = await userManager.GetUserPasskeysAsync(user.Id);
         ActiveTab = tab;
