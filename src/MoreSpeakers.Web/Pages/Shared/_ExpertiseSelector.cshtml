@@ -18,12 +18,12 @@
     {
       var categoryId = group.Id;
       var catDomId = $"cat-{categoryId}";
-      <section class="expertise-group mb-3" data-category-id="@categoryId">
-        <header class="d-flex justify-content-between align-items-center mb-2">
+      <section class="expertise-group mb-3 border border-light p-2 rounded" data-category-id="@categoryId">
+        <header class="d-flex justify-content-between align-items-center rounded p-1 bg-primary-subtle">
           <h6 id="@catDomId" class="mb-0">@group.Name</h6>
           <div class="expertise-group__actions small">
-            <button type="button" class="btn btn-link btn-sm p-0 me-2" data-select-all>All</button>
-            <button type="button" class="btn btn-link btn-sm p-0" data-clear-all>None</button>
+            <button type="button" class="btn btn-light btn-sm me-2" data-select-all>All</button>
+            <button type="button" class="btn btn-light btn-sm" data-clear-all>None</button>
           </div>
         </header>
 
@@ -50,5 +50,3 @@
     }
   </div>
 </div>
-
-<script src="~/js/expertise-selector.js" asp-append-version="true"></script>
