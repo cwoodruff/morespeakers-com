@@ -253,17 +253,20 @@ public partial class RegisterModel : PageModel
 
     public async Task<IActionResult> OnPostSubmitNewExpertiseAsync()
     {
+        ExpertiseCategories = await _expertiseManager.GetAllCategoriesAsync();
         if (string.IsNullOrWhiteSpace(Input.NewExpertise))
         {
             this.NewExpertiseResponse = new NewExpertiseCreatedResponse()
             {
-                SavingExpertiseFailed = true, SaveExpertiseMessage = "No expertise name was provided."
+                SavingExpertiseFailed = true, SaveExpertiseMessage = "No expertise name was provided.",
+                ExpertiseCategories =  ExpertiseCategories
             };
             return Partial("_RegisterStep3", this);
         }
 
         var expertiseName = Input.NewExpertise;
         var trimmedName = expertiseName.Trim();
+        var expertiseCategoryId = Input.NewExpertiseCategoryId;
 
         try
         {
@@ -273,19 +276,21 @@ public partial class RegisterModel : PageModel
             {
                 this.NewExpertiseResponse = new NewExpertiseCreatedResponse()
                 {
-                    SavingExpertiseFailed = true, SaveExpertiseMessage =  $"Expertise '{expertiseName}' already exists."
+                    SavingExpertiseFailed = true, SaveExpertiseMessage =  $"Expertise '{expertiseName}' already exists.",
+                    ExpertiseCategories = ExpertiseCategories
                 };
                 return Partial("_RegisterStep3", this);
             }
 
             // Attempt to save the expertise
-            var expertiseId = await _expertiseManager.CreateExpertiseAsync(trimmedName);
+            var expertiseId = await _expertiseManager.CreateExpertiseAsync(name:trimmedName, expertiseCategoryId:expertiseCategoryId);
 
             if (expertiseId == 0)
             {
                 this.NewExpertiseResponse = new NewExpertiseCreatedResponse
                 {
-                    SavingExpertiseFailed = true, SaveExpertiseMessage =  $"Failed to create the expertise '{expertiseName}'."
+                    SavingExpertiseFailed = true, SaveExpertiseMessage =  $"Failed to create the expertise '{expertiseName}'.",
+                    ExpertiseCategories = ExpertiseCategories
                 };
                 return Partial("_RegisterStep3", this);
             }
@@ -293,7 +298,8 @@ public partial class RegisterModel : PageModel
             Input.SelectedExpertiseIds = Input.SelectedExpertiseIds.Concat([expertiseId]).ToArray();
             this.NewExpertiseResponse = new NewExpertiseCreatedResponse
             {
-                SavingExpertiseFailed = false, SaveExpertiseMessage =  string.Empty
+                SavingExpertiseFailed = false, SaveExpertiseMessage =  string.Empty,
+                ExpertiseCategories = ExpertiseCategories
             };
             return Partial("_RegisterStep3", this);
         }
@@ -303,7 +309,8 @@ public partial class RegisterModel : PageModel
             AvailableExpertises = await _expertiseManager.GetAllAsync();
             this.NewExpertiseResponse = new NewExpertiseCreatedResponse
             {
-                SavingExpertiseFailed = true, SaveExpertiseMessage =  $"Failed to create the expertise '{expertiseName}'."
+                SavingExpertiseFailed = true, SaveExpertiseMessage =  $"Failed to create the expertise '{expertiseName}'.",
+                ExpertiseCategories = ExpertiseCategories
             };
             return Partial("_RegisterStep3", this);
         }

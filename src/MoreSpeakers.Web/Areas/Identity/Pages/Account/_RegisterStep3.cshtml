@@ -1,3 +1,4 @@
+@using MoreSpeakers.Web.Models
 @using MoreSpeakers.Web.Models.ViewModels
 @model MoreSpeakers.Web.Areas.Identity.Pages.Account.RegisterModel
 <div class="form-step" data-step="3" id="form-step" >
@@ -28,7 +29,13 @@
         }
         <span asp-validation-for="Input.SelectedExpertiseIds" class="text-danger small"></span>
     </div>
-    <partial name="_NewExpertise" model="@Model.NewExpertiseResponse" />
+    @{
+        var newExpertiseResponse = new NewExpertiseCreatedResponse
+        {
+            ExpertiseCategories = Model.ExpertiseCategories
+        };
+        @await Html.PartialAsync("_NewExpertise", newExpertiseResponse);
+    }
 </div>
 
 <!-- Persist Steps 1-2 values across HTMX steps -->
