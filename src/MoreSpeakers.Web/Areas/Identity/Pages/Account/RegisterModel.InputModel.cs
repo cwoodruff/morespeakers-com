@@ -74,6 +74,9 @@ public partial class RegisterModel
 
         [Display(Name = "New Expertise")] 
         public string NewExpertise { get; set; } = string.Empty;
+        
+        [Display(Name = "New Expertise Category")] 
+        public int NewExpertiseCategoryId { get; set; } = 1;
 
         [Display(Name = "Social Media Sites")] 
         public List<Domain.Models.UserSocialMediaSite> UserSocialMediaSites { get; set; } = [];

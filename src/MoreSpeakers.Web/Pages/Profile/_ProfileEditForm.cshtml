@@ -171,13 +171,20 @@
                 var expertiseListDisplay = new ExpertiseListDisplayViewModel
                 {
                     AvailableExpertises = Model.AvailableExpertises,
-                    SelectedExpertiseIds = Model.Input.SelectedExpertiseIds
+                    SelectedExpertiseIds = Model.Input.SelectedExpertiseIds,
+                    ExpertiseCategories = Model.ExpertiseCategories
                 };
-                @await Html.PartialAsync("_ExpertiseListDisplay", expertiseListDisplay)
+                @await Html.PartialAsync("_ExpertiseSelector", expertiseListDisplay)
             }
             <span asp-validation-for="Input.SelectedExpertiseIds" class="text-danger small"></span>
         </div>
-        <partial name="_NewExpertise" model="@Model.NewExpertiseResponse" />
+        @{
+            var newExpertiseResponse = new NewExpertiseCreatedResponse
+            {
+                ExpertiseCategories = Model.ExpertiseCategories
+            };
+            @await Html.PartialAsync("_NewExpertise", newExpertiseResponse);
+        }
     </div>
 
     <!-- Social Media Links -->

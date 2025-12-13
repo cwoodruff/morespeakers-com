@@ -27,7 +27,9 @@ public class EditModel(
 
     public User ProfileUser { get; set; } = null!;
     public IEnumerable<Expertise> AvailableExpertises { get; set; } = new List<Expertise>();
+    public IEnumerable<ExpertiseCategory> ExpertiseCategories { get; set; } = new List<ExpertiseCategory>();
     public IEnumerable<SocialMediaSite> SocialMediaSites { get; set; } = new List<SocialMediaSite>();
+    
     public IEnumerable<UserPasskey> UserPasskeys { get; set; } = new List<UserPasskey>();
 
     // Properties for HTMX state management
@@ -53,6 +55,7 @@ public class EditModel(
 
         ProfileUser = user;
         AvailableExpertises = await expertiseManager.GetAllAsync();
+        ExpertiseCategories = await expertiseManager.GetAllCategoriesAsync();
         SocialMediaSites = await socialMediaSiteManager.GetAllAsync();
         UserPasskeys = await userManager.GetUserPasskeysAsync(user.Id);
         ActiveTab = "profile";
@@ -103,6 +106,7 @@ public class EditModel(
 
             ProfileUser = userProfile;
             AvailableExpertises = await expertiseManager.GetAllAsync();
+            ExpertiseCategories = await expertiseManager.GetAllCategoriesAsync();
             SocialMediaSites = await socialMediaSiteManager.GetAllAsync();
             UserPasskeys = await userManager.GetUserPasskeysAsync(userProfile.Id);
 
@@ -213,6 +217,7 @@ public class EditModel(
 
         ProfileUser = user;
         AvailableExpertises = await expertiseManager.GetAllAsync();
+        ExpertiseCategories = await expertiseManager.GetAllCategoriesAsync();
         SocialMediaSites = await socialMediaSiteManager.GetAllAsync();
         UserPasskeys = await userManager.GetUserPasskeysAsync(user.Id);
         ActiveTab = tab;
@@ -532,6 +537,7 @@ public class EditModel(
     public async Task<IActionResult> OnPostSubmitNewExpertiseAsync()
     {
         var profileUser = await UpdateModelFromUserAsync(User);
+        ExpertiseCategories = await expertiseManager.GetAllCategoriesAsync();
 
         if (profileUser is not null)
         {
@@ -541,13 +547,15 @@ public class EditModel(
         {
             this.NewExpertiseResponse = new NewExpertiseCreatedResponse()
             {
-                SavingExpertiseFailed = true, SaveExpertiseMessage = "No expertise name was provided."
+                SavingExpertiseFailed = true, SaveExpertiseMessage = "No expertise name was provided.",
+                ExpertiseCategories = ExpertiseCategories
             };
             return Partial("_ProfileEditForm", this);
         }
 
         var expertiseName = Input.NewExpertise;
         var trimmedName = expertiseName.Trim();
+        var expertiseCategoryId = Input.NewExpertiseCategoryId;
 
         try
         {
@@ -557,19 +565,22 @@ public class EditModel(
             {
                 this.NewExpertiseResponse = new NewExpertiseCreatedResponse()
                 {
-                    SavingExpertiseFailed = true, SaveExpertiseMessage =  $"Expertise '{expertiseName}' already exists."
+                    SavingExpertiseFailed = true, SaveExpertiseMessage =  $"Expertise '{expertiseName}' already exists.",
+                    ExpertiseCategories = ExpertiseCategories
                 };
                 return Partial("_ProfileEditForm", this);
             }
 
             // Attempt to save the expertise
-            var expertiseId = await expertiseManager.CreateExpertiseAsync(trimmedName);
+            var expertiseId =
+                await expertiseManager.CreateExpertiseAsync(name: trimmedName, expertiseCategoryId: expertiseCategoryId);
 
             if (expertiseId == 0)
             {
                 this.NewExpertiseResponse = new NewExpertiseCreatedResponse
                 {
-                    SavingExpertiseFailed = true, SaveExpertiseMessage =  $"Failed to create the expertise '{expertiseName}'."
+                    SavingExpertiseFailed = true, SaveExpertiseMessage =  $"Failed to create the expertise '{expertiseName}'.",
+                    ExpertiseCategories = ExpertiseCategories
                 };
                 return Partial("_ProfileEditForm", this);
             }
@@ -579,7 +590,8 @@ public class EditModel(
 
             this.NewExpertiseResponse = new NewExpertiseCreatedResponse
             {
-                SavingExpertiseFailed = false, SaveExpertiseMessage =  string.Empty
+                SavingExpertiseFailed = false, SaveExpertiseMessage =  string.Empty,
+                ExpertiseCategories = ExpertiseCategories
             };
             return Partial("_ProfileEditForm", this);
         }
@@ -589,7 +601,8 @@ public class EditModel(
             AvailableExpertises = await expertiseManager.GetAllAsync();
             this.NewExpertiseResponse = new NewExpertiseCreatedResponse
             {
-                SavingExpertiseFailed = true, SaveExpertiseMessage =  $"Failed to create the expertise '{expertiseName}'."
+                SavingExpertiseFailed = true, SaveExpertiseMessage =  $"Failed to create the expertise '{expertiseName}'.",
+                ExpertiseCategories = ExpertiseCategories
             };
             return Partial("_ProfileEditForm", this);
         }

@@ -56,4 +56,7 @@ public class ProfileEditInputModel
     
     [Display(Name = "New Expertise")] 
     public string NewExpertise { get; set; } = string.Empty;
+    
+    [Display(Name = "New Expertise Category")] 
+    public int NewExpertiseCategoryId { get; set; } = 1;
 }
