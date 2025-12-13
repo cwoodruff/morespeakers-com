@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using MoreSpeakers.Data.Models;
 using MoreSpeakers.Domain.Models;
 using MoreSpeakers.Domain.Interfaces;
+using MoreSpeakers.Domain.Models.AdminUsers;
 
 using SpeakerType = MoreSpeakers.Domain.Models.SpeakerType;
 using User = MoreSpeakers.Domain.Models.User;
@@ -108,6 +109,174 @@ public class UserDataStore : IUserDataStore
     {
         var identityUser = await _userManager.GetUserAsync(user);
         return _mapper.Map<User>(identityUser);
+    }
+
+    // ------------------------------------------
+    // Admin Users (List/Search)
+    // ------------------------------------------
+
+    public async Task<PagedResult<UserListRow>> AdminSearchUsersAsync(UserAdminFilter filter, UserAdminSort sort, int page, int pageSize)
+    {
+        if (page < 1) page = 1;
+        if (pageSize < 1) pageSize = 20;
+        if (pageSize > 100) pageSize = 100;
+
+        var now = DateTimeOffset.UtcNow;
+
+        var users = _context.Users.AsNoTracking().AsQueryable();
+
+        // Search (email or username)
+        if (!string.IsNullOrWhiteSpace(filter.Query))
+        {
+            var q = filter.Query.Trim();
+            var qLower = q.ToLower();
+            users = users.Where(u => (u.Email != null && u.Email.ToLower().Contains(qLower)) ||
+                                     (u.UserName != null && u.UserName.ToLower().Contains(qLower)));
+        }
+
+        // Email confirmed tri-state
+        users = filter.EmailConfirmed switch
+        {
+            TriState.True => users.Where(u => u.EmailConfirmed),
+            TriState.False => users.Where(u => !u.EmailConfirmed),
+            _ => users
+        };
+
+        // Locked out tri-state
+        users = filter.LockedOut switch
+        {
+            TriState.True => users.Where(u => u.LockoutEnabled && u.LockoutEnd != null && u.LockoutEnd > now),
+            TriState.False => users.Where(u => !u.LockoutEnabled || u.LockoutEnd == null || u.LockoutEnd <= now),
+            _ => users
+        };
+
+        // Role filter via join
+        if (!string.IsNullOrWhiteSpace(filter.RoleName))
+        {
+            var roleName = filter.RoleName.Trim();
+            var roleIds = _context.Roles
+                .AsNoTracking()
+                .Where(r => r.Name != null && r.Name == roleName)
+                .Select(r => r.Id);
+
+            var userIdsInRole = _context.UserRoles
+                .AsNoTracking()
+                .Where(ur => roleIds.Contains(ur.RoleId))
+                .Select(ur => ur.UserId);
+
+            users = users.Where(u => userIdsInRole.Contains(u.Id));
+        }
+
+        // Total count after filters
+        var totalCount = await users.CountAsync();
+
+        // Build projection with computed fields used for sorting and display
+        var projected = from u in users
+                        select new AdminUserDto
+                        {
+                            Id = u.Id,
+                            Email = u.Email,
+                            UserName = u.UserName,
+                            EmailConfirmed = u.EmailConfirmed,
+                            IsLockedOut = u.LockoutEnabled && u.LockoutEnd != null && u.LockoutEnd > now,
+                            Role = (from ur in _context.UserRoles
+                                    join r in _context.Roles on ur.RoleId equals r.Id
+                                    where ur.UserId == u.Id
+                                    orderby r.Name
+                                    select r.Name).FirstOrDefault(),
+                            // CreatedDate in DB is stored in UTC (default GETUTCDATE()).
+                            // Avoid non-translatable DateTime.SpecifyKind; simple cast translates in EF.
+                            CreatedUtc = (DateTimeOffset?) u.CreatedDate,
+                            LastSignInUtc = (DateTimeOffset?) null
+                        };
+
+        // Sorting
+        IOrderedQueryable<AdminUserDto> ordered;
+        switch (sort.By)
+        {
+            case UserAdminSortBy.UserName:
+                ordered = sort.Direction == SortDirection.Asc
+                    ? projected.OrderBy(x => x.UserName).ThenBy(x => x.Email).ThenBy(x => x.Id)
+                    : projected.OrderByDescending(x => x.UserName).ThenBy(x => x.Email).ThenBy(x => x.Id);
+                break;
+            case UserAdminSortBy.EmailConfirmed:
+                ordered = sort.Direction == SortDirection.Asc
+                    ? projected.OrderBy(x => x.EmailConfirmed).ThenBy(x => x.Email).ThenBy(x => x.Id)
+                    : projected.OrderByDescending(x => x.EmailConfirmed).ThenBy(x => x.Email).ThenBy(x => x.Id);
+                break;
+            case UserAdminSortBy.LockedOut:
+                ordered = sort.Direction == SortDirection.Asc
+                    ? projected.OrderBy(x => x.IsLockedOut).ThenBy(x => x.Email).ThenBy(x => x.Id)
+                    : projected.OrderByDescending(x => x.IsLockedOut).ThenBy(x => x.Email).ThenBy(x => x.Id);
+                break;
+            case UserAdminSortBy.Role:
+                ordered = sort.Direction == SortDirection.Asc
+                    ? projected.OrderBy(x => x.Role).ThenBy(x => x.Email).ThenBy(x => x.Id)
+                    : projected.OrderByDescending(x => x.Role).ThenBy(x => x.Email).ThenBy(x => x.Id);
+                break;
+            case UserAdminSortBy.CreatedUtc:
+                ordered = sort.Direction == SortDirection.Asc
+                    ? projected.OrderBy(x => x.CreatedUtc).ThenBy(x => x.Email).ThenBy(x => x.Id)
+                    : projected.OrderByDescending(x => x.CreatedUtc).ThenBy(x => x.Email).ThenBy(x => x.Id);
+                break;
+            case UserAdminSortBy.LastSignInUtc:
+                ordered = sort.Direction == SortDirection.Asc
+                    ? projected.OrderBy(x => x.LastSignInUtc).ThenBy(x => x.Email).ThenBy(x => x.Id)
+                    : projected.OrderByDescending(x => x.LastSignInUtc).ThenBy(x => x.Email).ThenBy(x => x.Id);
+                break;
+            case UserAdminSortBy.Email:
+            default:
+                ordered = sort.Direction == SortDirection.Asc
+                    ? projected.OrderBy(x => x.Email).ThenBy(x => x.Id)
+                    : projected.OrderByDescending(x => x.Email).ThenBy(x => x.Id);
+                break;
+        }
+
+        var pageItems = await ordered
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .Select(x => new UserListRow
+            {
+                Id = x.Id,
+                Email = x.Email!,
+                UserName = x.UserName!,
+                EmailConfirmed = x.EmailConfirmed,
+                IsLockedOut = x.IsLockedOut,
+                Role = x.Role,
+                CreatedUtc = x.CreatedUtc,
+                LastSignInUtc = x.LastSignInUtc
+            })
+            .ToListAsync();
+
+        return new PagedResult<UserListRow>
+        {
+            Items = pageItems,
+            TotalCount = totalCount,
+            Page = page,
+            PageSize = pageSize
+        };
+    }
+
+    public async Task<IReadOnlyList<string>> GetAllRoleNamesAsync()
+    {
+        var roles = await _context.Roles
+            .AsNoTracking()
+            .OrderBy(r => r.Name)
+            .Select(r => r.Name!)
+            .ToListAsync();
+        return roles;
+    }
+
+    private sealed class AdminUserDto
+    {
+        public Guid Id { get; set; }
+        public string? Email { get; set; }
+        public string? UserName { get; set; }
+        public bool EmailConfirmed { get; set; }
+        public bool IsLockedOut { get; set; }
+        public string? Role { get; set; }
+        public DateTimeOffset? CreatedUtc { get; set; }
+        public DateTimeOffset? LastSignInUtc { get; set; }
     }
 
     public async Task<string> GenerateEmailConfirmationTokenAsync(User user)

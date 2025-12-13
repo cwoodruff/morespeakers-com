@@ -19,9 +19,12 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="xunit.v3" Version="3.2.1" />
+    <PackageReference Include="Moq" Version="4.20.72" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\MoreSpeakers.Data\MoreSpeakers.Data.csproj" />
+    <ProjectReference Include="..\MoreSpeakers.Domain\MoreSpeakers.Domain.csproj" />
   </ItemGroup>
 </Project>

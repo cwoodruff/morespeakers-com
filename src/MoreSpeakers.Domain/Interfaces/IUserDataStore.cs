@@ -3,6 +3,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
 
 using MoreSpeakers.Domain.Models;
+using MoreSpeakers.Domain.Models.AdminUsers;
 
 namespace MoreSpeakers.Domain.Interfaces;
 
@@ -41,4 +42,10 @@ public interface IUserDataStore: IDataStorePrimaryKeyGuid<User>
     Task<(int newSpeakers, int experiencedSpeakers, int activeMentorships)> GetStatisticsForApplicationAsync();
     Task<IEnumerable<User>> GetFeaturedSpeakersAsync(int count);
     Task<IEnumerable<SpeakerType>> GetSpeakerTypesAsync();
+
+    // ------------------------------------------
+    // Admin Users (List/Search)
+    // ------------------------------------------
+    Task<PagedResult<UserListRow>> AdminSearchUsersAsync(UserAdminFilter filter, UserAdminSort sort, int page, int pageSize);
+    Task<IReadOnlyList<string>> GetAllRoleNamesAsync();
 }

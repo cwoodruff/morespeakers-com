@@ -1,0 +1,167 @@
+@page
+@model MoreSpeakers.Web.Areas.Admin.Pages.Users.IndexModel
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+@{
+    ViewData["Title"] = "Users";
+    var q = Model.Query;
+    int totalPages = (int)Math.Ceiling((double)Model.Result.TotalCount / Math.Max(1, Model.Result.PageSize));
+    totalPages = Math.Max(1, totalPages);
+
+    string SortDirFor(string col)
+    {
+        var isSame = string.Equals(q.Sort, col, StringComparison.OrdinalIgnoreCase);
+        var dir = isSame && string.Equals(q.Dir, "asc", StringComparison.OrdinalIgnoreCase) ? "desc" : "asc";
+        return dir;
+    }
+
+    string CaretFor(string col)
+    {
+        var isActive = string.Equals(q.Sort, col, StringComparison.OrdinalIgnoreCase);
+        if (!isActive) return "";
+        var asc = string.Equals(q.Dir, "asc", StringComparison.OrdinalIgnoreCase);
+        return asc ? "<i class=\"bi bi-caret-up-fill ms-1\"></i>" : "<i class=\"bi bi-caret-down-fill ms-1\"></i>";
+    }
+}
+
+<div class="d-flex align-items-center mb-3">
+    <h2 class="mb-0">Users</h2>
+    <span class="text-muted ms-3">@Model.Result.TotalCount total</span>
+  </div>
+
+<form method="get" class="mb-3">
+  <div class="row g-2 align-items-end">
+    <div class="col-12 col-md-4">
+      <label for="q" class="form-label">Search (email or username)</label>
+      <div class="input-group">
+        <span class="input-group-text"><i class="bi bi-search"></i></span>
+        <input type="text" name="q" id="q" value="@q.Q" class="form-control" placeholder="Search..." />
+      </div>
+    </div>
+    <div class="col-6 col-md-2">
+      <label for="lockout" class="form-label">Lockout</label>
+      <select class="form-select" id="lockout" name="lockout">
+        <option value="any" selected="@(q.Lockout=="any" ? "selected" : null)">Any</option>
+        <option value="locked" selected="@(q.Lockout=="locked" ? "selected" : null)">Locked out</option>
+        <option value="notlocked" selected="@(q.Lockout=="notlocked" ? "selected" : null)">Not locked out</option>
+      </select>
+    </div>
+    <div class="col-6 col-md-2">
+      <label for="emailConfirmed" class="form-label">Email</label>
+      <select class="form-select" id="emailConfirmed" name="emailConfirmed">
+        <option value="any" selected="@(q.EmailConfirmed=="any" ? "selected" : null)">Any</option>
+        <option value="true" selected="@(q.EmailConfirmed=="true" ? "selected" : null)">Confirmed</option>
+        <option value="false" selected="@(q.EmailConfirmed=="false" ? "selected" : null)">Not confirmed</option>
+      </select>
+    </div>
+    <div class="col-6 col-md-2">
+      <label for="role" class="form-label">Role</label>
+      <select class="form-select" id="role" name="role">
+        <option value="" selected="@string.IsNullOrWhiteSpace(q.Role)">Any</option>
+        @foreach (var role in Model.Roles)
+        {
+          <option value="@role" selected="@(string.Equals(q.Role, role, StringComparison.OrdinalIgnoreCase) ? "selected" : null)">@role</option>
+        }
+      </select>
+    </div>
+    <div class="col-6 col-md-2">
+      <label for="pageSize" class="form-label">Page size</label>
+      <select class="form-select" id="pageSize" name="pageSize">
+        @{ int[] sizes = new []{10,20,50,100}; }
+        @foreach (var s in sizes)
+        {
+          <option value="@s" selected="@(q.PageSize==s ? "selected" : null)">@s</option>
+        }
+      </select>
+    </div>
+    <div class="col-12 col-md-12 d-flex gap-2">
+      <button type="submit" class="btn btn-primary"><i class="bi bi-funnel me-1"></i>Apply</button>
+      <a asp-area="Admin" asp-page="/Users/Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-counterclockwise me-1"></i>Reset</a>
+    </div>
+  </div>
+</form>
+
+<div class="table-responsive">
+  <table class="table table-striped align-middle">
+    <thead>
+      <tr>
+        <th>
+          <a asp-page="/Users/Index" asp-route-q="@q.Q" asp-route-lockout="@q.Lockout" asp-route-emailConfirmed="@q.EmailConfirmed" asp-route-role="@q.Role" asp-route-pageSize="@q.PageSize" asp-route-sort="email" asp-route-dir="@SortDirFor("email")">Email</a>
+          @Html.Raw(CaretFor("email"))
+        </th>
+        <th>
+          <a asp-page="/Users/Index" asp-route-q="@q.Q" asp-route-lockout="@q.Lockout" asp-route-emailConfirmed="@q.EmailConfirmed" asp-route-role="@q.Role" asp-route-pageSize="@q.PageSize" asp-route-sort="username" asp-route-dir="@SortDirFor("username")">Username</a>
+          @Html.Raw(CaretFor("username"))
+        </th>
+        <th class="text-center">
+          <a asp-page="/Users/Index" asp-route-q="@q.Q" asp-route-lockout="@q.Lockout" asp-route-emailConfirmed="@q.EmailConfirmed" asp-route-role="@q.Role" asp-route-pageSize="@q.PageSize" asp-route-sort="emailconfirmed" asp-route-dir="@SortDirFor("emailconfirmed")">Email Confirmed</a>
+          @Html.Raw(CaretFor("emailconfirmed"))
+        </th>
+        <th class="text-center">
+          <a asp-page="/Users/Index" asp-route-q="@q.Q" asp-route-lockout="@q.Lockout" asp-route-emailConfirmed="@q.EmailConfirmed" asp-route-role="@q.Role" asp-route-pageSize="@q.PageSize" asp-route-sort="lockout" asp-route-dir="@SortDirFor("lockout")">Lockout</a>
+          @Html.Raw(CaretFor("lockout"))
+        </th>
+        <th>
+          <a asp-page="/Users/Index" asp-route-q="@q.Q" asp-route-lockout="@q.Lockout" asp-route-emailConfirmed="@q.EmailConfirmed" asp-route-role="@q.Role" asp-route-pageSize="@q.PageSize" asp-route-sort="role" asp-route-dir="@SortDirFor("role")">Role</a>
+          @Html.Raw(CaretFor("role"))
+        </th>
+        <th>
+          <a asp-page="/Users/Index" asp-route-q="@q.Q" asp-route-lockout="@q.Lockout" asp-route-emailConfirmed="@q.EmailConfirmed" asp-route-role="@q.Role" asp-route-pageSize="@q.PageSize" asp-route-sort="created" asp-route-dir="@SortDirFor("created")">Created</a>
+          @Html.Raw(CaretFor("created"))
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+    @if (!Model.Result.Items.Any())
+    {
+      <tr>
+        <td colspan="6" class="text-muted">No users found.</td>
+      </tr>
+    }
+    else
+    {
+      foreach (var u in Model.Result.Items)
+      {
+        <tr>
+          <td>@u.Email</td>
+          <td>@u.UserName</td>
+          <td class="text-center">
+            @if (u.EmailConfirmed) { <i class="bi bi-check-circle text-success" aria-label="Email confirmed"></i> }
+            else { <i class="bi bi-x-circle text-secondary" aria-label="Email not confirmed"></i> }
+          </td>
+          <td class="text-center">
+            @if (u.IsLockedOut) { <i class="bi bi-lock text-danger" aria-label="Locked out"></i> } else { <i class="bi bi-unlock text-secondary" aria-label="Not locked out"></i> }
+          </td>
+          <td>@u.Role</td>
+          <td>@(u.CreatedUtc?.ToString("yyyy-MM-dd"))</td>
+        </tr>
+      }
+    }
+    </tbody>
+  </table>
+</div>
+
+<nav aria-label="Users pagination">
+  <ul class="pagination justify-content-end">
+    <li class="page-item @(Model.Result.Page <= 1 ? "disabled" : null)">
+      <a class="page-link" asp-page="/Users/Index" asp-route-q="@q.Q" asp-route-lockout="@q.Lockout" asp-route-emailConfirmed="@q.EmailConfirmed" asp-route-role="@q.Role" asp-route-sort="@q.Sort" asp-route-dir="@q.Dir" asp-route-pageSize="@q.PageSize" asp-route-page="@(Model.Result.Page - 1)" aria-label="Previous">
+        <span aria-hidden="true">&laquo;</span>
+      </a>
+    </li>
+    @for (var p = 1; p <= totalPages; p++)
+    {
+      <li class="page-item @(p == Model.Result.Page ? "active" : null)">
+        <a class="page-link" asp-page="/Users/Index" asp-route-q="@q.Q" asp-route-lockout="@q.Lockout" asp-route-emailConfirmed="@q.EmailConfirmed" asp-route-role="@q.Role" asp-route-sort="@q.Sort" asp-route-dir="@q.Dir" asp-route-pageSize="@q.PageSize" asp-route-page="@p">@p</a>
+      </li>
+    }
+    <li class="page-item @(Model.Result.Page >= totalPages ? "disabled" : null)">
+      <a class="page-link" asp-page="/Users/Index" asp-route-q="@q.Q" asp-route-lockout="@q.Lockout" asp-route-emailConfirmed="@q.EmailConfirmed" asp-route-role="@q.Role" asp-route-sort="@q.Sort" asp-route-dir="@q.Dir" asp-route-pageSize="@q.PageSize" asp-route-page="@(Model.Result.Page + 1)" aria-label="Next">
+        <span aria-hidden="true">&raquo;</span>
+      </a>
+    </li>
+  </ul>
+  @if (totalPages > 1)
+  {
+    <div class="text-muted small text-end">Page @Model.Result.Page of @totalPages</div>
+  }
+</nav>
