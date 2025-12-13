@@ -9,23 +9,28 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoreSpeakers.AppHost", "Mor
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoreSpeakers.ServiceDefaults", "MoreSpeakers.ServiceDefaults\MoreSpeakers.ServiceDefaults.csproj", "{1F906499-C013-4551-B32E-66C36C6CB11C}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{6AFE411A-C39E-487A-BB0F-1302969D83C5}"
+	ProjectSection(SolutionItems) = preProject
+		..\docs\architecture.md = ..\docs\architecture.md
+		..\claude.md = ..\claude.md
+		..\docs\database-overview.md = ..\docs\database-overview.md
+		..\docs\developer-startup.md = ..\docs\developer-startup.md
+		..\docs\deployment-guide.md = ..\docs\deployment-guide.md
+		..\docs\icon-readme.md = ..\docs\icon-readme.md
+		..\README.md = ..\README.md
+		..\docs\new-admin-functionality-implementation-plan.md = ..\docs\new-admin-functionality-implementation-plan.md
+		..\docs\new-admin-functionality-overview.md = ..\docs\new-admin-functionality-overview.md
+	EndProjectSection
+EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ExtraStuff", "ExtraStuff", "{F237316C-4113-4191-9EF7-EFA8065ED236}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 		..\.gitignore = ..\.gitignore
-		..\docs\architecture.md = ..\docs\architecture.md
-		..\claude.md = ..\claude.md
 		..\docs\Custom-Icon-Design-Flatastic-11-Megaphone.512.png = ..\docs\Custom-Icon-Design-Flatastic-11-Megaphone.512.png
-		..\docs\database_overview.md = ..\docs\database_overview.md
-		..\docs\deployment_guide.md = ..\docs\deployment_guide.md
-		..\docs\developer-startup.md = ..\docs\developer-startup.md
-		..\docs\icon-readme.md = ..\docs\icon-readme.md
 		install-libman.ps1 = install-libman.ps1
 		libman-restore.ps1 = libman-restore.ps1
-		..\next-steps.md = ..\next-steps.md
 		..\.github\workflows\publish-function-app.yml = ..\.github\workflows\publish-function-app.yml
 		..\.github\workflows\publish-web-app.yml = ..\.github\workflows\publish-web-app.yml
-		..\README.md = ..\README.md
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoreSpeakers.Managers", "MoreSpeakers.Managers\MoreSpeakers.Managers.csproj", "{C3DF31E7-C67C-44C7-B629-4FB470E9F5CE}"

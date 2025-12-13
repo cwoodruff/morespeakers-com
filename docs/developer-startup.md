@@ -46,7 +46,7 @@ Now you can open the project in your favorite IDE.
 ## Updating Application Settings
 
 Most of the application settings are with the project and will be available to you when you clone the repository.
-However, there are few settings that are not in the repository and need to be added.
+However, there are a few settings that are not in the repository and need to be added.
 
 You can reach out to a member of the project team to get these settings.
 The settings below are required for the project to run and just sample values. 
@@ -69,7 +69,7 @@ Open up the user secrets for this project.  Add the following secrets:
 Or execute the following commands in the terminal/Developer PowerShell:
 ```bash
 dotnet user-secrets set APPLICATIONINSIGHTS_CONNECTION_STRING "InstrumentationKey=<Replace_Me>;IngestionEndpoint=https://centralus-2.in.applicationinsights.azure.com/;LiveEndpoint=https://centralus.livediagnostics.monitor.azure.com/;ApplicationId=<Replace_Me>"
-dotnet user-secrets set APPINSIGHTS_INSTRUMENTATIONKEY "<Replace_Me"
+dotnet user-secrets set APPINSIGHTS_INSTRUMENTATIONKEY "<Replace_Me>"
 dotnet user-secrets set Settings:AutoMapper:LicenseKey ""
 ```
 
@@ -122,7 +122,7 @@ Once you have the application settings configured, you can run the application.
 Run or Debug the *MoreSpeakers.AppHost: https* project. 
 
 After the application is running, you will most likely get an error from the function application.
-This is expected because the queue were not created initially.
+This is expected because the queues were not created initially.
 
 Open up the Azure Storage Explorer. 
 

@@ -1,4 +1,4 @@
-# MoreSpeakers.com - Architecture Overview
+# MoreSpeakers.com – Architecture Overview
 
 ## Application Architecture
 
@@ -41,7 +41,7 @@ MoreSpeakers.com follows a clean, layered architecture built on ASP.NET Core wit
 
 ### Backend Technologies
 
-**ASP.NET Core 9.0 with Razor Pages**
+**ASP.NET Core 10.0 with Razor Pages**
 - Server-side rendering for optimal performance and SEO
 - Built-in dependency injection
 - Integrated authentication and authorization
@@ -67,10 +67,10 @@ MoreSpeakers.com follows a clean, layered architecture built on ASP.NET Core wit
 - Complements HTMX for complex UI behaviors
 
 **Modern CSS**
+- Bootstrap 5 for styling
 - CSS Grid and Flexbox for layouts
-- CSS Custom Properties for theming
-- Responsive design with mobile-first approach
-- Progressive enhancement
+- Minimal use Custom CSS properties for theming
+- Responsive design with a mobile-first approach
 
 ### Development Environment
 
@@ -86,31 +86,32 @@ MoreSpeakers.com follows a clean, layered architecture built on ASP.NET Core wit
 
 ```
 MoreSpeakers.Web/
+├── EmailTemplates/           # Email templates used throughout the application
+├── Endpoints/                # Endpoints used for the application
 ├── Pages/
-│   ├── Account/              # Authentication pages
 │   ├── Speakers/             # Speaker management
 │   ├── Mentorship/           # Mentorship features
 │   ├── Profile/              # User profiles
 │   └── Shared/               # Shared layouts and partials
 ├── Models/
-│   ├── Entities/             # Database entities
 │   ├── ViewModels/           # Page view models
-│   └── DTOs/                 # Data transfer objects
+│   └── *                     # Assorted models used in the web application
 ├── Data/
 │   ├── ApplicationDbContext.cs
 │   ├── Configurations/       # Entity configurations
 │   └── Migrations/           # EF migrations
 ├── Services/
-│   ├── ISpeakerService.cs
-│   ├── IMentorshipService.cs
-│   └── IEmailService.cs
+│   └── *                     # Assorted services used in the web application
+├── Authorization/
+│   ├── AppRoles.cs           # Roles used in the application for authorization
+│   └── PolicyNames.cs        # Authorization policies
 ├── Areas/
-│   └── Admin/                # Administrative features
+│   ├── Admin/                # Administrative features
+│   └── Identity/             # Administrative features
 └── wwwroot/
     ├── css/                  # Stylesheets
     ├── js/                   # JavaScript files
-    ├── images/               # Static images
-    └── uploads/              # User uploaded files
+    └── images/               # Static images
 ```
 
 ### Aspire Host (`MoreSpeakers.AppHost`)
@@ -119,7 +120,7 @@ MoreSpeakers.Web/
 MoreSpeakers.AppHost/
 ├── Program.cs                # Aspire orchestration setup
 ├── Properties/
-└── appsettings.json         # Development configuration
+└── appsettings.json          # Development configuration
 ```
 
 ## Key Design Patterns
@@ -129,12 +130,11 @@ MoreSpeakers.AppHost/
 - Page models handle HTTP requests and coordinate with services
 - Views focus purely on presentation
 
-### Repository Pattern (Optional)
+### Repository Pattern (`MoreSpeakers.Data`)
 - Abstraction layer over Entity Framework
 - Useful for complex queries and testing
-- Can be implemented as needed for specific entities
 
-### Service Layer Pattern
+### Service Layer Pattern (`MoreSpeakers.Managers`)
 - Business logic encapsulation
 - Reusable across different controllers/pages
 - Dependency injection for loose coupling
@@ -144,7 +144,6 @@ MoreSpeakers.AppHost/
 ### Authentication & Authorization
 - ASP.NET Core Identity for user management
 - Role-based authorization (NewSpeaker, ExperiencedSpeaker)
-- JWT tokens for API authentication (if needed)
 
 ### Data Protection
 - HTTPS enforcement
@@ -152,7 +151,7 @@ MoreSpeakers.AppHost/
 - Input validation and sanitization
 - SQL injection prevention through EF parameterized queries
 
-### File Upload Security
+### File Upload Security (Future Extension)
 - File type validation
 - Size limitations
 - Secure file storage (Azure Blob Storage recommended)
@@ -164,7 +163,7 @@ MoreSpeakers.AppHost/
 - Entity Framework query optimization
 - Response caching where appropriate
 - Compression middleware
-- CDN for static assets
+- CDN for static assets (Future Extension)
 
 ### Client-Side Optimizations
 - Minimal JavaScript bundle size
@@ -182,7 +181,6 @@ MoreSpeakers.AppHost/
 
 ### Horizontal Scaling
 - Stateless application design
-- Session state in distributed cache (Redis)
 - Load balancer friendly
 
 ### Vertical Scaling
@@ -239,31 +237,35 @@ MoreSpeakers.AppHost/
 - Fast feedback loop
 
 ### Integration Testing
-- TestServer for API testing
 - In-memory database for data layer tests
 - End-to-end scenarios
 
 ### UI Testing
-- Playwright for browser automation
+- Playwright for browser automation (Future Extension)
 - Visual regression testing
 - Accessibility testing
 
 ## Deployment Architecture
 
 ### Development Environment
-- Local SQL Server or LocalDB
 - .NET Aspire for orchestration
+  - Local SQL Server or LocalDB
+  - Azure Storage Emulator
+  - Azurite for Azure Blob Storage
 - Hot reload for rapid development
 
-### Staging Environment
+### Staging Environment (Not Implemented Yet)
 - Azure App Service (Standard tier)
 - Azure SQL Database (Standard tier)
 - Application Insights monitoring
 
 ### Production Environment
-- Azure App Service (Premium tier)
-- Azure SQL Database (Premium tier)
+- Azure App Service
+- Azure SQL Database
+- Azure Communication Services for email notifications
+- Azure Monitor (Application Insights)
+- Azure Key Vault for application secrets
+- Azure Functions for scheduled tasks
 - Azure CDN for static content
-- Azure Application Gateway for load balancing
 
 This architecture provides a solid foundation for the MoreSpeakers.com platform while maintaining flexibility for future enhancements and scalability requirements.
