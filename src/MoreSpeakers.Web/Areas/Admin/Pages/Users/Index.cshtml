@@ -120,20 +120,20 @@
     }
     else
     {
-      foreach (var u in Model.Result.Items)
+      foreach (var user in Model.Result.Items)
       {
         <tr>
-          <td>@u.Email</td>
-          <td>@u.UserName</td>
+          <td>@user.Email</td>
+          <td>@user.UserName</td>
           <td class="text-center">
-            @if (u.EmailConfirmed) { <i class="bi bi-check-circle text-success" aria-label="Email confirmed"></i> }
+            @if (user.EmailConfirmed) { <i class="bi bi-check-circle text-success" aria-label="Email confirmed"></i> }
             else { <i class="bi bi-x-circle text-secondary" aria-label="Email not confirmed"></i> }
           </td>
           <td class="text-center">
-            @if (u.IsLockedOut) { <i class="bi bi-lock text-danger" aria-label="Locked out"></i> } else { <i class="bi bi-unlock text-secondary" aria-label="Not locked out"></i> }
+            @if (user.IsLockedOut) { <i class="bi bi-lock text-danger" aria-label="Locked out"></i> } else { <i class="bi bi-unlock text-secondary" aria-label="Not locked out"></i> }
           </td>
-          <td>@u.Role</td>
-          <td>@(u.CreatedUtc?.ToString("yyyy-MM-dd"))</td>
+          <td>@user.Role</td>
+          <td>@(user.CreatedUtc?.ToString("yyyy-MM-dd"))</td>
         </tr>
       }
     }

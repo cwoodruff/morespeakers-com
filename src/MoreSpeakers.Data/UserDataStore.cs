@@ -25,8 +25,9 @@ public class UserDataStore : IUserDataStore
     private readonly IAutoMapperSettings _autoMapperSettings;
     private readonly ILogger<UserDataStore> _logger;
     private readonly ILoggerFactory _loggerFactory;
+    private readonly ISettings _settings;
 
-    public UserDataStore(MoreSpeakersDbContext context, UserManager<Data.Models.User> userManager, IMapper mapper, IAutoMapperSettings autoMapperSettings, ILogger<UserDataStore> logger, ILoggerFactory loggerFactory)
+    public UserDataStore(MoreSpeakersDbContext context, UserManager<Data.Models.User> userManager, IMapper mapper, IAutoMapperSettings autoMapperSettings, ILogger<UserDataStore> logger, ILoggerFactory loggerFactory, ISettings settings)
     {
         _context = context;
         _mapper = mapper;
@@ -34,6 +35,7 @@ public class UserDataStore : IUserDataStore
         _userManager = userManager;
         _logger = logger;
         _loggerFactory = loggerFactory;
+        _settings = settings;
     }
     
     // ------------------------------------------
@@ -117,9 +119,9 @@ public class UserDataStore : IUserDataStore
 
     public async Task<PagedResult<UserListRow>> AdminSearchUsersAsync(UserAdminFilter filter, UserAdminSort sort, int page, int pageSize)
     {
-        if (page < 1) page = 1;
-        if (pageSize < 1) pageSize = 20;
-        if (pageSize > 100) pageSize = 100;
+        if (page < 1) page = _settings.Pagination.StartPage;
+        if (pageSize < 1) pageSize = _settings.Pagination.MinimalPageSize;
+        if (pageSize > 100) pageSize = _settings.Pagination.MaximizePageSize;
 
         var now = DateTimeOffset.UtcNow;
 
@@ -172,7 +174,7 @@ public class UserDataStore : IUserDataStore
 
         // Build projection with computed fields used for sorting and display
         var projected = from u in users
-                        select new AdminUserDto
+                        select new AdminUser
                         {
                             Id = u.Id,
                             Email = u.Email,
@@ -191,7 +193,7 @@ public class UserDataStore : IUserDataStore
                         };
 
         // Sorting
-        IOrderedQueryable<AdminUserDto> ordered;
+        IOrderedQueryable<AdminUser> ordered;
         switch (sort.By)
         {
             case UserAdminSortBy.UserName:
@@ -267,7 +269,7 @@ public class UserDataStore : IUserDataStore
         return roles;
     }
 
-    private sealed class AdminUserDto
+    private sealed class AdminUser
     {
         public Guid Id { get; set; }
         public string? Email { get; set; }

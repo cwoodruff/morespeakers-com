@@ -1,16 +1,12 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 
-using MoreSpeakers.Data;
-using MoreSpeakers.Data.Models;
 using MoreSpeakers.Domain.Models.AdminUsers;
 using MoreSpeakers.Domain.Interfaces;
+using MoreSpeakers.Domain.Models;
+
+using User = MoreSpeakers.Data.Models.User;
 
 namespace MoreSpeakers.Data.Tests.AdminUsers;
 
@@ -31,8 +27,9 @@ public class AdminSearchUsersTests
         var amSettings = new Mock<IAutoMapperSettings>().Object;
         var logger = new Mock<Microsoft.Extensions.Logging.ILogger<UserDataStore>>().Object;
         var loggerFactory = new Mock<Microsoft.Extensions.Logging.ILoggerFactory>().Object;
+        var settings = new Mock<Settings>().Object;
 
-        return new UserDataStore(ctx, userManager, mapper, amSettings, logger, loggerFactory);
+        return new UserDataStore(ctx, userManager, mapper, amSettings, logger, loggerFactory, settings);
     }
 
     private static (User u, string roleName) AddUser(MoreSpeakersDbContext ctx, string email, string userName,

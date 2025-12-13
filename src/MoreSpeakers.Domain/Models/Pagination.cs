@@ -1,4 +1,4 @@
-namespace MoreSpeakers.Domain.Models.AdminUsers;
+namespace MoreSpeakers.Domain.Models;
 
 public class PagedResult<T>
 {

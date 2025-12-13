@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using MoreSpeakers.Domain.Interfaces;
+using MoreSpeakers.Domain.Models;
 using MoreSpeakers.Domain.Models.AdminUsers;
 
 namespace MoreSpeakers.Web.Areas.Admin.Pages.Users;
@@ -61,29 +62,34 @@ public class IndexModel(IUserManager userManager, ILogger<IndexModel> logger) : 
         return Page();
     }
 
+    private static readonly Dictionary<string, TriState> TriStateMap = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["true"] = TriState.True,
+        ["false"] = TriState.False,
+        ["locked"] = TriState.True,      // alias
+        ["notlocked"] = TriState.False,  // alias
+    };
+
     private static TriState ParseTriState(string? value)
     {
-        return value?.ToLowerInvariant() switch
-        {
-            "true" => TriState.True,
-            "false" => TriState.False,
-            "locked" => TriState.True, // support alias
-            "notlocked" => TriState.False, // support alias
-            _ => TriState.Any
-        };
+        if (string.IsNullOrWhiteSpace(value)) return TriState.Any;
+        return TriStateMap.TryGetValue(value.Trim(), out var state) ? state : TriState.Any;
     }
+
+    private static readonly Dictionary<string, UserAdminSortBy> SortByMap = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["email"] = UserAdminSortBy.Email,
+        ["username"] = UserAdminSortBy.UserName,
+        ["emailconfirmed"] = UserAdminSortBy.EmailConfirmed,
+        ["lockout"] = UserAdminSortBy.LockedOut,
+        ["role"] = UserAdminSortBy.Role,
+        ["created"] = UserAdminSortBy.CreatedUtc,
+        ["lastsignin"] = UserAdminSortBy.LastSignInUtc,
+    };
 
     private static UserAdminSortBy ParseSortBy(string? value)
     {
-        return value?.ToLowerInvariant() switch
-        {
-            "username" => UserAdminSortBy.UserName,
-            "emailconfirmed" => UserAdminSortBy.EmailConfirmed,
-            "lockout" => UserAdminSortBy.LockedOut,
-            "role" => UserAdminSortBy.Role,
-            "created" => UserAdminSortBy.CreatedUtc,
-            "lastsignin" => UserAdminSortBy.LastSignInUtc,
-            _ => UserAdminSortBy.Email
-        };
+        if (string.IsNullOrWhiteSpace(value)) return UserAdminSortBy.Email;
+        return SortByMap.TryGetValue(value.Trim(), out var by) ? by : UserAdminSortBy.Email;
     }
 }

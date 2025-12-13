@@ -26,4 +26,9 @@ public interface ISettings
     /// The Application Insights settings.
     /// </summary>
     ApplicationInsightsSettings ApplicationInsights { get; init; }
+    
+    /// <summary>
+    /// The Pagination settings.
+    /// </summary>
+    PaginationSettings Pagination { get; init; }
 }
