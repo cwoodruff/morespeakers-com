@@ -85,14 +85,18 @@ public class ExpertiseDataStore : IExpertiseDataStore
 
     public async Task<List<Expertise>> GetAllAsync()
     {
-        var expertises = await _context.Expertise.OrderBy(e => e.Name).ToListAsync();
+        var expertises = await _context.Expertise
+            .Include(e => e.ExpertiseCategory)
+            .OrderBy(e => e.ExpertiseCategory.Name)
+            .ThenBy(e => e.Name)
+            .ToListAsync();
         return _mapper.Map<List<Expertise>>(expertises);
     }
 
-    public async Task<int> CreateExpertiseAsync(string name, string? description = null)
+    public async Task<int> CreateExpertiseAsync(string name, string? description = null, int expertiseCategoryId = 0)
     {
         var expertise =
-            new Data.Models.Expertise { Name = name, Description = description, CreatedDate = DateTime.UtcNow };
+            new Data.Models.Expertise { Name = name, Description = description, CreatedDate = DateTime.UtcNow, ExpertiseCategoryId = expertiseCategoryId };
         _context.Expertise.Add(expertise);
 
         try
@@ -143,5 +147,83 @@ public class ExpertiseDataStore : IExpertiseDataStore
             .ToListAsync();
         
         return _mapper.Map<List<Expertise>>(expertises);   
+    }
+
+    public async Task<List<Expertise>> GetByCategoryIdAsync(int categoryId)
+    {
+        var expertises = await _context.Expertise
+            .Where(e => e.ExpertiseCategoryId == categoryId)
+            .OrderBy(e => e.Name)
+            .ToListAsync();
+        return _mapper.Map<List<Expertise>>(expertises);
+    }
+
+    // Category operations
+    public async Task<ExpertiseCategory?> GetCategoryAsync(int id)
+    {
+        var entity = await _context.ExpertiseCategory.FirstOrDefaultAsync(c => c.Id == id);
+        return _mapper.Map<ExpertiseCategory?>(entity);
+    }
+
+    public async Task<ExpertiseCategory> SaveCategoryAsync(ExpertiseCategory category)
+    {
+        var dbEntity = _mapper.Map<Models.ExpertiseCategory>(category);
+        _context.Entry(dbEntity).State = dbEntity.Id == 0 ? EntityState.Added : EntityState.Modified;
+
+        try
+        {
+            var result = await _context.SaveChangesAsync() != 0;
+            if (result)
+            {
+                return _mapper.Map<ExpertiseCategory>(dbEntity);
+            }
+
+            _logger.LogError("Failed to save the expertise category. Name: '{Name}'", category.Name);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to save the expertise category. Name: '{Name}'", category.Name);
+        }
+
+        throw new ApplicationException("Failed to save the expertise category");
+    }
+
+    public async Task<bool> DeleteCategoryAsync(int id)
+    {
+        var entity = await _context.ExpertiseCategory.Include(c => c.Expertises)
+            .FirstOrDefaultAsync(c => c.Id == id);
+        if (entity is null)
+        {
+            return true;
+        }
+
+        var hasExpertises = entity.Expertises.Any();
+        if (hasExpertises)
+        {
+            _logger.LogWarning("Attempted to delete category with id {Id} that still has expertises", id);
+            return false;
+        }
+
+        _context.ExpertiseCategory.Remove(entity);
+        try
+        {
+            return await _context.SaveChangesAsync() != 0;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to delete the expertise category. Name: '{Name}'", entity.Name);
+            return false;
+        }
+    }
+
+    public async Task<List<ExpertiseCategory>> GetAllCategoriesAsync(bool onlyActive = true)
+    {
+        var query = _context.ExpertiseCategory.AsQueryable();
+        if (onlyActive)
+        {
+            query = query.Where(c => c.IsActive);
+        }
+        var entities = await query.OrderBy(c => c.Name).ToListAsync();
+        return _mapper.Map<List<ExpertiseCategory>>(entities);
     }
 }

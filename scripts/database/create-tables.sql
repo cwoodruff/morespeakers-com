@@ -153,19 +153,28 @@ create index IX_AspNetUserPasskeys_UserId
     on AspNetUserPasskeys (UserId)
 go
 
+create table ExpertiseCategories (
+      Id int primary key not null,
+      Name nvarchar(100) not null,
+      Description nvarchar(500),
+      CreatedDate datetime2 default (sysutcdatetime()) not null,
+      IsActive bit default ((1)) not null
+);
+create unique index UQ__Expertis__737584F65139BC94 on ExpertiseCategories (Name);
+GO
 
-create table Expertises
-(
-    Id          int identity
-        primary key,
-    Name        nvarchar(100)                  not null
-        unique,
-    Description nvarchar(500),
-    CreatedDate datetime2 default getutcdate() not null,
-    IsActive    bit       default 1            not null
-)
-go
-
+create table dbo.Expertises (
+     Id int primary key not null,
+     Name nvarchar(100) not null,
+     Description nvarchar(500),
+     CreatedDate datetime2 default (getutcdate()) not null,
+     IsActive bit default ((1)) not null,
+     ExpertiseCategoryId int not null,
+     foreign key (ExpertiseCategoryId) references ExpertiseCategories (Id)
+);
+create index IX_Expertises_ExpertiseCategoryId on Expertises (ExpertiseCategoryId);
+create unique index UQ__Expertis__737584F6EB425532 on Expertises (Name);
+GO
 
 create table Mentorships
 (

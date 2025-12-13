@@ -98,12 +98,13 @@ public class ExpertiseManagerTests
             .ReturnsAsync((Expertise e) => e);
         var sut = CreateSut();
 
-        var id = await sut.CreateExpertiseAsync("AI", "desc");
+        var id = await sut.CreateExpertiseAsync("AI", "desc", 7);
 
         id.Should().Be(42);
         saved.Should().NotBeNull();
         saved!.Name.Should().Be("AI");
         saved.Description.Should().Be("desc");
+        saved.ExpertiseCategoryId.Should().Be(7);
         _dataStoreMock.Verify(d => d.SaveAsync(It.IsAny<Expertise>()), Times.Once);
     }
 
@@ -113,7 +114,7 @@ public class ExpertiseManagerTests
         _dataStoreMock.Setup(d => d.SaveAsync(It.IsAny<Expertise>())).ThrowsAsync(new Exception("boom"));
         var sut = CreateSut();
 
-        var id = await sut.CreateExpertiseAsync("AI");
+        var id = await sut.CreateExpertiseAsync("AI", null, 3);
 
         id.Should().Be(0);
     }
@@ -166,5 +167,57 @@ public class ExpertiseManagerTests
 
         result.Should().BeSameAs(expected);
         _dataStoreMock.Verify(d => d.FuzzySearchForExistingExpertise("AI", 4), Times.Once);
+    }
+}
+
+public class ExpertiseManagerCategoryTests
+{
+    private readonly Mock<IExpertiseDataStore> _dataStoreMock = new();
+    private readonly Mock<ILogger<ExpertiseManager>> _loggerMock = new();
+
+    private ExpertiseManager CreateSut() => new(_dataStoreMock.Object, _loggerMock.Object);
+
+    [Fact]
+    public async Task GetByCategoryIdAsync_should_delegate()
+    {
+        var expected = new List<Expertise> { new() { Id = 1, ExpertiseCategoryId = 5 } };
+        _dataStoreMock.Setup(d => d.GetByCategoryIdAsync(5)).ReturnsAsync(expected);
+        var sut = CreateSut();
+
+        var result = await sut.GetByCategoryIdAsync(5);
+
+        result.Should().BeSameAs(expected);
+        _dataStoreMock.Verify(d => d.GetByCategoryIdAsync(5), Times.Once);
+    }
+
+    [Fact]
+    public async Task Category_Get_Save_Delete_List_should_delegate()
+    {
+        var category = new ExpertiseCategory { Id = 2, Name = "Tech" };
+        var categories = new List<ExpertiseCategory> { category };
+
+        _dataStoreMock.Setup(d => d.GetCategoryAsync(2)).ReturnsAsync(category);
+        _dataStoreMock.Setup(d => d.SaveCategoryAsync(It.IsAny<ExpertiseCategory>()))
+            .ReturnsAsync((ExpertiseCategory c) => c);
+        _dataStoreMock.Setup(d => d.DeleteCategoryAsync(2)).ReturnsAsync(true);
+        _dataStoreMock.Setup(d => d.GetAllCategoriesAsync(true)).ReturnsAsync(categories);
+
+        var sut = CreateSut();
+
+        var got = await sut.GetCategoryAsync(2);
+        got.Should().BeSameAs(category);
+        _dataStoreMock.Verify(d => d.GetCategoryAsync(2), Times.Once);
+
+        var saved = await sut.SaveCategoryAsync(category);
+        saved.Should().BeSameAs(category);
+        _dataStoreMock.Verify(d => d.SaveCategoryAsync(category), Times.Once);
+
+        var deleted = await sut.DeleteCategoryAsync(2);
+        deleted.Should().BeTrue();
+        _dataStoreMock.Verify(d => d.DeleteCategoryAsync(2), Times.Once);
+
+        var list = await sut.GetAllCategoriesAsync(true);
+        list.Should().BeSameAs(categories);
+        _dataStoreMock.Verify(d => d.GetAllCategoriesAsync(true), Times.Once);
     }
 }

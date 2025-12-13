@@ -3,19 +3,23 @@
     <label class="form-label fw-medium">Are we missing an expertise? Add new one!</label>
     <div>
         <div class="input-group mb-2" data-expertise-index="0">
+            <div class="col-md-4">
+                <select name="Input.NewExpertiseCategoryId" class="form-select" 
+                        asp-items="Model.ExpertiseCategories.Select(s => new SelectListItem(s.Name, s.Id.ToString()))">
+                </select>
+            </div>
             <input type="text" name="Input.NewExpertise" id="Input.NewExpertise"
-                   class="form-control @(Model.SavingExpertiseFailed is true ? "is-invalid": "")"
+                   class="form-control @(Model.SavingExpertiseFailed is true ? "is-invalid" : "")"
                    placeholder="Enter a new expertise area"
                    hx-post="@Url.RouteUrl(ViewContext.RouteData.Values)?handler=ValidateNewExpertise"
                    hx-trigger="blur, keyup changed delay:500ms"
                    hx-target="#newExpertiseValidationMessage"
                    hx-include="this"
-                   hx-indicator="#newExpertiseStatus"
-                   />
+                   hx-indicator="#newExpertiseStatus"/>
             <button type="button" class="btn btn-outline-primary" id="submitExpertise" disabled="disabled"
                     hx-post="@Url.RouteUrl(ViewContext.RouteData.Values)?handler=SubmitNewExpertise"
                     hx-target="#form-step"
-                    hx-include="[name='Input.NewExpertise']"
+                    hx-include="[name='Input.NewExpertise'],[name='Input.ExpertiseCategoryId]"
                     hx-indicator="#newExpertiseStatus">
                 <i class="bi bi-plus mt-2"></i>Add
             </button>

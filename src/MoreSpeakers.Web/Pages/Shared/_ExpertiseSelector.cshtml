@@ -1,0 +1,53 @@
+@model Web.Models.ViewModels.ExpertiseListDisplayViewModel
+
+<div class="expertise-selector" data-expertise-selector>
+  <div class="expertise-toolbar mb-3">
+    <input type="search"
+           class="form-control"
+           placeholder="Search expertise…"
+           data-expertise-search />
+  </div>
+
+  @if (!Model.ExpertiseCategories.Any())
+  {
+    <div class="text-muted">No expertise categories available.</div>
+  }
+
+  <div class="expertise-groups">
+    @foreach (var group in Model.ExpertiseCategories)
+    {
+      var categoryId = group.Id;
+      var catDomId = $"cat-{categoryId}";
+      <section class="expertise-group mb-3 border border-light p-2 rounded" data-category-id="@categoryId">
+        <header class="d-flex justify-content-between align-items-center rounded p-1 bg-primary-subtle">
+          <h6 id="@catDomId" class="mb-0">@group.Name</h6>
+          <div class="expertise-group__actions small">
+            <button type="button" class="btn btn-light btn-sm me-2" data-select-all>All</button>
+            <button type="button" class="btn btn-light btn-sm" data-clear-all>None</button>
+          </div>
+        </header>
+
+        <div class="row" aria-labelledby="@catDomId">
+          @foreach (var e in Model.AvailableExpertises.Where(expertise => expertise.ExpertiseCategoryId == categoryId))
+          {
+            var isChecked = Model.SelectedExpertiseIds is not null && Model.SelectedExpertiseIds.Contains(e.Id);
+            var inputId = $"expertise_{e.Id}";
+            <div class="col-md-3 col-sm-6 mb-2 expertise-item" data-expertise-name="@e.Name">
+              <div class="form-check form-switch">
+                <input class="form-check-input"
+                       type="checkbox"
+                       role="switch"
+                       name="Input.SelectedExpertiseIds"
+                       value="@e.Id"
+                       id="@inputId"
+                       @(isChecked ? "checked" : null) />
+                <label class="form-check-label" for="@inputId">@e.Name</label>
+              </div>
+            </div>
+          }
+        </div>
+      </section>
+    }
+  </div>
+</div>
+<script src="~/js/expertise-selector.js" asp-append-version="true"></script>

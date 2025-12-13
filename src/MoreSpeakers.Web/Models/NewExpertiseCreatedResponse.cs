@@ -1,3 +1,5 @@
+using MoreSpeakers.Domain.Models;
+
 namespace MoreSpeakers.Web.Models;
 
 public class NewExpertiseCreatedResponse
@@ -13,4 +15,6 @@ public class NewExpertiseCreatedResponse
     /// </remarks>
     public bool? SavingExpertiseFailed { get; set; }
     public string SaveExpertiseMessage { get; set; } = string.Empty;
+    
+    public IEnumerable<ExpertiseCategory> ExpertiseCategories { get; set; } = [];
 }
