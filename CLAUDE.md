@@ -39,20 +39,12 @@ dotnet restore
 ```
 
 ### Database Operations
-```bash
-# Create a new migration
-dotnet ef migrations add <MigrationName> --project MoreSpeakers.Web
 
-# Apply migrations to database
-dotnet ef database update --project MoreSpeakers.Web
-
-# Drop database (development only)
-dotnet ef database drop --project MoreSpeakers.Web
-```
+Entity Framework migrations are not used in the application
 
 ## Architecture Overview
 
-This is a **mentorship platform** built with **.NET 9** and **ASP.NET Core** using **Razor Pages**. The application connects new speakers with experienced mentors in the technology community.
+This is a **mentorship platform** built with **.NET 10** and **ASP.NET Core** using **Razor Pages**. The application connects new speakers with experienced mentors in the technology community.
 
 ### Project Structure
 - **MoreSpeakers.Web/** - Main web application (Razor Pages, Entity Framework, Identity)
@@ -63,8 +55,8 @@ This is a **mentorship platform** built with **.NET 9** and **ASP.NET Core** usi
 **Note:** The working directory is `/src` - all project paths are relative to this directory.
 
 ### Key Technologies
-- **.NET 9** with Aspire for orchestration
-- **ASP.NET Core Identity** with custom User model (GUID-based)
+- **.NET 10** with Aspire for orchestration
+- **ASP.NET Core Identity** with a custom User model (GUID-based)
 - **Entity Framework Core** with SQL Server
 - **HTMX + Hyperscript** for minimal JavaScript frontend
 - **Serilog** for structured logging with Application Insights integration
