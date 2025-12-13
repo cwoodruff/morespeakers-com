@@ -26,4 +26,9 @@ public class Settings : ISettings
     /// The Application Insights settings.
     /// </summary>
     public required ApplicationInsightsSettings ApplicationInsights { get; init; }
+    
+    /// <summary>
+    /// The Application Insights settings.
+    /// </summary>
+    public required PaginationSettings Pagination { get; init; }
 }

@@ -32,7 +32,8 @@ var settings = new Settings
     Email = null!,
     GitHub = null!,
     AutoMapper = null!,
-    ApplicationInsights = null!
+    ApplicationInsights = null!,
+    Pagination = null!
 };
 builder.Configuration.AddEnvironmentVariables();
 builder.Configuration.Bind("Settings", settings);
