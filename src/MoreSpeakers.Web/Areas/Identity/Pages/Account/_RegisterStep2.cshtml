@@ -22,7 +22,7 @@
             @foreach (var speakerType in Model.SpeakerTypes)
             {
                 <div class="col-md-6 mb-3">
-                    <div class="card speaker-type-card @(Model.Input.SpeakerTypeId == speakerType.Id ? "selected" : "")" 
+                    <div class="card speaker-type-card @((int)Model.Input.SpeakerTypeId == speakerType.Id ? "selected" : "")" 
                          style="cursor: pointer; transition: all 0.2s ease-in-out;"
                          _="on click 
                             remove .text-bg-success from .speaker-type-card 
@@ -31,7 +31,7 @@
                         <div class="card-body text-center">
                             <input type="radio" asp-for="Input.SpeakerTypeId" value="@speakerType.Id"
                                    class="d-none speaker-type-radio" id="speakerType@(speakerType.Id)"
-                                   checked="@(Model.Input.SpeakerTypeId == speakerType.Id)" />
+                                   checked="@((int)Model.Input.SpeakerTypeId == speakerType.Id)" />
                             <label for="speakerType@(speakerType.Id)" class="w-100 m-0" style="cursor: pointer;">
                                 <i class="bi @(speakerType.Id == 1 ? "bi-person-plus" : "bi-award") display-6 mb-3 d-block speaker-type-icon"></i>
                                 <h6 class="fw-bold mb-2">@(speakerType.Id == (int)MoreSpeakers.Domain.Models.SpeakerTypeEnum.NewSpeaker ? MoreSpeakers.Domain.Models.SpeakerTypeEnum.NewSpeaker.GetDescription() : MoreSpeakers.Domain.Models.SpeakerTypeEnum.ExperiencedSpeaker.GetDescription())</h6>

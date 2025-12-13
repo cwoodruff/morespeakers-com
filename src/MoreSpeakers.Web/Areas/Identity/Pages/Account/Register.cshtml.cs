@@ -14,7 +14,7 @@ using MoreSpeakers.Web.Services;
 
 namespace MoreSpeakers.Web.Areas.Identity.Pages.Account;
 
-public partial class RegisterModel : PageModel
+public class RegisterModel : PageModel
 {
     private readonly IExpertiseManager _expertiseManager;
     private readonly IUserManager _userManager;
@@ -40,7 +40,7 @@ public partial class RegisterModel : PageModel
     }
 
     [BindProperty]
-    public InputModel Input { get; set; }
+    public UserProfileForRegisterViewModel Input { get; set; }
 
     // Lookup values
     public IEnumerable<Expertise> AvailableExpertises { get; set; } = new List<Expertise>();
@@ -443,7 +443,7 @@ public partial class RegisterModel : PageModel
             Goals = Input.Goals,
             SessionizeUrl = Input.SessionizeUrl,
             HeadshotUrl = Input.HeadshotUrl,
-            SpeakerTypeId = Input.SpeakerTypeId,
+            SpeakerTypeId = (int)Input.SpeakerTypeId,
         };
 
         IdentityResult saveResult;

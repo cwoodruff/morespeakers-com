@@ -18,10 +18,9 @@ public class EditModel(
     IExpertiseManager expertiseManager,
     IUserManager userManager,
     ISocialMediaSiteManager socialMediaSiteManager,
-    IFileUploadService fileUploadService,
     ILogger<EditModel> logger) : PageModel
 {
-    [BindProperty] public ProfileEditInputModel Input { get; set; } = new();
+    [BindProperty] public UserProfileViewModel Input { get; set; } = new();
 
     [BindProperty] public PasswordChangeInputModel PasswordInput { get; set; } = new();
 
@@ -156,7 +155,7 @@ public class EditModel(
         try
         {
             var changeResult = await userManager.ChangePasswordAsync(
-                identityUser!,
+                identityUser,
                 PasswordInput.CurrentPassword,
                 PasswordInput.NewPassword);
 
@@ -179,12 +178,12 @@ public class EditModel(
             HasValidationErrors = true;
             ValidationMessage = "An error occurred while changing your password. Please try again.";
 
-            logger.LogError(ex, "Error changing user password for user '{UserId}'", identityUser?.Id);
+            logger.LogError(ex, "Error changing user password for user '{UserId}'", identityUser.Id);
             return Partial("_PasswordChangeForm", this);
         }
     }
 
-    private List<ValidationResult> ValidateProfileEditInputModel(ProfileEditInputModel model)
+    private List<ValidationResult> ValidateProfileEditInputModel(UserProfileViewModel model)
     {
         return ValidateModel(model);
     }
@@ -230,68 +229,6 @@ public class EditModel(
         };
     }
 
-    // Note implemented yet, but will be used in the future for uploading headshots
-    public async Task<IActionResult> OnPostUploadHeadshotAsync()
-    {
-        ActiveTab = "profile";
-
-        if (Input.HeadshotFile == null || Input.HeadshotFile.Length == 0)
-        {
-            HasValidationErrors = true;
-            ValidationMessage = "Please select an image file to upload.";
-            return Partial("_HeadshotUpload", this);
-        }
-
-        try
-        {
-            if (fileUploadService.IsValidImageFile(Input.HeadshotFile))
-            {
-                // Delete old headshot if exists
-                if (!string.IsNullOrEmpty(ProfileUser.HeadshotUrl) &&
-                    ProfileUser.HeadshotUrl.StartsWith("/uploads/headshots/"))
-                {
-                    var oldFileName = Path.GetFileName(ProfileUser.HeadshotUrl);
-                    fileUploadService.DeleteHeadshotAsync(oldFileName);
-                }
-
-                // Upload new headshot
-                var fileName = await fileUploadService.UploadHeadshotAsync(Input.HeadshotFile, ProfileUser.Id);
-                if (fileName != null)
-                {
-                    ProfileUser.HeadshotUrl = fileUploadService.GetHeadshotPath(fileName);
-                    ProfileUser.UpdatedDate = DateTime.UtcNow;
-                    // NOTE: Placeholder for saving to DB
-                    //await _context.SaveChangesAsync();
-
-                    HasValidationErrors = false;
-                    SuccessMessage = "Headshot uploaded successfully!";
-                    Input.HeadshotUrl = ProfileUser.HeadshotUrl; // Update input model
-                }
-                else
-                {
-                    HasValidationErrors = true;
-                    ValidationMessage = "Failed to upload image. Please try again.";
-                }
-            }
-            else
-            {
-                HasValidationErrors = true;
-                ValidationMessage = "Invalid image file. Please upload a JPG, PNG, or GIF file under 5MB.";
-            }
-
-            return Partial("_HeadshotUpload", this);
-        }
-        catch (Exception ex)
-        {
-            HasValidationErrors = true;
-            ValidationMessage = "An error occurred while uploading your image. Please try again.";
-
-            logger.LogError(ex, "Error uploading user headshot for user '{UserId}'", ProfileUser.Id);
-
-            return Partial("_HeadshotUpload", this);
-        }
-    }
-
     /// <summary>
     /// Returns a populated user object based on the current user's identity with updates to the data from the Input model.
     /// </summary>
@@ -324,39 +261,7 @@ public class EditModel(
             userProfile.SessionizeUrl = Input.SessionizeUrl;
             userProfile.SpeakerTypeId = (int)Input.SpeakerTypeId;
             userProfile.UpdatedDate = DateTime.UtcNow;
-
-            // Handle headshot upload if provided
-            if (Input.HeadshotFile is { Length: > 0 })
-            {
-                if (fileUploadService.IsValidImageFile(Input.HeadshotFile))
-                {
-                    // Delete old headshot if exists
-                    if (!string.IsNullOrEmpty(userProfile.HeadshotUrl) &&
-                        userProfile.HeadshotUrl.StartsWith("/uploads/headshots/"))
-                    {
-                        var oldFileName = Path.GetFileName(userProfile.HeadshotUrl);
-                        fileUploadService.DeleteHeadshotAsync(oldFileName);
-                    }
-
-                    // Upload new headshot
-                    var fileName = await fileUploadService.UploadHeadshotAsync(Input.HeadshotFile, userProfile.Id);
-                    if (fileName != null)
-                    {
-                        userProfile.HeadshotUrl = fileUploadService.GetHeadshotPath(fileName);
-                    }
-                }
-                else
-                {
-                    HasValidationErrors = true;
-                    ValidationMessage = "Invalid image file. Please upload a JPG, PNG, or GIF file under 5MB.";
-                    return null;
-                }
-            }
-            else if (!string.IsNullOrEmpty(Input.HeadshotUrl))
-            {
-                // Use provided URL if no file uploaded
-                userProfile.HeadshotUrl = Input.HeadshotUrl;
-            }
+            userProfile.HeadshotUrl = Input.HeadshotUrl;
 
             // User Expertise
             userProfile.UserExpertise.Clear();
