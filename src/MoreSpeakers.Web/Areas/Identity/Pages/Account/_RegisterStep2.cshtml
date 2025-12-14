@@ -48,7 +48,10 @@
     <div class="mb-3">
         <label asp-for="Input.Bio" class="form-label fw-medium">Bio</label>
         <textarea asp-for="Input.Bio" class="form-control" rows="4"
-                  placeholder="Tell us about yourself, your speaking experience, and what makes you passionate about sharing knowledge..."></textarea>
+                    data-rule-minlength="20" data-rule-maxlength="6000"
+                    minlength="20" maxlength="6000"
+                    placeholder="Tell us about yourself, your speaking experience, and what makes you passionate about sharing knowledge...">
+        </textarea>
         <span asp-validation-for="Input.Bio" class="text-danger small"></span>
         <div class="form-text">
             <small class="text-muted">This will be displayed on your public profile.</small>
@@ -58,7 +61,9 @@
     <div class="mb-3">
         <label asp-for="Input.Goals" class="form-label fw-medium">Goals</label>
         <textarea asp-for="Input.Goals" class="form-control" rows="3"
-                  placeholder="What are your speaking goals? What do you hope to achieve through mentorship?"></textarea>
+                    data-rule-minlength="20" data-rule-maxlength="2000"
+                    minlength="20" maxlength="2000"
+                    placeholder="What are your speaking goals? What do you hope to achieve through mentorship?"></textarea>
         <span asp-validation-for="Input.Goals" class="text-danger small"></span>
     </div>
 
@@ -70,7 +75,7 @@
                     <i class="bi bi-link text-muted"></i>
                 </span>
                 <input asp-for="Input.SessionizeUrl" class="form-control border-start-0"
-                       type="url"
+                       maxlength="500" type="url"
                        placeholder="https://sessionize.com/your-profile"/>
             </div>
             <span asp-validation-for="Input.SessionizeUrl" class="text-danger small"></span>
@@ -86,7 +91,7 @@
                     <i class="bi bi-image text-muted"></i>
                 </span>
                 <input asp-for="Input.HeadshotUrl" class="form-control border-start-0" data-rule-is-img-url
-                       type="url"
+                       maxlength="500" type="url"
                        placeholder="https://example.com/your-photo.jpg"/>
             </div>
             <span asp-validation-for="Input.HeadshotUrl" class="text-danger small"></span>
