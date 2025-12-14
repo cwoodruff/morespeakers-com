@@ -23,13 +23,13 @@ public class UserProfileViewModel
     public string PhoneNumber { get; set; }
 
     [Required]
-    [StringLength(6000)]
+    [StringLength(6000, MinimumLength = 20, ErrorMessage = "{0} must be between {2} and {1} characters long.")]
     [Display(Name = "Bio")]
     [DataType(DataType.MultilineText)]
     public string Bio { get; set; }
 
     [Required]
-    [StringLength(2000)]
+    [StringLength(2000, MinimumLength = 20, ErrorMessage = "{0} must be between {2} and {1} characters long.")]
     [Display(Name = "Goals")]
     [DataType(DataType.MultilineText)]
     public string Goals { get; set; }
@@ -39,6 +39,7 @@ public class UserProfileViewModel
     [Display(Name = "Sessionize Profile URL")]
     public string SessionizeUrl { get; set; }
 
+    [Url]
     [StringLength(500)]
     [Display(Name = "Headshot URL")]
     public string HeadshotUrl { get; set; }
