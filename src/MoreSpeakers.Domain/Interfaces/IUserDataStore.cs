@@ -48,4 +48,5 @@ public interface IUserDataStore: IDataStorePrimaryKeyGuid<User>
     // ------------------------------------------
     Task<PagedResult<UserListRow>> AdminSearchUsersAsync(UserAdminFilter filter, UserAdminSort sort, int page, int pageSize);
     Task<IReadOnlyList<string>> GetAllRoleNamesAsync();
+    Task<IReadOnlyList<string>> GetRolesForUserAsync(Guid userId);
 }

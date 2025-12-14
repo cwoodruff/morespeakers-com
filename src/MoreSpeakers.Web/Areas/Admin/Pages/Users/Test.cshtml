@@ -1,0 +1,12 @@
+@page
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Administrator")]
+@{
+    Layout = null; // Keep minimal for test stability
+    ViewData["Title"] = "Admin • Users Test";
+}
+
+<div class="container py-4">
+    <h1 class="display-6">Users Test</h1>
+    <p id="users-test-marker">This is a minimal test page for the Admin Users area baseline policy.</p>
+    <small class="text-muted">Only administrators should see this.</small>
+  </div>

@@ -196,4 +196,9 @@ public class UserManager: IUserManager
     {
         return await _dataStore.GetAllRoleNamesAsync();
     }
+
+    public async Task<IReadOnlyList<string>> GetRolesForUserAsync(Guid userId)
+    {
+        return await _dataStore.GetRolesForUserAsync(userId);
+    }
 }
