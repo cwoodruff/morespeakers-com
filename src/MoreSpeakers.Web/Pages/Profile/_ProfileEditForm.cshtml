@@ -37,6 +37,8 @@
                         <i class="bi bi-person text-muted"></i>
                     </span>
                     <input asp-for="Input.FirstName" class="form-control border-start-0"
+                           autocomplete="given-name" type="text"
+                           maxlength="100"
                            placeholder="Enter your first name"/>
                 </div>
                 <span asp-validation-for="Input.FirstName" class="text-danger small"></span>
@@ -48,7 +50,10 @@
                     <span class="input-group-text border-end-0">
                         <i class="bi bi-person text-muted"></i>
                     </span>
-                    <input asp-for="Input.LastName" class="form-control border-start-0" placeholder="Enter your last name"/>
+                    <input asp-for="Input.LastName" class="form-control border-start-0"
+                           autocomplete="family-name" type="text"
+                           maxlength="100"
+                           placeholder="Enter your last name"/>
                 </div>
                 <span asp-validation-for="Input.LastName" class="text-danger small"></span>
             </div>
@@ -62,7 +67,9 @@
                         <i class="bi bi-telephone text-muted"></i>
                     </span>
                     <input asp-for="Input.PhoneNumber" class="form-control border-start-0"
-                           placeholder="Enter your phone number with country cod"/>
+                           autocomplete="mobile" type="tel"
+                           minlength="11" maxlength="50"
+                           placeholder="Enter your phone number with country code"/>
                 </div>
                 <span asp-validation-for="Input.PhoneNumber" class="text-danger small"></span>
             </div>
@@ -92,14 +99,18 @@
         <div class="col-12 mb-3">
             <label asp-for="Input.Bio" class="form-label"></label>
             <textarea asp-for="Input.Bio" class="form-control" rows="4" 
-                      placeholder="Tell others about yourself, your experience, and what you're passionate about..."></textarea>
+                    data-rule-minlength="20" data-rule-maxlength="6000"
+                    minlength="20" maxlength="6000"
+                    placeholder="Tell others about yourself, your experience, and what you're passionate about..."></textarea>
             <span asp-validation-for="Input.Bio" class="text-danger"></span>
             <div class="form-text">Share your background, experience, and what makes you passionate about speaking.</div>
         </div>
         <div class="col-12 mb-3">
             <label asp-for="Input.Goals" class="form-label"></label>
-            <textarea asp-for="Input.Goals" class="form-control" rows="3" 
-                      placeholder="What are your speaking goals? What do you hope to achieve?"></textarea>
+            <textarea asp-for="Input.Goals" class="form-control" rows="3"
+                    data-rule-minlength="20" data-rule-maxlength="2000"
+                    minlength="20" maxlength="2000"
+                    placeholder="What are your speaking goals? What do you hope to achieve?"></textarea>
             <span asp-validation-for="Input.Goals" class="text-danger"></span>
             <div class="form-text">Describe your speaking goals and what you hope to achieve through mentorship.</div>
         </div>
@@ -134,6 +145,7 @@
             <div class="mb-3">
                 <input asp-for="Input.HeadshotUrl" data-rule-is-img-url
                        class="form-control form-control-sm" 
+                       maxlength="500" type="url"
                        placeholder="https://example.com/your-photo.jpg" />
                 <div class="form-text">Direct link to your professional headshot image</div>
             </div>
@@ -152,7 +164,9 @@
         </div>
         <div class="col-12 mb-3">
             <label asp-for="Input.SessionizeUrl" class="form-label"></label>
-            <input asp-for="Input.SessionizeUrl" class="form-control" placeholder="https://sessionize.com/your-profile" />
+            <input asp-for="Input.SessionizeUrl" class="form-control" 
+                   maxlength="500" type="url"
+                   placeholder="https://sessionize.com/your-profile" />
             <span asp-validation-for="Input.SessionizeUrl" class="text-danger"></span>
             <div class="form-text">Link to your Sessionize speaker profile.</div>
         </div>

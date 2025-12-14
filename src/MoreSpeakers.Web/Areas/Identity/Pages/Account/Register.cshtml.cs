@@ -56,7 +56,6 @@ public class RegisterModel : PageModel
     // Properties required for NewExpertise setup
     public NewExpertiseCreatedResponse NewExpertiseResponse { get; set; } = new();
 
-
     public async Task OnGetAsync()
     {
         // Initialize registration state
@@ -334,10 +333,22 @@ public class RegisterModel : PageModel
                 if (string.IsNullOrWhiteSpace(Input.FirstName))
                 {
                     ModelState.AddModelError("Input.FirstName", "First name is required.");
+                    ModelState.AddModelError("", "First name is required.");
+                }
+                else if (Input.FirstName.Length > 100)
+                {
+                    ModelState.AddModelError("Input.FirstName", "First name is limited to 100 characters.");
+                    ModelState.AddModelError("", "First name is limited to 100 characters.");
                 }
                 if (string.IsNullOrWhiteSpace(Input.LastName))
                 {
                     ModelState.AddModelError("Input.LastName", "Last name is required.");
+                    ModelState.AddModelError("", "Last name is required.");
+                }
+                else if (Input.LastName.Length > 100)
+                {
+                    ModelState.AddModelError("Input.LastName", "Last name is limited to 100 characters.");
+                    ModelState.AddModelError("", "Last name is limited to 100 characters.");
                 }
                 // Email required and format validation
                 if (string.IsNullOrWhiteSpace(Input.Email))
@@ -363,7 +374,7 @@ public class RegisterModel : PageModel
                 else
                 {
                     // Allow formats like +1 (555) 123-4567 or 555-123-4567 etc.
-                    var phone = Input.PhoneNumber!.Trim();
+                    var phone = Input.PhoneNumber.Trim();
                     // Reject if contains letters
                     if (phone.Any(char.IsLetter))
                     {
@@ -384,24 +395,55 @@ public class RegisterModel : PageModel
                 if (string.IsNullOrWhiteSpace(Input.Password))
                 {
                     ModelState.AddModelError("Input.Password", "Password is required.");
+                    ModelState.AddModelError("", "Password is required.");
+                }
+                else if (Input.Password.Length is < 6 or > 100)
+                {
+                    ModelState.AddModelError("Input.Password", "Password must be between 6 and 100 characters.");
+                    ModelState.AddModelError("", "Password must be between 6 and 100 characters.");
                 }
                 if (Input.Password != Input.ConfirmPassword)
                 {
                     ModelState.AddModelError("Input.ConfirmPassword", "Passwords do not match.");
+                    ModelState.AddModelError("", "Passwords do not match.");
                 }
                 break;
             case RegistrationProgressions.RequiredInformationNeeded: // Profile step
                 if (Input.SpeakerTypeId <= 0)
+                {
                     ModelState.AddModelError("Input.SpeakerTypeId", "Please select a speaker type.");
+                    ModelState.AddModelError("", "Please select a speaker type.");
+                }
                 if (string.IsNullOrWhiteSpace(Input.Bio))
+                {
                     ModelState.AddModelError("Input.Bio", "Bio is required.");
+                    ModelState.AddModelError("", "Bio is required.");
+                }
+                else if (Input.Bio.Length is < 20 or > 6000)
+                {
+                    ModelState.AddModelError("Input.Bio", "Bio must be between 20 and 6000 characters.");
+                    ModelState.AddModelError("", "Bio must be between 20 and 6000 characters.");
+                }
+
                 if (string.IsNullOrWhiteSpace(Input.Goals))
+                {
                     ModelState.AddModelError("Input.Goals", "Goals are required.");
+                    ModelState.AddModelError("", "Goals are required.");
+                }
+                else if (Input.Goals.Length is < 20 or > 2000)
+                {
+                    ModelState.AddModelError("Input.Goals", "Goals must be between 20 and 2000 characters.");
+                    ModelState.AddModelError("", "Goals must be between 20 and 2000 characters.");
+                }
                 break;
             case RegistrationProgressions.ExpertiseNeeded: // Expertise step
-                if (Input.SelectedExpertiseIds?.Length == 0)
+                if (Input.SelectedExpertiseIds.Length == 0)
+                {
                     ModelState.AddModelError("Input.SelectedExpertiseIds",
                         "Please select at least one area of expertise.");
+                    ModelState.AddModelError("",
+                        "Please select at least one area of expertise.");
+                }
                 break;
             case RegistrationProgressions.SocialMediaNeeded: // Social step - optional, no validation needed
                 break;
@@ -418,12 +460,16 @@ public class RegisterModel : PageModel
         // Validate all steps before final submission
         var allStepsValid = true;
         foreach (var i in RegistrationProgressions.All)
+        {
             if (!ValidateStep(i))
+            {
                 allStepsValid = false;
+            }
+        }
 
         if (!allStepsValid)
         {
-            // If we got this far, something failed, redisplay form with the current state
+            // Something failed, redisplay form with the current state
             await LoadFormLookupListsAsync();
             CurrentStep =
                 RegistrationProgressions.SpeakerProfileNeeded; // Reset to the first step on major failure

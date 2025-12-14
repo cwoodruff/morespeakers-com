@@ -93,9 +93,6 @@ function validateForm(form) {
     return isValid;
 }
 
-
-
-
 // HTMX enhancements
 function initializeHtmxEnhancements() {
     if (typeof htmx === 'undefined') return;

@@ -17,12 +17,14 @@
 
     <div class="row">
         <div class="col-md-6 mb-3">
-            <label asp-for="Input.FirstName" class="form-label fw-medium">First Name</label>
+            <label asp-for="Input.FirstName" class="form-label fw-medium" type="">First Name</label>
             <div class="input-group">
                 <span class="input-group-text border-end-0">
                     <i class="bi bi-person text-muted"></i>
                 </span>
-                <input asp-for="Input.FirstName" class="form-control border-start-0" autocomplete="given-name"
+                <input asp-for="Input.FirstName" class="form-control border-start-0" 
+                       autocomplete="given-name" type="text"
+                       maxlength="100"
                        placeholder="Enter your first name"/>
             </div>
             <span asp-validation-for="Input.FirstName" class="text-danger small"></span>
@@ -34,7 +36,9 @@
                 <span class="input-group-text border-end-0">
                     <i class="bi bi-person text-muted"></i>
                 </span>
-                <input asp-for="Input.LastName" class="form-control border-start-0" autocomplete="family-name" 
+                <input asp-for="Input.LastName" class="form-control border-start-0" 
+                       autocomplete="family-name" type="text"
+                       maxlength="100"
                        placeholder="Enter your last name"/>
             </div>
             <span asp-validation-for="Input.LastName" class="text-danger small"></span>
@@ -47,7 +51,7 @@
             <span class="input-group-text border-end-0">
                 <i class="bi bi-envelope text-muted"></i>
             </span>
-            <input asp-for="Input.Email" class="form-control border-start-0" autocomplete="email"
+            <input asp-for="Input.Email" class="form-control border-start-0" autocomplete="email" type="email"
                    placeholder="Enter your email"
                    hx-post="/Register?handler=ValidateEmail"
                    hx-trigger="blur, keyup changed delay:500ms"
@@ -72,7 +76,9 @@
             <span class="input-group-text border-end-0">
                 <i class="bi bi-telephone text-muted"></i>
             </span>
-            <input asp-for="Input.PhoneNumber" class="form-control border-start-0" autocomplete="mobile"
+            <input asp-for="Input.PhoneNumber" class="form-control border-start-0" 
+                   autocomplete="mobile" type="tel"
+                   minlength="11" maxlength="50"
                    placeholder="Enter your phone number with country code"/>
         </div>
         <span asp-validation-for="Input.PhoneNumber" class="text-danger small"></span>
@@ -85,7 +91,9 @@
                 <span class="input-group-text border-end-0">
                     <i class="bi bi-lock text-muted"></i>
                 </span>
-                <input asp-for="Input.Password" class="form-control border-start-0" autocomplete="new-password"
+                <input asp-for="Input.Password" class="form-control border-start-0" 
+                       autocomplete="new-password" type="password"
+                       minlength="6" maxlength="100"
                        placeholder="Create a strong password"/>
             </div>
             <span asp-validation-for="Input.Password" class="text-danger small"></span>
@@ -97,7 +105,9 @@
                 <span class="input-group-text border-end-0">
                     <i class="bi bi-shield-check text-muted"></i>
                 </span>
-                <input asp-for="Input.ConfirmPassword" class="form-control border-start-0" autocomplete="new-password"
+                <input asp-for="Input.ConfirmPassword" class="form-control border-start-0" 
+                       autocomplete="new-password" type="password"
+                       minlength="6" maxlength="100"
                        placeholder="Confirm your password"/>
             </div>
             <span asp-validation-for="Input.ConfirmPassword" class="text-danger small"></span>

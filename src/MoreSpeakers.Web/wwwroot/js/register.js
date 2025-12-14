@@ -21,7 +21,6 @@ function initializeRegistrationForm() {
         } else if (button.id === 'prevBtn') {
             button.disabled = true;
             button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Loading...';
-    
         } else if (button.id === 'submitExpertise') {
             button.disabled = true;
             button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Creating Expertise Area...';
@@ -72,29 +71,11 @@ function validateRegistrationForm(form) {
     let isValid = true;
 
     // Check if at least one expertise is selected
-    const expertiseInputs = form.querySelectorAll('input[name="Input.SelectedExpertiseIds"]:checked, input[name="Input.CustomExpertise"]:checked');
+    const expertiseInputs = form.querySelectorAll('input[name="Input.SelectedExpertiseIds"]:checked');
     if (expertiseInputs.length === 0) {
         showAlert('Please select at least one area of expertise.', 'warning');
         isValid = false;
     }
-
-    // Check if at least one social media link is provided
-    const socialPlatforms = form.querySelectorAll('select[name^="Input.SocialMediaPlatforms"]');
-    const socialUrls = form.querySelectorAll('input[name^="Input.SocialMediaUrls"]');
-    let hasSocialMedia = false;
-
-    for (let i = 0; i < socialPlatforms.length; i++) {
-        if (socialPlatforms[i].value && socialUrls[i] && socialUrls[i].value) {
-            hasSocialMedia = true;
-            break;
-        }
-    }
-
-    if (!hasSocialMedia) {
-        showAlert('Please provide at least one social media link.', 'warning');
-        isValid = false;
-    }
-
     return isValid;
 }
 
