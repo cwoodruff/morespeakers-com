@@ -34,15 +34,29 @@ public class UserProfileViewModel
     [DataType(DataType.MultilineText)]
     public string Goals { get; set; }
     
+    /// <summary>
+    /// The URL to the speaker's Sessionize profile.
+    /// </summary>
+    /// <remarks>
+    /// This field is a nullable string because it's possible for a speaker to not have a Sessionize profile yet, and
+    /// if it is NOT nullable, the jQueryValidation or ASP.NET Core validation makes it required.
+    /// </remarks>
     [Url]
     [StringLength(500)]
     [Display(Name = "Sessionize Profile URL")]
-    public string SessionizeUrl { get; set; }
+    public string? SessionizeUrl { get; set; }
 
+    /// <summary>
+    /// The URL to the speaker's headshot.
+    /// </summary>
+    /// <remarks>
+    /// This field is a nullable string because it's possible for a speaker to not have a headshot and
+    /// if it is NOT nullable, the jQueryValidation or ASP.NET Core validation makes it required.
+    /// </remarks>
     [Url]
     [StringLength(500)]
     [Display(Name = "Headshot URL")]
-    public string HeadshotUrl { get; set; }
+    public string? HeadshotUrl { get; set; }
     
     [Required]
     [Display(Name = "Speaker Type")]

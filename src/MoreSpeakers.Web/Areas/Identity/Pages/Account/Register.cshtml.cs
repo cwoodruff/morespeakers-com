@@ -56,7 +56,6 @@ public class RegisterModel : PageModel
     // Properties required for NewExpertise setup
     public NewExpertiseCreatedResponse NewExpertiseResponse { get; set; } = new();
 
-
     public async Task OnGetAsync()
     {
         // Initialize registration state
