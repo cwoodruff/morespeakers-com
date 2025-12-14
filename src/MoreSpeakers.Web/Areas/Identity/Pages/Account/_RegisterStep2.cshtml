@@ -70,6 +70,7 @@
                     <i class="bi bi-link text-muted"></i>
                 </span>
                 <input asp-for="Input.SessionizeUrl" class="form-control border-start-0"
+                       type="url"
                        placeholder="https://sessionize.com/your-profile"/>
             </div>
             <span asp-validation-for="Input.SessionizeUrl" class="text-danger small"></span>
@@ -85,6 +86,7 @@
                     <i class="bi bi-image text-muted"></i>
                 </span>
                 <input asp-for="Input.HeadshotUrl" class="form-control border-start-0" data-rule-is-img-url
+                       type="url"
                        placeholder="https://example.com/your-photo.jpg"/>
             </div>
             <span asp-validation-for="Input.HeadshotUrl" class="text-danger small"></span>
