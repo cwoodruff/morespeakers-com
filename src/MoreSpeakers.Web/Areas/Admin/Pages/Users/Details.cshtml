@@ -1,0 +1,66 @@
+@page "{id:guid}"
+@model MoreSpeakers.Web.Areas.Admin.Pages.Users.DetailsModel
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+@{
+    ViewData["Title"] = "User Details";
+}
+
+<div class="d-flex align-items-center mb-3">
+    <h2 class="mb-0">@Model.User.UserName</h2>
+    <span class="text-muted ms-3">@Model.User.Id</span>
+  </div>
+
+<div class="row g-3">
+  <div class="col-12 col-lg-6">
+    <div class="card">
+      <div class="card-header">Profile</div>
+      <div class="card-body">
+        <dl class="row mb-0">
+          <dt class="col-sm-4">Email</dt><dd class="col-sm-8">@Model.User.Email</dd>
+          <dt class="col-sm-4">Username</dt><dd class="col-sm-8">@Model.User.UserName</dd>
+          <dt class="col-sm-4">Email Confirmed</dt><dd class="col-sm-8">@(Model.User.EmailConfirmed ? "Yes" : "No")</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-lg-6">
+    <div class="card">
+      <div class="card-header">Security</div>
+      <div class="card-body">
+        <dl class="row mb-0">
+          <dt class="col-sm-4">2FA</dt><dd class="col-sm-8">@(Model.User.TwoFactorEnabled ? "Enabled" : "Disabled")</dd>
+          <dt class="col-sm-4">Lockout</dt><dd class="col-sm-8">@(Model.User.LockoutEnabled ? "Enabled" : "Disabled")</dd>
+          <dt class="col-sm-4">Lockout End</dt><dd class="col-sm-8">@(Model.User.LockoutEnd?.ToString("u") ?? "None")</dd>
+          <dt class="col-sm-4">Last sign-in</dt><dd class="col-sm-8">@(Model.LastSignInUtc?.ToString("u") ?? "Unknown")</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">Roles</div>
+      <div class="card-body">
+        @if (Model.Roles.Any())
+        {
+          <ul class="mb-0">
+            @foreach (var role in Model.Roles)
+            {
+              <li>@role</li>
+            }
+          </ul>
+        }
+        else
+        {
+          <span class="text-muted">None</span>
+        }
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="mt-3">
+  <a class="btn btn-outline-secondary" asp-area="Admin" asp-page="/Users/Index">Back to list</a>
+</div>

@@ -269,6 +269,19 @@ public class UserDataStore : IUserDataStore
         return roles;
     }
 
+    public async Task<IReadOnlyList<string>> GetRolesForUserAsync(Guid userId)
+    {
+        // Return distinct non-null role names assigned to the user, ordered by name
+        var roleNames = await (from ur in _context.UserRoles.AsNoTracking()
+                               join r in _context.Roles.AsNoTracking() on ur.RoleId equals r.Id
+                               where ur.UserId == userId && r.Name != null
+                               orderby r.Name
+                               select r.Name!)
+            .ToListAsync();
+
+        return roleNames;
+    }
+
     private sealed class AdminUser
     {
         public Guid Id { get; set; }
