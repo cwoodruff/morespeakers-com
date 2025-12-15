@@ -12,6 +12,7 @@ public class MoreSpeakersProfile : Profile
         CreateMap<Models.MentorshipExpertise, Domain.Models.MentorshipExpertise>().ReverseMap();
         CreateMap<Models.MentorshipStatus, Domain.Models.MentorshipStatus>().ReverseMap();
         CreateMap<Models.MentorshipType, Domain.Models.MentorshipType>().ReverseMap();
+        CreateMap<Models.Sector, Domain.Models.Sector>().ReverseMap();
         CreateMap<Models.SpeakerType, Domain.Models.SpeakerType>().ReverseMap();
         CreateMap<Models.User, Domain.Models.User>().ReverseMap();
         CreateMap<Models.UserExpertise, Domain.Models.UserExpertise>().ReverseMap();
