@@ -108,7 +108,16 @@ builder.Services.ConfigureApplicationCookie(options =>
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("AdminOnly", policy =>
-        policy.RequireRole("Administrator"));
+        policy.RequireRole(AppRoles.Administrator));
+
+    options.AddPolicy(PolicyNames.ManageUsers, policy =>
+        policy.RequireRole(AppRoles.Administrator, AppRoles.UserManager, AppRoles.Moderator));
+
+    options.AddPolicy(PolicyNames.ManageCatalog, policy =>
+        policy.RequireRole(AppRoles.Administrator, AppRoles.CatalogManager, AppRoles.Moderator));
+
+    options.AddPolicy(PolicyNames.ViewReports, policy =>
+        policy.RequireRole(AppRoles.Administrator, AppRoles.Reporter, AppRoles.Moderator));
 });
 
 // Add Razor Pages
@@ -159,9 +168,11 @@ builder.AddAzureQueueServiceClient("AzureStorageQueues");
 builder.Services.AddScoped<IExpertiseDataStore, ExpertiseDataStore>();
 builder.Services.AddScoped<IMentoringDataStore, MentoringDataStore>();
 builder.Services.AddScoped<ISocialMediaSiteDataStore, SocialMediaSiteDataStore>();
+builder.Services.AddScoped<ISectorDataStore, SectorDataStore>(); 
 builder.Services.AddScoped<IUserDataStore, UserDataStore>();
 builder.Services.AddScoped<IExpertiseManager, ExpertiseManager>();
 builder.Services.AddScoped<IMentoringManager, MentoringManager>();
+builder.Services.AddScoped<ISectorManager, SectorManager>();
 builder.Services.AddScoped<ISocialMediaSiteManager, SocialMediaSiteManager>();
 builder.Services.AddScoped<IUserManager, UserManager>();
 
