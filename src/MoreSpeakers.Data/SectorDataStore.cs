@@ -22,7 +22,7 @@ public class SectorDataStore : ISectorDataStore
 
     public async Task<Sector?> GetAsync(int primaryKey)
     {
-        var entity = await _context.Sectors.FirstOrDefaultAsync(s => s.Id == primaryKey);
+        var entity = await _context.Sectors.AsNoTracking().FirstOrDefaultAsync(s => s.Id == primaryKey);
         return _mapper.Map<Sector?>(entity);
     }
 
@@ -31,7 +31,7 @@ public class SectorDataStore : ISectorDataStore
 
     public async Task<List<Sector>> GetAllAsync(bool onlyActive = true)
     {
-        var query = _context.Sectors.AsQueryable();
+        var query = _context.Sectors.AsNoTracking().AsQueryable();
         if (onlyActive)
             query = query.Where(s => s.IsActive);
 
