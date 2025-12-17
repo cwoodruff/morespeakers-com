@@ -1,0 +1,79 @@
+using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
+using MoreSpeakers.Domain.Interfaces;
+using MoreSpeakers.Domain.Models;
+
+namespace MoreSpeakers.Web.Areas.Admin.Pages.Expertises.Expertises;
+
+[Authorize(Roles = "Administrator")]
+public class EditModel(IExpertiseManager expertiseManager, ILogger<EditModel> logger) : PageModel
+{
+    private readonly IExpertiseManager _expertiseManager = expertiseManager;
+    private readonly ILogger<EditModel> _logger = logger;
+
+    [FromRoute]
+    public int Id { get; set; }
+
+    public sealed class InputModel
+    {
+        [Required]
+        [MaxLength(100)]
+        public string Name { get; set; } = string.Empty;
+
+        [MaxLength(500)]
+        public string? Description { get; set; }
+
+        [Range(1, int.MaxValue)]
+        public int ExpertiseCategoryId { get; set; }
+
+        public bool IsActive { get; set; } = true;
+    }
+
+    [BindProperty]
+    public InputModel Input { get; set; } = new();
+
+    public Expertise? Entity { get; private set; }
+
+    public async Task<IActionResult> OnGetAsync()
+    {
+        var expertise = await _expertiseManager.GetAsync(Id);
+        if (expertise is null)
+        {
+            return RedirectToPage("../Categories/Index");
+        }
+
+        Entity = expertise;
+        Input = new InputModel
+        {
+            Name = expertise.Name,
+            Description = expertise.Description,
+            ExpertiseCategoryId = expertise.ExpertiseCategoryId,
+            IsActive = expertise is { }
+        };
+        return Page();
+    }
+
+    public async Task<IActionResult> OnPostAsync()
+    {
+        if (!ModelState.IsValid)
+        {
+            return Page();
+        }
+
+        var expertise = await _expertiseManager.GetAsync(Id);
+        if (expertise is null)
+        {
+            return RedirectToPage("../Categories/Index");
+        }
+
+        expertise.Name = Input.Name.Trim();
+        expertise.Description = string.IsNullOrWhiteSpace(Input.Description) ? null : Input.Description!.Trim();
+        expertise.ExpertiseCategoryId = Input.ExpertiseCategoryId;
+
+        await _expertiseManager.SaveAsync(expertise);
+        _logger.LogInformation("[Admin:Expertises] Updated expertise {Id} {Name}", expertise.Id, expertise.Name);
+        return RedirectToPage("../Categories/Index");
+    }
+}

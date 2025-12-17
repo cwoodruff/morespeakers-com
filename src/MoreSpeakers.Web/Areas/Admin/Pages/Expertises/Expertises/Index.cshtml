@@ -1,0 +1,63 @@
+@page
+@model MoreSpeakers.Web.Areas.Admin.Pages.Expertises.Expertises.IndexModel
+@{
+    ViewData["Title"] = "Admin • Expertises";
+}
+
+<h1 class="mb-3">Expertises</h1>
+
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a asp-area="Admin" asp-page="/Index">Admin</a></li>
+    <li class="breadcrumb-item"><a asp-area="Admin" asp-page="/Expertises/Categories/Index">Expertise</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Expertises</li>
+  </ol>
+  <div class="ms-auto">
+    <a class="btn btn-primary" asp-area="Admin" asp-page="/Expertises/Expertises/Create"><i class="bi bi-plus-lg"></i> New Expertise</a>
+  </div>
+</nav>
+
+<form method="get" class="row g-2 mb-3">
+  <div class="col-sm-6 col-md-4">
+    <input type="search" name="q" value="@Model.Q" class="form-control" placeholder="Search by name or description" />
+  </div>
+  <div class="col-auto">
+    <button type="submit" class="btn btn-outline-secondary">Search</button>
+  </div>
+</form>
+
+<div class="table-responsive">
+  <table class="table table-striped align-middle">
+    <thead>
+    <tr>
+      <th>Name</th>
+      <th>Category</th>
+      <th class="d-none d-md-table-cell">Description</th>
+      <th class="text-end">Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    @if (Model.Items.Count == 0)
+    {
+        <tr>
+          <td colspan="4" class="text-muted">No expertises found.</td>
+        </tr>
+    }
+    else
+    {
+        foreach (var e in Model.Items)
+        {
+            <tr>
+              <td>@e.Name</td>
+              <td>@(e.ExpertiseCategory?.Name ?? "—")</td>
+              <td class="d-none d-md-table-cell">@e.Description</td>
+              <td class="text-end">
+                <a class="btn btn-sm btn-outline-primary" asp-area="Admin" asp-page="/Expertises/Expertises/Edit" asp-route-id="@e.Id">Edit</a>
+                <a class="btn btn-sm btn-outline-danger" asp-area="Admin" asp-page="/Expertises/Expertises/Delete" asp-route-id="@e.Id">Delete</a>
+              </td>
+            </tr>
+        }
+    }
+    </tbody>
+  </table>
+ </div>

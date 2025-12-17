@@ -14,6 +14,7 @@ public interface IExpertiseManager
     Task<IEnumerable<Expertise>> GetPopularExpertiseAsync(int count = 10);
     Task<bool> DoesExpertiseWithNameExistsAsync(string expertiseName);
     Task<IEnumerable<Expertise>> FuzzySearchForExistingExpertise(string name, int count = 3);
+    Task<bool> SoftDeleteAsync(int id);
 
     // Expertise queries by category
     Task<List<Expertise>> GetByCategoryIdAsync(int categoryId);

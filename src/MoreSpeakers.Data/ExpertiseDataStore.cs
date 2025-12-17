@@ -97,7 +97,7 @@ public class ExpertiseDataStore : IExpertiseDataStore
     public async Task<int> CreateExpertiseAsync(string name, string? description = null, int expertiseCategoryId = 0)
     {
         var expertise =
-            new Data.Models.Expertise { Name = name, Description = description, CreatedDate = DateTime.UtcNow, ExpertiseCategoryId = expertiseCategoryId };
+            new Data.Models.Expertise { Name = name, Description = description, CreatedDate = DateTime.UtcNow, ExpertiseCategoryId = expertiseCategoryId, IsActive = true };
         _context.Expertise.Add(expertise);
 
         try
@@ -117,6 +117,31 @@ public class ExpertiseDataStore : IExpertiseDataStore
         }
 
         return 0;
+    }
+
+    public async Task<bool> SoftDeleteAsync(int id)
+    {
+        var entity = await _context.Expertise.FirstOrDefaultAsync(e => e.Id == id);
+        if (entity is null)
+        {
+            return true;
+        }
+
+        if (!entity.IsActive)
+        {
+            return true;
+        }
+
+        entity.IsActive = false;
+        try
+        {
+            return await _context.SaveChangesAsync() != 0;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to soft delete expertise id {Id}", id);
+            return false;
+        }
     }
 
     public async Task<IEnumerable<Expertise>> GetPopularExpertiseAsync(int count = 10)

@@ -1,0 +1,12 @@
+@page "{id:int}"
+@model MoreSpeakers.Web.Areas.Admin.Pages.Expertises.Expertises.DeleteModel
+
+<h1>Soft Delete Expertise</h1>
+
+<form method="post">
+    <p>Are you sure you want to soft delete this expertise?</p>
+    <button type="submit" class="btn btn-danger">Soft Delete</button>
+    <a asp-page="../Categories/Index" class="btn btn-secondary">Cancel</a>
+    <input type="hidden" asp-for="Id" />
+    @Html.AntiForgeryToken()
+</form>
