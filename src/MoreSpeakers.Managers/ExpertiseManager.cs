@@ -78,6 +78,28 @@ public class ExpertiseManager: IExpertiseManager
         return await _dataStore.GetByCategoryIdAsync(categoryId);
     }
 
+    public async Task<bool> SoftDeleteAsync(int id)
+    {
+        try
+        {
+            var result = await _dataStore.SoftDeleteAsync(id);
+            if (result)
+            {
+                _logger.LogInformation("Soft-deleted expertise with id {Id}", id);
+            }
+            else
+            {
+                _logger.LogWarning("Soft delete returned false for expertise id {Id}", id);
+            }
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to soft delete expertise id {Id}", id);
+            return false;
+        }
+    }
+
     public async Task<ExpertiseCategory?> GetCategoryAsync(int id)
     {
         return await _dataStore.GetCategoryAsync(id);
