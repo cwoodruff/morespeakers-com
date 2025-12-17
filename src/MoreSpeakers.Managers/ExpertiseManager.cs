@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models;
+using MoreSpeakers.Domain.Models.AdminUsers;
 
 namespace MoreSpeakers.Managers;
 
@@ -92,8 +93,8 @@ public class ExpertiseManager: IExpertiseManager
         return await _dataStore.DeleteCategoryAsync(id);
     }
 
-    public async Task<List<ExpertiseCategory>> GetAllCategoriesAsync(bool onlyActive = true)
+    public async Task<List<ExpertiseCategory>> GetAllCategoriesAsync(TriState active = TriState.True, string? searchTerm = "")
     {
-        return await _dataStore.GetAllCategoriesAsync(onlyActive);
+        return await _dataStore.GetAllCategoriesAsync(active, searchTerm);
     }
 }
