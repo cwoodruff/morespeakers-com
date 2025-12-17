@@ -1,0 +1,109 @@
+# A reusable workflow that works with a repo Releases to determine what
+# the next version # should be.
+#
+# If the last Release version tag is not in the form vA.B.C, where
+# A, B, and C are numbers (1 or more digits) the workflow will report
+# an error.
+# The work flow has a single output with the version number (without
+# a leading 'v') and can be obtained within a calling workflow
+# with a statement similar to:
+# $${{ needs.determine_next_release_version.outputs.version }}
+---
+name: Determine next Release version number
+
+on:  # yamllint disable-line rule:truthy
+  workflow_call:
+    secrets:
+      token:
+        required: true
+    outputs:
+      version:
+        description: the version number that was determined
+        value: ${{ jobs.determine_next_release_version.outputs.version}}
+    inputs:
+      logLevel:
+        description: 'Log level'
+        required: false
+        default: 'none'
+        type: string
+
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: 'Log level'
+        required: false
+        default: 'info'  # if manually run, you probably want at least info
+        type: choice
+        options: [none, info, warning, debug]
+
+env:
+  DEFAULT_MAJOR_VERSION: 1
+  DEFAULT_MINOR_VERSION: 4
+  DEFAULT_PATCH_VERSION: 1
+
+jobs:
+  determine_next_release_version:
+    runs-on: ubuntu-latest
+    name: Determine next Release version
+    outputs:
+      version: ${{ steps.determine_new_version.outputs.version }}
+    steps:
+      - name: Get latest release info
+        id: get_latest_release
+        uses: pozetroninc/github-action-get-latest-release@master
+        continue-on-error: true  # empty version checked later
+        with:
+          owner: ${{ github.repository_owner }}
+          repo: ${{ github.event.repository.name }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          excludes: draft
+      - name: Report release info
+        if: ${{ inputs.logLevel == 'info' || inputs.logLevel == 'debug' }}
+        run: >
+          echo "Release: ${{ steps.get_latest_release.outputs.release }},
+          Id: ${{ steps.get_latest_release.outputs.id }},
+          '${{ steps.get_latest_release.outputs.description }}'"
+
+      - name: Determine scope of changes
+        id: determine_change_scope
+        run: |
+          echo "scope=patch" >> $GITHUB_OUTPUT
+
+      - name: Determine version
+        id: determine_new_version
+        shell: pwsh
+        run: |
+          if ([string]::IsNullOrWhiteSpace(`
+            "${{ steps.get_latest_release.outputs.release }}"))
+          {
+            $versionString = "v$($env:DEFAULT_MAJOR_VERSION)"+
+              ".$($env:DEFAULT_MINOR_VERSION).$($env:DEFAULT_PATCH_VERSION)"
+          }
+          else {
+            $versionString = "${{ steps.get_latest_release.outputs.release }}"
+          }
+
+          $scope = "${{ steps.determine_change_scope.outputs.scope }}"
+
+          if ($versionString -match '^v?(\d+)\.(\d+)\.(\d+)(?:-.+)?$') {
+              $major = [int]$matches[1]
+              $minor = [int]$matches[2]
+              $patch = [int]$matches[3]
+
+              switch ($scope) {
+                "major" { $major++; $minor = 0; $patch = 0 }
+                "minor" { $minor++; $patch = 0 }
+                "patch" { $patch++ }
+              }
+
+              $newVersion = "$major.$minor.$patch"
+              echo "version=$newVersion" >> $env:GITHUB_OUTPUT
+          }
+          else {
+              Write-Error "Version string not in expected format (vX.Y.Z)"
+          }
+      - name: Report next version
+        if: ${{ inputs.logLevel == 'info' || inputs.logLevel == 'debug' }}
+        run: >
+          echo "Determined that the next version is:
+          ${{steps.determine_new_version.outputs.version }}"
