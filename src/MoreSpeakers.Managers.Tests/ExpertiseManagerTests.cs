@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models;
+using MoreSpeakers.Domain.Models.AdminUsers;
 
 namespace MoreSpeakers.Managers.Tests;
 
@@ -200,7 +201,7 @@ public class ExpertiseManagerCategoryTests
         _dataStoreMock.Setup(d => d.SaveCategoryAsync(It.IsAny<ExpertiseCategory>()))
             .ReturnsAsync((ExpertiseCategory c) => c);
         _dataStoreMock.Setup(d => d.DeleteCategoryAsync(2)).ReturnsAsync(true);
-        _dataStoreMock.Setup(d => d.GetAllCategoriesAsync(true)).ReturnsAsync(categories);
+        _dataStoreMock.Setup(d => d.GetAllCategoriesAsync(TriState.True)).ReturnsAsync(categories);
 
         var sut = CreateSut();
 
@@ -216,8 +217,8 @@ public class ExpertiseManagerCategoryTests
         deleted.Should().BeTrue();
         _dataStoreMock.Verify(d => d.DeleteCategoryAsync(2), Times.Once);
 
-        var list = await sut.GetAllCategoriesAsync(true);
+        var list = await sut.GetAllCategoriesAsync(TriState.True);
         list.Should().BeSameAs(categories);
-        _dataStoreMock.Verify(d => d.GetAllCategoriesAsync(true), Times.Once);
+        _dataStoreMock.Verify(d => d.GetAllCategoriesAsync(TriState.True), Times.Once);
     }
 }

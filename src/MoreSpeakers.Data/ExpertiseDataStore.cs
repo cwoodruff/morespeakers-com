@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 
 using MoreSpeakers.Domain.Models;
 using MoreSpeakers.Domain.Interfaces;
+using MoreSpeakers.Domain.Models.AdminUsers;
 
 namespace MoreSpeakers.Data;
 
@@ -23,7 +24,7 @@ public class ExpertiseDataStore : IExpertiseDataStore
 
     public async Task<Expertise?> GetAsync(int primaryKey)
     {
-        var expertise = await _context.Expertise.FirstOrDefaultAsync(e => e.Id == primaryKey);
+        var expertise = await _context.Expertise.AsNoTracking().FirstOrDefaultAsync(e => e.Id == primaryKey);
         return _mapper.Map<Expertise?>(expertise);
     }
 
@@ -161,7 +162,7 @@ public class ExpertiseDataStore : IExpertiseDataStore
     // Category operations
     public async Task<ExpertiseCategory?> GetCategoryAsync(int id)
     {
-        var entity = await _context.ExpertiseCategory.FirstOrDefaultAsync(c => c.Id == id);
+        var entity = await _context.ExpertiseCategory.AsNoTracking().FirstOrDefaultAsync(c => c.Id == id);
         return _mapper.Map<ExpertiseCategory?>(entity);
     }
 
@@ -216,14 +217,26 @@ public class ExpertiseDataStore : IExpertiseDataStore
         }
     }
 
-    public async Task<List<ExpertiseCategory>> GetAllCategoriesAsync(bool onlyActive = true)
+    public async Task<List<ExpertiseCategory>> GetAllCategoriesAsync(TriState active = TriState.True, string? searchTerm = "")
     {
-        var query = _context.ExpertiseCategory.AsQueryable();
-        if (onlyActive)
+        var query = _context.ExpertiseCategory
+            .Include(c => c.Expertises)
+            .Include(c=> c.Sector)
+            .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(searchTerm))
         {
-            query = query.Where(c => c.IsActive);
+            query = query.Where(c => c.Name.Contains(searchTerm));
         }
-        var entities = await query.OrderBy(c => c.Name).ToListAsync();
+
+        query = active switch
+        {
+            TriState.True => query.Where(c => c.IsActive),
+            TriState.False => query.Where(c => !c.IsActive),
+            _ => query
+        };
+
+        var entities = await query.OrderBy(c => c.Name).AsNoTracking().ToListAsync();
         return _mapper.Map<List<ExpertiseCategory>>(entities);
     }
 }

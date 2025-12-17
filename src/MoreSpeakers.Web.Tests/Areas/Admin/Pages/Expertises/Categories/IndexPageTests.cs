@@ -20,7 +20,7 @@ public class IndexPageTests
             new() { Id = 2, Name = "B", IsActive = false, SectorId = 1 },
         };
         var manager = new Mock<IExpertiseManager>();
-        manager.Setup(m => m.GetAllCategoriesAsync(false)).ReturnsAsync(items);
+        manager.Setup(m => m.GetAllCategoriesAsync(It.IsAny<TriState>(), It.IsAny<string?>())).ReturnsAsync(items);
         var logger = new Mock<ILogger<IndexModel>>();
         var page = new IndexModel(manager.Object, logger.Object)
         {
@@ -32,7 +32,7 @@ public class IndexPageTests
 
         page.Items.Should().HaveCount(2);
         page.Items.Select(c => c.Id).Should().ContainInOrder(1, 2);
-        manager.Verify(m => m.GetAllCategoriesAsync(false), Times.Once);
+        manager.Verify(m => m.GetAllCategoriesAsync(TriState.Any, It.IsAny<string?>()), Times.Once);
     }
 
     [Fact]
@@ -45,7 +45,7 @@ public class IndexPageTests
             new() { Id = 3, Name = "Healthcare", IsActive = true, SectorId = 2 },
         };
         var manager = new Mock<IExpertiseManager>();
-        manager.Setup(m => m.GetAllCategoriesAsync(false)).ReturnsAsync(items);
+        manager.Setup(m => m.GetAllCategoriesAsync(TriState.True, "tech")).ReturnsAsync(new List<ExpertiseCategory> { items[0] });
         var logger = new Mock<ILogger<IndexModel>>();
         var page = new IndexModel(manager.Object, logger.Object)
         {

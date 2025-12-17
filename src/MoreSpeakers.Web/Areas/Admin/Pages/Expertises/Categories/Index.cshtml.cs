@@ -23,26 +23,8 @@ public class IndexModel(IExpertiseManager expertiseManager, ILogger<IndexModel> 
 
     public async Task OnGet()
     {
-        var all = await _expertiseManager.GetAllCategoriesAsync(onlyActive: false);
-
-        IEnumerable<ExpertiseCategory> result = all;
-
-        if (!string.IsNullOrWhiteSpace(Q))
-        {
-            var q = Q.Trim();
-            result = result.Where(c => c.Name.Contains(q, StringComparison.OrdinalIgnoreCase));
-        }
-
-        result = Status switch
-        {
-            TriState.True => result.Where(c => c.IsActive),
-            TriState.False => result.Where(c => !c.IsActive),
-            _ => result
-        };
-
-        Items = result
-            .OrderBy(c => c.Name)
-            .ToList();
+        var expertiseCategories = await _expertiseManager.GetAllCategoriesAsync(Status, Q);
+        Items = expertiseCategories.ToList();
     }
 
     public async Task<IActionResult> OnPostDeactivateAsync(int id)

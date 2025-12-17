@@ -1,4 +1,5 @@
 using MoreSpeakers.Domain.Models;
+using MoreSpeakers.Domain.Models.AdminUsers;
 
 namespace MoreSpeakers.Domain.Interfaces;
 
@@ -21,5 +22,5 @@ public interface IExpertiseManager
     Task<ExpertiseCategory?> GetCategoryAsync(int id);
     Task<ExpertiseCategory> SaveCategoryAsync(ExpertiseCategory category);
     Task<bool> DeleteCategoryAsync(int id);
-    Task<List<ExpertiseCategory>> GetAllCategoriesAsync(bool onlyActive = true);
+    Task<List<ExpertiseCategory>> GetAllCategoriesAsync(TriState active = TriState.True, string? searchTerm = "");
 }
