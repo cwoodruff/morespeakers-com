@@ -84,6 +84,9 @@ public class MoreSpeakersDbContext
 
             entity.Property(e => e.CreatedDate)
                 .HasDefaultValueSql("GETUTCDATE()");
+            
+            entity.Property(e => e.IsActive)
+                .HasDefaultValue(true);
 
             entity.HasIndex(e => e.ExpertiseCategoryId);
 
