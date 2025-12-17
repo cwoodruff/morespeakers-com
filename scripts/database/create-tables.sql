@@ -153,6 +153,24 @@ create index IX_AspNetUserPasskeys_UserId
     on AspNetUserPasskeys (UserId)
 go
 
+create table dbo.Expertises
+(
+    Id                  int identity
+        primary key,
+    Name                nvarchar(100)                  not null
+        unique,
+    Description         nvarchar(500),
+    CreatedDate         datetime2 default getutcdate() not null,
+    IsActive            bit       default 1            not null,
+    ExpertiseCategoryId int                            not null
+        constraint FK_Expertises_ExpertiseCategories_ExpertiseCategoryId
+            references dbo.ExpertiseCategories
+)
+go
+
+create index IX_Expertises_ExpertiseCategoryId
+    on dbo.Expertises (ExpertiseCategoryId)
+go
 
 CREATE TABLE dbo.Sectors
 (
