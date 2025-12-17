@@ -2,6 +2,9 @@
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 
 name: Build and deploy ASP.Net Core app to Azure Web App - web-more-speakers
+run-name: >
+  Webapp Deploy - '${{ github.event.head_commit.message }}',
+  from ${{ github.ref }} by @${{ github.actor }}
 
 on:
   push:
@@ -17,10 +20,19 @@ env:
   WORKING_DIRECTORY: ./src/MoreSpeakers.Web/
 
 jobs:
+  determine-version:
+    name: Determine next version number.
+    uses: ./.github/workflows/determine-next-release-version.yaml
+    secrets:
+      token: ${{ secrets.GITHUB_TOKEN }}
+
   build:
     runs-on: ubuntu-latest
+    needs: determine-version
     permissions:
-      contents: read #This is required for actions/checkout
+      contents: read  # This is required for actions/checkout
+    outputs:
+      artifact_name: ${{ steps.output-artifact-name.outputs.artifact_name }}
 
     steps:
       - uses: actions/checkout@v4
@@ -29,16 +41,25 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ env.DOTNET_CORE_VERSION }}
-      
+
       - name: Restore
         run: dotnet restore "${{ env.WORKING_DIRECTORY }}"
-      
+
       - name: Build
-        run: dotnet build "${{ env.WORKING_DIRECTORY }}" --configuration ${{ env.CONFIGURATION }} --no-restore
-      
+        run: >
+          dotnet build "${{ env.WORKING_DIRECTORY }}"
+          --configuration ${{ env.CONFIGURATION }}
+          --no-restore
+          -p:Version=${{ needs.determine-version.outputs.version }}
+          -p:VersionPrefix=${{ needs.determine-version.outputs.version }}
+
       - name: Publish
-        run: dotnet publish "${{ env.WORKING_DIRECTORY }}" --configuration ${{ env.CONFIGURATION }} --no-build --output "${{ env.AZURE_WEBAPP_PACKAGE_PATH }}"
-      
+        run: >
+          dotnet publish "${{ env.WORKING_DIRECTORY }}"
+          --configuration ${{ env.CONFIGURATION }}
+          --no-build
+          --output "${{ env.AZURE_WEBAPP_PACKAGE_PATH }}"
+
       - name: Publish Artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -46,12 +67,68 @@ jobs:
           path: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
           include-hidden-files: true
 
+      - name: Output artifact name
+        id: output-artifact-name
+        run: |
+          echo "artifact_name=webapp" >> $GITHUB_OUTPUT
+
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    needs: [build, determine-version]
+    permissions:
+      contents: write  # to be able to publish a GitHub release
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create Tag
+        id: create-tag
+        run: |
+          git tag v${{ needs.determine-version.outputs.version }}
+            echo "tag=\
+            v${{ needs.determine-version.outputs.version }}" \
+            >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        id: create-webapp-release
+        uses: actions/create-release@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.create-tag.outputs.tag }}
+          release_name: Release ${{ steps.create-tag.outputs.tag }}
+          body: |
+            Release created automatically by GitHub Actions.
+          draft: false
+
+      - name: download artifact for Release
+        id: download-artifact
+        uses: actions/download-artifact@v5
+        with:
+          name: ${{ needs.build.outputs.artifact_name }}
+          path: ./Release
+
+      - name: create zip
+        run: |
+          (cd Release && zip -r ${{ needs.build.outputs.artifact_name }}.zip .)
+
+      - name: Upload a Release Asset
+        uses: actions/upload-release-asset@v1.0.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create-webapp-release.outputs.upload_url }}
+          asset_path: Release/${{ needs.build.outputs.artifact_name }}.zip
+          asset_name: ${{ needs.build.outputs.artifact_name }}.zip
+          asset_content_type: application/zip
+
   deploy:
     runs-on: ubuntu-latest
     needs: build
     permissions:
-      id-token: write #This is required for requesting the JWT
-      contents: read #This is required for actions/checkout
+      id-token: write  # This is required for requesting the JWT
+      contents: read  # This is required for actions/checkout
 
     steps:
       - name: Download artifact from build job
@@ -59,7 +136,7 @@ jobs:
         with:
           name: webapp
           path: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
-      
+
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -75,4 +152,3 @@ jobs:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
           package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
           slot-name: Production
-          
