@@ -1,10 +1,10 @@
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
 using Moq;
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models;
+using MoreSpeakers.Domain.Models.AdminUsers;
 using MoreSpeakers.Web.Areas.Admin.Pages.Expertises.Sectors;
 
 namespace MoreSpeakers.Web.Tests.Areas.Admin.Pages.Expertises.Sectors;
@@ -25,7 +25,7 @@ public class IndexPageTests
         var page = new IndexModel(manager.Object, logger.Object)
         {
             Q = null,
-            Status = "any"
+            Status = TriState.Any
         };
 
         await page.OnGet();
@@ -48,11 +48,7 @@ public class IndexPageTests
         var manager = new Mock<ISectorManager>();
         manager.Setup(m => m.GetAllAsync(false)).ReturnsAsync(items);
         var logger = new Mock<ILogger<IndexModel>>();
-        var page = new IndexModel(manager.Object, logger.Object)
-        {
-            Q = "tech",
-            Status = "active"
-        };
+        var page = new IndexModel(manager.Object, logger.Object) { Q = "tech", Status = TriState.True };
 
         await page.OnGet();
 
@@ -71,14 +67,14 @@ public class IndexPageTests
         var page = new IndexModel(manager.Object, logger.Object)
         {
             Q = "en",
-            Status = "inactive"
+            Status = TriState.False
         };
 
         var result = await page.OnPostActivateAsync(10);
 
         result.Should().BeOfType<RedirectToPageResult>()
             .Which.RouteValues.Should().Contain(new KeyValuePair<string, object?>("q", "en"))
-            .And.Contain(new KeyValuePair<string, object?>("status", "inactive"));
+            .And.Contain(new KeyValuePair<string, object?>("status", TriState.False));
         sector.IsActive.Should().BeTrue();
         manager.Verify(m => m.SaveAsync(It.Is<Sector>(s => s.Id == 10 && s.IsActive)), Times.Once);
     }
@@ -109,14 +105,14 @@ public class IndexPageTests
         var page = new IndexModel(manager.Object, logger.Object)
         {
             Q = "ret",
-            Status = "active"
+            Status = TriState.True
         };
 
         var result = await page.OnPostDeactivateAsync(11);
 
         result.Should().BeOfType<RedirectToPageResult>()
             .Which.RouteValues.Should().Contain(new KeyValuePair<string, object?>("q", "ret"))
-            .And.Contain(new KeyValuePair<string, object?>("status", "active"));
+            .And.Contain(new KeyValuePair<string, object?>("status", TriState.True));
         sector.IsActive.Should().BeFalse();
         manager.Verify(m => m.SaveAsync(It.Is<Sector>(s => s.Id == 11 && !s.IsActive)), Times.Once);
     }

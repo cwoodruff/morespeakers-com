@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models;
+using MoreSpeakers.Domain.Models.AdminUsers;
 
 namespace MoreSpeakers.Web.Areas.Admin.Pages.Expertises.Sectors;
 
@@ -16,7 +17,7 @@ public class IndexModel(ISectorManager manager, ILogger<IndexModel> logger) : Pa
     public string? Q { get; set; }
 
     [BindProperty(SupportsGet = true)]
-    public string Status { get; set; } = "any"; // any | active | inactive
+    public TriState Status { get; set; } = TriState.Any;
 
     public List<Sector> Items { get; private set; } = new();
 
@@ -34,8 +35,8 @@ public class IndexModel(ISectorManager manager, ILogger<IndexModel> logger) : Pa
 
         result = Status switch
         {
-            "active" => result.Where(s => s.IsActive),
-            "inactive" => result.Where(s => !s.IsActive),
+            TriState.True => result.Where(s => s.IsActive),
+            TriState.False => result.Where(s => !s.IsActive),
             _ => result
         };
 
