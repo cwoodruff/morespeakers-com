@@ -1,9 +1,13 @@
 // File: MoreSpeakers.Data/SectorDataStore.cs
+
+using System.Diagnostics;
+
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models;
+using MoreSpeakers.Domain.Models.AdminUsers;
 
 namespace MoreSpeakers.Data;
 
@@ -27,13 +31,35 @@ public class SectorDataStore : ISectorDataStore
     }
 
     public async Task<List<Sector>> GetAllAsync()
-        => await GetAllAsync(onlyActive: false);
+        => await GetAllSectorsAsync(active: TriState.True);
 
-    public async Task<List<Sector>> GetAllAsync(bool onlyActive = true)
+    public async Task<Sector?> GetSectorWithRelationshipsAsync(int id)
+    {
+        var sector = await _context.Sectors.AsNoTracking()
+            .Include(s => s.ExpertiseCategories).FirstOrDefaultAsync(s => s.Id == id);
+        return _mapper.Map<Sector?>(sector);
+    }
+
+    public async Task<List<Sector>> GetAllSectorsAsync(TriState active = TriState.True, string? searchTerm = "", bool includeCategories = false )
     {
         var query = _context.Sectors.AsNoTracking().AsQueryable();
-        if (onlyActive)
-            query = query.Where(s => s.IsActive);
+
+        query = active switch
+        {
+            TriState.True => query.Where(s => s.IsActive),
+            TriState.False => query.Where(s => !s.IsActive),
+            _ => query
+        };
+
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            query = query.Where(s => s.Name.Contains(searchTerm));
+        }
+
+        if (includeCategories)
+        {
+            query = query.Include(s => s.ExpertiseCategories);
+        }
 
         var entities = await query
             .OrderBy(s => s.DisplayOrder)

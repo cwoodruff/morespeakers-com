@@ -14,7 +14,7 @@ public class DetailsPageTests
     public async Task OnGetAsync_should_redirect_to_Index_when_not_found()
     {
         var manager = new Mock<ISectorManager>();
-        manager.Setup(m => m.GetAsync(123)).ReturnsAsync((Sector?)null);
+        manager.Setup(m => m.GetSectorWithRelationshipsAsync(123)).ReturnsAsync((Sector?)null);
         var page = new DetailsModel(manager.Object)
         {
             Id = 123
@@ -31,7 +31,7 @@ public class DetailsPageTests
     {
         var sector = new Sector { Id = 2, Name = "Finance" };
         var manager = new Mock<ISectorManager>();
-        manager.Setup(m => m.GetAsync(2)).ReturnsAsync(sector);
+        manager.Setup(m => m.GetSectorWithRelationshipsAsync(2)).ReturnsAsync(sector);
         var page = new DetailsModel(manager.Object)
         {
             Id = 2

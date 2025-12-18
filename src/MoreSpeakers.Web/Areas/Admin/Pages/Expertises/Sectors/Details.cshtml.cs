@@ -7,9 +7,9 @@ using MoreSpeakers.Domain.Models;
 namespace MoreSpeakers.Web.Areas.Admin.Pages.Expertises.Sectors;
 
 [Authorize(Roles = "Administrator")]
-public class DetailsModel(ISectorManager manager) : PageModel
+public class DetailsModel(ISectorManager sectorManager) : PageModel
 {
-    private readonly ISectorManager _manager = manager;
+    private readonly ISectorManager _sectorManager = sectorManager;
 
     [FromRoute]
     public int Id { get; set; }
@@ -18,7 +18,7 @@ public class DetailsModel(ISectorManager manager) : PageModel
 
     public async Task<IActionResult> OnGetAsync()
     {
-        Sector = await _manager.GetAsync(Id);
+        Sector = await _sectorManager.GetSectorWithRelationshipsAsync(Id);
         if (Sector is null)
         {
             return RedirectToPage("Index");
