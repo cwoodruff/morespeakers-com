@@ -14,13 +14,15 @@ public class IndexPageTests
     [Fact]
     public async Task OnGet_should_list_all_when_no_filters()
     {
+        // Manager is responsible for ordering (DisplayOrder then Name). Return in expected order: Id 2 (order 1) then Id 1 (order 2)
         var items = new List<Sector>
         {
-            new() { Id = 1, Name = "A", DisplayOrder = 2, IsActive = true },
             new() { Id = 2, Name = "B", DisplayOrder = 1, IsActive = false },
+            new() { Id = 1, Name = "A", DisplayOrder = 2, IsActive = true },
         };
         var manager = new Mock<ISectorManager>();
-        manager.Setup(m => m.GetAllAsync(false)).ReturnsAsync(items);
+        manager.Setup(m => m.GetAllSectorsAsync(TriState.Any, It.Is<string?>(s => s == null), false))
+            .ReturnsAsync(items);
         var logger = new Mock<ILogger<IndexModel>>();
         var page = new IndexModel(manager.Object, logger.Object)
         {
@@ -33,7 +35,7 @@ public class IndexPageTests
         page.Items.Should().HaveCount(2);
         // Order by DisplayOrder then Name
         page.Items.Select(s => s.Id).Should().ContainInOrder(2, 1);
-        manager.Verify(m => m.GetAllAsync(false), Times.Once);
+        manager.Verify(m => m.GetAllSectorsAsync(TriState.Any, It.Is<string?>(s => s == null), false), Times.Once);
     }
 
     [Fact]
@@ -46,7 +48,8 @@ public class IndexPageTests
             new() { Id = 3, Name = "Healthcare", DisplayOrder = 2, IsActive = true },
         };
         var manager = new Mock<ISectorManager>();
-        manager.Setup(m => m.GetAllAsync(false)).ReturnsAsync(items);
+        manager.Setup(m => m.GetAllSectorsAsync(TriState.True, "tech", false))
+            .ReturnsAsync(items.Where(s => s.IsActive && s.Name.Contains("tech", StringComparison.OrdinalIgnoreCase)).ToList());
         var logger = new Mock<ILogger<IndexModel>>();
         var page = new IndexModel(manager.Object, logger.Object) { Q = "tech", Status = TriState.True };
 
@@ -54,6 +57,21 @@ public class IndexPageTests
 
         page.Items.Should().HaveCount(1);
         page.Items[0].Id.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task OnGet_should_call_manager_with_expected_parameters()
+    {
+        var manager = new Mock<ISectorManager>();
+        var logger = new Mock<ILogger<IndexModel>>();
+        var page = new IndexModel(manager.Object, logger.Object) { Q = "alpha", Status = TriState.False };
+
+        manager.Setup(m => m.GetAllSectorsAsync(TriState.False, "alpha", false))
+            .ReturnsAsync(new List<Sector>());
+
+        await page.OnGet();
+
+        manager.Verify(m => m.GetAllSectorsAsync(TriState.False, "alpha", false), Times.Once);
     }
 
     [Fact]

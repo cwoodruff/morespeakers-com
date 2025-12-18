@@ -23,27 +23,8 @@ public class IndexModel(ISectorManager manager, ILogger<IndexModel> logger) : Pa
 
     public async Task OnGet()
     {
-        var all = await _manager.GetAllAsync(onlyActive: false);
-
-        IEnumerable<Sector> result = all;
-
-        if (!string.IsNullOrWhiteSpace(Q))
-        {
-            var q = Q.Trim();
-            result = result.Where(s => s.Name.Contains(q, StringComparison.OrdinalIgnoreCase));
-        }
-
-        result = Status switch
-        {
-            TriState.True => result.Where(s => s.IsActive),
-            TriState.False => result.Where(s => !s.IsActive),
-            _ => result
-        };
-
-        Items = result
-            .OrderBy(s => s.DisplayOrder)
-            .ThenBy(s => s.Name)
-            .ToList();
+        var sectors = await _manager.GetAllSectorsAsync(Status, Q);
+        Items = sectors;
     }
 
     public async Task<IActionResult> OnPostDeactivateAsync(int id)

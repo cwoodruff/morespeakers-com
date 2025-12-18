@@ -1,11 +1,8 @@
-// File: MoreSpeakers.Managers.Tests/SectorManagerTests.cs
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models;
-using MoreSpeakers.Managers;
-using Xunit;
 
 namespace MoreSpeakers.Managers.Tests;
 
@@ -31,14 +28,14 @@ public class SectorManagerTests
     [Fact]
     public async Task GetAllAsync_passes_onlyActive_to_datastore()
     {
-        _dataStore.Setup(ds => ds.GetAllAsync(true))
+        _dataStore.Setup(ds => ds.GetAllAsync())
             .ReturnsAsync(new List<Sector> { new() { Id = 1, Name = "Technology", IsActive = true } });
 
         var manager = new SectorManager(_dataStore.Object, _logger.Object);
-        var result = await manager.GetAllAsync(onlyActive: true);
+        var result = await manager.GetAllAsync();
 
         result.Should().HaveCount(1);
-        _dataStore.Verify(ds => ds.GetAllAsync(true), Times.Once);
+        _dataStore.Verify(ds => ds.GetAllAsync(), Times.Once);
     }
 
     [Fact]

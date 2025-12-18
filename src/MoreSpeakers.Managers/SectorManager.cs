@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models;
+using MoreSpeakers.Domain.Models.AdminUsers;
 
 namespace MoreSpeakers.Managers;
 
@@ -17,7 +18,12 @@ public class SectorManager : ISectorManager
     }
 
     public Task<Sector?> GetAsync(int id) => _dataStore.GetAsync(id);
-    public Task<List<Sector>> GetAllAsync(bool onlyActive = true) => _dataStore.GetAllAsync(onlyActive);
+    public async Task<Sector?> GetSectorWithRelationshipsAsync(int id) => await _dataStore.GetSectorWithRelationshipsAsync(id);
+    public Task<List<Sector>> GetAllAsync() => _dataStore.GetAllAsync();
+
+    public Task<List<Sector>> GetAllSectorsAsync(TriState active = TriState.True, string? searchTerm = "",
+        bool includeCategories = false) => _dataStore.GetAllSectorsAsync(active, searchTerm, includeCategories);
+    
     public Task<Sector> SaveAsync(Sector sector) => _dataStore.SaveAsync(sector);
     public Task<bool> DeleteAsync(int id) => _dataStore.DeleteAsync(id);
     public Task<bool> DeleteAsync(Sector sector) => _dataStore.DeleteAsync(sector);
