@@ -48,6 +48,10 @@ jobs:
     outputs:
       version: ${{ steps.determine_new_version.outputs.version }}
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
       - name: Get latest release info
         id: get_latest_release
         uses: pozetroninc/github-action-get-latest-release@master
