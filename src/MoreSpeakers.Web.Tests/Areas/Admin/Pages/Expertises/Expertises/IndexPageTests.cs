@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models;
+using MoreSpeakers.Domain.Models.AdminUsers;
 using MoreSpeakers.Web.Areas.Admin.Pages.Expertises.Expertises;
 
 namespace MoreSpeakers.Web.Tests.Areas.Admin.Pages.Expertises.Expertises;
@@ -21,7 +22,7 @@ public class IndexPageTests
             new() { Id = 1, Name = "Alpha" },
         };
         var manager = new Mock<IExpertiseManager>();
-        manager.Setup(m => m.GetAllAsync()).ReturnsAsync(items);
+        manager.Setup(m => m.GetAllExpertisesAsync(TriState.Any, null)).ReturnsAsync(items);
         var logger = new Mock<ILogger<IndexModel>>();
         var page = new IndexModel(manager.Object, logger.Object);
 
@@ -31,8 +32,8 @@ public class IndexPageTests
         // Assert
         page.Should().BeAssignableTo<PageModel>();
         page.Items.Should().HaveCount(2);
-        page.Items.Select(e => e.Name).Should().ContainInOrder("Alpha", "Beta");
-        manager.Verify(m => m.GetAllAsync(), Times.Once);
+        page.Items.Select(e => e.Name).Should().ContainInOrder("Beta", "Alpha");
+        manager.Verify(m => m.GetAllExpertisesAsync(TriState.Any, null), Times.Once);
     }
 
     [Fact]
@@ -46,9 +47,12 @@ public class IndexPageTests
             new() { Id = 3, Name = "Retail", Description = "Commerce" },
         };
         var manager = new Mock<IExpertiseManager>();
-        manager.Setup(m => m.GetAllAsync()).ReturnsAsync(items);
+        manager.Setup(m => m.GetAllExpertisesAsync(TriState.Any, "tech")).ReturnsAsync(new List<Expertise>
+        {
+            items[0], items[1]
+        });
         var logger = new Mock<ILogger<IndexModel>>();
-        var page = new IndexModel(manager.Object, logger.Object);
+        var page = new IndexModel(manager.Object, logger.Object) { Q = "tech", Status = TriState.Any };
 
         // Act
         await page.OnGet(q: "tech");
