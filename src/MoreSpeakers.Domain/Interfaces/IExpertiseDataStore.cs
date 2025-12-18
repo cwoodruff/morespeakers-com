@@ -18,4 +18,5 @@ public interface IExpertiseDataStore: IDataStorePrimaryKeyInt<Expertise>
     Task<ExpertiseCategory> SaveCategoryAsync(ExpertiseCategory category);
     Task<bool> DeleteCategoryAsync(int id);
     Task<List<ExpertiseCategory>> GetAllCategoriesAsync(TriState active = TriState.True, string? searchTerm = "");
+    Task<List<ExpertiseCategory>> GetAllActiveCategoriesForSector(int sectorId);
 }

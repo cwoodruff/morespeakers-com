@@ -1,4 +1,5 @@
 @page "{id:int}"
+@using MoreSpeakers.Web.Models.ViewModels
 @model MoreSpeakers.Web.Areas.Admin.Pages.Expertises.Expertises.EditModel
 
 <h1>Edit Expertise</h1>
@@ -15,17 +16,30 @@
         <span asp-validation-for="Input.Description" class="text-danger"></span>
     </div>
     <div class="mb-3">
-        <label asp-for="Input.ExpertiseCategoryId" class="form-label"></label>
-        <input asp-for="Input.ExpertiseCategoryId" class="form-control" />
-        <span asp-validation-for="Input.ExpertiseCategoryId" class="text-danger"></span>
+        <label class="form-label">Sector</label>
+        <select name="SectorId" class="form-select"
+                hx-target="#ExpertiseCategoryDropDown"
+                hx-indicator="#loading-expertise-categories"
+                hx-get="/Admin/Expertises/Expertises/Edit/@Model.Id?handler=ExpertiseCategories"
+                hx-include="this"
+                asp-items="Model.Sectors.Select(s => new SelectListItem(s.Name, s.Id.ToString()))"
+                asp-for="SectorId">
+        </select>
     </div>
+    @{
+        var expertiseCategoryDropDownViewModel = new ExpertiseCategoryDropDownViewModel
+        {
+            ExpertiseCategories = Model.ExpertiseCategories,
+            SelectedCategoryId = Model.Input.ExpertiseCategoryId
+        };
+        await Html.RenderPartialAsync("_ExpertiseCategorySelectItem", expertiseCategoryDropDownViewModel);
+    }
     <div class="form-check form-switch mb-3">
         <input class="form-check-input" asp-for="Input.IsActive" />
         <label class="form-check-label" asp-for="Input.IsActive">Active</label>
     </div>
     <button type="submit" class="btn btn-primary">Save</button>
     <a asp-page="../Categories/Index" class="btn btn-secondary">Back</a>
-    <a asp-page="Delete" asp-route-id="@Model.Id" class="btn btn-outline-danger">Soft Delete</a>
     <input type="hidden" asp-for="Id" />
     @Html.AntiForgeryToken()
     <div asp-validation-summary="All" class="text-danger"></div>

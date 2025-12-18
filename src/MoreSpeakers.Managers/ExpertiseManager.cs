@@ -123,4 +123,7 @@ public class ExpertiseManager: IExpertiseManager
     {
         return await _dataStore.GetAllCategoriesAsync(active, searchTerm);
     }
+
+    public async Task<List<ExpertiseCategory>> GetAllActiveCategoriesForSector(int sectorId) =>
+        await _dataStore.GetAllActiveCategoriesForSector(sectorId);
 }

@@ -2,15 +2,18 @@ using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models;
+using MoreSpeakers.Web.Models.ViewModels;
 
 namespace MoreSpeakers.Web.Areas.Admin.Pages.Expertises.Expertises;
 
 [Authorize(Roles = "Administrator")]
-public class EditModel(IExpertiseManager expertiseManager, ILogger<EditModel> logger) : PageModel
+public class EditModel(IExpertiseManager expertiseManager, ISectorManager sectorManager, ILogger<EditModel> logger) : PageModel
 {
     private readonly IExpertiseManager _expertiseManager = expertiseManager;
+    private readonly ISectorManager _sectorManager = sectorManager;
     private readonly ILogger<EditModel> _logger = logger;
 
     [FromRoute]
@@ -36,9 +39,24 @@ public class EditModel(IExpertiseManager expertiseManager, ILogger<EditModel> lo
 
     public Expertise? Entity { get; private set; }
 
+    [BindProperty(SupportsGet = true)]
+    public int SectorId { get; set; }
+    
+    public List<Sector> Sectors { get; set; } = new();
+    public List<ExpertiseCategory> ExpertiseCategories { get; set; } = new();
+
+
     public async Task<IActionResult> OnGetAsync()
     {
         var expertise = await _expertiseManager.GetAsync(Id);
+
+        Sectors = await _sectorManager.GetAllAsync();
+        ExpertiseCategories = await _expertiseManager.GetAllCategoriesAsync();
+        var expertiseCategory = await _expertiseManager.GetCategoryAsync(expertise.ExpertiseCategoryId);
+        if (expertiseCategory is null)
+        {
+            return RedirectToPage("../Expertises/Index");
+        }
 
         Entity = expertise;
         Input = new InputModel
@@ -48,6 +66,7 @@ public class EditModel(IExpertiseManager expertiseManager, ILogger<EditModel> lo
             ExpertiseCategoryId = expertise.ExpertiseCategoryId,
             IsActive = expertise.IsActive
         };
+        SectorId = expertiseCategory.SectorId;
         return Page();
     }
 
@@ -68,5 +87,18 @@ public class EditModel(IExpertiseManager expertiseManager, ILogger<EditModel> lo
         await _expertiseManager.SaveAsync(expertise);
         _logger.LogInformation("[Admin:Expertises] Updated expertise {Id} {Name}", expertise.Id, expertise.Name);
         return RedirectToPage("../Expertises/Index");
+    }
+
+    public async Task<IActionResult> OnGetExpertiseCategoriesAsync()
+    {
+        var sectorId = SectorId;
+        var categories = await _expertiseManager.GetAllActiveCategoriesForSector(sectorId);
+
+        var expertiseCategorySelectItem = new ExpertiseCategoryDropDownViewModel
+        {
+            ExpertiseCategories = categories, SelectedCategoryId = Input.ExpertiseCategoryId
+        };
+        return Partial("/Areas/Admin/Pages/Expertises/Expertises/_ExpertiseCategorySelectItem.cshtml", expertiseCategorySelectItem);
+
     }
 }

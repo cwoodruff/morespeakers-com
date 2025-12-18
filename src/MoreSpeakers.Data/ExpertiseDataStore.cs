@@ -210,7 +210,9 @@ public class ExpertiseDataStore : IExpertiseDataStore
     // Category operations
     public async Task<ExpertiseCategory?> GetCategoryAsync(int id)
     {
-        var entity = await _context.ExpertiseCategory.AsNoTracking().FirstOrDefaultAsync(c => c.Id == id);
+        var entity = await _context.ExpertiseCategory
+            .Include(c => c.Sector)
+            .AsNoTracking().FirstOrDefaultAsync(c => c.Id == id);
         return _mapper.Map<ExpertiseCategory?>(entity);
     }
 
@@ -287,4 +289,14 @@ public class ExpertiseDataStore : IExpertiseDataStore
         var entities = await query.OrderBy(c => c.Name).AsNoTracking().ToListAsync();
         return _mapper.Map<List<ExpertiseCategory>>(entities);
     }
+
+    public async Task<List<ExpertiseCategory>> GetAllActiveCategoriesForSector(int sectorId)
+    {
+        var categories = await _context.ExpertiseCategory
+            .Where(c => c.SectorId == sectorId && c.IsActive)
+            .OrderBy(c => c.Name)
+            .ToListAsync();
+        return _mapper.Map<List<ExpertiseCategory>>(categories);
+    }
+    
 }
