@@ -9,8 +9,8 @@
 
 <h1 class="mb-4">Sectors</h1>
 
-<nav aria-label="breadcrumb" class="mb-3">
-  <ol class="breadcrumb">
+<nav aria-label="breadcrumb" class="mb-3 d-flex">
+  <ol class="breadcrumb mb-0">
     <li class="breadcrumb-item"><a asp-area="Admin" asp-page="/Index">Admin</a></li>
     <li class="breadcrumb-item"><a asp-area="Admin" asp-page="/Expertises/Index">Expertises</a></li>
     <li class="breadcrumb-item active" aria-current="page">Sectors</li>
@@ -36,7 +36,9 @@
     </select>
   </div>
   <div class="col-auto">
-    <button type="submit" class="btn btn-outline-secondary">Filter</button>
+    <button type="submit" class="btn btn-outline-secondary">
+      <i class="bi bi-filter me-1"></i>Filter
+    </button>
   </div>
 </form>
 

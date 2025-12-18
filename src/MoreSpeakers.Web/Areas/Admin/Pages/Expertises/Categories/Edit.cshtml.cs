@@ -41,7 +41,9 @@ public class EditModel(IExpertiseManager expertiseManager, ISectorManager sector
     {
         var category = await _expertiseManager.GetCategoryAsync(Id);
         if (category is null)
+        {
             return RedirectToPage("Index");
+        }
 
         Sectors = await _sectorManager.GetAllAsync(onlyActive: true);
         Input = new InputModel
@@ -59,7 +61,9 @@ public class EditModel(IExpertiseManager expertiseManager, ISectorManager sector
         Sectors = await _sectorManager.GetAllAsync(onlyActive: true);
 
         if (!ModelState.IsValid)
+        {
             return Page();
+        }
 
         var category = await _expertiseManager.GetCategoryAsync(Id);
         if (category is null)

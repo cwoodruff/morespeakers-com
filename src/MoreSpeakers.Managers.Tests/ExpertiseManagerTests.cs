@@ -169,6 +169,30 @@ public class ExpertiseManagerTests
         result.Should().BeSameAs(expected);
         _dataStoreMock.Verify(d => d.FuzzySearchForExistingExpertise("AI", 4), Times.Once);
     }
+
+    [Fact]
+    public async Task SoftDeleteAsync_should_delegate_and_return_true()
+    {
+        _dataStoreMock.Setup(d => d.SoftDeleteAsync(5)).ReturnsAsync(true);
+        var sut = CreateSut();
+
+        var result = await sut.SoftDeleteAsync(5);
+
+        result.Should().BeTrue();
+        _dataStoreMock.Verify(d => d.SoftDeleteAsync(5), Times.Once);
+    }
+
+    [Fact]
+    public async Task SoftDeleteAsync_should_delegate_and_return_false()
+    {
+        _dataStoreMock.Setup(d => d.SoftDeleteAsync(6)).ReturnsAsync(false);
+        var sut = CreateSut();
+
+        var result = await sut.SoftDeleteAsync(6);
+
+        result.Should().BeFalse();
+        _dataStoreMock.Verify(d => d.SoftDeleteAsync(6), Times.Once);
+    }
 }
 
 public class ExpertiseManagerCategoryTests
