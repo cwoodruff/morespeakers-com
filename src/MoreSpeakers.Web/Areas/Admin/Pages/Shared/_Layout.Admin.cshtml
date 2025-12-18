@@ -41,7 +41,23 @@
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     <li class="nav-item"><a class="nav-link" asp-area="Admin" asp-page="/Index">Dashboard</a></li>
                     <li class="nav-item"><a class="nav-link" asp-area="Admin" asp-page="/Users/Index">Users</a></li>
-                    <li class="nav-item"><a class="nav-link" asp-area="Admin" asp-page="/Expertises/Sectors/Index">Sectors</a></li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                           aria-expanded="false">
+                            <i class="bi bi-diagram-3 me-2"></i>Expertises
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" asp-area="Admin" asp-page="/Expertises/Sectors/Index">
+                                <i class="bi bi-bar-chart-steps me-2"></i>Sectors
+                            </a></li>
+                            <li><a class="dropdown-item" asp-area="Admin" asp-page="/Expertises/Categories/Index">
+                                <i class="bi bi-collection me-2"></i>Categories
+                            </a></li>
+                            <li><a class="dropdown-item" asp-area="Admin" asp-page="/Expertises/Expertises/Index">
+                                <i class="bi bi-award me-2"></i>Expertise
+                            </a></li>
+                        </ul>
+                    </li>
                     <li class="nav-item"><a class="nav-link" asp-area="Admin" asp-page="/Catalog/Test">Content</a></li>
                     <li class="nav-item"><a class="nav-link" asp-area="Admin" asp-page="/Reports/Test">Reports</a></li>
                 </ul>

@@ -11,6 +11,7 @@ public interface IExpertiseDataStore: IDataStorePrimaryKeyInt<Expertise>
     Task<IEnumerable<Expertise>> FuzzySearchForExistingExpertise(string name, int count = 3);
     Task<List<Expertise>> GetByCategoryIdAsync(int categoryId);
     Task<bool> SoftDeleteAsync(int id);
+    Task<List<Expertise>> GetAllExpertisesAsync(TriState active = TriState.True, string? searchTerm = "");
 
     // Expertise Category operations
     Task<ExpertiseCategory?> GetCategoryAsync(int id);

@@ -1,4 +1,5 @@
 @page
+@using MoreSpeakers.Domain.Models.AdminUsers
 @model MoreSpeakers.Web.Areas.Admin.Pages.Expertises.Expertises.IndexModel
 @{
     ViewData["Title"] = "Admin • Expertises";
@@ -9,7 +10,7 @@
 <nav aria-label="breadcrumb" class="mb-3">
   <ol class="breadcrumb">
     <li class="breadcrumb-item"><a asp-area="Admin" asp-page="/Index">Admin</a></li>
-    <li class="breadcrumb-item"><a asp-area="Admin" asp-page="/Expertises/Categories/Index">Expertise</a></li>
+    <li class="breadcrumb-item"><a asp-area="Admin" asp-page="/Expertises/Expertises/Index">Expertise</a></li>
     <li class="breadcrumb-item active" aria-current="page">Expertises</li>
   </ol>
   <div class="ms-auto">
@@ -17,15 +18,24 @@
   </div>
 </nav>
 
-<form method="get" class="row g-2 mb-3">
-  <div class="col-sm-6 col-md-4">
-    <input type="search" name="q" value="@Model.Q" class="form-control" placeholder="Search by name or description" />
+<form class="row g-2 align-items-center mb-3" method="get">
+  <div class="col-auto">
+    <div class="input-group">
+      <span class="input-group-text"><i class="bi bi-search"></i></span>
+      <input name="q" id="q" class="form-control" placeholder="Search by name…" value="@Model.Q" />
+    </div>
   </div>
   <div class="col-auto">
-    <button type="submit" class="btn btn-outline-secondary">Search</button>
+    <select class="form-select" name="status" aria-label="Filter by status" value="@Model.Status">
+      <option value="any" selected="@(Model.Status==TriState.Any)">Any status</option>
+      <option value="active" selected="@(Model.Status==TriState.True)">Active</option>
+      <option value="inactive" selected="@(Model.Status==TriState.False)">Inactive</option>
+    </select>
+  </div>
+  <div class="col-auto">
+    <button type="submit" class="btn btn-outline-secondary">Filter</button>
   </div>
 </form>
-
 <div class="table-responsive">
   <table class="table table-striped align-middle">
     <thead>
@@ -33,6 +43,7 @@
       <th>Name</th>
       <th>Category</th>
       <th class="d-none d-md-table-cell">Description</th>
+      <th>Status</th>
       <th class="text-end">Actions</th>
     </tr>
     </thead>
@@ -51,9 +62,32 @@
               <td>@e.Name</td>
               <td>@(e.ExpertiseCategory?.Name ?? "—")</td>
               <td class="d-none d-md-table-cell">@e.Description</td>
+              <td>
+                @if (e.IsActive)
+                {
+                  <span class="badge bg-success">Active</span>
+                }
+                else
+                {
+                  <span class="badge bg-secondary">Inactive</span>
+                }
+              </td>
               <td class="text-end">
-                <a class="btn btn-sm btn-outline-primary" asp-area="Admin" asp-page="/Expertises/Expertises/Edit" asp-route-id="@e.Id">Edit</a>
-                <a class="btn btn-sm btn-outline-danger" asp-area="Admin" asp-page="/Expertises/Expertises/Delete" asp-route-id="@e.Id">Delete</a>
+                <a class="btn btn-sm btn-outline-secondary" asp-page="Details" asp-route-id="@e.Id"><i class="bi bi-eye"></i></a>
+                <a class="btn btn-sm btn-outline-primary" asp-page="Edit" asp-route-id="@e.Id"><i class="bi bi-pencil"></i></a>
+                
+                @if (e.IsActive)
+                {
+                  <form method="post" asp-page-handler="Deactivate" asp-route-id="@e.Id" class="d-inline">
+                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Deactivate"><i class="bi bi-archive"></i></button>
+                  </form>
+                }
+                else
+                {
+                  <form method="post" asp-page-handler="Activate" asp-route-id="@e.Id" class="d-inline">
+                    <button type="submit" class="btn btn-sm btn-outline-success" title="Activate"><i class="bi bi-arrow-counterclockwise"></i></button>
+                  </form>
+                }
               </td>
             </tr>
         }

@@ -1,5 +1,7 @@
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.Extensions.Logging;
+
 using Moq;
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models;
@@ -20,7 +22,8 @@ public class IndexPageTests
         };
         var manager = new Mock<IExpertiseManager>();
         manager.Setup(m => m.GetAllAsync()).ReturnsAsync(items);
-        var page = new IndexModel(manager.Object);
+        var logger = new Mock<ILogger<IndexModel>>();
+        var page = new IndexModel(manager.Object, logger.Object);
 
         // Act
         await page.OnGet(q: null);
@@ -44,7 +47,8 @@ public class IndexPageTests
         };
         var manager = new Mock<IExpertiseManager>();
         manager.Setup(m => m.GetAllAsync()).ReturnsAsync(items);
-        var page = new IndexModel(manager.Object);
+        var logger = new Mock<ILogger<IndexModel>>();
+        var page = new IndexModel(manager.Object, logger.Object);
 
         // Act
         await page.OnGet(q: "tech");

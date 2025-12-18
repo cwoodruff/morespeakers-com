@@ -15,6 +15,7 @@ public interface IExpertiseManager
     Task<bool> DoesExpertiseWithNameExistsAsync(string expertiseName);
     Task<IEnumerable<Expertise>> FuzzySearchForExistingExpertise(string name, int count = 3);
     Task<bool> SoftDeleteAsync(int id);
+    Task<List<Expertise>> GetAllExpertisesAsync(TriState active = TriState.True, string? searchTerm = "");
 
     // Expertise queries by category
     Task<List<Expertise>> GetByCategoryIdAsync(int categoryId);

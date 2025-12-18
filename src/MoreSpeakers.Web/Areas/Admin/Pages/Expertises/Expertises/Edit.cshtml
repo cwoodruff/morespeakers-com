@@ -19,6 +19,10 @@
         <input asp-for="Input.ExpertiseCategoryId" class="form-control" />
         <span asp-validation-for="Input.ExpertiseCategoryId" class="text-danger"></span>
     </div>
+    <div class="form-check form-switch mb-3">
+        <input class="form-check-input" asp-for="Input.IsActive" />
+        <label class="form-check-label" asp-for="Input.IsActive">Active</label>
+    </div>
     <button type="submit" class="btn btn-primary">Save</button>
     <a asp-page="../Categories/Index" class="btn btn-secondary">Back</a>
     <a asp-page="Delete" asp-route-id="@Model.Id" class="btn btn-outline-danger">Soft Delete</a>

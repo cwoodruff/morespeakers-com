@@ -94,6 +94,29 @@ public class ExpertiseDataStore : IExpertiseDataStore
         return _mapper.Map<List<Expertise>>(expertises);
     }
 
+    public async Task<List<Expertise>> GetAllExpertisesAsync(TriState active = TriState.True, string? searchTerm = "")
+    {
+        var query = _context.Expertise
+            .Include(e => e.ExpertiseCategory)
+            .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            query = query.Where(e => e.Name.Contains(searchTerm));
+        }
+
+        query = active switch
+        {
+            TriState.True => query.Where(e => e.IsActive),
+            TriState.False => query.Where(e => !e.IsActive),
+            _ => query
+        };
+
+        var entities = await query.OrderBy(e => e.Name).AsNoTracking().ToListAsync();
+        return _mapper.Map<List<Expertise>>(entities);
+        
+    }
+
     public async Task<int> CreateExpertiseAsync(string name, string? description = null, int expertiseCategoryId = 0)
     {
         var expertise =

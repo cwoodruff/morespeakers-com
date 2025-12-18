@@ -39,10 +39,6 @@ public class EditModel(IExpertiseManager expertiseManager, ILogger<EditModel> lo
     public async Task<IActionResult> OnGetAsync()
     {
         var expertise = await _expertiseManager.GetAsync(Id);
-        if (expertise is null)
-        {
-            return RedirectToPage("../Categories/Index");
-        }
 
         Entity = expertise;
         Input = new InputModel
@@ -50,7 +46,7 @@ public class EditModel(IExpertiseManager expertiseManager, ILogger<EditModel> lo
             Name = expertise.Name,
             Description = expertise.Description,
             ExpertiseCategoryId = expertise.ExpertiseCategoryId,
-            IsActive = expertise is { }
+            IsActive = expertise.IsActive
         };
         return Page();
     }
@@ -63,17 +59,14 @@ public class EditModel(IExpertiseManager expertiseManager, ILogger<EditModel> lo
         }
 
         var expertise = await _expertiseManager.GetAsync(Id);
-        if (expertise is null)
-        {
-            return RedirectToPage("../Categories/Index");
-        }
 
         expertise.Name = Input.Name.Trim();
         expertise.Description = string.IsNullOrWhiteSpace(Input.Description) ? null : Input.Description!.Trim();
         expertise.ExpertiseCategoryId = Input.ExpertiseCategoryId;
+        expertise.IsActive = Input.IsActive;
 
         await _expertiseManager.SaveAsync(expertise);
         _logger.LogInformation("[Admin:Expertises] Updated expertise {Id} {Name}", expertise.Id, expertise.Name);
-        return RedirectToPage("../Categories/Index");
+        return RedirectToPage("../Expertises/Index");
     }
 }

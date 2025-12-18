@@ -78,6 +78,10 @@ public class ExpertiseManager: IExpertiseManager
         return await _dataStore.GetByCategoryIdAsync(categoryId);
     }
 
+    public async Task<List<Expertise>>
+        GetAllExpertisesAsync(TriState active = TriState.True, string? searchTerm = "") =>
+        await _dataStore.GetAllExpertisesAsync(active, searchTerm);
+
     public async Task<bool> SoftDeleteAsync(int id)
     {
         try
