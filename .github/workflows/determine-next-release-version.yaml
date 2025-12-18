@@ -84,9 +84,9 @@ jobs:
           scope="patch"
           if grep -q "BREAKING CHANGE" commits.txt; then
             scope="major"
-          elif grep -q "^feat:" commits.txt; then
+          elif grep -q -E "^feat(:|\(.+\):)" commits.txt; then
             scope="minor"
-          elif grep -q "^fix:" commits.txt; then
+          elif grep -q -E "^fix(:|\(.+\):)" commits.txt; then
             scope="patch"
           fi
 
