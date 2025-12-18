@@ -64,10 +64,29 @@ jobs:
           Id: ${{ steps.get_latest_release.outputs.id }},
           '${{ steps.get_latest_release.outputs.description }}'"
 
+      # Determine the scope of the changes based on commit messages,
+      # looking for comments following Conventional Commits
       - name: Determine scope of changes
         id: determine_change_scope
         run: |
-          echo "scope=patch" >> $GITHUB_OUTPUT
+          commits=$(git log \
+          ${{ steps.get_latest_release.outputs.release }}..HEAD \
+          --pretty=format:"%s")
+          echo "$commits" > commits.txt
+
+          if ${{ inputs.logLevel == 'info' || inputs.logLevel == 'debug' }}; then
+            cat commits.txt
+          fi
+          scope="patch"
+          if grep -q "BREAKING CHANGE" commits.txt; then
+            scope="major"
+          elif grep -q "^feat:" commits.txt; then
+            scope="minor"
+          elif grep -q "^fix:" commits.txt; then
+            scope="patch"
+          fi
+
+          echo "scope=$scope" >> $GITHUB_OUTPUT
 
       - name: Determine version
         id: determine_new_version
