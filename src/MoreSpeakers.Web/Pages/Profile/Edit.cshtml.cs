@@ -53,7 +53,7 @@ public class EditModel(
         }
 
         ProfileUser = user;
-        AvailableExpertises = await expertiseManager.GetAllAsync();
+        AvailableExpertises = await expertiseManager.GetAllExpertisesAsync();
         ExpertiseCategories = await expertiseManager.GetAllCategoriesAsync();
         SocialMediaSites = await socialMediaSiteManager.GetAllAsync();
         UserPasskeys = await userManager.GetUserPasskeysAsync(user.Id);
@@ -104,7 +104,7 @@ public class EditModel(
             }
 
             ProfileUser = userProfile;
-            AvailableExpertises = await expertiseManager.GetAllAsync();
+            AvailableExpertises = await expertiseManager.GetAllExpertisesAsync();
             ExpertiseCategories = await expertiseManager.GetAllCategoriesAsync();
             SocialMediaSites = await socialMediaSiteManager.GetAllAsync();
             UserPasskeys = await userManager.GetUserPasskeysAsync(userProfile.Id);
@@ -215,7 +215,7 @@ public class EditModel(
         }
 
         ProfileUser = user;
-        AvailableExpertises = await expertiseManager.GetAllAsync();
+        AvailableExpertises = await expertiseManager.GetAllExpertisesAsync();
         ExpertiseCategories = await expertiseManager.GetAllCategoriesAsync();
         SocialMediaSites = await socialMediaSiteManager.GetAllAsync();
         UserPasskeys = await userManager.GetUserPasskeysAsync(user.Id);
@@ -489,7 +489,7 @@ public class EditModel(
                 };
                 return Partial("_ProfileEditForm", this);
             }
-            AvailableExpertises = await expertiseManager.GetAllAsync();
+            AvailableExpertises = await expertiseManager.GetAllExpertisesAsync();
             SocialMediaSites = await socialMediaSiteManager.GetAllAsync();
             Input.SelectedExpertiseIds = Input.SelectedExpertiseIds.Concat([expertiseId]).ToArray();
 
@@ -503,7 +503,7 @@ public class EditModel(
         catch (Exception ex)
         {
             logger.LogError(ex, "Error submitting new expertise");
-            AvailableExpertises = await expertiseManager.GetAllAsync();
+            AvailableExpertises = await expertiseManager.GetAllExpertisesAsync();
             this.NewExpertiseResponse = new NewExpertiseCreatedResponse
             {
                 SavingExpertiseFailed = true, SaveExpertiseMessage =  $"Failed to create the expertise '{expertiseName}'.",
