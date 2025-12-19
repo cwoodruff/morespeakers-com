@@ -74,17 +74,17 @@
               <td>@e.Description</td>
               <td>@if (e.IsActive) { <span class="badge bg-success">Active</span> } else { <span class="badge bg-secondary">Inactive</span> }</td>
               <td>
-                <a class="btn btn-sm btn-outline-secondary" asp-page="/Admin/Expertises/Categories/Details" asp-route-id="@e.Id"><i class="bi bi-eye"></i></a>
-                <a class="btn btn-sm btn-outline-primary" asp-page="/Admin/Expertises/Categories/Edit" asp-route-id="@e.Id"><i class="bi bi-pencil"></i></a>
+                <a class="btn btn-sm btn-outline-secondary" asp-area="Admin" asp-page="/Expertises/Categories/Details" asp-route-id="@e.Id"><i class="bi bi-eye"></i></a>
+                <a class="btn btn-sm btn-outline-primary" asp-area="Admin" asp-page="/Expertises/Categories/Edit" asp-route-id="@e.Id"><i class="bi bi-pencil"></i></a>
                 @if (e.IsActive)
                 {
-                  <form method="post" asp-page="/Admin/Expertises/Categories/Index" asp-page-handler="Deactivate" asp-route-id="@e.Id" class="d-inline">
+                  <form method="post" asp-area="Admin" asp-page="/Expertises/Categories/Index" asp-page-handler="Deactivate" asp-route-id="@e.Id" class="d-inline">
                     <button type="submit" class="btn btn-sm btn-outline-danger" title="Deactivate"><i class="bi bi-archive"></i></button>
                   </form>
                 }
                 else
                 {
-                  <form method="post" asp-page="/Admin/Expertises/Categories/Index" asp-page-handler="Activate" asp-route-id="@e.Id" class="d-inline">
+                  <form method="post" asp-area="Admin" asp-page="/Expertises/Categories/Index" asp-page-handler="Activate" asp-route-id="@e.Id" class="d-inline">
                     <button type="submit" class="btn btn-sm btn-outline-success" title="Activate"><i class="bi bi-arrow-counterclockwise"></i></button>
                   </form>
                 }
