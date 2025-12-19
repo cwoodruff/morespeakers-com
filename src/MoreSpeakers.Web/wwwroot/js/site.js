@@ -6,8 +6,11 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeFormValidation();
     initializeHtmxEnhancements();
     initializeFadeInAnimations();
-    const speakerImages = document.querySelectorAll("img.speaker-img");
-    speakerImages.forEach(fixMissingSpeakerImage);
+    $("img.speaker-img").on("error", function() {
+        fixMissingSpeakerImage(this);
+    })
+    //const speakerImages = document.querySelectorAll("img.speaker-img");
+    //speakerImages.forEach(fixMissingSpeakerImage);
 });
 
 // Bootstrap tooltips initialization
@@ -23,7 +26,7 @@ function initializeFormValidation() {
     const forms = document.querySelectorAll('form[data-validate]');
 
     forms.forEach(form => {
-        form.addEventListener('submit', function(e) {
+        form.addEventListener('submit', function (e) {
             if (!validateForm(this)) {
                 e.preventDefault();
                 e.stopPropagation();
@@ -34,30 +37,33 @@ function initializeFormValidation() {
         // Real-time validation
         const inputs = form.querySelectorAll('input, textarea, select');
         inputs.forEach(input => {
-            input.addEventListener('blur', function() {
+            input.addEventListener('blur', function () {
                 validateField(this);
             });
         });
     });
 
-    jQuery.validator.addMethod("is-img-url", function (value, element) {
-
-        let isValid = false;
-
-        $.ajax({
-            type: "HEAD",
-            async: false,
-            url: value,
-            success: function(data, textStatus, jqXHR) {
-                let header = jqXHR.getResponseHeader('content-type');
-                isValid = header && header.includes('image');
-            },
-            error: function(jqXHR, textStatus, errorThrown) {
-                isValid = false;
-            }}
-        );
-        return this.optional(element) || isValid;
-    }, "Could not verify that this URL is a valid image");
+    if ($.validator) {
+        jQuery.validator.addMethod("is-img-url", function (value, element) {
+    
+            let isValid = false;
+    
+            $.ajax({
+                    type: "HEAD",
+                    async: false,
+                    url: value,
+                    success: function (data, textStatus, jqXHR) {
+                        let header = jqXHR.getResponseHeader('content-type');
+                        isValid = header && header.includes('image');
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        isValid = false;
+                    }
+                }
+            );
+            return this.optional(element) || isValid;
+        }, "Could not verify that this URL is a valid image");
+    }
 }
 
 // Validate individual form field
