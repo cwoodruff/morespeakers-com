@@ -1,6 +1,5 @@
 @page "{id:int}"
 @model MoreSpeakers.Web.Areas.Admin.Pages.Expertises.Categories.DetailsModel
-@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 
 @{
     ViewData["Title"] = "Admin • Category Details";
@@ -58,6 +57,8 @@
             <tr>
               <th class="col-4">Name</th>
               <th>Description</th>
+              <th class="col-2">Status</th>
+              <th class="col-2"></th>
             </tr>
           </thead>
           <tbody>
@@ -66,6 +67,23 @@
             <tr>
               <td>@e.Name</td>
               <td>@e.Description</td>
+              <td>@if (e.IsActive) { <span class="badge bg-success">Active</span> } else { <span class="badge bg-secondary">Inactive</span> }</td>
+              <td>
+                <a class="btn btn-sm btn-outline-secondary" asp-area="Admin" asp-page="/Expertises/Expertises/Details" asp-route-id="@e.Id"><i class="bi bi-eye"></i></a>
+                <a class="btn btn-sm btn-outline-primary" asp-area="Admin" asp-page="/Expertises/Expertises/Edit" asp-route-id="@e.Id"><i class="bi bi-pencil"></i></a>
+                @if (e.IsActive)
+                {
+                  <form method="post" asp-area="Admin" asp-page="/Expertises/Expertises/Index" asp-page-handler="Deactivate" asp-route-id="@e.Id" class="d-inline">
+                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Deactivate"><i class="bi bi-archive"></i></button>
+                  </form>
+                }
+                else
+                {
+                  <form method="post" asp-area="Admin" asp-page="/Expertises/Expertises/Index" asp-page-handler="Activate" asp-route-id="@e.Id" class="d-inline">
+                    <button type="submit" class="btn btn-sm btn-outline-success" title="Activate"><i class="bi bi-arrow-counterclockwise"></i></button>
+                  </form>
+                }
+              </td>
             </tr>
           }
           </tbody>
