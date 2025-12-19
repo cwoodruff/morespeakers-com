@@ -229,6 +229,7 @@ app.UseSession();
 app.MapDefaultEndpoints();
 app.MapRazorPages();
 app.MapPasskeyEndpoints(); // Enable passkey endpoints
+app.MapExpertiseEndpoints(); // Enable expertise API endpoints
 
 app.Run();
 

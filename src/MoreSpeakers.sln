@@ -21,6 +21,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{6AFE411A-C
 		..\docs\new-admin-functionality-implementation-plan.md = ..\docs\new-admin-functionality-implementation-plan.md
 		..\docs\new-admin-functionality-overview.md = ..\docs\new-admin-functionality-overview.md
 		..\README.md = ..\README.md
+		..\docs\api-expertises.http = ..\docs\api-expertises.http
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ExtraStuff", "ExtraStuff", "{F237316C-4113-4191-9EF7-EFA8065ED236}"
