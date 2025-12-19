@@ -57,7 +57,7 @@ public class BrowseModel : PageModel
             MentorshipType = type;
             SelectedExpertise = expertise?.Split(',').ToList() ?? [];
             AvailableNow = availableNow;
-            AvailableExpertise = await _expertiseManager.GetAllAsync();
+            AvailableExpertise = await _expertiseManager.GetAllExpertisesAsync();
 
             ViewModel = new BrowseMentorsViewModel
             {
@@ -139,7 +139,7 @@ public class BrowseModel : PageModel
             MentorshipType = mentorshipType;
             SelectedExpertise = expertise ?? new List<string>();
             AvailableNow = availability;
-            AvailableExpertise = await _expertiseManager.GetAllAsync();
+            AvailableExpertise = await _expertiseManager.GetAllExpertisesAsync();
             
             var mentors = await _mentoringManager.GetMentorsExceptForUserAsync(currentUser.Id, mentorshipType,
                 SelectedExpertise, AvailableNow);

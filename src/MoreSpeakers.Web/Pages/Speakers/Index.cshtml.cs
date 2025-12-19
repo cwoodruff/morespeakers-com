@@ -54,8 +54,8 @@ public class IndexModel : PageModel
     {
         try
         {
-            // Load all expertise for filter dropdown
-            AllExpertise = await _expertiseManager.GetAllAsync();
+            // Load all active expertise for filter dropdown
+            AllExpertise = await _expertiseManager.GetAllExpertisesAsync();
 
             // Search for the speakers
             var searchResults = await _userManager.SearchSpeakersAsync(SearchTerm, SpeakerTypeFilter, ExpertiseFilter,

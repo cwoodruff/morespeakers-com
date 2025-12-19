@@ -50,7 +50,7 @@ public class EditModel(IExpertiseManager expertiseManager, ISectorManager sector
     {
         var expertise = await _expertiseManager.GetAsync(Id);
 
-        Sectors = await _sectorManager.GetAllAsync();
+        Sectors = await _sectorManager.GetAllSectorsAsync();
         ExpertiseCategories = await _expertiseManager.GetAllCategoriesAsync();
         var expertiseCategory = await _expertiseManager.GetCategoryAsync(expertise.ExpertiseCategoryId);
         if (expertiseCategory is null)

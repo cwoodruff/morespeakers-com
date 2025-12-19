@@ -293,7 +293,7 @@ public class RegisterModel : PageModel
                 };
                 return Partial("_RegisterStep3", this);
             }
-            AvailableExpertises = await _expertiseManager.GetAllAsync();
+            AvailableExpertises = await _expertiseManager.GetAllExpertisesAsync();
             Input.SelectedExpertiseIds = Input.SelectedExpertiseIds.Concat([expertiseId]).ToArray();
             this.NewExpertiseResponse = new NewExpertiseCreatedResponse
             {
@@ -305,7 +305,7 @@ public class RegisterModel : PageModel
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error submitting new expertise");
-            AvailableExpertises = await _expertiseManager.GetAllAsync();
+            AvailableExpertises = await _expertiseManager.GetAllExpertisesAsync();
             this.NewExpertiseResponse = new NewExpertiseCreatedResponse
             {
                 SavingExpertiseFailed = true, SaveExpertiseMessage =  $"Failed to create the expertise '{expertiseName}'.",
@@ -317,7 +317,7 @@ public class RegisterModel : PageModel
 
     private async Task LoadFormLookupListsAsync()
     {
-        AvailableExpertises = await _expertiseManager.GetAllAsync();
+        AvailableExpertises = await _expertiseManager.GetAllExpertisesAsync();
         ExpertiseCategories = await _expertiseManager.GetAllCategoriesAsync();
         SpeakerTypes = await _userManager.GetSpeakerTypesAsync();
     }
