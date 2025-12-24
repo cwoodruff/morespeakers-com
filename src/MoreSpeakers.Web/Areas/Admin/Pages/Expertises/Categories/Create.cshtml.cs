@@ -7,7 +7,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace MoreSpeakers.Web.Areas.Admin.Pages.Expertises.Categories;
 
-[Authorize(Roles = "Administrator")]
+[Authorize(Roles = Domain.Constants.UserRoles.Administrator)]
 public class CreateModel(IExpertiseManager expertiseManager, ISectorManager sectorManager, ILogger<CreateModel> logger) : PageModel
 {
     private readonly IExpertiseManager _expertiseManager = expertiseManager;

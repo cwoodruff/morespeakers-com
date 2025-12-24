@@ -14,7 +14,7 @@ This makes it straightforward to introduce an Admin area, use the `Managers` as 
 ## High‑level Admin Plan (what to add)
 
 1) Admin Area & Authorization
-- Create an Admin area: `MoreSpeakers.Web/Areas/Admin` with MVC controllers or Razor Pages, protected by `[Authorize(Roles = "Administrator")]`.
+- Create an Admin area: `MoreSpeakers.Web/Areas/Admin` with MVC controllers or Razor Pages, protected by `[Authorize(Roles = Domain.Constants.UserRoles.Administrator)]`.
 - Define policies to support least privilege beyond the coarse `Administrator` role (e.g., `Policy.ManageUsers`, `Policy.ManageCatalog`, `Policy.ViewReports`). Use `[Authorize(Policy = "ManageUsers")]` for sensitive actions.
 - Add an Admin layout and navigation shell with links to Users, Social Sites, Expertise, Moderation, Settings, Reports.
 
@@ -83,7 +83,7 @@ This makes it straightforward to introduce an Admin area, use the `Managers` as 
 
 8) Security & Compliance
 - Authorization:
-    - Keep `[Authorize(Roles = "Administrator")]` for the area and apply granular policies to controller actions.
+    - Keep `[Authorize(Roles = Domain.Constants.UserRoles.Administrator)]` for the area and apply granular policies to controller actions.
     - Consider a secondary role like `Moderator` for content review without user management powers.
 - Input safety: server-side validation across all admin forms; anti-forgery tokens; strict model binding.
 - Audit logs:
@@ -401,7 +401,7 @@ This migration does not require changing Razor Pages folder conventions or page 
 Each phase will be a new issue.
 
 1. Foundation
-    - Admin area scaffold, nav shell, `[Authorize(Roles = "Administrator")]` and granular policies
+    - Admin area scaffold, nav shell, `[Authorize(Roles = Domain.Constants.UserRoles.Administrator)]` and granular policies
     - Admin landing dashboard with health and quick links
 2. Catalog Management
     - Social media sites admin CRUD with validation and previews

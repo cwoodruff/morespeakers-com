@@ -7,7 +7,7 @@ using MoreSpeakers.Domain.Models.AdminUsers;
 
 namespace MoreSpeakers.Web.Areas.Admin.Pages.Expertises.Sectors;
 
-[Authorize(Roles = "Administrator")]
+[Authorize(Roles = Domain.Constants.UserRoles.Administrator)]
 public class IndexModel(ISectorManager manager, ILogger<IndexModel> logger) : PageModel
 {
     private readonly ISectorManager _manager = manager;
