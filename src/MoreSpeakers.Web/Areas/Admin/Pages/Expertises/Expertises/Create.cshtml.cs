@@ -3,53 +3,75 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models;
+using System.ComponentModel.DataAnnotations;
+using MoreSpeakers.Web.Models.ViewModels;
 
 namespace MoreSpeakers.Web.Areas.Admin.Pages.Expertises.Expertises;
 
 [Authorize(Roles = "Administrator")]
-public class CreateModel(IExpertiseManager expertiseManager, ILogger<CreateModel> logger) : PageModel
+public class CreateModel(IExpertiseManager expertiseManager, ISectorManager sectorManager, ILogger<CreateModel> logger) : PageModel
 {
     private readonly IExpertiseManager _expertiseManager = expertiseManager;
+    private readonly ISectorManager _sectorManager = sectorManager;
     private readonly ILogger<CreateModel> _logger = logger;
 
-    [BindProperty]
-    public string Name { get; set; } = string.Empty;
-
-    [BindProperty]
-    public string? Description { get; set; }
-    
-    [BindProperty]
-    public int ExpertiseCategoryId { get; set; }
-
-    public List<ExpertiseCategory> Categories { get; private set; } = new();
-
-    public async Task OnGet()
+    public sealed class InputModel
     {
-        var cats = await _expertiseManager.GetAllCategoriesAsync();
-        Categories = cats.OrderBy(c => c.Name).ToList();
+        [Required]
+        [MaxLength(100)]
+        public string Name { get; set; } = string.Empty;
+
+        [MaxLength(500)]
+        public string? Description { get; set; }
+
+        [Range(1, int.MaxValue, ErrorMessage = "Please select a sector")]
+        public int SectorId { get; set; }
+
+        [Range(1, int.MaxValue, ErrorMessage = "Please select an expertise category")]
+        public int ExpertiseCategoryId { get; set; }
+
+        public bool IsActive { get; set; } = true;
     }
 
-    public async Task<IActionResult> OnPost()
+    [BindProperty]
+    public InputModel Input { get; set; } = new();
+
+    public List<Sector> Sectors { get; private set; } = new();
+
+    public async Task OnGetAsync()
     {
-        if (string.IsNullOrWhiteSpace(Name))
-        {
-            ModelState.AddModelError(nameof(Name), "Name is required");
-        }
+        Sectors = await _sectorManager.GetAllSectorsAsync();
+    }
+
+    public async Task<IActionResult> OnPostAsync()
+    {
         if (!ModelState.IsValid)
         {
-            await OnGet();
+            Sectors = await _sectorManager.GetAllSectorsAsync();
             return Page();
         }
 
-        var id = await _expertiseManager.CreateExpertiseAsync(Name.Trim(), Description?.Trim(), ExpertiseCategoryId);
-        if (id == 0)
+        var expertise = new Expertise
         {
-            ModelState.AddModelError(string.Empty, "Failed to create expertise");
-            await OnGet();
-            return Page();
-        }
+            Name = Input.Name.Trim(),
+            Description = string.IsNullOrWhiteSpace(Input.Description) ? null : Input.Description!.Trim(),
+            ExpertiseCategoryId = Input.ExpertiseCategoryId,
+            IsActive = Input.IsActive
+        };
 
-        _logger.LogInformation("[Admin:Expertises] Created expertise {Id} {Name}", id, Name);
-        return RedirectToPage("/Expertises/Expertises/Edit", new { area = "Admin", id });
+        var saved = await _expertiseManager.SaveAsync(expertise);
+        _logger.LogInformation("[Admin:Expertises] Created expertise {Id} {Name}", saved.Id, saved.Name);
+        return RedirectToPage("Index");
+    }
+
+    public async Task<IActionResult> OnGetCategoriesBySector(int sectorId)
+    {
+        var categories = await _expertiseManager.GetAllActiveCategoriesForSector(sectorId);
+        var viewModel = new ExpertiseCategoryDropDownViewModel
+        {
+            ExpertiseCategories = categories.OrderBy(c => c.Name).ToList()
+        };
+
+        return Partial("_ExpertiseCategorySelectItem", viewModel);
     }
 }

@@ -1,0 +1,27 @@
+@model MoreSpeakers.Web.Models.ViewModels.NameValidationInputViewModel
+@{
+    var rootApi = $"{Context.Request.Scheme}://{Context.Request.Host}/api/";
+    var getUrl = $"{rootApi}{Model.SearchEndPointUrl}?";
+    var inputId = Model.InputName.Replace(".", "_");
+}
+
+    <input name="@inputId" id="@inputId" class="form-control new-validation-input"
+           placeholder="@Model.Placeholder"
+           hx-get="@getUrl"
+           hx-trigger="blur, keyup changed delay:500ms"
+           hx-target="#@inputId-val-message"
+           hx-vals='js:{"@Model.SearchParameterName":document.getElementById("@inputId").value}'
+           hx-params="not @inputId"
+           hx-indicator="#@inputId-indicator"
+           value="@Model.Name"
+    />
+    <span asp-validation-for="@inputId" class="text-danger"></span>
+    <div id="@inputId-indicator">
+        <div class="htmx-indicator position-absolute">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Checking...</span>
+            </div>
+        </div>
+    </div>
+    <div id="@inputId-val-message" class="small mt-1 new-validation-input-val"></div>
+<script src="~/js/name-validation-input.js" asp-append-version="true"></script>
