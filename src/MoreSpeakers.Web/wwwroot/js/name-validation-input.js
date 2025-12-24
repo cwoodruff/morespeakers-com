@@ -13,20 +13,31 @@ function handleNameValidation() {
             const jsonData = JSON.parse(event.detail.xhr.responseText);
             const messageDiv = event.detail.target;
             const nameValidationInput = event.detail.elt;
-            
-            if (jsonData.$values.length === 0) { // TODO: Need to add an or if the id is the same, in case of an edit
+            const idElement = document.getElementById('Id');
+            const id = idElement ? parseInt(idElement.value) : null;
+                        
+            if (jsonData.$values.length === 0) {
                 messageDiv.innerHTML = '';
                 messageDiv.classList.remove('text-danger');
                 messageDiv.classList.add('text-success');
                 nameValidationInput.classList.remove('is-invalid');
                 nameValidationInput.classList.add('is-valid');
             } else {
-                const names = formatSectorNames(jsonData.$values);
-                messageDiv.innerHTML = '<i class="bi bi-exclamation-triangle me-1"></i>There are some names that match this... ' + names + '.';
-                messageDiv.classList.add('text-danger');
-                messageDiv.classList.remove('text-success');
-                nameValidationInput.classList.remove('is-valid');
-                nameValidationInput.classList.add('is-invalid');
+                const item = jsonData.$values.find(item => item.id === id);
+                if (item) {
+                    messageDiv.innerHTML = '';
+                    messageDiv.classList.remove('text-danger');
+                    messageDiv.classList.add('text-success');
+                    nameValidationInput.classList.remove('is-invalid');
+                    nameValidationInput.classList.add('is-valid');
+                } else {
+                    const names = formatSectorNames(jsonData.$values);
+                    messageDiv.innerHTML = '<i class="bi bi-exclamation-triangle me-1"></i>There are some names that match this... ' + names + '.';
+                    messageDiv.classList.add('text-danger');
+                    messageDiv.classList.remove('text-success');
+                    nameValidationInput.classList.remove('is-valid');
+                    nameValidationInput.classList.add('is-invalid');
+                }
             }
         }
         catch {
