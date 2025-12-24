@@ -9,8 +9,6 @@ document.addEventListener('DOMContentLoaded', function() {
     $("img.speaker-img").on("error", function() {
         fixMissingSpeakerImage(this);
     })
-    //const speakerImages = document.querySelectorAll("img.speaker-img");
-    //speakerImages.forEach(fixMissingSpeakerImage);
 });
 
 // Bootstrap tooltips initialization
@@ -227,3 +225,4 @@ function fixMissingSpeakerImage(image) {
     placeHolderDiv.appendChild(placeHolder);
     imageParent.replaceChild(placeHolderDiv, image);
 }
+
