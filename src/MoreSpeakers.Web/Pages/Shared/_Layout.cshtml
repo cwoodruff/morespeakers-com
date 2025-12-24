@@ -23,7 +23,6 @@
     <link rel="manifest" href="/images/favicons/manifest.json">
     <meta name="msapplication-TileColor" content="#ffffff">
     <meta name="msapplication-TileImage" content="/images/favicons/ms-icon-144x144.png">
-
     <script>
         const ai_connectionString = "@Settings.ApplicationInsights.ConnectionString";
         const ai_disableExceptionTracking = @Settings.ApplicationInsights.DisableExceptionTracking.ToString().ToLower();
@@ -31,20 +30,16 @@
     </script>
     <script src="~/js/ai.js"></script>
     <environment include="Production">
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" rel="stylesheet"
-              integrity="sha256-pdY4ejLKO67E0CM2tbPtq1DJ3VGDVVdqAR6j3ZwdiE4=" crossorigin="anonymous">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css" rel="stylesheet" integrity="sha256-pdY4ejLKO67E0CM2tbPtq1DJ3VGDVVdqAR6j3ZwdiE4=" crossorigin="anonymous">
         <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.8/dist/united/bootstrap.min.css" rel="stylesheet">
-        <link href="https://cdn.jsdelivr.net/npm/@@fortawesome/fontawesome-free@7.1.0/css/fontawesome.min.css"
-              rel="stylesheet" integrity="sha256-G5bovI+uHM2gCO6EwO9PFQcclSBYzTaxY6DXks3YxBU=" crossorigin="anonymous">
+        <link href="https://cdn.jsdelivr.net/npm/@@fortawesome/fontawesome-free@7.1.0/css/fontawesome.min.css" rel="stylesheet" integrity="sha256-G5bovI+uHM2gCO6EwO9PFQcclSBYzTaxY6DXks3YxBU=" crossorigin="anonymous">
     </environment>
     <environment exclude="Production">
         <link rel="stylesheet" href="~/lib/bootswatch/dist/united/bootstrap.css"/>
         <link rel="stylesheet" href="~/lib/bootstrap-icons/font/bootstrap-icons.css"/>
         <link rel="stylesheet" href="~/lib/fontawesome-free/css/all.css"/>
     </environment>
-
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true"/>
-
     <environment include="Production">
         <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.7/dist/htmx.min.js"
                 integrity="sha256-YCMa5rqds4JesVomESLV9VkhxNU7Zr9jfcGLTuJ8efk=" crossorigin="anonymous"></script>
