@@ -1,10 +1,9 @@
 @page "{id:int}"
+@using MoreSpeakers.Web.Models.ViewModels
 @model MoreSpeakers.Web.Areas.Admin.Pages.Expertises.Categories.EditModel
-@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
-@using Microsoft.AspNetCore.Mvc.Rendering
 
 @{
-    ViewData["Title"] = "Admin • Edit Category";
+  ViewData["Title"] = "Edit - Category ";
 }
 
 <h1 class="mb-4">Edit Expertise Category</h1>
@@ -17,36 +16,47 @@
   </ol>
 </nav>
 
-<form method="post" class="card">
-  <div class="card-body">
-    <div class="mb-3">
-      <label asp-for="Input.Name" class="form-label"></label>
-      <input asp-for="Input.Name" class="form-control" />
-      <span asp-validation-for="Input.Name" class="text-danger"></span>
-    </div>
-
-    <div class="mb-3">
-      <label asp-for="Input.Description" class="form-label"></label>
-      <textarea asp-for="Input.Description" class="form-control" rows="3"></textarea>
-      <span asp-validation-for="Input.Description" class="text-danger"></span>
-    </div>
-
-    <div class="mb-3">
-      <label asp-for="Input.SectorId" class="form-label">Sector</label>
-      <select asp-for="Input.SectorId" class="form-select"
-              asp-items="@(new SelectList(Model.Sectors, nameof(MoreSpeakers.Domain.Models.Sector.Id), nameof(MoreSpeakers.Domain.Models.Sector.Name)))">
-        <option value="">-- Select sector --</option>
-      </select>
-      <span asp-validation-for="Input.SectorId" class="text-danger"></span>
-    </div>
-
-    <div class="form-check form-switch mb-3">
-      <input class="form-check-input" asp-for="Input.IsActive" />
-      <label class="form-check-label" asp-for="Input.IsActive">Active</label>
-    </div>
+<form method="post">
+  <input type="hidden" asp-for="Id"/>
+  @Html.AntiForgeryToken()
+  <div class="mb-3">
+    <label asp-for="Input.Name" class="form-label"></label>
+    @{
+      var nameValidationModel = new NameValidationInputViewModel()
+      {
+        Name = Model.Input.Name,
+        InputName = "Input.Name",
+        Placeholder = "The name of sector",
+        SearchEndPointUrl = "expertises/searchExpertiseCategories"
+      };
+    }
+    <partial name="/Areas/Admin/Pages/Shared/_NameValidationInput.cshtml" model="nameValidationModel"/>
   </div>
-  <div class="card-footer d-flex gap-2">
-    <button type="submit" class="btn btn-primary">Save</button>
-    <a class="btn btn-outline-secondary" asp-page="Index">Cancel</a>
+
+  <div class="mb-3">
+    <label asp-for="Input.Description" class="form-label"></label>
+    <textarea asp-for="Input.Description" class="form-control" rows="3"></textarea>
+    <span asp-validation-for="Input.Description" class="text-danger"></span>
   </div>
+
+  <div class="mb-3">
+    <label asp-for="Input.SectorId" class="form-label">Sector</label>
+    <select asp-for="Input.SectorId" class="form-select"
+            asp-items="@(new SelectList(Model.Sectors, nameof(MoreSpeakers.Domain.Models.Sector.Id), nameof(MoreSpeakers.Domain.Models.Sector.Name)))">
+      <option value="">-- Select sector --</option>
+    </select>
+    <span asp-validation-for="Input.SectorId" class="text-danger"></span>
+  </div>
+
+  <div class="form-check form-switch mb-3">
+    <input class="form-check-input" asp-for="Input.IsActive"/>
+    <label class="form-check-label" asp-for="Input.IsActive">Active</label>
+  </div>
+
+  <button type="submit" class="btn btn-primary">Save</button>
+  <a class="btn btn-outline-secondary" asp-page="Index">Cancel</a>
 </form>
+
+@section Scripts {
+  <partial name="~/Pages/Shared/_ValidationScriptsPartial.cshtml"/>
+}

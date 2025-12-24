@@ -2,6 +2,7 @@
 @model MoreSpeakers.Web.Areas.Admin.Pages.Expertises.Categories.CreateModel
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 @using Microsoft.AspNetCore.Mvc.Rendering
+@using MoreSpeakers.Web.Models.ViewModels
 
 @{
     ViewData["Title"] = "Admin • New Category";
@@ -21,8 +22,15 @@
   <div class="card-body">
     <div class="mb-3">
       <label asp-for="Input.Name" class="form-label"></label>
-      <input asp-for="Input.Name" class="form-control" />
-      <span asp-validation-for="Input.Name" class="text-danger"></span>
+      @{
+        var nameValidationModel = new NameValidationInputViewModel()
+        {
+          InputName = "Input.Name",
+          Placeholder = "The name of sector",
+          SearchEndPointUrl = "expertises/searchExpertiseCategories"
+        };
+      }
+      <partial name="/Areas/Admin/Pages/Shared/_NameValidationInput.cshtml" model="nameValidationModel"/>
     </div>
 
     <div class="mb-3">
@@ -50,3 +58,7 @@
     <a class="btn btn-outline-secondary" asp-page="Index">Cancel</a>
   </div>
 </form>
+
+@section Scripts {
+  <partial name="~/Pages/Shared/_ValidationScriptsPartial.cshtml"/>
+}

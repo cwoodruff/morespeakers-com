@@ -1,9 +1,9 @@
 @page "{id:int}"
+@using MoreSpeakers.Web.Models.ViewModels
 @model MoreSpeakers.Web.Areas.Admin.Pages.Expertises.Sectors.EditModel
-@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 
 @{
-    ViewData["Title"] = "Admin • Edit Sector";
+    ViewData["Title"] = "Edit - Sector";
 }
 
 <h1 class="mb-4">Edit Sector</h1>
@@ -21,8 +21,16 @@
 
   <div class="mb-3">
     <label asp-for="Input.Name" class="form-label"></label>
-    <input asp-for="Input.Name" class="form-control" />
-    <span asp-validation-for="Input.Name" class="text-danger"></span>
+    @{
+      var nameValidationModel = new NameValidationInputViewModel()
+      {
+        Name = Model.Input.Name,
+        InputName = "Input.Name",
+        Placeholder = "The name of sector",
+        SearchEndPointUrl = "expertises/searchSectors"
+      };
+    }
+    <partial name="/Areas/Admin/Pages/Shared/_NameValidationInput.cshtml" model="nameValidationModel"/>
   </div>
 
   <div class="mb-3">
@@ -37,18 +45,16 @@
     <span asp-validation-for="Input.Description" class="text-danger"></span>
   </div>
 
-  <div class="row g-3">
-    <div class="col-sm-6">
+  <div class="mb-3">
       <label asp-for="Input.DisplayOrder" class="form-label"></label>
       <input asp-for="Input.DisplayOrder" class="form-control" />
       <span asp-validation-for="Input.DisplayOrder" class="text-danger"></span>
-    </div>
-    <div class="col-sm-6 d-flex align-items-end">
-      <div class="form-check ms-2">
+  </div>
+  <div class="mb-3">
+      <div class="form-check form-switch ms-2">
         <input asp-for="Input.IsActive" class="form-check-input" />
-        <label asp-for="Input.IsActive" class="form-check-label"></label>
+        <label asp-for="Input.IsActive" class="form-check-label">Active</label>
       </div>
-    </div>
   </div>
 
   <div class="mt-4 d-flex gap-2">
@@ -58,5 +64,5 @@
 </form>
 
 @section Scripts {
-  <partial name="_ValidationScriptsPartial" />
+  <partial name="~/Pages/Shared/_ValidationScriptsPartial.cshtml"/>
 }

@@ -1,0 +1,70 @@
+@page
+@using MoreSpeakers.Web.Models.ViewModels
+@model MoreSpeakers.Web.Areas.Admin.Pages.Expertises.Expertises.CreateModel
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+@{
+    ViewData["Title"] = "New Expertise";
+}
+
+<h1 class="mb-4">New Expertise</h1>
+
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a asp-area="Admin" asp-page="/Index">Admin</a></li>
+    <li class="breadcrumb-item"><a asp-area="Admin" asp-page="/Expertises/Expertises/Index">Expertises</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Create</li>
+  </ol>
+</nav>
+
+<form method="post" class="needs-validation" novalidate>
+  <div class="mb-3">
+    <label asp-for="Input.Name" class="form-label"></label>
+    @{
+      var nameValidationModel = new NameValidationInputViewModel()
+      {
+        InputName = "Input.Name",
+        Placeholder = "The name of expertise",
+        SearchEndPointUrl = "Expertises/searchExpertises"
+      };
+     }
+    <partial name="/Areas/Admin/Pages/Shared/_NameValidationInput.cshtml" model="nameValidationModel" />
+    <span asp-validation-for="Input.Name" class="text-danger"></span>
+  </div>
+
+  <div class="mb-3">
+    <label asp-for="Input.SectorId" class="form-label">Sector</label>
+    <select asp-for="Input.SectorId" class="form-select" 
+            asp-items="Model.Sectors.Select(s => new SelectListItem(s.Name, s.Id.ToString()))"
+            hx-get="@Url.Page("Create", "CategoriesBySector")" 
+            hx-target="#ExpertiseCategoryDropDown"
+            hx-trigger="change"
+            hx-indicator="#loading-expertise-categories">
+      <option value="">-- Select Sector --</option>
+    </select>
+    <span asp-validation-for="Input.SectorId" class="text-danger"></span>
+  </div>
+
+  <partial name="_ExpertiseCategorySelectItem" model="new ExpertiseCategoryDropDownViewModel()" />
+  <span asp-validation-for="Input.ExpertiseCategoryId" class="text-danger"></span>
+
+  <div class="mb-3">
+    <label asp-for="Input.Description" class="form-label"></label>
+    <textarea asp-for="Input.Description" class="form-control" rows="3"></textarea>
+    <span asp-validation-for="Input.Description" class="text-danger"></span>
+  </div>
+
+  <div class="mb-3 form-check">
+    <input asp-for="Input.IsActive" class="form-check-input" />
+    <label asp-for="Input.IsActive" class="form-check-label"></label>
+  </div>
+
+  <div class="mt-4 d-flex gap-2">
+    <button type="submit" class="btn btn-primary">Create</button>
+    <a asp-page="Index" class="btn btn-outline-secondary">Cancel</a>
+  </div>
+</form>
+
+@section Scripts {
+  <partial name="~/Pages/Shared/_ValidationScriptsPartial.cshtml"/>
+}
