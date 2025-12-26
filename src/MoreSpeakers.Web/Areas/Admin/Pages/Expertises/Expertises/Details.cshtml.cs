@@ -6,7 +6,7 @@ using MoreSpeakers.Domain.Models;
 
 namespace MoreSpeakers.Web.Areas.Admin.Pages.Expertises.Expertises;
 
-[Authorize(Roles = "Administrator")]
+[Authorize(Roles = Domain.Constants.UserRoles.Administrator)]
 public class DetailsModel(IExpertiseManager expertiseManager, ISectorManager sectorManager) : PageModel
 {
     private readonly IExpertiseManager _expertiseManager = expertiseManager;

@@ -9,7 +9,7 @@ using MoreSpeakers.Web.Models.ViewModels;
 
 namespace MoreSpeakers.Web.Areas.Admin.Pages.Expertises.Expertises;
 
-[Authorize(Roles = "Administrator")]
+[Authorize(Roles = Domain.Constants.UserRoles.Administrator)]
 public class EditModel(IExpertiseManager expertiseManager, ISectorManager sectorManager, ILogger<EditModel> logger) : PageModel
 {
     private readonly IExpertiseManager _expertiseManager = expertiseManager;

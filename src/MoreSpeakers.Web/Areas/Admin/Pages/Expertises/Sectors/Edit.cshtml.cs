@@ -7,7 +7,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace MoreSpeakers.Web.Areas.Admin.Pages.Expertises.Sectors;
 
-[Authorize(Roles = "Administrator")]
+[Authorize(Roles = Domain.Constants.UserRoles.Administrator)]
 public class EditModel(ISectorManager manager, ILogger<EditModel> logger) : PageModel
 {
     private readonly ISectorManager _manager = manager;

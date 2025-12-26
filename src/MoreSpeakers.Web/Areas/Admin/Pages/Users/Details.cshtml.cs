@@ -6,7 +6,7 @@ using MoreSpeakers.Domain.Models;
 
 namespace MoreSpeakers.Web.Areas.Admin.Pages.Users;
 
-[Authorize(Roles = "Administrator")]
+[Authorize(Roles = Domain.Constants.UserRoles.Administrator)]
 public class DetailsModel : PageModel
 {
     private readonly IUserManager _userManager;
