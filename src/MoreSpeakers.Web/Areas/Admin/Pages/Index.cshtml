@@ -16,7 +16,7 @@
 </nav>
 
 <div class="mb-4">
-  <partial name="~/Areas/Admin/Pages/Shared/_HealthStatus.cshtml" />
+  <partial name="_HealthStatus" />
   <!-- Health card is a placeholder and can be replaced with live checks later -->
 </div>
 
@@ -34,7 +34,7 @@
       };
       foreach (var t in tiles)
       {
-          @await Html.PartialAsync("~/Areas/Admin/Pages/Shared/_DashboardTile.cshtml", t)
+          @await Html.PartialAsync("_DashboardTile", t)
       }
   }
 </div>

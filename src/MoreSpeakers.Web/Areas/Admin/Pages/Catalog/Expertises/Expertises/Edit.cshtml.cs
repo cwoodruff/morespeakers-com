@@ -96,7 +96,7 @@ public class EditModel(IExpertiseManager expertiseManager, ISectorManager sector
         {
             ExpertiseCategories = categories, SelectedCategoryId = Input.ExpertiseCategoryId
         };
-        return Partial("/Areas/Admin/Pages/Expertises/Expertises/_ExpertiseCategorySelectItem.cshtml", expertiseCategorySelectItem);
+        return Partial("_ExpertiseCategorySelectItem", expertiseCategorySelectItem);
 
     }
 }
