@@ -101,7 +101,7 @@ builder.Services.Configure<IdentityPasskeyOptions>(options =>
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.LoginPath = "/Identity/Account/Login";
-    options.AccessDeniedPath = "/Identity/Account/AccessDenied";
+    options.AccessDeniedPath = "/Pages/NotFound";
 });
 
 // Add Authorization with AdminOnly policy
@@ -214,6 +214,9 @@ else
     app.UseExceptionHandler("/Error");
     app.UseHsts();
 }
+
+// Handle 404 errors
+app.UseStatusCodePagesWithReExecute("/NotFound");
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
