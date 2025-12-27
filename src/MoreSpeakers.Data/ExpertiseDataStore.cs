@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 
 using MoreSpeakers.Domain.Models;
 using MoreSpeakers.Domain.Interfaces;
+using MoreSpeakers.Domain.Models.AdminUsers;
 
 namespace MoreSpeakers.Data;
 
@@ -23,7 +24,7 @@ public class ExpertiseDataStore : IExpertiseDataStore
 
     public async Task<Expertise?> GetAsync(int primaryKey)
     {
-        var expertise = await _context.Expertise.FirstOrDefaultAsync(e => e.Id == primaryKey);
+        var expertise = await _context.Expertise.AsNoTracking().FirstOrDefaultAsync(e => e.Id == primaryKey);
         return _mapper.Map<Expertise?>(expertise);
     }
 
@@ -93,10 +94,33 @@ public class ExpertiseDataStore : IExpertiseDataStore
         return _mapper.Map<List<Expertise>>(expertises);
     }
 
+    public async Task<List<Expertise>> GetAllExpertisesAsync(TriState active = TriState.True, string? searchTerm = "")
+    {
+        var query = _context.Expertise
+            .Include(e => e.ExpertiseCategory)
+            .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            query = query.Where(e => e.Name.Contains(searchTerm));
+        }
+
+        query = active switch
+        {
+            TriState.True => query.Where(e => e.IsActive),
+            TriState.False => query.Where(e => !e.IsActive),
+            _ => query
+        };
+
+        var entities = await query.OrderBy(e => e.Name).AsNoTracking().ToListAsync();
+        return _mapper.Map<List<Expertise>>(entities);
+        
+    }
+
     public async Task<int> CreateExpertiseAsync(string name, string? description = null, int expertiseCategoryId = 0)
     {
         var expertise =
-            new Data.Models.Expertise { Name = name, Description = description, CreatedDate = DateTime.UtcNow, ExpertiseCategoryId = expertiseCategoryId };
+            new Data.Models.Expertise { Name = name, Description = description, CreatedDate = DateTime.UtcNow, ExpertiseCategoryId = expertiseCategoryId, IsActive = true };
         _context.Expertise.Add(expertise);
 
         try
@@ -116,6 +140,31 @@ public class ExpertiseDataStore : IExpertiseDataStore
         }
 
         return 0;
+    }
+
+    public async Task<bool> SoftDeleteAsync(int id)
+    {
+        var entity = await _context.Expertise.FirstOrDefaultAsync(e => e.Id == id);
+        if (entity is null)
+        {
+            return true;
+        }
+
+        if (!entity.IsActive)
+        {
+            return true;
+        }
+
+        entity.IsActive = false;
+        try
+        {
+            return await _context.SaveChangesAsync() != 0;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to soft delete expertise id {Id}", id);
+            return false;
+        }
     }
 
     public async Task<IEnumerable<Expertise>> GetPopularExpertiseAsync(int count = 10)
@@ -161,7 +210,9 @@ public class ExpertiseDataStore : IExpertiseDataStore
     // Category operations
     public async Task<ExpertiseCategory?> GetCategoryAsync(int id)
     {
-        var entity = await _context.ExpertiseCategory.FirstOrDefaultAsync(c => c.Id == id);
+        var entity = await _context.ExpertiseCategory
+            .Include(c => c.Sector)
+            .AsNoTracking().FirstOrDefaultAsync(c => c.Id == id);
         return _mapper.Map<ExpertiseCategory?>(entity);
     }
 
@@ -216,14 +267,36 @@ public class ExpertiseDataStore : IExpertiseDataStore
         }
     }
 
-    public async Task<List<ExpertiseCategory>> GetAllCategoriesAsync(bool onlyActive = true)
+    public async Task<List<ExpertiseCategory>> GetAllCategoriesAsync(TriState active = TriState.True, string? searchTerm = "")
     {
-        var query = _context.ExpertiseCategory.AsQueryable();
-        if (onlyActive)
+        var query = _context.ExpertiseCategory
+            .Include(c => c.Expertises)
+            .Include(c=> c.Sector)
+            .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(searchTerm))
         {
-            query = query.Where(c => c.IsActive);
+            query = query.Where(c => c.Name.Contains(searchTerm));
         }
-        var entities = await query.OrderBy(c => c.Name).ToListAsync();
+
+        query = active switch
+        {
+            TriState.True => query.Where(c => c.IsActive),
+            TriState.False => query.Where(c => !c.IsActive),
+            _ => query
+        };
+
+        var entities = await query.OrderBy(c => c.Name).AsNoTracking().ToListAsync();
         return _mapper.Map<List<ExpertiseCategory>>(entities);
     }
+
+    public async Task<List<ExpertiseCategory>> GetAllActiveCategoriesForSector(int sectorId)
+    {
+        var categories = await _context.ExpertiseCategory
+            .Where(c => c.SectorId == sectorId && c.IsActive)
+            .OrderBy(c => c.Name)
+            .ToListAsync();
+        return _mapper.Map<List<ExpertiseCategory>>(categories);
+    }
+    
 }

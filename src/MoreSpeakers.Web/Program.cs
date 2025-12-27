@@ -108,20 +108,31 @@ builder.Services.ConfigureApplicationCookie(options =>
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("AdminOnly", policy =>
-        policy.RequireRole("Administrator"));
+        policy.RequireRole(AppRoles.Administrator));
+
+    options.AddPolicy(PolicyNames.ManageUsers, policy =>
+        policy.RequireRole(AppRoles.Administrator, AppRoles.UserManager, AppRoles.Moderator));
+
+    options.AddPolicy(PolicyNames.ManageCatalog, policy =>
+        policy.RequireRole(AppRoles.Administrator, AppRoles.CatalogManager, AppRoles.Moderator));
+
+    options.AddPolicy(PolicyNames.ViewReports, policy =>
+        policy.RequireRole(AppRoles.Administrator, AppRoles.Reporter, AppRoles.Moderator));
 });
 
 // Add Razor Pages
+builder.Services.AddMvcCore().AddRazorViewEngine();
+//builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages(options =>
 {
     options.Conventions.AuthorizeAreaFolder("Identity", "/Account/Manage");
     options.Conventions.AuthorizeAreaPage("Identity", "/Account/Logout");
 
     // Admin area baseline: require AdminOnly for all pages under /Admin
-    // Keep the dashboard (Index) under AdminOnly only; granular policies apply to sub-folders below.
-    options.Conventions.AuthorizeAreaFolder("Admin", "/", policy: "AdminOnly");
+    // Keep the dashboard (Index) under AdminOnly only; granular policies apply to the subfolders below.
+    options.Conventions.AuthorizeAreaFolder("Admin", "/", policy: PolicyNames.AdminOnly);
 
-    // Granular least-privilege policies by sub-folder within the Admin area
+    // Granular least-privilege policies by subfolders within the Admin area
     // Users management pages → ManageUsers policy
     options.Conventions.AuthorizeAreaFolder("Admin", "/Users", policy: PolicyNames.ManageUsers);
     // Catalog/content management pages → ManageCatalog policy
@@ -129,8 +140,6 @@ builder.Services.AddRazorPages(options =>
     // Reports/analytics pages → ViewReports policy
     options.Conventions.AuthorizeAreaFolder("Admin", "/Reports", policy: PolicyNames.ViewReports);
 });
-builder.Services.AddMvcCore().AddRazorViewEngine();
-builder.Services.AddControllersWithViews();
 
 // Add authorization policies for least-privilege admin operations
 builder.Services.AddAuthorization(options =>
@@ -159,9 +168,11 @@ builder.AddAzureQueueServiceClient("AzureStorageQueues");
 builder.Services.AddScoped<IExpertiseDataStore, ExpertiseDataStore>();
 builder.Services.AddScoped<IMentoringDataStore, MentoringDataStore>();
 builder.Services.AddScoped<ISocialMediaSiteDataStore, SocialMediaSiteDataStore>();
+builder.Services.AddScoped<ISectorDataStore, SectorDataStore>(); 
 builder.Services.AddScoped<IUserDataStore, UserDataStore>();
 builder.Services.AddScoped<IExpertiseManager, ExpertiseManager>();
 builder.Services.AddScoped<IMentoringManager, MentoringManager>();
+builder.Services.AddScoped<ISectorManager, SectorManager>();
 builder.Services.AddScoped<ISocialMediaSiteManager, SocialMediaSiteManager>();
 builder.Services.AddScoped<IUserManager, UserManager>();
 
@@ -216,8 +227,9 @@ app.UseAuthorization();
 app.UseSession();
 
 app.MapDefaultEndpoints();
-app.MapRazorPages();
+app.MapRazorPages().WithStaticAssets();
 app.MapPasskeyEndpoints(); // Enable passkey endpoints
+app.MapExpertiseEndpoints(); // Enable expertise API endpoints
 
 app.Run();
 

@@ -1,0 +1,23 @@
+### GET Expertises - Sectors - searchSectors - with existing sector
+GET https://localhost:7001/api/Expertises/searchSectors?q=Tech
+Accept: application/json
+
+### GET Expertises - Sectors - searchSectors - with a non-existing sector
+GET https://localhost:7001/api/Expertises/searchSectors?q=abc123
+Accept: application/json
+
+### GET Expertises - ExpertiseCategory - searchExpertiseCategories - with existing ExpertiseCategory
+GET https://localhost:7001/api/Expertises/searchExpertiseCategories?q=.NET
+Accept: application/json
+
+### GET Expertises - ExpertiseCategory - searchExpertiseCategories - with a non-existing ExpertiseCategory
+GET https://localhost:7001/api/Expertises/searchExpertiseCategories?q=abc123
+Accept: application/json
+
+### GET Expertises - Expertise - searchExpertises - with existing expertise
+GET https://localhost:7001/api/Expertises/searchExpertises?q=General
+Accept: application/json
+
+### GET Expertises - Expertise - searchExpertises - with a non-existing expertise
+GET https://localhost:7001/api/Expertises/searchExpertises?q=abc123
+Accept: application/json

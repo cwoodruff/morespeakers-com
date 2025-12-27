@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models;
+using MoreSpeakers.Domain.Models.AdminUsers;
 
 namespace MoreSpeakers.Managers.Tests;
 
@@ -168,6 +169,30 @@ public class ExpertiseManagerTests
         result.Should().BeSameAs(expected);
         _dataStoreMock.Verify(d => d.FuzzySearchForExistingExpertise("AI", 4), Times.Once);
     }
+
+    [Fact]
+    public async Task SoftDeleteAsync_should_delegate_and_return_true()
+    {
+        _dataStoreMock.Setup(d => d.SoftDeleteAsync(5)).ReturnsAsync(true);
+        var sut = CreateSut();
+
+        var result = await sut.SoftDeleteAsync(5);
+
+        result.Should().BeTrue();
+        _dataStoreMock.Verify(d => d.SoftDeleteAsync(5), Times.Once);
+    }
+
+    [Fact]
+    public async Task SoftDeleteAsync_should_delegate_and_return_false()
+    {
+        _dataStoreMock.Setup(d => d.SoftDeleteAsync(6)).ReturnsAsync(false);
+        var sut = CreateSut();
+
+        var result = await sut.SoftDeleteAsync(6);
+
+        result.Should().BeFalse();
+        _dataStoreMock.Verify(d => d.SoftDeleteAsync(6), Times.Once);
+    }
 }
 
 public class ExpertiseManagerCategoryTests
@@ -200,7 +225,7 @@ public class ExpertiseManagerCategoryTests
         _dataStoreMock.Setup(d => d.SaveCategoryAsync(It.IsAny<ExpertiseCategory>()))
             .ReturnsAsync((ExpertiseCategory c) => c);
         _dataStoreMock.Setup(d => d.DeleteCategoryAsync(2)).ReturnsAsync(true);
-        _dataStoreMock.Setup(d => d.GetAllCategoriesAsync(true)).ReturnsAsync(categories);
+        _dataStoreMock.Setup(d => d.GetAllCategoriesAsync(TriState.True)).ReturnsAsync(categories);
 
         var sut = CreateSut();
 
@@ -216,8 +241,8 @@ public class ExpertiseManagerCategoryTests
         deleted.Should().BeTrue();
         _dataStoreMock.Verify(d => d.DeleteCategoryAsync(2), Times.Once);
 
-        var list = await sut.GetAllCategoriesAsync(true);
+        var list = await sut.GetAllCategoriesAsync(TriState.True);
         list.Should().BeSameAs(categories);
-        _dataStoreMock.Verify(d => d.GetAllCategoriesAsync(true), Times.Once);
+        _dataStoreMock.Verify(d => d.GetAllCategoriesAsync(TriState.True), Times.Once);
     }
 }

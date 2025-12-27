@@ -153,27 +153,54 @@ create index IX_AspNetUserPasskeys_UserId
     on AspNetUserPasskeys (UserId)
 go
 
-create table ExpertiseCategories (
-      Id int primary key not null,
-      Name nvarchar(100) not null,
-      Description nvarchar(500),
-      CreatedDate datetime2 default (sysutcdatetime()) not null,
-      IsActive bit default ((1)) not null
+create table dbo.Expertises
+(
+    Id                  int identity
+        primary key,
+    Name                nvarchar(100)                  not null
+        unique,
+    Description         nvarchar(500),
+    CreatedDate         datetime2 default getutcdate() not null,
+    IsActive            bit       default 1            not null,
+    ExpertiseCategoryId int                            not null
+        constraint FK_Expertises_ExpertiseCategories_ExpertiseCategoryId
+            references dbo.ExpertiseCategories
+)
+go
+
+create index IX_Expertises_ExpertiseCategoryId
+    on dbo.Expertises (ExpertiseCategoryId)
+go
+
+CREATE TABLE dbo.Sectors
+(
+    Id INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_Sectors PRIMARY KEY,
+    Name VARCHAR(255) NOT NULL,
+    Slug VARCHAR(500) NULL,
+    Description VARCHAR(255) NULL,
+    DisplayOrder INT NOT NULL CONSTRAINT DF_Sectors_DisplayOrder DEFAULT (0),
+    IsActive BIT NOT NULL CONSTRAINT DF_Sectors_IsActive DEFAULT (1)
 );
-create unique index UQ__Expertis__737584F65139BC94 on ExpertiseCategories (Name);
 GO
 
-create table dbo.Expertises (
-     Id int primary key not null,
-     Name nvarchar(100) not null,
-     Description nvarchar(500),
-     CreatedDate datetime2 default (getutcdate()) not null,
-     IsActive bit default ((1)) not null,
-     ExpertiseCategoryId int not null,
-     foreign key (ExpertiseCategoryId) references ExpertiseCategories (Id)
+CREATE UNIQUE INDEX UX_Sectors_Name ON dbo.Sectors (Name);
+GO
+
+CREATE UNIQUE INDEX UX_Sectors_Slug ON dbo.Sectors (Slug) WHERE Slug IS NOT NULL;
+GO
+
+create table ExpertiseCategories (
+                                     Id int primary key not null,
+                                     Name nvarchar(100) not null,
+                                     Description nvarchar(500),
+                                     CreatedDate datetime2 default (sysutcdatetime()) not null,
+                                     IsActive bit default ((1)) not null,
+                                     SectorId int not null
+                                         constraint FK_ExpertiseCategories_Sectors
+                                             references dbo.Sectors (Id)
 );
-create index IX_Expertises_ExpertiseCategoryId on Expertises (ExpertiseCategoryId);
-create unique index UQ__Expertis__737584F6EB425532 on Expertises (Name);
+create unique index UQ__Expertis__737584F65139BC94 on ExpertiseCategories (Name);
+create index IX_ExpertiseCategories_SectorId on ExpertiseCategories (SectorId);
 GO
 
 create table Mentorships

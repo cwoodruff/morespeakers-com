@@ -14,27 +14,6 @@
         <Title>More Speakers - Web</Title>
     </PropertyGroup>
 
-    <PropertyGroup>
-        <VersionMajor>1</VersionMajor>
-        <VersionMinor>4</VersionMinor>
-        <VersionBuild>1</VersionBuild>
-    </PropertyGroup>
-    <PropertyGroup>
-        <VersionPrefix>$(VersionMajor).$(VersionMinor).$(VersionBuild)</VersionPrefix>
-    </PropertyGroup>
-    <PropertyGroup>
-        <VersionSuffix Condition=" '$(GITHUB_RUN_ID)' == '' ">local</VersionSuffix>
-        <VersionSuffix Condition=" '$(GITHUB_RUN_ID)' != '' And '$(Configuration)' == 'Debug'">$(GITHUB_RUN_ID)-preview</VersionSuffix>
-    </PropertyGroup>
-    <PropertyGroup>
-        <AssemblyVersion Condition=" '$(VersionSuffix)' != '' ">$(VersionPrefix)-$(VersionSuffix)</AssemblyVersion>
-        <AssemblyVersion Condition=" '$(VersionSuffix)' == '' ">$(VersionPrefix)</AssemblyVersion>
-    </PropertyGroup>
-    <PropertyGroup>
-        <AssemblyVersion>$(VersionPrefix)</AssemblyVersion>
-        <FileVersion>$(VersionPrefix)</FileVersion>
-        <ProductVersion>$(VersionPrefix)($VersionSuffix)</ProductVersion>
-    </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
         <DocumentationFile>bin\Debug\MoreSpeakers.Web.xml</DocumentationFile>
     </PropertyGroup>
@@ -43,17 +22,17 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Aspire.Azure.Data.Tables" Version="13.0.2" />
-        <PackageReference Include="Aspire.Azure.Storage.Blobs" Version="13.0.2" />
-        <PackageReference Include="Aspire.Azure.Storage.Queues" Version="13.0.2" />
-        <PackageReference Include="Aspire.Microsoft.EntityFrameworkCore.SqlServer" Version="13.0.2" />
+        <PackageReference Include="Aspire.Azure.Data.Tables" Version="13.1.0" />
+        <PackageReference Include="Aspire.Azure.Storage.Blobs" Version="13.1.0" />
+        <PackageReference Include="Aspire.Azure.Storage.Queues" Version="13.1.0" />
+        <PackageReference Include="Aspire.Microsoft.EntityFrameworkCore.SqlServer" Version="13.1.0" />
         <PackageReference Include="Microsoft.ApplicationInsights" Version="2.23.0" />
         <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.23.0" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.0">
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.1">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.0">
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.1">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
@@ -71,5 +50,37 @@
         <ProjectReference Include="..\MoreSpeakers.Domain\MoreSpeakers.Domain.csproj" />
         <ProjectReference Include="..\MoreSpeakers.Managers\MoreSpeakers.Managers.csproj" />
         <ProjectReference Include="..\MoreSpeakers.ServiceDefaults\MoreSpeakers.ServiceDefaults.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <_ContentIncludedByDefault Remove="Areas\Admin\Pages\Expertises\Categories\Create.cshtml" />
+      <_ContentIncludedByDefault Remove="Areas\Admin\Pages\Expertises\Categories\Details.cshtml" />
+      <_ContentIncludedByDefault Remove="Areas\Admin\Pages\Expertises\Categories\Edit.cshtml" />
+      <_ContentIncludedByDefault Remove="Areas\Admin\Pages\Expertises\Categories\Index.cshtml" />
+      <_ContentIncludedByDefault Remove="Areas\Admin\Pages\Expertises\Expertises\Create.cshtml" />
+      <_ContentIncludedByDefault Remove="Areas\Admin\Pages\Expertises\Expertises\Details.cshtml" />
+      <_ContentIncludedByDefault Remove="Areas\Admin\Pages\Expertises\Expertises\Edit.cshtml" />
+      <_ContentIncludedByDefault Remove="Areas\Admin\Pages\Expertises\Expertises\Index.cshtml" />
+      <_ContentIncludedByDefault Remove="Areas\Admin\Pages\Expertises\Expertises\_ExpertiseCategorySelectItem.cshtml" />
+      <_ContentIncludedByDefault Remove="Areas\Admin\Pages\Expertises\Sectors\Create.cshtml" />
+      <_ContentIncludedByDefault Remove="Areas\Admin\Pages\Expertises\Sectors\Details.cshtml" />
+      <_ContentIncludedByDefault Remove="Areas\Admin\Pages\Expertises\Sectors\Edit.cshtml" />
+      <_ContentIncludedByDefault Remove="Areas\Admin\Pages\Expertises\Sectors\Index.cshtml" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <AdditionalFiles Include="Areas\Admin\Pages\Catalog\Expertises\Categories\Create.cshtml" />
+      <AdditionalFiles Include="Areas\Admin\Pages\Catalog\Expertises\Categories\Details.cshtml" />
+      <AdditionalFiles Include="Areas\Admin\Pages\Catalog\Expertises\Categories\Edit.cshtml" />
+      <AdditionalFiles Include="Areas\Admin\Pages\Catalog\Expertises\Categories\Index.cshtml" />
+      <AdditionalFiles Include="Areas\Admin\Pages\Catalog\Expertises\Expertises\Create.cshtml" />
+      <AdditionalFiles Include="Areas\Admin\Pages\Catalog\Expertises\Expertises\Details.cshtml" />
+      <AdditionalFiles Include="Areas\Admin\Pages\Catalog\Expertises\Expertises\Edit.cshtml" />
+      <AdditionalFiles Include="Areas\Admin\Pages\Catalog\Expertises\Expertises\Index.cshtml" />
+      <AdditionalFiles Include="Areas\Admin\Pages\Catalog\Expertises\Expertises\_ExpertiseCategorySelectItem.cshtml" />
+      <AdditionalFiles Include="Areas\Admin\Pages\Catalog\Expertises\Sectors\Create.cshtml" />
+      <AdditionalFiles Include="Areas\Admin\Pages\Catalog\Expertises\Sectors\Details.cshtml" />
+      <AdditionalFiles Include="Areas\Admin\Pages\Catalog\Expertises\Sectors\Edit.cshtml" />
+      <AdditionalFiles Include="Areas\Admin\Pages\Catalog\Expertises\Sectors\Index.cshtml" />
     </ItemGroup>
 </Project>

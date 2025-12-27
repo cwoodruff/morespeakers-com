@@ -18,6 +18,7 @@ public class MoreSpeakersDbContext
     public DbSet<SpeakerType> SpeakerType { get; set; }
     public DbSet<Expertise> Expertise { get; set; }
     public DbSet<ExpertiseCategory> ExpertiseCategory { get; set; }
+    public DbSet<Sector> Sectors { get; set; }
     public DbSet<UserExpertise> UserExpertise { get; set; }
     public DbSet<Mentorship> Mentorship { get; set; }
     public DbSet<MentorshipExpertise> MentorshipExpertise { get; set; }
@@ -83,6 +84,9 @@ public class MoreSpeakersDbContext
 
             entity.Property(e => e.CreatedDate)
                 .HasDefaultValueSql("GETUTCDATE()");
+            
+            entity.Property(e => e.IsActive)
+                .HasDefaultValue(true);
 
             entity.HasIndex(e => e.ExpertiseCategoryId);
 
@@ -90,6 +94,29 @@ public class MoreSpeakersDbContext
                 .WithMany(c => c.Expertises)
                 .HasForeignKey(e => e.ExpertiseCategoryId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+        
+        builder.Entity<Sector>(entity =>
+        {
+            entity.ToTable("Sectors");
+
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.Name)
+                .IsRequired()
+                .HasMaxLength(255);
+
+            entity.Property(e => e.Slug)
+                .HasMaxLength(500);
+
+            entity.Property(e => e.Description)
+                .HasMaxLength(255);
+
+            entity.Property(e => e.IsActive)
+                .HasDefaultValue(true);
+
+            entity.HasIndex(e => e.Name).IsUnique();
+            entity.HasIndex(e => e.Slug).IsUnique();
         });
 
         // Configure ExpertiseCategory entity
@@ -100,6 +127,12 @@ public class MoreSpeakersDbContext
             entity.Property(e => e.Name).IsRequired();
             entity.Property(e => e.CreatedDate).HasDefaultValueSql("GETUTCDATE()");
             entity.Property(e => e.IsActive).HasDefaultValue(true);
+            entity.HasIndex(e => e.SectorId);
+
+            entity.HasOne(e => e.Sector)
+                .WithMany(s => s.ExpertiseCategories)
+                .HasForeignKey(e => e.SectorId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         // Configure UserExpertise many-to-many relationship

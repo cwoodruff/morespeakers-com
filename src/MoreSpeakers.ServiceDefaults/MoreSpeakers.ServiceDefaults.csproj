@@ -16,27 +16,6 @@
 
     </PropertyGroup>
 
-    <PropertyGroup>
-        <VersionMajor>1</VersionMajor>
-        <VersionMinor>4</VersionMinor>
-        <VersionBuild>1</VersionBuild>
-    </PropertyGroup>
-    <PropertyGroup>
-        <VersionPrefix>$(VersionMajor).$(VersionMinor).$(VersionBuild)</VersionPrefix>
-    </PropertyGroup>
-    <PropertyGroup>
-        <VersionSuffix Condition=" '$(GITHUB_RUN_ID)' == '' ">local</VersionSuffix>
-        <VersionSuffix Condition=" '$(GITHUB_RUN_ID)' != '' And '$(Configuration)' == 'Debug'">$(GITHUB_RUN_ID)-preview</VersionSuffix>
-    </PropertyGroup>
-    <PropertyGroup>
-        <AssemblyVersion Condition=" '$(VersionSuffix)' != '' ">$(VersionPrefix)-$(VersionSuffix)</AssemblyVersion>
-        <AssemblyVersion Condition=" '$(VersionSuffix)' == '' ">$(VersionPrefix)</AssemblyVersion>
-    </PropertyGroup>
-    <PropertyGroup>
-        <AssemblyVersion>$(VersionPrefix)</AssemblyVersion>
-        <FileVersion>$(VersionPrefix)</FileVersion>
-        <ProductVersion>$(VersionPrefix)($VersionSuffix)</ProductVersion>
-    </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
         <DocumentationFile>bin\Debug\MoreSpeakers.Web.xml</DocumentationFile>
     </PropertyGroup>
@@ -47,8 +26,8 @@
     <ItemGroup>
         <FrameworkReference Include="Microsoft.AspNetCore.App" />
 
-        <PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="10.0.0" />
-        <PackageReference Include="Microsoft.Extensions.ServiceDiscovery" Version="10.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="10.1.0" />
+        <PackageReference Include="Microsoft.Extensions.ServiceDiscovery" Version="10.1.0" />
         <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.14.0" />
         <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.14.0" />
         <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.14.0" />

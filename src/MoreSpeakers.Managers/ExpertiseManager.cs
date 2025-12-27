@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models;
+using MoreSpeakers.Domain.Models.AdminUsers;
 
 namespace MoreSpeakers.Managers;
 
@@ -31,6 +32,11 @@ public class ExpertiseManager: IExpertiseManager
         return await _dataStore.SaveAsync(entity);
     }
 
+    /// <summary>
+    /// Gets all expertises, including inactive ones.
+    /// </summary>
+    /// <returns>A List of <see cref="Expertise" /></returns>
+    /// <remarks>If you want to filter the list of expertise, use <see cref="GetAllExpertisesAsync" /> instead.</remarks>
     public async Task<List<Expertise>> GetAllAsync()
     {
         return await _dataStore.GetAllAsync();
@@ -77,6 +83,39 @@ public class ExpertiseManager: IExpertiseManager
         return await _dataStore.GetByCategoryIdAsync(categoryId);
     }
 
+    /// <summary>
+    /// Gets all expertises, optionally including inactive ones, or both.
+    /// </summary>
+    /// <param name="active">A <see cref="TriState" /> value indicating whether to include active sectors, inactive sectors, or both.</param>
+    /// <param name="searchTerm">A search term to filter sectors by name.</param>
+    /// <returns>A List of <see cref="Expertise" /></returns>
+    /// <remarks>If you want to get the list of all expertises regardless of IsActive flag, you can use <see cref="GetAllAsync" /> instead.</remarks>
+    public async Task<List<Expertise>>
+        GetAllExpertisesAsync(TriState active = TriState.True, string? searchTerm = "") =>
+        await _dataStore.GetAllExpertisesAsync(active, searchTerm);
+
+    public async Task<bool> SoftDeleteAsync(int id)
+    {
+        try
+        {
+            var result = await _dataStore.SoftDeleteAsync(id);
+            if (result)
+            {
+                _logger.LogInformation("Soft-deleted expertise with id {Id}", id);
+            }
+            else
+            {
+                _logger.LogWarning("Soft delete returned false for expertise id {Id}", id);
+            }
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to soft delete expertise id {Id}", id);
+            return false;
+        }
+    }
+
     public async Task<ExpertiseCategory?> GetCategoryAsync(int id)
     {
         return await _dataStore.GetCategoryAsync(id);
@@ -92,8 +131,17 @@ public class ExpertiseManager: IExpertiseManager
         return await _dataStore.DeleteCategoryAsync(id);
     }
 
-    public async Task<List<ExpertiseCategory>> GetAllCategoriesAsync(bool onlyActive = true)
+    /// <summary>
+    /// Gets all expertise categories, optionally including inactive ones, or both.
+    /// </summary>
+    /// <param name="active">A <see cref="TriState" /> value indicating whether to include active sectors, inactive sectors, or both.</param>
+    /// <param name="searchTerm">A search term to filter sectors by name.</param>
+    /// <returns>A List of <see cref="Expertise" /></returns>
+    public async Task<List<ExpertiseCategory>> GetAllCategoriesAsync(TriState active = TriState.True, string? searchTerm = "")
     {
-        return await _dataStore.GetAllCategoriesAsync(onlyActive);
+        return await _dataStore.GetAllCategoriesAsync(active, searchTerm);
     }
+    
+    public async Task<List<ExpertiseCategory>> GetAllActiveCategoriesForSector(int sectorId) =>
+        await _dataStore.GetAllActiveCategoriesForSector(sectorId);
 }
