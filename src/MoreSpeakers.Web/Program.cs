@@ -121,8 +121,6 @@ builder.Services.AddAuthorization(options =>
 });
 
 // Add Razor Pages
-builder.Services.AddMvcCore().AddRazorViewEngine();
-//builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages(options =>
 {
     options.Conventions.AuthorizeAreaFolder("Identity", "/Account/Manage");
@@ -205,11 +203,7 @@ builder.Services.AddSession(options =>
 });
 
 var app = builder.Build();
-if (app.Environment.IsDevelopment())
-{
-    app.UseDeveloperExceptionPage();
-}
-else
+if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error");
     app.UseHsts();
