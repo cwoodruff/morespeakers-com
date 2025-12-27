@@ -51,4 +51,36 @@
         <ProjectReference Include="..\MoreSpeakers.Managers\MoreSpeakers.Managers.csproj" />
         <ProjectReference Include="..\MoreSpeakers.ServiceDefaults\MoreSpeakers.ServiceDefaults.csproj" />
     </ItemGroup>
+
+    <ItemGroup>
+      <_ContentIncludedByDefault Remove="Areas\Admin\Pages\Expertises\Categories\Create.cshtml" />
+      <_ContentIncludedByDefault Remove="Areas\Admin\Pages\Expertises\Categories\Details.cshtml" />
+      <_ContentIncludedByDefault Remove="Areas\Admin\Pages\Expertises\Categories\Edit.cshtml" />
+      <_ContentIncludedByDefault Remove="Areas\Admin\Pages\Expertises\Categories\Index.cshtml" />
+      <_ContentIncludedByDefault Remove="Areas\Admin\Pages\Expertises\Expertises\Create.cshtml" />
+      <_ContentIncludedByDefault Remove="Areas\Admin\Pages\Expertises\Expertises\Details.cshtml" />
+      <_ContentIncludedByDefault Remove="Areas\Admin\Pages\Expertises\Expertises\Edit.cshtml" />
+      <_ContentIncludedByDefault Remove="Areas\Admin\Pages\Expertises\Expertises\Index.cshtml" />
+      <_ContentIncludedByDefault Remove="Areas\Admin\Pages\Expertises\Expertises\_ExpertiseCategorySelectItem.cshtml" />
+      <_ContentIncludedByDefault Remove="Areas\Admin\Pages\Expertises\Sectors\Create.cshtml" />
+      <_ContentIncludedByDefault Remove="Areas\Admin\Pages\Expertises\Sectors\Details.cshtml" />
+      <_ContentIncludedByDefault Remove="Areas\Admin\Pages\Expertises\Sectors\Edit.cshtml" />
+      <_ContentIncludedByDefault Remove="Areas\Admin\Pages\Expertises\Sectors\Index.cshtml" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <AdditionalFiles Include="Areas\Admin\Pages\Catalog\Expertises\Categories\Create.cshtml" />
+      <AdditionalFiles Include="Areas\Admin\Pages\Catalog\Expertises\Categories\Details.cshtml" />
+      <AdditionalFiles Include="Areas\Admin\Pages\Catalog\Expertises\Categories\Edit.cshtml" />
+      <AdditionalFiles Include="Areas\Admin\Pages\Catalog\Expertises\Categories\Index.cshtml" />
+      <AdditionalFiles Include="Areas\Admin\Pages\Catalog\Expertises\Expertises\Create.cshtml" />
+      <AdditionalFiles Include="Areas\Admin\Pages\Catalog\Expertises\Expertises\Details.cshtml" />
+      <AdditionalFiles Include="Areas\Admin\Pages\Catalog\Expertises\Expertises\Edit.cshtml" />
+      <AdditionalFiles Include="Areas\Admin\Pages\Catalog\Expertises\Expertises\Index.cshtml" />
+      <AdditionalFiles Include="Areas\Admin\Pages\Catalog\Expertises\Expertises\_ExpertiseCategorySelectItem.cshtml" />
+      <AdditionalFiles Include="Areas\Admin\Pages\Catalog\Expertises\Sectors\Create.cshtml" />
+      <AdditionalFiles Include="Areas\Admin\Pages\Catalog\Expertises\Sectors\Details.cshtml" />
+      <AdditionalFiles Include="Areas\Admin\Pages\Catalog\Expertises\Sectors\Edit.cshtml" />
+      <AdditionalFiles Include="Areas\Admin\Pages\Catalog\Expertises\Sectors\Index.cshtml" />
+    </ItemGroup>
 </Project>

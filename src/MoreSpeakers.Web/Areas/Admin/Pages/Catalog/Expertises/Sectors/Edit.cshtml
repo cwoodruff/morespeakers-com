@@ -1,0 +1,68 @@
+@page "{id:int}"
+@using MoreSpeakers.Web.Models.ViewModels
+@model MoreSpeakers.Web.Areas.Admin.Pages.Catalog.Expertises.Sectors.EditModel
+
+@{
+    ViewData["Title"] = "Edit - Sectors - Expertise";
+}
+
+<h1 class="mb-4">Edit Sector</h1>
+
+<nav aria-label="breadcrumb" class="mb-3">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a asp-area="Admin" asp-page="/Index">Admin</a></li>
+    <li class="breadcrumb-item"><a asp-area="Admin" asp-page="/Expertises/Sectors/Index">Sectors</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Edit</li>
+  </ol>
+</nav>
+
+<form method="post" class="needs-validation" novalidate>
+  <input type="hidden" asp-for="Id" />
+
+  <div class="mb-3">
+    <label asp-for="Input.Name" class="form-label"></label>
+    @{
+      var nameValidationModel = new NameValidationInputViewModel()
+      {
+        Name = Model.Input.Name,
+        InputName = "Input.Name",
+        Placeholder = "The name of sector",
+        SearchEndPointUrl = "expertises/searchSectors"
+      };
+    }
+    <partial name="/Areas/Admin/Pages/Shared/_NameValidationInput.cshtml" model="nameValidationModel"/>
+  </div>
+
+  <div class="mb-3">
+    <label asp-for="Input.Slug" class="form-label"></label>
+    <input asp-for="Input.Slug" class="form-control" />
+    <span asp-validation-for="Input.Slug" class="text-danger"></span>
+  </div>
+
+  <div class="mb-3">
+    <label asp-for="Input.Description" class="form-label"></label>
+    <input asp-for="Input.Description" class="form-control" />
+    <span asp-validation-for="Input.Description" class="text-danger"></span>
+  </div>
+
+  <div class="mb-3">
+      <label asp-for="Input.DisplayOrder" class="form-label"></label>
+      <input asp-for="Input.DisplayOrder" class="form-control" />
+      <span asp-validation-for="Input.DisplayOrder" class="text-danger"></span>
+  </div>
+  <div class="mb-3">
+      <div class="form-check form-switch ms-2">
+        <input asp-for="Input.IsActive" class="form-check-input" />
+        <label asp-for="Input.IsActive" class="form-check-label">Active</label>
+      </div>
+  </div>
+
+  <div class="mt-4 d-flex gap-2">
+    <button type="submit" class="btn btn-primary">Save</button>
+    <a asp-page="Index" class="btn btn-outline-secondary">Cancel</a>
+  </div>
+</form>
+
+@section Scripts {
+  <partial name="~/Pages/Shared/_ValidationScriptsPartial.cshtml"/>
+}
