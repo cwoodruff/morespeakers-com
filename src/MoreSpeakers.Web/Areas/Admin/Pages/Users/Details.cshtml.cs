@@ -57,4 +57,169 @@ public class DetailsModel : PageModel
 
         return Page();
     }
+
+    // ------------------------------------------
+    // POST handlers: Enable/Disable Lockout, Set Lockout End, Unlock
+    // ------------------------------------------
+
+    public async Task<IActionResult> OnPostEnableLockoutAsync(Guid id, bool enabled)
+    {
+        if (id == Guid.Empty)
+        {
+            return NotFound();
+        }
+
+        // Prevent self-lock
+        var current = await _userManager.GetUserIdAsync(HttpContext.User);
+        if (current?.Id == id && enabled)
+        {
+            TempData["ErrorMessage"] = "You cannot enable lockout on your own account.";
+            return RedirectToPage(new { id });
+        }
+
+        // Prevent locking the last admin
+        var roles = await _userManager.GetRolesForUserAsync(id);
+        if (enabled && roles.Contains("Administrator", StringComparer.OrdinalIgnoreCase))
+        {
+            var adminCount = await _userManager.GetUserCountInRoleAsync("Administrator");
+            if (adminCount <= 1)
+            {
+                TempData["ErrorMessage"] = "Cannot enable lockout: this is the last administrator account.";
+                return RedirectToPage(new { id });
+            }
+        }
+
+        var ok = await _userManager.EnableLockoutAsync(id, enabled);
+        TempData[ok ? "StatusMessage" : "ErrorMessage"] = ok
+            ? (enabled ? "Lockout has been enabled." : "Lockout has been disabled.")
+            : "Failed to update lockout setting.";
+
+        // HTMX partial refresh path
+        if (!Request.Headers.TryGetValue("HX-Request", out var hx) ||
+            !string.Equals(hx, "true", StringComparison.OrdinalIgnoreCase))
+        {
+            return RedirectToPage(new { id });
+        }
+
+        // Re-hydrate model state for partial
+        var user = await _userManager.GetAsync(id);
+        if (user == null)
+        {
+            return NotFound();
+        }
+        User = user;
+        try
+        {
+            Roles = await _userManager.GetRolesForUserAsync(id);
+        }
+        catch
+        {
+            Roles = Array.Empty<string>();
+        }
+        LastSignInUtc = null;
+        return Partial("_UserSecurityCard", this);
+
+    }
+
+    public async Task<IActionResult> OnPostSetLockoutEndAsync(Guid id, DateTimeOffset? lockoutEndUtc)
+    {
+        if (id == Guid.Empty)
+        {
+            return NotFound();
+        }
+
+        // Interpret provided value as UTC; validation happens in data layer, but we add a quick client guard
+        if (lockoutEndUtc.HasValue && lockoutEndUtc.Value <= DateTimeOffset.UtcNow)
+        {
+            TempData["ErrorMessage"] = "Lockout end must be in the future (UTC).";
+            return RedirectToPage(new { id });
+        }
+
+        // Prevent self-lock
+        var current = await _userManager.GetUserIdAsync(HttpContext.User);
+        if (current?.Id == id && lockoutEndUtc.HasValue)
+        {
+            TempData["ErrorMessage"] = "You cannot set a lockout end on your own account.";
+            return RedirectToPage(new { id });
+        }
+
+        // Prevent locking the last admin
+        var roles = await _userManager.GetRolesForUserAsync(id);
+        if (lockoutEndUtc.HasValue && roles.Contains("Administrator", StringComparer.OrdinalIgnoreCase))
+        {
+            var adminCount = await _userManager.GetUserCountInRoleAsync("Administrator");
+            if (adminCount <= 1)
+            {
+                TempData["ErrorMessage"] = "Cannot set lockout end: this is the last administrator account.";
+                return RedirectToPage(new { id });
+            }
+        }
+
+        var ok = await _userManager.SetLockoutEndAsync(id, lockoutEndUtc?.ToUniversalTime());
+        TempData[ok ? "StatusMessage" : "ErrorMessage"] = ok
+            ? (lockoutEndUtc.HasValue ? "Lockout end updated." : "Lockout removed.")
+            : "Failed to update lockout end.";
+
+        // HTMX partial refresh path
+        if (!Request.Headers.TryGetValue("HX-Request", out var hx) ||
+            !string.Equals(hx, "true", StringComparison.OrdinalIgnoreCase))
+        {
+            return RedirectToPage(new { id });
+        }
+
+        var user = await _userManager.GetAsync(id);
+        if (user == null)
+        {
+            return NotFound();
+        }
+        User = user;
+        try
+        {
+            Roles = await _userManager.GetRolesForUserAsync(id);
+        }
+        catch
+        {
+            Roles = Array.Empty<string>();
+        }
+        LastSignInUtc = null;
+        return Partial("_UserSecurityCard", this);
+
+    }
+
+    public async Task<IActionResult> OnPostUnlockAsync(Guid id)
+    {
+        if (id == Guid.Empty)
+        {
+            return NotFound();
+        }
+
+        // Self-unlock is allowed; no restriction here
+        var ok = await _userManager.UnlockAsync(id);
+        TempData[ok ? "StatusMessage" : "ErrorMessage"] = ok
+            ? "User has been unlocked."
+            : "Failed to unlock the user.";
+
+        // HTMX partial refresh path
+        if (Request.Headers.TryGetValue("HX-Request", out var hx) && string.Equals(hx, "true", StringComparison.OrdinalIgnoreCase))
+        {
+            var user = await _userManager.GetAsync(id);
+            if (user == null)
+            {
+                return NotFound();
+            }
+            User = user;
+            try
+            {
+                Roles = await _userManager.GetRolesForUserAsync(id);
+            }
+            catch
+            {
+                Roles = Array.Empty<string>();
+            }
+            LastSignInUtc = null;
+            return Partial("_UserSecurityCard", this);
+        }
+
+        return RedirectToPage(new { id });
+    }
 }

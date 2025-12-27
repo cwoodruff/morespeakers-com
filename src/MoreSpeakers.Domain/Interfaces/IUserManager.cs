@@ -29,11 +29,11 @@ public interface IUserManager
     // Application Methods
     // ------------------------------------------
     
-    public Task<User?> GetAsync(Guid primaryKey);
-    public Task<bool> DeleteAsync(Guid primaryKey);
-    public Task<User> SaveAsync(User entity);
-    public Task<List<User>> GetAllAsync();
-    public Task<bool> DeleteAsync(User entity);
+    Task<User?> GetAsync(Guid primaryKey);
+    Task<bool> DeleteAsync(Guid primaryKey);
+    Task<User> SaveAsync(User entity);
+    Task<List<User>> GetAllAsync();
+    Task<bool> DeleteAsync(User entity);
     Task<IEnumerable<User>> GetNewSpeakersAsync();
     Task<IEnumerable<User>> GetExperiencedSpeakersAsync();
     Task<SpeakerSearchResult> SearchSpeakersAsync(string? searchTerm, int? speakerTypeId = null, int? expertiseId = null, SpeakerSearchOrderBy sortOrder = SpeakerSearchOrderBy.Name, int? page = null, int? pageSize = null);
@@ -55,4 +55,11 @@ public interface IUserManager
     Task<IReadOnlyList<string>> GetAllRoleNamesAsync();
     Task<IReadOnlyList<string>> GetRolesForUserAsync(Guid userId);
 
+    // ------------------------------------------
+    // Admin Users (Lock/Unlock)
+    // ------------------------------------------
+    Task<bool> EnableLockoutAsync(Guid userId, bool enabled);
+    Task<bool> SetLockoutEndAsync(Guid userId, DateTimeOffset? lockoutEndUtc);
+    Task<bool> UnlockAsync(Guid userId);
+    Task<int> GetUserCountInRoleAsync(string roleName);
 }

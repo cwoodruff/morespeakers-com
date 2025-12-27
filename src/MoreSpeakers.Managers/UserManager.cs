@@ -201,4 +201,46 @@ public class UserManager: IUserManager
     {
         return await _dataStore.GetRolesForUserAsync(userId);
     }
+
+    // ------------------------------------------
+    // Admin Users (Lock/Unlock)
+    // ------------------------------------------
+    public async Task<bool> EnableLockoutAsync(Guid userId, bool enabled)
+    {
+        if (userId == Guid.Empty)
+        {
+            _logger.LogWarning("EnableLockoutAsync called with empty user id");
+            return false;
+        }
+        return await _dataStore.EnableLockoutAsync(userId, enabled);
+    }
+
+    public async Task<bool> SetLockoutEndAsync(Guid userId, DateTimeOffset? lockoutEndUtc)
+    {
+        if (userId == Guid.Empty)
+        {
+            _logger.LogWarning("SetLockoutEndAsync called with empty user id");
+            return false;
+        }
+        return await _dataStore.SetLockoutEndAsync(userId, lockoutEndUtc);
+    }
+
+    public async Task<bool> UnlockAsync(Guid userId)
+    {
+        if (userId == Guid.Empty)
+        {
+            _logger.LogWarning("UnlockAsync called with empty user id");
+            return false;
+        }
+        return await _dataStore.UnlockAsync(userId);
+    }
+
+    public async Task<int> GetUserCountInRoleAsync(string roleName)
+    {
+        if (string.IsNullOrWhiteSpace(roleName))
+        {
+            return 0;
+        }
+        return await _dataStore.GetUserCountInRoleAsync(roleName.Trim());
+    }
 }

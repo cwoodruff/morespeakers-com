@@ -1,0 +1,83 @@
+@model MoreSpeakers.Web.Areas.Admin.Pages.Users.DetailsModel
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+@{
+    var isLocked = Model.User.LockoutEnabled && Model.User.LockoutEnd.HasValue && Model.User.LockoutEnd.Value > DateTimeOffset.UtcNow;
+}
+
+<!-- Out-of-band toast updates for HTMX responses -->
+@if (TempData["StatusMessage"] is string || TempData["ErrorMessage"] is string)
+{
+    <div id="toasts-oob" hx-swap-oob="true" aria-live="polite">
+        @await Html.PartialAsync("_ToastMessages")
+    </div>
+}
+
+<div id="user-security-card" class="card">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <span>Security</span>
+  </div>
+  <div class="card-body">
+    <div class="htmx-indicator mb-2" aria-hidden="true">
+      <div class="spinner-border spinner-border-sm text-secondary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+
+    <dl class="row mb-0">
+      <dt class="col-sm-4">2FA</dt><dd class="col-sm-8">@(Model.User.TwoFactorEnabled ? "Enabled" : "Disabled")</dd>
+      <dt class="col-sm-4">Lockout</dt><dd class="col-sm-8">@(Model.User.LockoutEnabled ? "Enabled" : "Disabled")</dd>
+      <dt class="col-sm-4">Lockout End</dt><dd class="col-sm-8">@(Model.User.LockoutEnd?.ToString("u") ?? "None")</dd>
+      <dt class="col-sm-4">Last sign-in</dt><dd class="col-sm-8">@(Model.LastSignInUtc?.ToString("u") ?? "Unknown")</dd>
+    </dl>
+
+    <hr />
+    <div class="row g-2">
+      <div class="col-12">
+        <form class="d-inline"
+              method="post"
+              asp-page-handler="EnableLockout"
+              asp-route-id="@Model.User.Id"
+              hx-post="?handler=EnableLockout"
+              hx-target="#user-security-card"
+              hx-select="#user-security-card"
+              hx-swap="outerHTML"
+              hx-disabled-elt="button"
+              hx-indicator="#user-security-card .htmx-indicator"
+              hx-confirm='@($"{(Model.User.LockoutEnabled ? "Disable" : "Enable")} lockout for this user?")'>
+          <input type="hidden" name="enabled" value="@(Model.User.LockoutEnabled ? "false" : "true")" />
+          <button type="submit" class="btn @(isLocked ? "btn-outline-secondary" : (Model.User.LockoutEnabled ? "btn-outline-secondary" : "btn-danger"))" @(isLocked ? "disabled aria-disabled=\"true\" title=\"Disabled while user is locked\"" : "title=\"Enable lockout to allow locking this user\"")>
+            @(Model.User.LockoutEnabled ? "Disable Lockout" : "Enable Lockout")
+          </button>
+        </form>
+      </div>
+
+      <div class="col-12">
+        <form class="row gy-2 gx-2 align-items-center"
+              method="post"
+              asp-page-handler="SetLockoutEnd"
+              asp-route-id="@Model.User.Id"
+              hx-post="?handler=SetLockoutEnd"
+              hx-target="#user-security-card"
+              hx-select="#user-security-card"
+              hx-swap="outerHTML"
+              hx-disabled-elt="button"
+              hx-indicator="#user-security-card .htmx-indicator"
+              hx-confirm="Apply lockout end?">
+          <div class="col-auto">
+            <label for="lockoutEndUtc" class="col-form-label">Lockout End (UTC)</label>
+          </div>
+          <div class="col-auto">
+            <input type="datetime-local" id="lockoutEndUtc" name="lockoutEndUtc" class="form-control" />
+          </div>
+          <div class="col-auto">
+            <button type="submit" class="btn btn-primary">Apply</button>
+          </div>
+          <div class="col-12">
+            <small class="text-muted">Provide a future UTC time; leave empty to clear lockout.</small>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

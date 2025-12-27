@@ -26,17 +26,7 @@
   </div>
 
   <div class="col-12 col-lg-6">
-    <div class="card">
-      <div class="card-header">Security</div>
-      <div class="card-body">
-        <dl class="row mb-0">
-          <dt class="col-sm-4">2FA</dt><dd class="col-sm-8">@(Model.User.TwoFactorEnabled ? "Enabled" : "Disabled")</dd>
-          <dt class="col-sm-4">Lockout</dt><dd class="col-sm-8">@(Model.User.LockoutEnabled ? "Enabled" : "Disabled")</dd>
-          <dt class="col-sm-4">Lockout End</dt><dd class="col-sm-8">@(Model.User.LockoutEnd?.ToString("u") ?? "None")</dd>
-          <dt class="col-sm-4">Last sign-in</dt><dd class="col-sm-8">@(Model.LastSignInUtc?.ToString("u") ?? "Unknown")</dd>
-        </dl>
-      </div>
-    </div>
+    @await Html.PartialAsync("_UserSecurityCard", Model)
   </div>
 
   <div class="col-12">

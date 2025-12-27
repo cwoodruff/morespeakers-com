@@ -357,6 +357,130 @@ public class UserDataStore : IUserDataStore
         return results;
     }
 
+    // ------------------------------------------
+    // Admin Users (Lock/Unlock)
+    // ------------------------------------------
+
+    public async Task<bool> EnableLockoutAsync(Guid userId, bool enabled)
+    {
+        try
+        {
+            var identityUser = await _userManager.FindByIdAsync(userId.ToString());
+            if (identityUser == null)
+            {
+                _logger.LogWarning("[AdminLockout] EnableLockout failed: user {UserId} not found", userId);
+                return false;
+            }
+
+            var result = await _userManager.SetLockoutEnabledAsync(identityUser, enabled);
+            if (!result.Succeeded)
+            {
+                _logger.LogWarning("[AdminLockout] SetLockoutEnabledAsync failed for {UserId}: {Errors}", userId, string.Join(",", result.Errors.Select(e => e.Code)));
+            }
+            else
+            {
+                _logger.LogInformation("[AdminLockout] LockoutEnabled set to {Enabled} for user {UserId}", enabled, userId);
+            }
+            return result.Succeeded;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "[AdminLockout] EnableLockoutAsync exception for user {UserId}", userId);
+            return false;
+        }
+    }
+
+    public async Task<bool> SetLockoutEndAsync(Guid userId, DateTimeOffset? lockoutEndUtc)
+    {
+        try
+        {
+            var identityUser = await _userManager.FindByIdAsync(userId.ToString());
+            if (identityUser == null)
+            {
+                _logger.LogWarning("[AdminLockout] SetLockoutEnd failed: user {UserId} not found", userId);
+                return false;
+            }
+
+            // Normalize to UTC and validate input
+            DateTimeOffset? normalized = lockoutEndUtc?.ToUniversalTime();
+            if (normalized.HasValue && normalized.Value <= DateTimeOffset.UtcNow)
+            {
+                _logger.LogWarning("[AdminLockout] Rejected SetLockoutEnd with past/now value for {UserId}: {LockoutEnd}", userId, lockoutEndUtc);
+                return false;
+            }
+
+            var result = await _userManager.SetLockoutEndDateAsync(identityUser, normalized);
+            if (!result.Succeeded)
+            {
+                _logger.LogWarning("[AdminLockout] SetLockoutEndDateAsync failed for {UserId}: {Errors}", userId, string.Join(",", result.Errors.Select(e => e.Code)));
+            }
+            else
+            {
+                _logger.LogInformation("[AdminLockout] LockoutEnd set to {LockoutEnd} for user {UserId}", normalized, userId);
+            }
+            return result.Succeeded;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "[AdminLockout] SetLockoutEndAsync exception for user {UserId}", userId);
+            return false;
+        }
+    }
+
+    public async Task<bool> UnlockAsync(Guid userId)
+    {
+        try
+        {
+            var identityUser = await _userManager.FindByIdAsync(userId.ToString());
+            if (identityUser == null)
+            {
+                _logger.LogWarning("[AdminLockout] Unlock failed: user {UserId} not found", userId);
+                return false;
+            }
+
+            var endResult = await _userManager.SetLockoutEndDateAsync(identityUser, null);
+            if (!endResult.Succeeded)
+            {
+                _logger.LogWarning("[AdminLockout] Clearing LockoutEnd failed for {UserId}: {Errors}", userId, string.Join(",", endResult.Errors.Select(e => e.Code)));
+                return false;
+            }
+
+            var resetResult = await _userManager.ResetAccessFailedCountAsync(identityUser);
+            if (!resetResult.Succeeded)
+            {
+                _logger.LogWarning("[AdminLockout] ResetAccessFailedCount failed for {UserId}: {Errors}", userId, string.Join(",", resetResult.Errors.Select(e => e.Code)));
+                return false;
+            }
+
+            _logger.LogInformation("[AdminLockout] User {UserId} unlocked", userId);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "[AdminLockout] UnlockAsync exception for user {UserId}", userId);
+            return false;
+        }
+    }
+
+    public async Task<int> GetUserCountInRoleAsync(string roleName)
+    {
+        try
+        {
+            var count = await (from ur in _context.UserRoles.AsNoTracking()
+                               join r in _context.Roles.AsNoTracking() on ur.RoleId equals r.Id
+                               where r.Name == roleName
+                               select ur.UserId)
+                .Distinct()
+                .CountAsync();
+            return count;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "[AdminLockout] GetUserCountInRoleAsync failed for role {Role}", roleName);
+            return 0;
+        }
+    }
+
     public async Task<bool> RemovePasskeyAsync(Guid userId, byte[] credentialId)
     {
         try
