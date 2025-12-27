@@ -18,6 +18,7 @@ public class EditModel(
     IExpertiseManager expertiseManager,
     IUserManager userManager,
     ISocialMediaSiteManager socialMediaSiteManager,
+    ISectorManager sectorManager,
     ILogger<EditModel> logger) : PageModel
 {
     [BindProperty] public UserProfileViewModel Input { get; set; } = new();
@@ -27,6 +28,7 @@ public class EditModel(
     public User ProfileUser { get; set; } = null!;
     public IEnumerable<Expertise> AvailableExpertises { get; set; } = new List<Expertise>();
     public IEnumerable<ExpertiseCategory> ExpertiseCategories { get; set; } = new List<ExpertiseCategory>();
+    public IEnumerable<Sector> Sectors { get; set; } = new List<Sector>();
     public IEnumerable<SocialMediaSite> SocialMediaSites { get; set; } = new List<SocialMediaSite>();
     
     public IEnumerable<UserPasskey> UserPasskeys { get; set; } = new List<UserPasskey>();
@@ -55,6 +57,7 @@ public class EditModel(
         ProfileUser = user;
         AvailableExpertises = await expertiseManager.GetAllExpertisesAsync();
         ExpertiseCategories = await expertiseManager.GetAllCategoriesAsync();
+        Sectors = await sectorManager.GetAllSectorsAsync();
         SocialMediaSites = await socialMediaSiteManager.GetAllAsync();
         UserPasskeys = await userManager.GetUserPasskeysAsync(user.Id);
         ActiveTab = "profile";
@@ -106,6 +109,7 @@ public class EditModel(
             ProfileUser = userProfile;
             AvailableExpertises = await expertiseManager.GetAllExpertisesAsync();
             ExpertiseCategories = await expertiseManager.GetAllCategoriesAsync();
+            Sectors = await sectorManager.GetAllSectorsAsync();
             SocialMediaSites = await socialMediaSiteManager.GetAllAsync();
             UserPasskeys = await userManager.GetUserPasskeysAsync(userProfile.Id);
 
@@ -217,6 +221,7 @@ public class EditModel(
         ProfileUser = user;
         AvailableExpertises = await expertiseManager.GetAllExpertisesAsync();
         ExpertiseCategories = await expertiseManager.GetAllCategoriesAsync();
+        Sectors = await sectorManager.GetAllSectorsAsync();
         SocialMediaSites = await socialMediaSiteManager.GetAllAsync();
         UserPasskeys = await userManager.GetUserPasskeysAsync(user.Id);
         ActiveTab = tab;

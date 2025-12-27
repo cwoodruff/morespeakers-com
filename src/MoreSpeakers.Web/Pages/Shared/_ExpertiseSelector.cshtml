@@ -2,6 +2,13 @@
 
 <div class="expertise-selector" data-expertise-selector>
   <div class="expertise-toolbar mb-3">
+    <div class="d-flex flex-wrap gap-2 mb-3 sector-filters">
+        <button type="button" class="btn btn-outline-primary btn-sm sector-filter-btn active" data-sector-id="all">All Sectors</button>
+        @foreach (var sector in Model.Sectors.OrderBy(s => s.DisplayOrder))
+        {
+            <button type="button" class="btn btn-outline-primary btn-sm sector-filter-btn" data-sector-id="@sector.Id">@sector.Name</button>
+        }
+    </div>
     <input type="search"
            class="form-control"
            placeholder="Search expertise…"
@@ -17,8 +24,9 @@
     @foreach (var group in Model.ExpertiseCategories)
     {
       var categoryId = group.Id;
+      var sectorId = group.SectorId;
       var catDomId = $"cat-{categoryId}";
-      <section class="expertise-group mb-3 border border-light p-2 rounded" data-category-id="@categoryId">
+      <section class="expertise-group mb-3 border border-light p-2 rounded" data-category-id="@categoryId" data-sector-id="@sectorId">
         <header class="d-flex justify-content-between align-items-center rounded p-1 bg-primary-subtle">
           <h6 id="@catDomId" class="mb-0">@group.Name</h6>
           <div class="expertise-group__actions small">

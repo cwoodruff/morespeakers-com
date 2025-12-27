@@ -20,6 +20,7 @@ public class RegisterModel : PageModel
     private readonly IUserManager _userManager;
     private readonly ITemplatedEmailSender _templatedEmailSender;
     private readonly ISocialMediaSiteManager _socialMediaSiteManager;
+    private readonly ISectorManager _sectorManager;
     private readonly TelemetryClient _telemetryClient;
     private readonly ILogger<RegisterModel> _logger;
     
@@ -28,6 +29,7 @@ public class RegisterModel : PageModel
         IUserManager userManager,
         ITemplatedEmailSender templatedEmailSender,
         ISocialMediaSiteManager socialMediaSiteManager,
+        ISectorManager sectorManager,
         TelemetryClient telemetryClient,
         ILogger<RegisterModel> logger)
     {
@@ -35,6 +37,7 @@ public class RegisterModel : PageModel
         _userManager = userManager;
         _templatedEmailSender = templatedEmailSender;
         _socialMediaSiteManager = socialMediaSiteManager;
+        _sectorManager = sectorManager;
         _telemetryClient = telemetryClient;
         _logger = logger;
     }
@@ -46,6 +49,7 @@ public class RegisterModel : PageModel
     public IEnumerable<Expertise> AvailableExpertises { get; set; } = new List<Expertise>();
     public IEnumerable<SpeakerType> SpeakerTypes { get; set; } = new List<SpeakerType>();
     public IEnumerable<ExpertiseCategory> ExpertiseCategories { get; set; } = new List<ExpertiseCategory>();
+    public IEnumerable<Sector> Sectors { get; set; } = new List<Sector>();
     
     // Properties required by _RegistrationContainer.cshtml
     public int CurrentStep { get; set; } = RegistrationProgressions.SpeakerProfileNeeded;
@@ -319,6 +323,7 @@ public class RegisterModel : PageModel
     {
         AvailableExpertises = await _expertiseManager.GetAllExpertisesAsync();
         ExpertiseCategories = await _expertiseManager.GetAllCategoriesAsync();
+        Sectors = await _sectorManager.GetAllSectorsAsync();
         SpeakerTypes = await _userManager.GetSpeakerTypesAsync();
     }
 

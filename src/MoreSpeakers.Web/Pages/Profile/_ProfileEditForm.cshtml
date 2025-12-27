@@ -186,7 +186,8 @@
                 {
                     AvailableExpertises = Model.AvailableExpertises,
                     SelectedExpertiseIds = Model.Input.SelectedExpertiseIds,
-                    ExpertiseCategories = Model.ExpertiseCategories
+                    ExpertiseCategories = Model.ExpertiseCategories,
+                    Sectors = Model.Sectors
                 };
                 @await Html.PartialAsync("_ExpertiseSelector", expertiseListDisplay)
             }
