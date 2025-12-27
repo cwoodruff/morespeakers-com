@@ -257,12 +257,14 @@ public class RegisterModel : PageModel
     public async Task<IActionResult> OnPostSubmitNewExpertiseAsync()
     {
         ExpertiseCategories = await _expertiseManager.GetAllCategoriesAsync();
+        Sectors = await _sectorManager.GetAllSectorsAsync();
         if (string.IsNullOrWhiteSpace(Input.NewExpertise))
         {
             this.NewExpertiseResponse = new NewExpertiseCreatedResponse()
             {
                 SavingExpertiseFailed = true, SaveExpertiseMessage = "No expertise name was provided.",
-                ExpertiseCategories =  ExpertiseCategories
+                ExpertiseCategories =  ExpertiseCategories,
+                Sectors = Sectors
             };
             return Partial("_RegisterStep3", this);
         }
@@ -280,7 +282,8 @@ public class RegisterModel : PageModel
                 this.NewExpertiseResponse = new NewExpertiseCreatedResponse()
                 {
                     SavingExpertiseFailed = true, SaveExpertiseMessage =  $"Expertise '{expertiseName}' already exists.",
-                    ExpertiseCategories = ExpertiseCategories
+                    ExpertiseCategories = ExpertiseCategories,
+                    Sectors = Sectors
                 };
                 return Partial("_RegisterStep3", this);
             }
@@ -293,7 +296,8 @@ public class RegisterModel : PageModel
                 this.NewExpertiseResponse = new NewExpertiseCreatedResponse
                 {
                     SavingExpertiseFailed = true, SaveExpertiseMessage =  $"Failed to create the expertise '{expertiseName}'.",
-                    ExpertiseCategories = ExpertiseCategories
+                    ExpertiseCategories = ExpertiseCategories,
+                    Sectors = Sectors
                 };
                 return Partial("_RegisterStep3", this);
             }
@@ -302,7 +306,8 @@ public class RegisterModel : PageModel
             this.NewExpertiseResponse = new NewExpertiseCreatedResponse
             {
                 SavingExpertiseFailed = false, SaveExpertiseMessage =  string.Empty,
-                ExpertiseCategories = ExpertiseCategories
+                ExpertiseCategories = ExpertiseCategories,
+                Sectors = Sectors
             };
             return Partial("_RegisterStep3", this);
         }
@@ -313,7 +318,8 @@ public class RegisterModel : PageModel
             this.NewExpertiseResponse = new NewExpertiseCreatedResponse
             {
                 SavingExpertiseFailed = true, SaveExpertiseMessage =  $"Failed to create the expertise '{expertiseName}'.",
-                ExpertiseCategories = ExpertiseCategories
+                ExpertiseCategories = ExpertiseCategories,
+                Sectors = Sectors
             };
             return Partial("_RegisterStep3", this);
         }

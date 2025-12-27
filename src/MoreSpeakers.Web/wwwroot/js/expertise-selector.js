@@ -59,7 +59,29 @@ function registerExpertiseFunction() {
         const sectorButtons = container.querySelectorAll('.sector-filter-btn');
         let currentSectorId = 'all';
 
+        // NEW: elements for the "New Expertise" section cascading
+        const newExpertiseSectorSelect = document.querySelector('[data-expertise-sector-select]');
+        const newExpertiseCategorySelect = document.querySelector('[data-expertise-category-select]');
+
         const updateFilter = () => filter(container, search?.value, currentSectorId);
+
+        const updateNewExpertiseCategories = (sectorId) => {
+            if (!newExpertiseCategorySelect) return;
+            
+            const options = newExpertiseCategorySelect.querySelectorAll('option');
+            let firstVisible = null;
+            
+            options.forEach(opt => {
+                const optSectorId = opt.getAttribute('data-sector-id');
+                const visible = !sectorId || sectorId === 'all' || optSectorId === sectorId;
+                opt.style.display = visible ? '' : 'none';
+                if (visible && !firstVisible) firstVisible = opt;
+            });
+
+            if (firstVisible && (!newExpertiseCategorySelect.value || newExpertiseCategorySelect.selectedOptions[0]?.style.display === 'none')) {
+                newExpertiseCategorySelect.value = firstVisible.value;
+            }
+        };
 
         if (search) {
             search.addEventListener('input', updateFilter);
@@ -71,8 +93,37 @@ function registerExpertiseFunction() {
                 btn.classList.add('active');
                 currentSectorId = btn.getAttribute('data-sector-id');
                 updateFilter();
+                
+                // Sync with "New Expertise" sector dropdown
+                if (newExpertiseSectorSelect) {
+                    newExpertiseSectorSelect.value = currentSectorId === 'all' ? '' : currentSectorId;
+                    updateNewExpertiseCategories(currentSectorId);
+                }
             });
         });
+
+        if (newExpertiseSectorSelect) {
+            newExpertiseSectorSelect.addEventListener('change', () => {
+                const sectorId = newExpertiseSectorSelect.value || 'all';
+                
+                // Sync with sector buttons
+                sectorButtons.forEach(btn => {
+                    const btnSectorId = btn.getAttribute('data-sector-id');
+                    if (btnSectorId === sectorId) {
+                        btn.classList.add('active');
+                    } else {
+                        btn.classList.remove('active');
+                    }
+                });
+                
+                currentSectorId = sectorId;
+                updateFilter();
+                updateNewExpertiseCategories(sectorId);
+            });
+            
+            // Initial update for New Expertise categories based on current selection
+            updateNewExpertiseCategories(newExpertiseSectorSelect.value || 'all');
+        }
 
         container.addEventListener('click', (e) => {
             const btn = e.target.closest('button[data-select-all], button[data-clear-all]');

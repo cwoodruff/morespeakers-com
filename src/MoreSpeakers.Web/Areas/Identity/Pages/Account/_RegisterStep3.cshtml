@@ -32,7 +32,8 @@
     @{
         var newExpertiseResponse = new NewExpertiseCreatedResponse
         {
-            ExpertiseCategories = Model.ExpertiseCategories
+            ExpertiseCategories = Model.ExpertiseCategories,
+            Sectors = Model.Sectors
         };
         @await Html.PartialAsync("_NewExpertise", newExpertiseResponse);
     }

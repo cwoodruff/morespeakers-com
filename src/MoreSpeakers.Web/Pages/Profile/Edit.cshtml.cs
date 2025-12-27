@@ -448,6 +448,7 @@ public class EditModel(
     {
         var profileUser = await UpdateModelFromUserAsync(User);
         ExpertiseCategories = await expertiseManager.GetAllCategoriesAsync();
+        Sectors = await sectorManager.GetAllSectorsAsync();
 
         if (profileUser is not null)
         {
@@ -458,7 +459,8 @@ public class EditModel(
             this.NewExpertiseResponse = new NewExpertiseCreatedResponse()
             {
                 SavingExpertiseFailed = true, SaveExpertiseMessage = "No expertise name was provided.",
-                ExpertiseCategories = ExpertiseCategories
+                ExpertiseCategories = ExpertiseCategories,
+                Sectors = Sectors
             };
             return Partial("_ProfileEditForm", this);
         }
@@ -476,7 +478,8 @@ public class EditModel(
                 this.NewExpertiseResponse = new NewExpertiseCreatedResponse()
                 {
                     SavingExpertiseFailed = true, SaveExpertiseMessage =  $"Expertise '{expertiseName}' already exists.",
-                    ExpertiseCategories = ExpertiseCategories
+                    ExpertiseCategories = ExpertiseCategories,
+                    Sectors = Sectors
                 };
                 return Partial("_ProfileEditForm", this);
             }
@@ -490,7 +493,8 @@ public class EditModel(
                 this.NewExpertiseResponse = new NewExpertiseCreatedResponse
                 {
                     SavingExpertiseFailed = true, SaveExpertiseMessage =  $"Failed to create the expertise '{expertiseName}'.",
-                    ExpertiseCategories = ExpertiseCategories
+                    ExpertiseCategories = ExpertiseCategories,
+                    Sectors = Sectors
                 };
                 return Partial("_ProfileEditForm", this);
             }
@@ -501,7 +505,8 @@ public class EditModel(
             this.NewExpertiseResponse = new NewExpertiseCreatedResponse
             {
                 SavingExpertiseFailed = false, SaveExpertiseMessage =  string.Empty,
-                ExpertiseCategories = ExpertiseCategories
+                ExpertiseCategories = ExpertiseCategories,
+                Sectors = Sectors
             };
             return Partial("_ProfileEditForm", this);
         }
@@ -512,7 +517,8 @@ public class EditModel(
             this.NewExpertiseResponse = new NewExpertiseCreatedResponse
             {
                 SavingExpertiseFailed = true, SaveExpertiseMessage =  $"Failed to create the expertise '{expertiseName}'.",
-                ExpertiseCategories = ExpertiseCategories
+                ExpertiseCategories = ExpertiseCategories,
+                Sectors = Sectors
             };
             return Partial("_ProfileEditForm", this);
         }
