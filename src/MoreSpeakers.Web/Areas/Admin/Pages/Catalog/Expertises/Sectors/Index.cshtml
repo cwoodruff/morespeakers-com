@@ -1,0 +1,93 @@
+@page
+@using MoreSpeakers.Domain.Models.AdminUsers
+@model MoreSpeakers.Web.Areas.Admin.Pages.Catalog.Expertises.Sectors.IndexModel
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+@{
+    ViewData["Title"] = "Sectors - Expertise";
+}
+
+<h1 class="mb-4">Sectors</h1>
+
+<nav aria-label="breadcrumb" class="mb-3 d-flex">
+  <ol class="breadcrumb mb-0">
+    <li class="breadcrumb-item"><a asp-area="Admin" asp-page="/Index">Admin</a></li>
+    <li class="breadcrumb-item"><a asp-area="Admin" asp-page="/Expertises/Index">Expertises</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Sectors</li>
+  </ol>
+
+  <div class="ms-auto d-flex gap-2">
+    <a class="btn btn-primary" asp-page="Create"><i class="bi bi-plus-lg me-1"></i>New Sector</a>
+  </div>
+</nav>
+
+<form class="row g-2 align-items-center mb-3" method="get">
+  <div class="col-auto">
+    <div class="input-group">
+      <span class="input-group-text"><i class="bi bi-search"></i></span>
+      <input name="q" id="q" class="form-control" placeholder="Search by name…" value="@Model.Q" />
+    </div>
+  </div>
+  <div class="col-auto">
+    <select class="form-select" name="status" aria-label="Filter by status" value="@Model.Status">
+      <option value="any" selected="@(Model.Status==TriState.Any)">Any status</option>
+      <option value="active" selected="@(Model.Status==TriState.True)">Active</option>
+      <option value="inactive" selected="@(Model.Status==TriState.False)">Inactive</option>
+    </select>
+  </div>
+  <div class="col-auto">
+    <button type="submit" class="btn btn-outline-secondary">
+      <i class="bi bi-filter me-1"></i>Filter
+    </button>
+  </div>
+</form>
+
+<div class="table-responsive">
+  <table class="table table-striped align-middle">
+    <thead>
+      <tr>
+        <th class="col-1">Order</th>
+        <th class="col-2">Name</th>
+        <th>Description</th>
+        <th class="col-1">Status</th>
+        <th class="col-2"></th>
+      </tr>
+    </thead>
+    <tbody>
+    @foreach (var s in Model.Items)
+    {
+      <tr class="@(s.IsActive ? string.Empty : "table-secondary")">
+        <td>@s.DisplayOrder</td>
+        <td>@s.Name</td>
+        <td>@s.Description</td>
+        <td>
+          @if (s.IsActive)
+          {
+            <span class="badge bg-success">Active</span>
+          }
+          else
+          {
+            <span class="badge bg-secondary">Inactive</span>
+          }
+        </td>
+        <td class="text-end">
+          <a class="btn btn-sm btn-outline-secondary" asp-page="Details" asp-route-id="@s.Id"><i class="bi bi-eye"></i></a>
+          <a class="btn btn-sm btn-outline-primary" asp-page="Edit" asp-route-id="@s.Id"><i class="bi bi-pencil"></i></a>
+          @if (s.IsActive)
+          {
+            <form method="post" asp-page-handler="Deactivate" asp-route-id="@s.Id" class="d-inline">
+              <button type="submit" class="btn btn-sm btn-outline-danger" title="Deactivate"><i class="bi bi-archive"></i></button>
+            </form>
+          }
+          else
+          {
+            <form method="post" asp-page-handler="Activate" asp-route-id="@s.Id" class="d-inline">
+              <button type="submit" class="btn btn-sm btn-outline-success" title="Activate"><i class="bi bi-arrow-counterclockwise"></i></button>
+            </form>
+          }
+        </td>
+      </tr>
+    }
+    </tbody>
+  </table>
+</div>
