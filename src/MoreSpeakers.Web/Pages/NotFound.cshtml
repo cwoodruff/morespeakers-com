@@ -1,0 +1,48 @@
+@page
+@model MoreSpeakers.Web.Pages.NotFoundModel
+@{
+    ViewData["Title"] = "404 - Page Not Found";
+}
+
+<div class="container text-center py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="mb-4">
+                <h1 class="display-1 fw-bold text-primary">404</h1>
+                <h2 class="display-6 mb-4">Looks like this page forgot to show up! 🎤</h2>
+            </div>
+            
+            <div class="card shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <p class="lead mb-3">
+                        Even the best speakers sometimes walk into the wrong room...
+                    </p>
+                    <p class="text-muted mb-4">
+                        This page is like a speaker who never confirmed their slot — it just doesn't exist.
+                        <br>
+                        Maybe it got stage fright? 🎭
+                    </p>
+                    
+                    <div class="alert alert-light border" role="alert">
+                        <strong>Pro tip from a mentor:</strong> When you can't find your way, 
+                        go back to the beginning and start fresh!
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-grid gap-3 d-sm-flex justify-content-sm-center">
+                <a href="/" class="btn btn-primary btn-lg px-4">
+                    <i class="bi bi-house-door"></i> Back to Home
+                </a>
+                <a href="/Speakers" class="btn btn-outline-secondary btn-lg px-4">
+                    <i class="bi bi-people"></i> Browse Speakers
+                </a>
+            </div>
+
+            <div class="mt-5 text-muted small">
+                <p class="mb-1">🎙️ <em>"The only mistake is not learning from getting lost."</em></p>
+                <p>— Every mentor ever</p>
+            </div>
+        </div>
+    </div>
+</div>
