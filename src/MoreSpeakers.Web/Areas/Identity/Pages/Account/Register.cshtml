@@ -76,7 +76,8 @@
     </div>
 </div>
 @section Scripts {
-    <partial name="~/Pages/Shared/_ValidationScriptsPartial.cshtml"/>
+    <!-- Need the fully qualified path because ASP.NET identity is looking and returning an area based one -->
+    <partial name="~/Pages/Shared/_ValidationScriptsPartial.cshtml" />
     <script src="~/js/register.js" asp-append-version="true"></script>
     <script src="~/js/expertise.js" asp-append-version="true"></script>
     <script src="~/js/expertise-selector.js" asp-append-version="true"></script>

@@ -156,6 +156,7 @@
 </div>
 
 @section Scripts {
+    <!-- Need the fully qualified path because ASP.NET identity is looking and returning an area based one -->
     <partial name="~/Pages/Shared/_ValidationScriptsPartial.cshtml" />
     <script src="~/js/passkeys.js" asp-append-version="true"></script>
 }
