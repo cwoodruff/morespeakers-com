@@ -181,3 +181,20 @@ INSERT INTO MoreSpeakers.dbo.UserExpertises (UserId, ExpertiseId, CreatedDate)
 SELECT Id, 1, GETUTCDATE()
 FROM MoreSpeakers.dbo.AspNetUsers
 WHERE Email LIKE 'speaker%@test.com';
+
+-- Adding needed roles into AspNetRoles
+NOT EXISTS (SELECT 1 FROM AspNetRoles WHERE NormalizedName = 'USERMANAGER')
+    INSERT INTO AspNetRoles (Id, [Name], [NormalizedName], [ConcurrencyStamp])
+    VALUES (NEWID(), N'UserManager', N'USERMANAGER', CONVERT(nvarchar(128), NEWID()));
+
+IF NOT EXISTS (SELECT 1 FROM AspNetRoles WHERE NormalizedName = 'CATALOGMANAGER')
+    INSERT INTO AspNetRoles (Id, [Name], [NormalizedName], [ConcurrencyStamp])
+    VALUES (NEWID(), N'CatalogManager', N'CATALOGMANAGER', CONVERT(nvarchar(128), NEWID()));
+
+IF NOT EXISTS (SELECT 1 FROM AspNetRoles WHERE NormalizedName = 'REPORTER')
+    INSERT INTO AspNetRoles (Id, [Name], [NormalizedName], [ConcurrencyStamp])
+    VALUES (NEWID(), N'Reporter', N'REPORTER', CONVERT(nvarchar(128), NEWID()));
+
+IF NOT EXISTS (SELECT 1 FROM AspNetRoles WHERE NormalizedName = 'MODERATOR')
+    INSERT INTO AspNetRoles (Id, [Name], [NormalizedName], [ConcurrencyStamp])
+    VALUES (NEWID(), N'Moderator', N'MODERATOR', CONVERT(nvarchar(128), NEWID()));

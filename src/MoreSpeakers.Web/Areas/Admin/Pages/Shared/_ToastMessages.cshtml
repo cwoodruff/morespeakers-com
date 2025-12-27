@@ -1,0 +1,45 @@
+@* Shared Bootstrap toast notifications using TempData.
+   Usage: set TempData["StatusMessage"] or TempData["ErrorMessage"] in PageModel, and include this partial in layout. *@
+@{
+    var status = TempData["StatusMessage"] as string;
+    var error = TempData["ErrorMessage"] as string;
+    var any = !string.IsNullOrWhiteSpace(status) || !string.IsNullOrWhiteSpace(error);
+}
+
+@if (any)
+{
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1080">
+        @if (!string.IsNullOrWhiteSpace(status))
+        {
+            <div class="toast text-bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true" data-autoinit="true">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        @status
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        }
+        @if (!string.IsNullOrWhiteSpace(error))
+        {
+            <div class="toast text-bg-danger border-0" role="alert" aria-live="assertive" aria-atomic="true" data-autoinit="true">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        @error
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            </div>
+        }
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            if (typeof bootstrap === 'undefined' || !bootstrap.Toast) return;
+            document.querySelectorAll('.toast[data-autoinit="true"]').forEach(function (el) {
+                var t = new bootstrap.Toast(el, { delay: 5000, autohide: true });
+                t.show();
+            });
+        });
+    </script>
+}
