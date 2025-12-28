@@ -17,4 +17,6 @@ public class NewExpertiseCreatedResponse
     public string SaveExpertiseMessage { get; set; } = string.Empty;
     
     public IEnumerable<ExpertiseCategory> ExpertiseCategories { get; set; } = [];
+
+    public IEnumerable<Sector> Sectors { get; set; } = [];
 }

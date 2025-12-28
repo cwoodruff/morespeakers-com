@@ -3,9 +3,21 @@
     <label class="form-label fw-medium">Are we missing an expertise? Add new one!</label>
     <div>
         <div class="input-group mb-2" data-expertise-index="0">
-            <div class="col-md-4">
-                <select name="Input.NewExpertiseCategoryId" class="form-select" 
-                        asp-items="Model.ExpertiseCategories.Select(s => new SelectListItem(s.Name, s.Id.ToString()))">
+            <div class="col-md-3">
+                <select name="Input.NewExpertiseSectorId" id="Input.NewExpertiseSectorId" class="form-select" data-expertise-sector-select>
+                    <option value="">All Sectors</option>
+                    @foreach (var sector in Model.Sectors.OrderBy(s => s.DisplayOrder))
+                    {
+                        <option value="@sector.Id">@sector.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select name="Input.NewExpertiseCategoryId" id="Input.NewExpertiseCategoryId" class="form-select" data-expertise-category-select>
+                    @foreach (var category in Model.ExpertiseCategories)
+                    {
+                        <option value="@category.Id" data-sector-id="@category.SectorId">@category.Name</option>
+                    }
                 </select>
             </div>
             <input type="text" name="Input.NewExpertise" id="Input.NewExpertise"
@@ -19,7 +31,7 @@
             <button type="button" class="btn btn-outline-primary" id="submitExpertise" disabled="disabled"
                     hx-post="@Url.RouteUrl(ViewContext.RouteData.Values)?handler=SubmitNewExpertise"
                     hx-target="#form-step"
-                    hx-include="[name='Input.NewExpertise'],[name='Input.ExpertiseCategoryId]"
+                    hx-include="[name='Input.NewExpertise'],[name='Input.NewExpertiseCategoryId']"
                     hx-indicator="#newExpertiseStatus">
                 <i class="bi bi-plus mt-2"></i>Add
             </button>

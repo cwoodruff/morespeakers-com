@@ -18,4 +18,9 @@ public class ExpertiseListDisplayViewModel
     /// The expertise categories
     /// </summary>
     public IEnumerable<ExpertiseCategory> ExpertiseCategories { get; set; } = [];
+
+    /// <summary>
+    /// The sectors
+    /// </summary>
+    public IEnumerable<Sector> Sectors { get; set; } = [];
 }
