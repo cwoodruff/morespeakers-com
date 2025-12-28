@@ -89,7 +89,7 @@
 
     <!-- Speakers Grid -->
     <div id="speakers-container">
-        @await Html.PartialAsync("~/Pages/Shared/_SpeakerResults.cshtml", new SpeakerResultsViewModel
+        @await Html.PartialAsync("_SpeakerResults", new SpeakerResultsViewModel
         {
             CurrentPage = Model.CurrentPage,
             TotalPages = Model.TotalPages,

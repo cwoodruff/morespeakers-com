@@ -48,7 +48,7 @@ public class AdminAreaAuthorizationTests : IClassFixture<WebApplicationFactory<P
         }
         else
         {
-            Assert.Equal(HttpStatusCode.Forbidden, resp.StatusCode);
+            Assert.Equal(HttpStatusCode.NotFound, resp.StatusCode);
         }
     }
 

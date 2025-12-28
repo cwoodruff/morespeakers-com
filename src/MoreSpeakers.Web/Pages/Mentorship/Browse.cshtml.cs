@@ -110,7 +110,7 @@ public class BrowseModel : PageModel
                 AvailableExpertise = expertise
             };
 
-            return Partial("~/Pages/Shared/_RequestModal.cshtml", viewModel);
+            return Partial("_RequestModal", viewModel);
         }
         catch (Exception ex)
         {
@@ -178,7 +178,7 @@ public class BrowseModel : PageModel
             var canRequest = await _mentoringManager.CanRequestMentorshipAsync(currentUser.Id, targetId);
             if (!canRequest)
             {
-                return Partial("~/Pages/Shared/_AlertDialog.cshtml",
+                return Partial("_AlertDialog",
                     new AlertDialogViewModel
                     {
                         AlertType = AlertTypeEnum.Warning,
@@ -191,7 +191,7 @@ public class BrowseModel : PageModel
 
             if (mentorship == null)
             {
-                return Partial("~/Pages/Shared/_AlertDialog.cshtml",
+                return Partial("_AlertDialog",
                     new AlertDialogViewModel
                     {
                         AlertType = AlertTypeEnum.Danger,
@@ -248,7 +248,7 @@ public class BrowseModel : PageModel
                 return NotFound();
             }
 
-            return Partial("~/Pages/Shared/_AlertDialog.cshtml",
+            return Partial("_AlertDialog",
                 new AlertDialogViewModel
                 {
                     AlertType = AlertTypeEnum.Info,
@@ -258,7 +258,7 @@ public class BrowseModel : PageModel
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error cancelling mentorship request for user '{User}'", currentUser?.Id);
-            return Partial("~/Pages/Shared/_AlertDialog.cshtml",
+            return Partial("_AlertDialog",
                 new AlertDialogViewModel
                 {
                     AlertType = AlertTypeEnum.Danger,

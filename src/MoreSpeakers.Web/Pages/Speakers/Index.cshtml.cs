@@ -131,7 +131,7 @@ public class IndexModel : PageModel
                 AvailableExpertise = expertise
             };
 
-            return Partial("~/Pages/Shared/_RequestModal.cshtml", viewModel);
+            return Partial("_RequestModal", viewModel);
         }
         catch (Exception ex)
         {

@@ -30,7 +30,7 @@
         SearchEndPointUrl = "expertises/searchExpertiseCategories"
       };
     }
-    <partial name="/Areas/Admin/Pages/Shared/_NameValidationInput.cshtml" model="nameValidationModel"/>
+    <partial name="_NameValidationInput" model="nameValidationModel"/>
   </div>
 
   <div class="mb-3">
@@ -58,5 +58,5 @@
 </form>
 
 @section Scripts {
-  <partial name="~/Pages/Shared/_ValidationScriptsPartial.cshtml"/>
+  <partial name="_ValidationScriptsPartial"/>
 }

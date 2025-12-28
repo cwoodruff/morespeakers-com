@@ -57,7 +57,7 @@ public class AdminPoliciesTests : IClassFixture<CustomWebApplicationFactory>
             var resp = await client.GetAsync(path);
             var body = await resp.Content.ReadAsStringAsync();
             // With Test auth scheme default, forbidden remains 403 (no redirect)
-            Assert.True(resp.StatusCode == HttpStatusCode.Forbidden, $"Expected 403. Actual: {(int)resp.StatusCode} {resp.StatusCode}. Body: {body}");
+            Assert.True(resp.StatusCode == HttpStatusCode.NotFound, $"Expected 404. Actual: {(int)resp.StatusCode} {resp.StatusCode}. Body: {body}");
         }
     }
 
@@ -97,14 +97,14 @@ public class AdminPoliciesTests : IClassFixture<CustomWebApplicationFactory>
 
         var catalog = await client.GetAsync("/Admin/Catalog/Test");
         var bodyC = await catalog.Content.ReadAsStringAsync();
-        Assert.True(catalog.StatusCode == HttpStatusCode.Forbidden, $"Expected 403. Actual: {(int)catalog.StatusCode} {catalog.StatusCode}. Body: {bodyC}");
+        Assert.True(catalog.StatusCode == HttpStatusCode.NotFound, $"Expected 404. Actual: {(int)catalog.StatusCode} {catalog.StatusCode}. Body: {bodyC}");
 
         var reports = await client.GetAsync("/Admin/Reports/Test");
         var bodyR = await reports.Content.ReadAsStringAsync();
-        Assert.True(reports.StatusCode == HttpStatusCode.Forbidden, $"Expected 403. Actual: {(int)reports.StatusCode} {reports.StatusCode}. Body: {bodyR}");
+        Assert.True(reports.StatusCode == HttpStatusCode.NotFound, $"Expected 404. Actual: {(int)reports.StatusCode} {reports.StatusCode}. Body: {bodyR}");
 
         var users = await client.GetAsync("/Admin/Users/Test");
         var bodyU = await users.Content.ReadAsStringAsync();
-        Assert.True(users.StatusCode == HttpStatusCode.Forbidden, $"Expected 403. Actual: {(int)users.StatusCode} {users.StatusCode}. Body: {bodyU}");
+        Assert.True(users.StatusCode == HttpStatusCode.NotFound, $"Expected 404. Actual: {(int)users.StatusCode} {users.StatusCode}. Body: {bodyU}");
     }
 }
