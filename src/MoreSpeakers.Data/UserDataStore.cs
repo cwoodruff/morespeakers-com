@@ -813,11 +813,16 @@ public class UserDataStore : IUserDataStore
             Speakers = _mapper.Map<IEnumerable<User>>(users),
             PageSize = pageSize ?? totalCount,
             CurrentPage = page ?? 1,
-            TotalPages = page.HasValue ? (totalCount / (pageSize ?? totalCount)) : 1
+            TotalPages = page.HasValue ? RoundDivide(totalCount , (pageSize ?? totalCount)) : 1
         };
         
         return results;
     }
+
+    private static int RoundDivide(int numerator, int denominator) {
+        return (numerator + (denominator / 2)) / denominator;
+    }
+
 
     public async Task<IEnumerable<User>> GetSpeakersByExpertiseAsync(int expertiseId)
     {

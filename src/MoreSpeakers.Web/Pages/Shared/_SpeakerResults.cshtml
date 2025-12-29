@@ -35,14 +35,14 @@ else
                     </li>
                 }
 
-                @for (var i = Math.Max(1, Model.CurrentPage - 2); i <= Math.Min(Model.TotalPages, Model.CurrentPage + 2); i++)
+                @for (var pageNumber = 1; pageNumber <= Model.TotalPages; pageNumber++)
                 {
-                    <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                    <li class="page-item @(pageNumber == Model.CurrentPage ? "active" : "")">
                         <a class="page-link"
-                           href="@GetPageUrl(i)"
-                           hx-get="@GetPageUrl(i)"
+                           href="@GetPageUrl(pageNumber)"
+                           hx-get="@GetPageUrl(pageNumber)"
                            hx-target="#speakers-container" hx-swap="morph">
-                            @i
+                            @pageNumber
                         </a>
                     </li>
                 }
@@ -69,17 +69,16 @@ else
     {
         var queryParams = new List<string> { $"CurrentPage={page}" };
 
-        // TODO: Implement paging
-        // if (!string.IsNullOrEmpty(Model.SearchTerm))
-        //     queryParams.Add($"SearchTerm={Uri.EscapeDataString(Model.SearchTerm)}");
-        //
-        // if (Model.SpeakerTypeFilter.HasValue)
-        //     queryParams.Add($"SpeakerTypeFilter={Model.SpeakerTypeFilter}");
-        //
-        // if (Model.ExpertiseFilter.HasValue)
-        //     queryParams.Add($"ExpertiseFilter={Model.ExpertiseFilter}");
-        //
-        // queryParams.Add($"SortBy={Model.SortBy}");
+        if (!string.IsNullOrEmpty(Model.SearchTerm))
+            queryParams.Add($"SearchTerm={Uri.EscapeDataString(Model.SearchTerm)}");
+
+        if (Model.SpeakerTypeFilter.HasValue)
+            queryParams.Add($"SpeakerTypeFilter={Model.SpeakerTypeFilter}");
+
+        if (Model.ExpertiseFilter.HasValue)
+            queryParams.Add($"ExpertiseFilter={Model.ExpertiseFilter}");
+
+        queryParams.Add($"SortBy={Model.SortBy}");
 
         return $"/Speakers/Index?{string.Join("&", queryParams)}";
     }

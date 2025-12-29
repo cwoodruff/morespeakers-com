@@ -86,7 +86,11 @@ public class IndexModel : PageModel
                         CurrentPage = CurrentPage,
                         TotalPages = TotalPages,
                         SearchType = SearchType.Speakers,
-                        Speakers = Speakers
+                        Speakers = Speakers,
+                        SearchTerm = SearchTerm,
+                        SpeakerTypeFilter = SpeakerTypeFilter,
+                        ExpertiseFilter = ExpertiseFilter,
+                        SortBy = SortBy
                     });
 
                 return Content(searchResultContainerHtml + speakerContainerHtml, "text/html");

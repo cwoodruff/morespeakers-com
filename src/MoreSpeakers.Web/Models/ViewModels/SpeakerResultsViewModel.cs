@@ -1,3 +1,5 @@
+using MoreSpeakers.Domain.Models;
+
 namespace MoreSpeakers.Web.Models.ViewModels;
 
 public class SpeakerResultsViewModel
@@ -25,6 +27,21 @@ public class SpeakerResultsViewModel
     /// The current page number.
     /// </summary>
     public int CurrentPage { get; set; } = 1;
-    
-    
+
+    /// <summary>
+    /// The search term used to filter the results.
+    /// </summary>
+    public string? SearchTerm { get; set; }
+    /// <summary>
+    /// The type of speaker filter selected.
+    /// </summary>
+    public int? SpeakerTypeFilter { get; set; }
+    /// <summary>
+    /// The expertise filter selected.
+    /// </summary>
+    public int? ExpertiseFilter { get; set; }
+    /// <summary>
+    /// The sort order selected.
+    /// </summary>
+    public SpeakerSearchOrderBy? SortBy { get; set; }
 }
