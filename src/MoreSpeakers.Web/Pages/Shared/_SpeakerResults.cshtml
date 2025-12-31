@@ -7,17 +7,17 @@
 else
 {
     <div class="row">
-        @foreach (var speaker in Model.Speakers)
-        {
-            @await Html.PartialAsync("_SpeakerResults_Speaker", new SpeakerResultsSpeakerViewModel
+        <div class="row row-cols-4 row-cols-md-3 row-cols-sm-2 g-2">
+            @foreach (var speaker in Model.Speakers)
             {
-                Speaker = speaker,
-                SearchType = Model.SearchType,
-                CurrentUser = Model.CurrentUser
-            })
-        }
+                @await Html.PartialAsync("_SpeakerResults_Speaker", new SpeakerResultsSpeakerViewModel
+                {
+                    Speaker = speaker,
+                    CurrentUser = Model.CurrentUser
+                })
+            }
+        </div>
     </div>
-    
     <!-- Pagination -->
     @if (Model.TotalPages > 1)
     {
@@ -75,8 +75,13 @@ else
         if (Model.SpeakerTypeFilter.HasValue)
             queryParams.Add($"SpeakerTypeFilter={Model.SpeakerTypeFilter}");
 
-        if (Model.ExpertiseFilter.HasValue)
-            queryParams.Add($"ExpertiseFilter={Model.ExpertiseFilter}");
+        if (Model.ExpertiseFilter != null && Model.ExpertiseFilter.Any())
+        {
+            foreach(var expertiseId in Model.ExpertiseFilter)
+            {
+                queryParams.Add($"ExpertiseFilter={expertiseId}");
+            }
+        }
 
         queryParams.Add($"SortBy={Model.SortBy}");
 

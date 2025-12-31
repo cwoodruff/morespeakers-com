@@ -144,4 +144,7 @@ public class ExpertiseManager: IExpertiseManager
     
     public async Task<List<ExpertiseCategory>> GetAllActiveCategoriesForSector(int sectorId) =>
         await _dataStore.GetAllActiveCategoriesForSector(sectorId);
+
+    public async Task<List<Expertise>> GetBySectorIdAsync(int sectorFilter) =>
+        await _dataStore.GetBySectorIdAsync(sectorFilter);
 }

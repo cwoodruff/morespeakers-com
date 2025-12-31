@@ -13,17 +13,19 @@ public class IndexModel : PageModel
 {
     private const int PageSize = 12;
     private readonly IExpertiseManager _expertiseManager;
+    private readonly ISectorManager _sectorManager;
     private readonly IUserManager _userManager;
     private readonly IMentoringManager _mentoringManager;
     private readonly ITemplatedEmailSender _templatedEmailSender;
     private readonly IRazorPartialToStringRenderer _partialRenderer;
     private readonly ILogger<IndexModel> _logger;
 
-    public IndexModel(IExpertiseManager expertiseManager, IUserManager userManager, 
+    public IndexModel(IExpertiseManager expertiseManager, ISectorManager sectorManager, IUserManager userManager, 
         IMentoringManager mentoringManager, ITemplatedEmailSender templatedEmailSender,
         IRazorPartialToStringRenderer partialRenderer, ILogger<IndexModel> logger)
     {
         _expertiseManager = expertiseManager;
+        _sectorManager = sectorManager;
         _userManager = userManager;
         _mentoringManager = mentoringManager;
         _templatedEmailSender = templatedEmailSender;      
@@ -33,12 +35,17 @@ public class IndexModel : PageModel
 
     public IEnumerable<User> Speakers { get; set; } = new List<User>();
     public IEnumerable<Expertise> AllExpertise { get; set; } = new List<Expertise>();
+    public IEnumerable<Sector> Sectors { get; set; } = new List<Sector>();
+    public IEnumerable<ExpertiseCategory> Categories { get; set; } = new List<ExpertiseCategory>();
 
     [BindProperty(SupportsGet = true)] public string? SearchTerm { get; set; }
 
     [BindProperty(SupportsGet = true)] public int? SpeakerTypeFilter { get; set; }
 
-    [BindProperty(SupportsGet = true)] public int? ExpertiseFilter { get; set; }
+    [BindProperty(SupportsGet = true)] public List<int>? ExpertiseFilter { get; set; }
+
+    [BindProperty(SupportsGet = true)] public int? SectorFilter { get; set; }
+    [BindProperty(SupportsGet = true)] public int? CategoryFilter { get; set; }
 
     [BindProperty(SupportsGet = true)] public SpeakerSearchOrderBy SortBy { get; set; } = SpeakerSearchOrderBy.Name;
 
@@ -54,8 +61,23 @@ public class IndexModel : PageModel
     {
         try
         {
-            // Load all active expertise for filter dropdown
-            AllExpertise = await _expertiseManager.GetAllExpertisesAsync();
+            // Load all active sectors for filter dropdown
+            Sectors = await _sectorManager.GetAllAsync();
+
+            if (SectorFilter.HasValue)
+            {
+                Categories = await _expertiseManager.GetAllActiveCategoriesForSector(SectorFilter.Value);
+            }
+
+            if (CategoryFilter.HasValue)
+            {
+                AllExpertise = await _expertiseManager.GetByCategoryIdAsync(CategoryFilter.Value);
+            }
+            else
+            {
+                // Load all active expertise for filter dropdown by default or if no category is selected
+                AllExpertise = await _expertiseManager.GetAllExpertisesAsync();
+            }
 
             // Search for the speakers
             var searchResults = await _userManager.SearchSpeakersAsync(SearchTerm, SpeakerTypeFilter, ExpertiseFilter,
@@ -69,13 +91,13 @@ public class IndexModel : PageModel
             var searchResultsModel = new SearchResultCountViewModel
             {
                 AreFiltersApplied =
-                    !string.IsNullOrEmpty(SearchTerm) || ExpertiseFilter.HasValue || SpeakerTypeFilter.HasValue,
+                    !string.IsNullOrEmpty(SearchTerm) || (ExpertiseFilter != null && ExpertiseFilter.Any()) || SpeakerTypeFilter.HasValue || SectorFilter.HasValue || CategoryFilter.HasValue,
                 TotalResults = searchResults.RowCount
             };
             SearchResultsCount = searchResultsModel;
 
             // Check if this is an HTMX request for just the speakers container
-            if (Request.Headers.ContainsKey("HX-Request"))
+            if (Request.Headers.ContainsKey("HX-Request") && !Request.Headers.ContainsKey("HX-Target-Select"))
             {
                 var searchResultContainerHtml =
                     await _partialRenderer.RenderPartialToStringAsync(
@@ -103,6 +125,51 @@ public class IndexModel : PageModel
         }
 
         return Page();
+    }
+
+    public async Task<IActionResult> OnGetCategoriesAsync(int sectorFilter)
+    {
+        IEnumerable<ExpertiseCategory> categories;
+        IEnumerable<Expertise> expertises;
+
+        if (sectorFilter > 0)
+        {
+            categories = await _expertiseManager.GetAllActiveCategoriesForSector(sectorFilter);
+            expertises = await _expertiseManager.GetBySectorIdAsync(sectorFilter);
+        }
+        else
+        {
+            categories = await _expertiseManager.GetAllCategoriesAsync();
+            expertises = await _expertiseManager.GetAllExpertisesAsync();
+        }
+
+        var categoryOptionsHtml = await _partialRenderer.RenderPartialToStringAsync("~/Pages/Speakers/_CategoryOptions.cshtml", categories);
+        var expertiseCheckboxesHtml = await _partialRenderer.RenderPartialToStringAsync("~/Pages/Speakers/_ExpertiseCheckboxes.cshtml", expertises);
+
+        // Wrap expertise checkboxes with OOB swap
+        var expertiseOobHtml = $"<div id=\"expertise-list-container bg-body\" hx-swap-oob=\"true\">{expertiseCheckboxesHtml}</div>";
+
+        return Content(categoryOptionsHtml + expertiseOobHtml, "text/html");
+    }
+
+    public async Task<IActionResult> OnGetExpertisesAsync(int categoryFilter, int sectorFilter)
+    {
+        IEnumerable<Expertise> expertises;
+
+        if (categoryFilter > 0)
+        {
+            expertises = await _expertiseManager.GetByCategoryIdAsync(categoryFilter);
+        }
+        else if (sectorFilter > 0)
+        {
+            expertises = await _expertiseManager.GetBySectorIdAsync(sectorFilter);
+        }
+        else
+        {
+            expertises = await _expertiseManager.GetAllExpertisesAsync();
+        }
+
+        return Partial("_ExpertiseCheckboxes", expertises);
     }
 
     public async Task<IActionResult> OnGetRequestModalAsync(Guid mentorId, MentorshipType type)

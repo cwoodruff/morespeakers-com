@@ -747,13 +747,15 @@ public class UserDataStore : IUserDataStore
         return _mapper.Map<IEnumerable<User>>(users);
     }
 
-    public async Task<SpeakerSearchResult> SearchSpeakersAsync(string? searchTerm, int? speakerTypeId = null, int? expertiseId = null, SpeakerSearchOrderBy sortOrder = SpeakerSearchOrderBy.Name, int? page = null, int? pageSize = null)
+    public async Task<SpeakerSearchResult> SearchSpeakersAsync(string? searchTerm, int? speakerTypeId = null, List<int>? expertiseIds = null, SpeakerSearchOrderBy sortOrder = SpeakerSearchOrderBy.Name, int? page = null, int? pageSize = null)
     {
 
         var query = _context.Users
             .Include(u => u.SpeakerType)
             .Include(u => u.UserExpertise)
             .ThenInclude(ue => ue.Expertise)
+            .Include(u => u.UserSocialMediaSites)
+            .ThenInclude(sms => sms.SocialMediaSite)
             .AsQueryable();
 
         // Search term
@@ -773,9 +775,12 @@ public class UserDataStore : IUserDataStore
         }
         
         // Expertise
-        if (expertiseId.HasValue)
+        if (expertiseIds != null && expertiseIds.Any())
         {
-            query = query.Where(u => u.UserExpertise.Any(ue => ue.ExpertiseId == expertiseId.Value));
+            foreach (var expertiseId in expertiseIds)
+            {
+                query = query.Where(u => u.UserExpertise.Any(ue => ue.ExpertiseId == expertiseId));
+            }
         }
 
         // Sort Order

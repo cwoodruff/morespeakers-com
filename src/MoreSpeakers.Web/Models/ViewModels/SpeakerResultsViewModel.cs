@@ -39,7 +39,7 @@ public class SpeakerResultsViewModel
     /// <summary>
     /// The expertise filter selected.
     /// </summary>
-    public int? ExpertiseFilter { get; set; }
+    public List<int>? ExpertiseFilter { get; set; }
     /// <summary>
     /// The sort order selected.
     /// </summary>

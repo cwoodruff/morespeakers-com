@@ -31,7 +31,7 @@ public interface IUserDataStore: IDataStorePrimaryKeyGuid<User>
     
     Task<IEnumerable<User>> GetNewSpeakersAsync();
     Task<IEnumerable<User>> GetExperiencedSpeakersAsync();
-    Task<SpeakerSearchResult> SearchSpeakersAsync(string? searchTerm, int? speakerTypeId = null, int? expertiseId = null, SpeakerSearchOrderBy sortOrder = SpeakerSearchOrderBy.Name, int? page = null, int? pageSize = null);
+    Task<SpeakerSearchResult> SearchSpeakersAsync(string? searchTerm, int? speakerTypeId = null, List<int>? expertiseIds = null, SpeakerSearchOrderBy sortOrder = SpeakerSearchOrderBy.Name, int? page = null, int? pageSize = null);
     Task<IEnumerable<User>> GetSpeakersByExpertiseAsync(int expertiseId);
     Task<bool> AddUserSocialMediaSiteAsync(Guid userId, UserSocialMediaSite userSocialMediaSite);
     Task<bool> RemoveUserSocialMediaSiteAsync(int userSocialMediaSiteId);

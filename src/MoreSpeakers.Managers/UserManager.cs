@@ -124,9 +124,9 @@ public class UserManager: IUserManager
         return await _dataStore.GetExperiencedSpeakersAsync();
     }
 
-    public async Task<SpeakerSearchResult> SearchSpeakersAsync(string? searchTerm, int? speakerTypeId = null, int? expertiseId = null, SpeakerSearchOrderBy sortOrder = SpeakerSearchOrderBy.Name, int? page = null, int? pageSize = null)
+    public async Task<SpeakerSearchResult> SearchSpeakersAsync(string? searchTerm, int? speakerTypeId = null, List<int>? expertiseIds = null, SpeakerSearchOrderBy sortOrder = SpeakerSearchOrderBy.Name, int? page = null, int? pageSize = null)
     {
-        return await _dataStore.SearchSpeakersAsync(searchTerm, speakerTypeId, expertiseId, sortOrder, page, pageSize);
+        return await _dataStore.SearchSpeakersAsync(searchTerm, speakerTypeId, expertiseIds, sortOrder, page, pageSize);
     }
 
     public async Task<IEnumerable<User>> GetSpeakersByExpertiseAsync(int expertiseId)
