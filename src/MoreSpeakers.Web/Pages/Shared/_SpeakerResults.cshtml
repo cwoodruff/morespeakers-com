@@ -75,8 +75,13 @@ else
         if (Model.SpeakerTypeFilter.HasValue)
             queryParams.Add($"SpeakerTypeFilter={Model.SpeakerTypeFilter}");
 
-        if (Model.ExpertiseFilter.HasValue)
-            queryParams.Add($"ExpertiseFilter={Model.ExpertiseFilter}");
+        if (Model.ExpertiseFilter != null && Model.ExpertiseFilter.Any())
+        {
+            foreach(var expertiseId in Model.ExpertiseFilter)
+            {
+                queryParams.Add($"ExpertiseFilter={expertiseId}");
+            }
+        }
 
         queryParams.Add($"SortBy={Model.SortBy}");
 

@@ -298,5 +298,14 @@ public class ExpertiseDataStore : IExpertiseDataStore
             .ToListAsync();
         return _mapper.Map<List<ExpertiseCategory>>(categories);
     }
-    
+
+    public async Task<List<Expertise>> GetBySectorIdAsync(int sectorFilter)
+    {
+        var expertises = await _context.Expertise
+            .Include(e => e.ExpertiseCategory)
+            .Where(e => e.ExpertiseCategory.SectorId == sectorFilter && e.IsActive)
+            .OrderBy(e => e.Name)
+            .ToListAsync();
+        return _mapper.Map<List<Expertise>>(expertises);
+    }
 }

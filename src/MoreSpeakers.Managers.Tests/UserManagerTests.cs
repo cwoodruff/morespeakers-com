@@ -222,13 +222,14 @@ public class UserManagerTests
     public async Task SearchSpeakersAsync_should_delegate_all_parameters()
     {
         var expected = new SpeakerSearchResult { Speakers = new List<User>(), RowCount = 0, PageSize = 10, TotalPages = 1, CurrentPage = 1 };
-        _dataStoreMock.Setup(d => d.SearchSpeakersAsync("term", 1, 2, SpeakerSearchOrderBy.Name, 3, 10)).ReturnsAsync(expected);
+        var expertiseIds = new List<int> { 2 };
+        _dataStoreMock.Setup(d => d.SearchSpeakersAsync("term", 1, expertiseIds, SpeakerSearchOrderBy.Name, 3, 10)).ReturnsAsync(expected);
         var sut = CreateSut();
 
-        var result = await sut.SearchSpeakersAsync("term", 1, 2, SpeakerSearchOrderBy.Name, 3, 10);
+        var result = await sut.SearchSpeakersAsync("term", 1, expertiseIds, SpeakerSearchOrderBy.Name, 3, 10);
 
         result.Should().BeSameAs(expected);
-        _dataStoreMock.Verify(d => d.SearchSpeakersAsync("term", 1, 2, SpeakerSearchOrderBy.Name, 3, 10), Times.Once);
+        _dataStoreMock.Verify(d => d.SearchSpeakersAsync("term", 1, expertiseIds, SpeakerSearchOrderBy.Name, 3, 10), Times.Once);
     }
 
     [Fact]

@@ -1,0 +1,12 @@
+@model IEnumerable<MoreSpeakers.Domain.Models.Expertise>
+<div class="expertise-list" style="max-height: 190px; overflow-y: auto;">
+    @foreach (var expertise in Model)
+    {
+        <div class="form-check ms-1">
+            <input class="form-check-input" type="checkbox" name="ExpertiseFilter" value="@expertise.Id" id="expertise_@expertise.Id">
+            <label class="form-check-label" for="expertise_@expertise.Id">
+                @expertise.Name
+            </label>
+        </div>
+    }
+</div>

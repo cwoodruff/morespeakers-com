@@ -26,4 +26,5 @@ public interface IExpertiseManager
     Task<bool> DeleteCategoryAsync(int id);
     Task<List<ExpertiseCategory>> GetAllCategoriesAsync(TriState active = TriState.True, string? searchTerm = "");
     Task<List<ExpertiseCategory>> GetAllActiveCategoriesForSector(int sectorId);
+    Task<List<Expertise>> GetBySectorIdAsync(int sectorFilter);
 }

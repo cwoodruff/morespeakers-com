@@ -1,0 +1,6 @@
+@model IEnumerable<MoreSpeakers.Domain.Models.ExpertiseCategory>
+<option value="">All Categories</option>
+@foreach (var category in Model)
+{
+    <option value="@category.Id">@category.Name</option>
+}
