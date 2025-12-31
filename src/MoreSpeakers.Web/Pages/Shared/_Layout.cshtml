@@ -72,37 +72,27 @@
             <div class="navbar-collapse collapse">
                 <ul class="navbar-nav flex-grow-1">
                     <li class="nav-item">
-                        <a class="nav-link" asp-page="/Index">Home</a>
-                    </li>
-                    <li class="nav-item">
                         <a class="nav-link" asp-page="/Speakers/Index">Browse Speakers</a>
                     </li>
                     @if (User.Identity?.IsAuthenticated == true)
                     {
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
-                               aria-expanded="false">
-                                <i class="bi bi-people me-1"></i>Mentorship
+                        <li class="nav-item">
+                            <a class="nav-link" asp-page="/Mentorship/Requests">
+                                <i class="bi bi-inbox me-2"></i>My Requests
+                                <span id="nav-notification-badge"
+                                      hx-get="/Mentorship/Requests?handler=NotificationCount"
+                                      hx-trigger="load, every 60s"
+                                      hx-swap="innerHTML"
+                                      class="d-inline"></span>
                             </a>
-                            <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" asp-page="/Mentorship/Browse">
-                                        <i class="bi bi-search me-2"></i>Find Mentors
-                                    </a></li>
-                                <li><a class="dropdown-item" asp-page="/Mentorship/Requests">
-                                        <i class="bi bi-inbox me-2"></i>My Requests
-                                        <span id="nav-notification-badge"
-                                              hx-get="/Mentorship/Requests?handler=NotificationCount"
-                                              hx-trigger="load, every 60s"
-                                              hx-swap="innerHTML"
-                                              class="d-inline"></span>
-                                    </a></li>
-                                <li><a class="dropdown-item" asp-page="/Mentorship/Active">
-                                        <i class="bi bi-chat-dots me-2"></i>Active Mentorships
-                                    </a></li>
-                            </ul>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-page="/Mentorship/Active">
+                                <i class="bi bi-chat-dots me-2"></i>My Active Mentorships
+                            </a>
                         </li>
                     }
-                    @if (User.Identity?.IsAuthenticated == true && User.IsInRole("Administrator"))
+                    @if (User.Identity?.IsAuthenticated == true && User.IsInRole(Domain.Constants.UserRoles.Administrator))
                     {
                         <li class="nav-item">
                             <a class="nav-link" asp-area="Admin" asp-page="/Index"><i

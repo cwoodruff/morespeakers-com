@@ -1,1 +1,8 @@
-/* Home Page
+.speaker-img {
+    width: 6rem;
+    height: 6rem;
+}
+
+.speaker-default-headshot {
+    font-size: 6rem;
+}

@@ -754,6 +754,8 @@ public class UserDataStore : IUserDataStore
             .Include(u => u.SpeakerType)
             .Include(u => u.UserExpertise)
             .ThenInclude(ue => ue.Expertise)
+            .Include(u => u.UserSocialMediaSites)
+            .ThenInclude(sms => sms.SocialMediaSite)
             .AsQueryable();
 
         // Search term
