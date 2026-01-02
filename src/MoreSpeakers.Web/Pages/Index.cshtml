@@ -8,11 +8,11 @@
 <div class="hero">
     <div class="container">
         <div class="row align-items-center">
-            <div class="col-lg-6">
+            <div class="col-xs-12 col-sm-12 col-md-6">
                 <h1 class="display-4 fw-bold">Connect. Learn. Speak.</h1>
                 <p class="lead">Join MoreSpeakers.com to connect with experienced mentors and advance your speaking
                     career in technology.</p>
-                <div class="d-flex gap-3 flex-wrap">
+                <div class="d-flex gap-3 flex-wrap justify-content-between">
                     @if (User.Identity is not { IsAuthenticated: true })
                     {
                         <a href="@Url.Page("/Account/Register", new { area = "Identity", speakerType = Domain.Models.SpeakerTypeEnum.NewSpeaker.GetDescription() })"
@@ -35,7 +35,7 @@
                     }
                 </div>
             </div>
-            <div class="col-lg-6 text-center">
+            <div class="col-6 d-none d-xs-none d-sm-none d-md-block">
                 <img src="~/images/hero-illustration.png" alt="Speakers connecting" class="img-fluid"
                      style="max-height: 400px;">
             </div>
@@ -128,16 +128,17 @@
         @foreach (var speaker in Model.FeaturedSpeakers.Take(3))
         {
         <div class="col-md-4 mb-4">
-            <div class="card speaker-card h-100">
+            <div class="card h-100">
                 @if (!string.IsNullOrEmpty(speaker.HeadshotUrl))
                 {
-                    <img src="@speaker.HeadshotUrl" class="card-img-top speaker-img" alt="@speaker.FullName">
+                    <div class="d-flex align-items-center justify-content-center text-center">
+                        <img src="@speaker.HeadshotUrl" class="card-img-top object-fit-contain border image-thumbnail rounded speaker-img" alt="@speaker.FullName">
+                    </div>
                 }
                 else
                 {
-                    <div class="card-img-top bg-light d-flex align-items-center justify-content-center"
-                         style="height: 200px;">
-                        <i class="bi bi-person-circle display-1 text-muted"></i>
+                    <div class="card-img-top d-flex align-items-center justify-content-center speaker-default-headshot">
+                        <i class="bi bi-person-fill text-muted d-flex justify-content-center align-items-center speaker-default-headshot"></i>
                     </div>
                 }
                 <div class="card-body">
@@ -166,17 +167,17 @@
     {
     <div class="row">
         <div class="col-12">
-            <h2 class="text-center mb-4">Popular Expertise Areas</h2>
-            <p class="text-center text-muted mb-4">Explore speakers by technology and expertise</p>
+            <h2 class="text-center">Popular Expertise Areas</h2>
+            <p class="text-center text-muted">Explore speakers by technology and expertise</p>
             <div class="text-center">
                 @foreach (var expertise in Model.PopularExpertise)
                 {
-                    <a asp-page="/Speakers/Index" asp-route-expertisefilter="@expertise.Id" role="button" type="button" class="btn btn-primary">
+                    <a asp-page="/Speakers/Index" asp-route-expertisefilter="@expertise.Id" role="button" type="button" class="btn btn-primary m-1">
                         @expertise.Name <span class="badge text-bg-secondary">@expertise.UserExpertise.Count</span>
                     </a>
                 }
             </div>
-            <div class="text-center my-3">
+            <div class="text-center m-2">
                 <a asp-page="/Speakers/Index" class="btn btn-outline-primary">
                     <i class="bi bi-search me-2"></i>Browse All Speakers
                 </a>
