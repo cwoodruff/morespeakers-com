@@ -1,0 +1,165 @@
+@model MoreSpeakers.Web.Models.ViewModels.SpeakerResultsSpeakersViewModel
+<div class="row row-cols-4 row-cols-md-3 row-cols-sm-2 g-2">
+    @foreach (var speaker in Model.Speakers)
+    {
+        <div class="col">
+            <div class="card">
+                <div class="card-body">
+                    <!-- Header with Avatar and Basic Info -->
+                    <div class="container-fluid mb-2">
+                        <div class="row row-cols-2">
+                            <div class="col-md-6 col-sm-12 text-center">
+                                @if (!string.IsNullOrEmpty(speaker.HeadshotUrl))
+                                {
+                                    <img hx-preserve src="@speaker.HeadshotUrl" alt="@speaker.FullName"
+                                         class="object-fit-contain border image-thumbnail rounded justify-content-center align-items-center speaker-img">
+                                }
+                                else
+                                {
+                                    <i class="bi bi-person-fill text-muted d-flex justify-content-center align-items-center speaker-default-headshot"></i>
+                                }
+                            </div>
+                            <div class="col-md-6 col-sm-12">
+                                <div class="container">
+                                    <div class="row justify-content-start">
+                                        <div class="col-auto">
+                                            <h5>@speaker.FullName</h5>
+                                        </div>
+                                    </div>
+                                    <div class="row justify-content-start">
+                                        <div class="col col-auto">
+                                            @if (speaker.IsAvailableForMentoring)
+                                            {
+                                                <span class="badge text-bg-success">
+                                                    <i class="bi bi-check-circle me-1"></i>Available
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge text-bg-danger">
+                                                    <i class="bi bi-clock me-1"></i>Busy
+                                                </span>
+                                            }
+                                        </div>
+                                    </div>
+                                    <div class="row justify-content-start">
+                                        <div class="col col-auto">
+                                            <span class="badge bg-success text-wrap mt-1">@speaker.SpeakerType.ToFriendlyName()</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bio Preview -->
+                    <p class="card-text small">
+                        @(speaker.Bio.Length > 120 ? speaker.Bio[..120] + "..." : speaker.Bio)
+                    </p>
+
+                    <!-- Mentorship Focus -->
+                    @if (!string.IsNullOrEmpty(speaker.MentorshipFocus))
+                    {
+                        <div class="mb-3">
+                            <strong class="small text-muted">Mentorship Focus:</strong>
+                            <p class="small mb-0">@speaker.MentorshipFocus</p>
+                        </div>
+                    }
+
+                    <!-- Expertise Tags -->
+                    <div class="mb-3">
+                        @foreach (var userExpertise in speaker.UserExpertise.Take(4))
+                        {
+                            @if (Model.CurrentUser is not null)
+                            {
+                                var isShared = Model.CurrentUser.UserExpertise.Any(ue => ue.ExpertiseId == userExpertise.ExpertiseId);
+                                <span class="badge rounded-pill text-bg-primary fw-light @(isShared ? "shared" : "")">
+                                    @if (isShared)
+                                    {
+                                        <i class="bi bi-star-fill me-1"></i>
+                                    }
+                                    @userExpertise.Expertise.Name
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge rounded-pill text-bg-primary fw-light">@userExpertise.Expertise.Name</span>
+                            }
+                        }
+                        @if (speaker.UserExpertise.Count > 4)
+                        {
+                            <span class="text-muted small">+@(speaker.UserExpertise.Count - 4) more</span>
+                        }
+                    </div>
+
+                    <!-- Stats -->
+                    <div class="d-flex-3 mb-3">
+                        <div class="card">
+                            <div class="card-header">
+                                Mentorship stats
+                            </div>
+                            <div class="card-body">
+                                <div class="container">
+                                    <div class="row align-items-center">
+                                        <div class="col text-center">
+                                            <strong class="d-block">@speaker.MentorshipsAsMentor.Count(m => m.IsCompleted)</strong>
+                                            <span class="text-muted">Completed</span>
+                                        </div>
+                                        <div class="col text-center">
+                                            <strong class="d-block">@speaker.MentorshipsAsMentor.Count(m => m.IsActive)</strong>
+                                            <span class="text-muted">Active</span>
+                                        </div>
+                                        <div class="col text-center">
+                                            <strong class="d-block">@(speaker.MaxMentees - speaker.MentorshipsAsMentor.Count(m => m.IsActive))</strong>
+                                            <span class="text-muted">Available</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contact Links -->
+                    @if (speaker.UserSocialMediaSites.Any())
+                    {
+                        <div class="social-links mb-3 p-2">
+                            @foreach (var social in speaker.UserSocialMediaSites.Take(6))
+                            {
+                                <a href="@social.UserUrl" target="_blank" rel="noopener" class="btn btn-secondary">
+                                    <i class="@social.SocialMediaSite.Icon"></i>
+                                </a>
+                            }
+                            @if (speaker.UserSocialMediaSites.Count > 6)
+                            {
+                                <span class="small text-muted">+@(speaker.UserSocialMediaSites.Count - 6) more</span>
+                            }
+                        </div>
+                    }
+
+                    <!-- Action Buttons -->
+                    <div class="d-grid gap-2">
+
+                        <a asp-page="/Profile/Index" asp-route-id="@speaker.Id"
+                           class="btn btn-primary">
+                            <i class="bi bi-eye me-2"></i>View Profile
+                        </a>
+
+                        @if (User.Identity?.IsAuthenticated == true && User.Identity.Name != speaker.Email)
+                        {
+                            @if (speaker.IsExperiencedSpeaker && (speaker.MentorshipsAsMentor.Count(m => m.IsActive) < speaker.MaxMentees))
+                            {
+                                <button class="btn btn-primary"
+                                        hx-get="/Speakers/Index?handler=RequestModal&mentorId=@speaker.Id&type=@Domain.Models.MentorshipType.NewToExperienced"
+                                        hx-target="#modal-container"
+                                        hx-swap="innerHTML">
+                                    <i class="bi bi-people me-2"></i>Request Mentorship
+                                </button>
+                            }
+                        }
+                        <div id="mentorship-status-@speaker.Id" class="mt-2"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>

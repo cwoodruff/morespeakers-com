@@ -2,22 +2,30 @@
 
 @if (!Model.Speakers.Any())
 {
-    @await Html.PartialAsync("_SpeakerResults_NoResults", new SpeakerResultsNoSpeakersFoundViewModel{SearchType = Model.SearchType})
+    @await Html.PartialAsync("~/Pages/Speakers/_SpeakerResults_NoResults.cshtml")
 }
 else
 {
     <div class="row">
-        <div class="row row-cols-4 row-cols-md-3 row-cols-sm-2 g-2">
-            @foreach (var speaker in Model.Speakers)
-            {
-                @await Html.PartialAsync("_SpeakerResults_Speaker", new SpeakerResultsSpeakerViewModel
+        @switch (Model.ViewType)
+        {
+            case SpeakerResultsViewType.CardView:
+                @await Html.PartialAsync("~/Pages/Speakers/_SpeakerResults_CardView.cshtml", new SpeakerResultsSpeakersViewModel
                 {
-                    Speaker = speaker,
+                    Speakers = Model.Speakers,
                     CurrentUser = Model.CurrentUser
                 })
-            }
-        </div>
+                break;
+            case SpeakerResultsViewType.ListView:
+                @await Html.PartialAsync("~/Pages/Speakers/_SpeakerResults_ListView.cshtml", new SpeakerResultsSpeakersViewModel
+                {
+                    Speakers = Model.Speakers,
+                    CurrentUser = Model.CurrentUser
+                })
+                break;
+        }
     </div>
+
     <!-- Pagination -->
     @if (Model.TotalPages > 1)
     {
@@ -34,7 +42,6 @@ else
                         </a>
                     </li>
                 }
-
                 @for (var pageNumber = 1; pageNumber <= Model.TotalPages; pageNumber++)
                 {
                     <li class="page-item @(pageNumber == Model.CurrentPage ? "active" : "")">
@@ -46,7 +53,6 @@ else
                         </a>
                     </li>
                 }
-
                 @if (Model.CurrentPage < Model.TotalPages)
                 {
                     <li class="page-item">
@@ -67,7 +73,12 @@ else
 
     private string GetPageUrl(int page)
     {
-        var queryParams = new List<string> { $"CurrentPage={page}" };
+        var queryParams = new List<string>
+        {
+            $"CurrentPage={page}",
+            $"ViewType={Model.ViewType}",
+            $"SortBy={Model.SortBy}"
+        };
 
         if (!string.IsNullOrEmpty(Model.SearchTerm))
             queryParams.Add($"SearchTerm={Uri.EscapeDataString(Model.SearchTerm)}");
@@ -82,8 +93,6 @@ else
                 queryParams.Add($"ExpertiseFilter={expertiseId}");
             }
         }
-
-        queryParams.Add($"SortBy={Model.SortBy}");
 
         return $"/Speakers/Index?{string.Join("&", queryParams)}";
     }

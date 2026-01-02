@@ -16,98 +16,120 @@
                 else if event.detail.xhr.responseText.includes('error') then
                     put '<div class=&quot;alert alert-danger alert-sm&quot;>Unable to send request. Please try again.</div>' into event.detail.target">
     <div class="row">
-        <h1>
-            <i class="bi bi-people me-2"></i>Browse Speakers
-        </h1>
-        <p class="lead text-muted">Discover speakers in the technology community and connect with mentors or new
-            speakers.</p>
+        <div class="col">
+            <h1>
+                <i class="bi bi-people me-2"></i>Browse Speakers
+            </h1>
+            <p class="lead text-muted">Discover speakers in the technology community and connect with mentors or new
+                speakers.</p>
+        </div>
+        <div class="col-auto">
+            <div class="btn-group" role="group" aria-label="Speaker View Type">
+                <a type="button" class="btn btn-outline-secondary @(Model.ViewType == SpeakerResultsViewType.CardView ? "active" : "")"
+                   href="@GetPageUrl(Model.CurrentPage, SpeakerResultsViewType.CardView)"
+                   id="card-view-link">
+                    <i class="bi bi-person-vcard"></i>
+                </a>
+                <a type="button" class="btn btn-outline-secondary @(Model.ViewType == SpeakerResultsViewType.ListView ? "active" : "")"
+                   href="@GetPageUrl(Model.CurrentPage, SpeakerResultsViewType.ListView )"
+                   id="list-view-link">
+                    <i class="bi bi-card-list"></i>
+                </a>
+            </div>
+        </div>
     </div>
 
     <!-- Search and Filter Section -->
     <div class="row mb-3">
-        <div class="accordion" id="filterAccordion">
-            <div class="accordion-item">
-                <h2 class="accordion-header" id="headingFilters">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFilters" aria-expanded="false" aria-controls="collapseFilters">
-                        <i class="bi bi-filter me-2"></i> Search & Filters
-                    </button>
-                </h2>
-                <div id="collapseFilters" class="accordion-collapse collapse" aria-labelledby="headingFilters" data-bs-parent="#filterAccordion">
-                    <div class="accordion-body bg-body-tertiary">
-                        <form method="get" hx-get="/Speakers/Index" hx-target="#speakers-container"
-                              hx-indicator="#loading"
-                              hx-swap="morph"
-                              hx-trigger="keyup changed delay:500ms from:#searchTerm, change from:#speakerTypeFilter, change from:[name=ExpertiseFilter], change from:#sortBy, change from:#sectorFilter, change from:#categoryFilter">
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="searchTerm" class="form-label">Search</label>
-                                    <div class="input-group">
-                                        <input type="text"
-                                               id="searchTerm"
-                                               name="searchTerm"
-                                               value="@Model.SearchTerm"
-                                               class="form-control"
-                                               placeholder="Search by name, bio, or expertise...">
-                                        <button type="submit" class="btn btn-primary" aria-label="Search">
-                                            <i class="bi bi-search"></i>
-                                        </button>
+        <div class="container">
+            <div class="row">
+                <div class="accordion" id="filterAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingFilters">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFilters" aria-expanded="false" aria-controls="collapseFilters">
+                                <i class="bi bi-filter me-2"></i> Search & Filters
+                            </button>
+                        </h2>
+                        <div id="collapseFilters" class="accordion-collapse collapse" aria-labelledby="headingFilters" data-bs-parent="#filterAccordion">
+                            <div class="accordion-body bg-body-tertiary">
+                                <form method="get" hx-get="/Speakers/Index"
+                                      hx-target="#speakers-container"
+                                      hx-indicator="#loading"
+                                      hx-include="#ViewType"
+                                      hx-swap="morph"
+                                      hx-trigger="keyup changed delay:500ms from:#searchTerm, change from:#speakerTypeFilter, change from:[name=ExpertiseFilter], change from:#sortBy, change from:#sectorFilter, change from:#categoryFilter">
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="searchTerm" class="form-label">Search</label>
+                                            <div class="input-group">
+                                                <input type="text"
+                                                       id="searchTerm"
+                                                       name="searchTerm"
+                                                       value="@Model.SearchTerm"
+                                                       class="form-control"
+                                                       placeholder="Search by name, bio, or expertise...">
+                                                <button type="submit" class="btn btn-primary" aria-label="Search">
+                                                    <i class="bi bi-search"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3 mb-3">
+                                            <label for="speakerTypeFilter" class="form-label">Speaker Type</label>
+                                            <select id="speakerTypeFilter" name="speakerTypeFilter" class="form-select">
+                                                <option value="">All Speakers</option>
+                                                <option value="1" selected="@(Model.SpeakerTypeFilter == (int)SpeakerTypeEnum.NewSpeaker)">@SpeakerTypeEnum.NewSpeaker.GetDescription()</option>
+                                                <option value="2" selected="@(Model.SpeakerTypeFilter == (int)SpeakerTypeEnum.ExperiencedSpeaker)">@SpeakerTypeEnum.ExperiencedSpeaker.GetDescription()</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-3 mb-3">
+                                            <label for="sortBy" class="form-label">Sort by</label>
+                                            <select id="sortBy" name="sortBy" class="form-select" asp-for="@Model.SortBy" asp-items="Html.GetEnumSelectList<SpeakerSearchOrderBy>()">
+                                            </select>
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="col-md-3 mb-3">
-                                    <label for="speakerTypeFilter" class="form-label">Speaker Type</label>
-                                    <select id="speakerTypeFilter" name="speakerTypeFilter" class="form-select">
-                                        <option value="">All Speakers</option>
-                                        <option value="1" selected="@(Model.SpeakerTypeFilter == (int) SpeakerTypeEnum.NewSpeaker)">@SpeakerTypeEnum.NewSpeaker.GetDescription()</option>
-                                        <option value="2" selected="@(Model.SpeakerTypeFilter == (int) SpeakerTypeEnum.ExperiencedSpeaker)">@SpeakerTypeEnum.ExperiencedSpeaker.GetDescription()</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-3 mb-3">
-                                    <label for="sortBy" class="form-label">Sort by</label>
-                                    <select id="sortBy" name="sortBy" class="form-select" asp-for="@Model.SortBy" asp-items="Html.GetEnumSelectList<SpeakerSearchOrderBy>()">
-                                    </select>
-                                </div>
-                            </div>
 
-                            <div class="row">
-                                <div class="col-md-4 mb-3">
-                                    <label for="sectorFilter" class="form-label">Sector</label>
-                                    <select id="sectorFilter" name="sectorFilter" class="form-select"
-                                            hx-get="/Speakers/Index?handler=Categories"
-                                            hx-target="#categoryFilter"
-                                            hx-trigger="change">
-                                        <option value="">All Sectors</option>
-                                        @foreach (var sector in Model.Sectors)
-                                        {
-                                            <option value="@sector.Id" selected="@(Model.SectorFilter == sector.Id)">@sector.Name</option>
-                                        }
-                                    </select>
-                                </div>
-                                <div class="col-md-4 mb-3">
-                                    <label for="categoryFilter" class="form-label">Category</label>
-                                    <select id="categoryFilter" name="categoryFilter" class="form-select"
-                                            hx-get="/Speakers/Index?handler=Expertises"
-                                            hx-target="#expertise-list-container"
-                                            hx-include="#sectorFilter"
-                                            hx-trigger="change">
-                                        <option value="">All Categories</option>
-                                        @foreach (var category in Model.Categories)
-                                        {
-                                            <option value="@category.Id" selected="@(Model.CategoryFilter == category.Id)">@category.Name</option>
-                                        }
-                                    </select>
-                                </div>
-                                <div class="col-md-4 mb-3">
-                                    <label class="form-label">Expertise Area (Select multiple)</label>
-                                    <div id="expertise-list-container" class="border rounded p-2 bg-body">
-                                        @await Html.PartialAsync("_ExpertiseCheckboxes", Model.AllExpertise)
+                                    <div class="row">
+                                        <div class="col-md-4 mb-3">
+                                            <label for="sectorFilter" class="form-label">Sector</label>
+                                            <select id="sectorFilter" name="sectorFilter" class="form-select"
+                                                    hx-get="/Speakers/Index?handler=Categories"
+                                                    hx-target="#categoryFilter"
+                                                    hx-trigger="change">
+                                                <option value="">All Sectors</option>
+                                                @foreach (var sector in Model.Sectors)
+                                                {
+                                                    <option value="@sector.Id" selected="@(Model.SectorFilter == sector.Id)">@sector.Name</option>
+                                                }
+                                            </select>
+                                        </div>
+                                        <div class="col-md-4 mb-3">
+                                            <label for="categoryFilter" class="form-label">Category</label>
+                                            <select id="categoryFilter" name="categoryFilter" class="form-select"
+                                                    hx-get="/Speakers/Index?handler=Expertises"
+                                                    hx-target="#expertise-list-container"
+                                                    hx-include="#sectorFilter"
+                                                    hx-trigger="change">
+                                                <option value="">All Categories</option>
+                                                @foreach (var category in Model.Categories)
+                                                {
+                                                    <option value="@category.Id" selected="@(Model.CategoryFilter == category.Id)">@category.Name</option>
+                                                }
+                                            </select>
+                                        </div>
+                                        <div class="col-md-4 mb-3">
+                                            <label class="form-label">Expertise Area (Select multiple)</label>
+                                            <div id="expertise-list-container" class="border rounded p-2 bg-body">
+                                                @await Html.PartialAsync("_ExpertiseCheckboxes", Model.AllExpertise)
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
+                                    <input type="hidden" name="ViewType" id="ViewType" value="@Model.ViewType" />
+                                    <div class="row d-flex align-content-center">
+                                        @await Html.PartialAsync("_SearchResultCountPartial", Model.SearchResultsCount)
+                                    </div>
+                                </form>
                             </div>
-
-                            <div class="row d-flex align-content-center">
-                                @await Html.PartialAsync("_SearchResultCountPartial", Model.SearchResultsCount)
-                            </div>
-                        </form>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -122,20 +144,51 @@
         <p class="mt-2 text-muted">Searching speakers...</p>
     </div>
 
-    <!-- Speakers Grid -->
+    <!-- Speakers Results -->
     <div id="speakers-container">
         @await Html.PartialAsync("_SpeakerResults", new SpeakerResultsViewModel
         {
             CurrentPage = Model.CurrentPage,
             TotalPages = Model.TotalPages,
-            SearchType = SearchType.Speakers,
             Speakers = Model.Speakers,
             SearchTerm = Model.SearchTerm,
             SpeakerTypeFilter = Model.SpeakerTypeFilter,
             ExpertiseFilter = Model.ExpertiseFilter,
-            SortBy = Model.SortBy
+            SortBy = Model.SortBy,
+            ViewType = Model.ViewType
+
         })
     </div>
     <!-- Modal Container -->
     <div id="modal-container"></div>
 </div>
+
+
+@functions {
+
+    private string GetPageUrl(int page, SpeakerResultsViewType? viewType = null)
+    {
+        var queryParams = new List<string>
+        {
+            $"CurrentPage={page}",
+            $"SortBy={Model.SortBy}",
+            viewType.HasValue ? $"ViewType={viewType}" : $"ViewType={Model.ViewType}"
+        };
+
+        if (!string.IsNullOrEmpty(Model.SearchTerm))
+            queryParams.Add($"SearchTerm={Uri.EscapeDataString(Model.SearchTerm)}");
+
+        if (Model.SpeakerTypeFilter.HasValue)
+            queryParams.Add($"SpeakerTypeFilter={Model.SpeakerTypeFilter}");
+
+        if (Model.ExpertiseFilter != null && Model.ExpertiseFilter.Any())
+        {
+            foreach(var expertiseId in Model.ExpertiseFilter)
+            {
+                queryParams.Add($"ExpertiseFilter={expertiseId}");
+            }
+        }
+
+        return $"/Speakers/Index?{string.Join("&", queryParams)}";
+    }
+}
