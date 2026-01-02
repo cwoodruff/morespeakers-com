@@ -54,6 +54,8 @@ public class IndexModel : PageModel
     [BindProperty(SupportsGet = true)] public int TotalCount { get; set; }
     
     [BindProperty(SupportsGet = true)] public int TotalPages { get; set; }
+
+    [BindProperty(SupportsGet = true)] public SpeakerResultsViewType ViewType { get; set; } = SpeakerResultsViewType.CardView;
     
     [BindProperty(SupportsGet = true)] public SearchResultCountViewModel SearchResultsCount { get; set; } = new Models.ViewModels.SearchResultCountViewModel();
 
@@ -103,15 +105,15 @@ public class IndexModel : PageModel
                     await _partialRenderer.RenderPartialToStringAsync(
                         "~/Pages/Speakers/_SearchResultCountPartial.cshtml", SearchResultsCount);
                 var speakerContainerHtml =
-                    await _partialRenderer.RenderPartialToStringAsync("_SpeakerResults", new SpeakerResultsViewModel
+                    await _partialRenderer.RenderPartialToStringAsync("~/Pages/Speakers/_SpeakerResults.cshtml", new SpeakerResultsViewModel
                     {
                         CurrentPage = CurrentPage,
                         TotalPages = TotalPages,
-                        SearchType = SearchType.Speakers,
                         Speakers = Speakers,
                         SearchTerm = SearchTerm,
                         SpeakerTypeFilter = SpeakerTypeFilter,
                         ExpertiseFilter = ExpertiseFilter,
+                        ViewType = ViewType,
                         SortBy = SortBy
                     });
 
@@ -210,6 +212,7 @@ public class IndexModel : PageModel
             throw;
         }
     }
+
     public async Task<IActionResult> OnPostSubmitRequestAsync(Guid targetId, MentorshipType type,
         string? requestMessage, List<int>? selectedExpertiseIds, string? preferredFrequency)
     {
@@ -268,4 +271,5 @@ public class IndexModel : PageModel
         return Partial("_RequestSuccess", mentorship);
 
     }
+
 }

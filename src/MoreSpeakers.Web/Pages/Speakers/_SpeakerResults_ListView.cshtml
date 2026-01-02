@@ -1,0 +1,41 @@
+@model MoreSpeakers.Web.Models.ViewModels.SpeakerResultsSpeakersViewModel
+
+<table class="table table-striped table-responsive">
+    <thead>
+    <tr>
+        <th scope="col">Name</th>
+        <th scope="col">Bio</th>
+        <th scope="col">Type</th>
+        <th scope="col">Available</th>
+        <th scope="col">Expertise</th>
+        <th scope="col"></th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var speaker in Model.Speakers)
+    {
+        <tr>
+            <td>@speaker.FullName</td>
+            <td>@(speaker.Bio.Length > 120 ? speaker.Bio[..120] + "..." : speaker.Bio)</td>
+            <td><span class="badge bg-success text-wrap mt-1">@speaker.SpeakerType.ToFriendlyName()</span></td>
+            <td>@if (speaker.IsAvailableForMentoring)
+                {
+                    <span class="badge text-bg-success">
+                        <i class="bi bi-check-circle me-1"></i>Available
+                    </span>
+                }
+                else
+                {
+                    <span class="badge text-bg-danger">
+                        <i class="bi bi-clock me-1"></i>Busy
+                    </span>
+                }</td>
+            <td>@speaker.UserExpertise.Count</td>
+            <td>
+                <a asp-page="/Profile/Index" asp-route-id="@speaker.Id"
+                   class="btn btn-sm btn-outline-secondary"><i class="bi bi-eye"></i></a>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
