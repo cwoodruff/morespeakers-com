@@ -1,0 +1,5 @@
+@model Dictionary<string, string>
+@foreach (var key in @Model.Keys)
+{
+    <meta property="@key" content="@Model[key]" />
+}

@@ -179,6 +179,7 @@ builder.Services.AddScoped<IEmailSender, EmailSender>();
 builder.Services.AddScoped<Microsoft.AspNetCore.Identity.UI.Services.IEmailSender, EmailSender>();
 builder.Services.AddScoped<ITemplatedEmailSender, TemplatedEmailSender>();
 builder.Services.AddScoped<IRazorPartialToStringRenderer, RazorPartialToStringRenderer>();
+builder.Services.AddScoped<IOpenGraphService, OpenGraphService>();
 
 // Register GitHub Service and Add in-memory caching (required by GitHubService constructor)
 builder.Services.AddMemoryCache();

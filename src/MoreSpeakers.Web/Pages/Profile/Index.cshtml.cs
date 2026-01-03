@@ -3,10 +3,12 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models;
+using MoreSpeakers.Web.Models;
+using MoreSpeakers.Web.Services;
 
 namespace MoreSpeakers.Web.Pages.Profile;
 
-public class IndexModel(IUserManager userManager, ILogger<IndexModel> logger) : PageModel
+public class IndexModel(IUserManager userManager, IOpenGraphService openGraphService, LinkGenerator linkGenerator, ILogger<IndexModel> logger) : PageModel
 {
 
     public User UserProfile { get; set; } = null!;
@@ -77,6 +79,10 @@ public class IndexModel(IUserManager userManager, ILogger<IndexModel> logger) : 
             return RedirectToPage("/Profile/LoadingProblem",
                 new { UserId = identityUser?.Id ?? Guid.Empty });
         }
+
+        var profileUrl = linkGenerator.GetUriByPage(HttpContext, "/Profile/Index", null, new { Id = UserProfile.Id }) ??
+                         "https://www.morespeakers.com/";
+        ViewData[Constants.ViewBagTags.OpenGraph] = openGraphService.GenerateUserMetadata(UserProfile, profileUrl);
 
         return Page();
     }
