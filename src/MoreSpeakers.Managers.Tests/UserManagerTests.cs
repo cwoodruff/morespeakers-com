@@ -11,9 +11,10 @@ namespace MoreSpeakers.Managers.Tests;
 public class UserManagerTests
 {
     private readonly Mock<IUserDataStore> _dataStoreMock = new();
+    private readonly Mock<IOpenGraphGenerator> _openGraphGeneratorMock = new();
     private readonly Mock<ILogger<UserManager>> _loggerMock = new();
 
-    private UserManager CreateSut() => new(_dataStoreMock.Object, _loggerMock.Object);
+    private UserManager CreateSut() => new(_dataStoreMock.Object, _openGraphGeneratorMock.Object, _loggerMock.Object);
 
     // ---------- Identity wrapper methods ----------
     [Fact]
@@ -45,9 +46,9 @@ public class UserManagerTests
     }
 
     [Fact]
-    public async Task CreateAsync_should_delegate()
+    public async Task CreateAsync_should_delegate_and_queue_opengraph_when_headshot_exists()
     {
-        var user = new User { Email = "a@b.com" };
+        var user = new User { Id = Guid.NewGuid(), Email = "a@b.com", HeadshotUrl = "http://headshot" };
         var expected = IdentityResult.Success;
         _dataStoreMock.Setup(d => d.CreateAsync(user, "pwd")).ReturnsAsync(expected);
         var sut = CreateSut();
@@ -56,6 +57,22 @@ public class UserManagerTests
 
         result.Should().BeSameAs(expected);
         _dataStoreMock.Verify(d => d.CreateAsync(user, "pwd"), Times.Once);
+        _openGraphGeneratorMock.Verify(o => o.QueueSpeakerOpenGraphProfileImageCreation(user.Id, user.HeadshotUrl), Times.Once);
+    }
+
+    [Fact]
+    public async Task CreateAsync_should_not_queue_opengraph_when_creation_fails()
+    {
+        var user = new User { Id = Guid.NewGuid(), Email = "a@b.com", HeadshotUrl = "http://headshot" };
+        var expected = IdentityResult.Failed();
+        _dataStoreMock.Setup(d => d.CreateAsync(user, "pwd")).ReturnsAsync(expected);
+        var sut = CreateSut();
+
+        var result = await sut.CreateAsync(user, "pwd");
+
+        result.Should().BeSameAs(expected);
+        _dataStoreMock.Verify(d => d.CreateAsync(user, "pwd"), Times.Once);
+        _openGraphGeneratorMock.Verify(o => o.QueueSpeakerOpenGraphProfileImageCreation(It.IsAny<Guid>(), It.IsAny<string>()), Times.Never);
     }
 
     [Fact]
@@ -154,9 +171,9 @@ public class UserManagerTests
     }
 
     [Fact]
-    public async Task SaveAsync_should_delegate()
+    public async Task SaveAsync_should_delegate_and_queue_opengraph_when_headshot_exists()
     {
-        var entity = new User { Id = Guid.NewGuid() };
+        var entity = new User { Id = Guid.NewGuid(), HeadshotUrl = "http://headshot" };
         _dataStoreMock.Setup(d => d.SaveAsync(entity)).ReturnsAsync(entity);
         var sut = CreateSut();
 
@@ -164,6 +181,7 @@ public class UserManagerTests
 
         result.Should().BeSameAs(entity);
         _dataStoreMock.Verify(d => d.SaveAsync(entity), Times.Once);
+        _openGraphGeneratorMock.Verify(o => o.QueueSpeakerOpenGraphProfileImageCreation(entity.Id, entity.HeadshotUrl), Times.Once);
     }
 
     [Fact]

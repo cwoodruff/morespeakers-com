@@ -12,11 +12,13 @@ namespace MoreSpeakers.Managers;
 public class UserManager: IUserManager
 {
     private readonly IUserDataStore _dataStore;
+    private readonly IOpenGraphGenerator _openGraphGenerator;
     private readonly ILogger<UserManager> _logger;
 
-    public UserManager(IUserDataStore dataStore, ILogger<UserManager> logger)
+    public UserManager(IUserDataStore dataStore, IOpenGraphGenerator openGraphGenerator, ILogger<UserManager> logger)
     {
         _dataStore = dataStore;
+        _openGraphGenerator = openGraphGenerator;
         _logger = logger;
     }
     
@@ -36,7 +38,12 @@ public class UserManager: IUserManager
 
     public async Task<IdentityResult> CreateAsync(User user, string password)
     {
-        return await _dataStore.CreateAsync(user, password);
+        var result = await _dataStore.CreateAsync(user, password);
+        if (result.Succeeded)
+        {
+            await _openGraphGenerator.QueueSpeakerOpenGraphProfileImageCreation(user.Id, user.HeadshotUrl);
+        }
+        return result;
     }
 
     public async Task<User?> FindByEmailAsync(string email)
@@ -101,7 +108,9 @@ public class UserManager: IUserManager
 
     public async Task<User> SaveAsync(User entity)
     {
-        return await _dataStore.SaveAsync(entity);
+        var savedUser = await _dataStore.SaveAsync(entity);
+        await _openGraphGenerator.QueueSpeakerOpenGraphProfileImageCreation(savedUser.Id, savedUser.HeadshotUrl);
+        return savedUser;
     }
 
     public async Task<List<User>> GetAllAsync()

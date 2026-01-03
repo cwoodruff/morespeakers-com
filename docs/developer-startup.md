@@ -134,6 +134,7 @@ Open up the Azure Storage Explorer.
   * `bounced-emails`
   * `send-email`
   * `send-email-poison`
+  * `create-open-graph-profile-image`
 
 Restart the *MoreSpeakers.AppHost: https* project.
 
