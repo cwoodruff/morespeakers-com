@@ -139,10 +139,6 @@ builder.Services.AddRazorPages(options =>
     options.Conventions.AuthorizeAreaFolder("Admin", "/Catalog", policy: PolicyNames.ManageCatalog);
     // Reports/analytics pages → ViewReports policy
     options.Conventions.AuthorizeAreaFolder("Admin", "/Reports", policy: PolicyNames.ViewReports);
-});
-
-builder.Services.AddMvc(options =>
-{
     options.Filters.Add<MustChangePasswordFilter>();
 });
 
