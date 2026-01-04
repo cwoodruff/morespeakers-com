@@ -1,161 +1,38 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides high-level, evergreen guidance for working with this repository.
 
-## Development Commands
+## Top 5 Project Constraints
 
-### Running the Application
+1.  **Tech Stack**: .NET 10, ASP.NET Core, Razor Pages. Frontend interactivity is done with **HTMX and Hyperscript**. No SPAs (React, Angular, Vue).
+2.  **Database Workflow**: **NO Entity Framework Migrations**. All schema changes are done via raw SQL scripts in `scripts/database/`.
+3.  **Orchestration**: Development is run via .NET Aspire. The AppHost (`src/MoreSpeakers.AppHost/AppHost.cs`) orchestrates the SQL Server container and loads the database scripts.
+4.  **Architecture**: Follows a clean, vertical slice pattern: Web -> Managers -> Data -> Domain. Business logic lives in Managers.
+5.  **Testing**: All unit tests are written with xUnit, FluentAssertions, and Moq.
+
+## How to Run Locally
+
 ```bash
-# Run with .NET Aspire (recommended for development)
-# Note: Working directory is /src
+# From the /src directory
 dotnet run --project MoreSpeakers.AppHost
-
-# Run the web application directly
-dotnet run --project MoreSpeakers.Web
 ```
 
-### Building and Testing
-```bash
-# Build the entire solution
-dotnet build MoreSpeakers.sln
+## AI Skills & Commands
 
-# Build specific project
-dotnet build MoreSpeakers.Web/MoreSpeakers.Web.csproj
+This project uses a hybrid system of AI Skills and Slash Commands for development.
 
-# Run all tests (xUnit with FluentAssertions, Moq, Bogus)
-dotnet test
+-   **Skills** provide detailed, contextual instructions that Claude can use automatically.
+-   **Slash Commands** are explicit triggers for common workflows.
 
-# Run specific test class
-dotnet test --filter "SpeakerServiceTests"
+See `docs/ai-skills.md` for a complete guide.
 
-# Run tests with code coverage
-dotnet test --collect:"XPlat Code Coverage"
+### Key Skills
+-   `@dotnet-feature`: For implementing full-stack features.
+-   `@sql-schema`: For managing database schema changes.
+-   `@qa-engineer`: For writing unit tests.
 
-# Run tests by category
-dotnet test --filter "Category=Unit"
-
-# Restore dependencies
-dotnet restore
-```
-
-### Database Operations
-
-Entity Framework migrations are not used in the application
-
-## Architecture Overview
-
-This is a **mentorship platform** built with **.NET 10** and **ASP.NET Core** using **Razor Pages**. The application connects new speakers with experienced mentors in the technology community.
-
-### Project Structure
-- **MoreSpeakers.Web/** - Main web application (Razor Pages, Entity Framework, Identity)
-- **MoreSpeakers.AppHost/** - .NET Aspire orchestration host
-- **MoreSpeakers.ServiceDefaults/** - Shared service configuration
-- **MoreSpeakers.Tests/** - xUnit test suite with comprehensive coverage
-
-**Note:** The working directory is `/src` - all project paths are relative to this directory.
-
-### Key Technologies
-- **.NET 10** with Aspire for orchestration
-- **ASP.NET Core Identity** with a custom User model (GUID-based)
-- **Entity Framework Core** with SQL Server
-- **HTMX + Hyperscript** for minimal JavaScript frontend
-- **Serilog** for structured logging with Application Insights integration
-- **Bootstrap** for responsive UI
-
-### Data Model
-Core entities (all in `MoreSpeakers.Web/Models/`):
-- **User** - Extends IdentityUser<Guid> with speaker profile data
-- **SpeakerType** - NewSpeaker vs ExperiencedSpeaker
-- **Expertise** - Technology/topic expertise areas (40+ seeded areas)
-- **UserExpertise** - Many-to-many relationship between users and expertise
-- **Mentorship** - Tracks mentor-mentee relationships with status and type enums
-- **MentorshipExpertise** - Many-to-many relationship for mentorship focus areas
-- **SocialMedia** - User's social media links
-
-**Important:** Mentorships have a database constraint preventing self-mentoring (`CHK_Mentorships_DifferentUsers`)
-
-### Service Layer
-Key services in `MoreSpeakers.Web/Services/`:
-- **ISpeakerService** - Speaker profile management
-- **IMentorshipService** - Mentorship relationship logic
-- **IExpertiseService** - Expertise management
-- **IFileUploadService** - File upload handling
-
-All services are registered as scoped in `Program.cs`
-
-### Database Context
-`ApplicationDbContext` (in `MoreSpeakers.Web/Data/`):
-- Extends `IdentityDbContext<User, IdentityRole<Guid>, Guid>`
-- Entity configurations with indexes and constraints
-- Automatic timestamp updates via `SaveChanges()` override
-- Seeded data: 2 speaker types, 40+ expertise areas, 3 Identity roles
-- GUID primary keys with SQL Server NEWID() defaults
-
-### .NET Aspire Configuration
-`MoreSpeakers.AppHost/AppHost.cs`:
-- Manages SQL Server 2022 container with persistent lifetime
-- Executes database creation scripts from `/scripts/database/` in order:
-  1. create-database.sql
-  2. create-tables.sql
-  3. create-views.sql
-  4. create-functions.sql
-  5. seed-data.sql
-- Configures health check endpoint at `/health`
-- Uses `WaitFor()` pattern to ensure database is ready before web app starts
-
-### Frontend Architecture
-- **Server-side rendering** with Razor Pages
-- **HTMX** for dynamic updates without full page reloads
-- **Hyperscript** for declarative client-side interactions
-- **Bootstrap** for responsive UI components
-- **libman** for client-side library management (libman.json in Web project)
-- Minimal JavaScript footprint
-
-### Authentication & Authorization
-- ASP.NET Core Identity with custom User model (GUID-based IDs)
-- Role-based authorization (NewSpeaker, ExperiencedSpeaker, Administrator)
-- Password requirements: 8+ chars, digit, lowercase, uppercase, 1 unique char
-- Lockout: 5 failed attempts = 5 minute lockout
-- Authorization configured in `Program.cs` for Identity areas
-
-### Logging and Telemetry
-- **Serilog** with enrichers (machine name, thread ID, environment, assembly info)
-- Console and file logging (rolling daily files in `logs/logs.txt`)
-- **Application Insights** integration with Azure telemetry
-- Custom telemetry initializer for Azure Web App role environment
-
-### Testing Architecture
-Test project uses:
-- **xUnit** as the testing framework
-- **FluentAssertions** for readable assertions
-- **Moq** for mocking dependencies
-- **Microsoft.EntityFrameworkCore.InMemory** for database testing
-- **Bogus** for fake data generation
-- **Microsoft.AspNetCore.Mvc.Testing** for integration tests
-- Base class `TestBase.cs` provides in-memory database setup
-
-## Development Notes
-
-### Running Locally
-The application uses .NET Aspire for orchestration, which automatically manages:
-- SQL Server 2022 database container (persistent lifetime)
-- Application dependencies and service discovery
-- Health check monitoring at `/health`
-
-### Database
-- Uses SQL Server 2022 via Aspire container
-- Database initialization via SQL scripts (not EF migrations in Aspire mode)
-- ApplicationDbContext handles Entity Framework Code First models
-- Seeded with 40+ expertise areas (C#, .NET, Azure, JavaScript, Python, etc.) and 3 default roles
-
-### Session Management
-- Session timeout: 30 minutes
-- HttpOnly and Essential cookies enabled
-- Cookie consent checking enabled
-
-### Key Patterns
-- **Page Model pattern** for Razor Pages
-- **Service layer** for business logic with DI via interfaces
-- **Identity pattern** for authentication/authorization
-- **Dependency injection** throughout via `IServiceCollection`
-- **Timestamp tracking** via ApplicationDbContext SaveChanges override
+### Key Commands
+-   `/feature <name>`: Start a new vertical slice feature.
+-   `/db-change <description>`: Guide a database schema modification.
+-   `/test <target>`: Generate tests for a class or feature.
+-   `/docs <topic>`: Create or update documentation.
