@@ -81,12 +81,12 @@ public class LoginModel : PageModel
                 _logger.LogInformation("User logged in");
 
                 // Check if user must change password
-                var user = await _userManager.FindByEmailAsync(Input.Email);
-                if (user?.MustChangePassword == true)
-                {
-                    _logger.LogInformation("User must change password, redirecting to profile");
-                    return RedirectToPage("/Profile/Edit", new { area = "", tab = "password" });
-                }
+                // var user = await _userManager.FindByEmailAsync(Input.Email);
+                // if (user?.MustChangePassword == true)
+                // {
+                //     _logger.LogInformation("User must change password, redirecting to profile");
+                //     return RedirectToPage("/Profile/Edit", new { area = "", tab = "password" });
+                // }
 
                 return LocalRedirect(returnUrl);
             }
