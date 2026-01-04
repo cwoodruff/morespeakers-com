@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models;
+using MoreSpeakers.Web.Services;
 
 namespace MoreSpeakers.Web.Areas.Admin.Pages.Users;
 
@@ -10,13 +11,16 @@ namespace MoreSpeakers.Web.Areas.Admin.Pages.Users;
 public class DetailsModel : PageModel
 {
     private readonly IUserManager _userManager;
+    private readonly ITemplatedEmailSender _emailSender;
     private readonly ILogger<DetailsModel> _logger;
 
     public DetailsModel(
         IUserManager userManager,
+        ITemplatedEmailSender emailSender,
         ILogger<DetailsModel> logger)
     {
         _userManager = userManager;
+        _emailSender = emailSender;
         _logger = logger;
     }
 
@@ -217,6 +221,73 @@ public class DetailsModel : PageModel
                 Roles = Array.Empty<string>();
             }
             LastSignInUtc = null;
+            return Partial("_UserSecurityCard", this);
+        }
+
+        return RedirectToPage(new { id });
+    }
+
+    public async Task<IActionResult> OnPostTriggerPasswordResetAsync(Guid id)
+    {
+        var user = await _userManager.GetAsync(id);
+        if (user == null) return NotFound();
+
+        var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+        
+        // Generate the callback URL with both token and email for password reset
+        var callbackUrl = Url.Page(
+            "/Account/ResetPassword",
+            pageHandler: null,
+            values: new { area = "Identity", token, email = user.Email },
+            protocol: Request.Scheme);
+        
+        var ok = await _emailSender.SendTemplatedEmail("~/EmailTemplates/PasswordReset.cshtml",
+            "AdminTriggeredPasswordReset",
+            "Reset your password",
+            user,
+            new UserPasswordResetEmail { User = user, ResetEmailUrl = callbackUrl });
+
+        TempData[ok ? "StatusMessage" : "ErrorMessage"] = ok
+            ? "Password reset email has been sent."
+            : "Failed to send password reset email.";
+
+        if (Request.Headers.TryGetValue("HX-Request", out var hx) && string.Equals(hx, "true", StringComparison.OrdinalIgnoreCase))
+        {
+            User = user;
+            Roles = await _userManager.GetRolesForUserAsync(id);
+            return Partial("_UserSecurityCard", this);
+        }
+
+        return RedirectToPage(new { id });
+    }
+
+    public async Task<IActionResult> OnPostSetTemporaryPasswordAsync(Guid id)
+    {
+        var user = await _userManager.GetAsync(id);
+        if (user == null) return NotFound();
+
+        // Generate a random temporary password
+        var tempPassword = Guid.NewGuid().ToString("N").Substring(0, 12);
+        
+        var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+        var result = await _userManager.ResetPasswordAsync(user, token, tempPassword);
+
+        if (result.Succeeded)
+        {
+            user.MustChangePassword = true;
+            await _userManager.SaveAsync(user);
+            
+            TempData["StatusMessage"] = $"Temporary password set to: {tempPassword}. User MUST change it on next login.";
+        }
+        else
+        {
+            TempData["ErrorMessage"] = "Failed to set temporary password: " + string.Join(", ", result.Errors.Select(e => e.Description));
+        }
+
+        if (Request.Headers.TryGetValue("HX-Request", out var hx) && string.Equals(hx, "true", StringComparison.OrdinalIgnoreCase))
+        {
+            User = user;
+            Roles = await _userManager.GetRolesForUserAsync(id);
             return Partial("_UserSecurityCard", this);
         }
 

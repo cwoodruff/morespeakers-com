@@ -312,6 +312,23 @@ public class UserDataStore : IUserDataStore
         return await _userManager.ConfirmEmailAsync(identityUser, token);
     }
 
+    public async Task<string> GeneratePasswordResetTokenAsync(User user)
+    {
+        var identityUser = await _userManager.FindByIdAsync(user.Id.ToString());
+        if (identityUser == null) return string.Empty;
+        return await _userManager.GeneratePasswordResetTokenAsync(identityUser);
+    }
+
+    public async Task<IdentityResult> ResetPasswordAsync(User user, string token, string newPassword)
+    {
+        var identityUser = await _userManager.FindByIdAsync(user.Id.ToString());
+        if (identityUser == null)
+        {
+            return IdentityResult.Failed(new IdentityError { Description = "User not found" });
+        }
+        return await _userManager.ResetPasswordAsync(identityUser, token, newPassword);
+    }
+
     // Passkey Support
     public async Task<IdentityResult> AddOrUpdatePasskeyAsync(User user, UserPasskeyInfo passkey)
     {

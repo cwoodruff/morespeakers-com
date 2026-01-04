@@ -60,6 +60,16 @@ public class UserManager: IUserManager
         return result.Succeeded;
     }
 
+    public async Task<string> GeneratePasswordResetTokenAsync(User user)
+    {
+        return await _dataStore.GeneratePasswordResetTokenAsync(user);
+    }
+
+    public async Task<IdentityResult> ResetPasswordAsync(User user, string token, string newPassword)
+    {
+        return await _dataStore.ResetPasswordAsync(user, token, newPassword);
+    }
+
     // Passkey Support
     public async Task<IdentityResult> AddOrUpdatePasskeyAsync(User user, UserPasskeyInfo passkey)
     {

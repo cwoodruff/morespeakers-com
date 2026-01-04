@@ -78,6 +78,42 @@
           </div>
         </form>
       </div>
+
+      <div class="col-12">
+        <hr />
+        <h6>Password Management</h6>
+        <form class="d-inline"
+              method="post"
+              asp-page-handler="TriggerPasswordReset"
+              asp-route-id="@Model.User.Id"
+              hx-post="?handler=TriggerPasswordReset"
+              hx-target="#user-security-card"
+              hx-select="#user-security-card"
+              hx-swap="outerHTML"
+              hx-disabled-elt="button"
+              hx-indicator="#user-security-card .htmx-indicator"
+              hx-confirm="Send password reset email to this user?">
+          <button type="submit" class="btn btn-warning">
+            Send Reset Email
+          </button>
+        </form>
+
+        <form class="d-inline ms-2"
+              method="post"
+              asp-page-handler="SetTemporaryPassword"
+              asp-route-id="@Model.User.Id"
+              hx-post="?handler=SetTemporaryPassword"
+              hx-target="#user-security-card"
+              hx-select="#user-security-card"
+              hx-swap="outerHTML"
+              hx-disabled-elt="button"
+              hx-indicator="#user-security-card .htmx-indicator"
+              hx-confirm="Set a temporary password and force reset on next login?">
+          <button type="submit" class="btn btn-outline-warning">
+            Set Temp Password
+          </button>
+        </form>
+      </div>
     </div>
   </div>
 </div>
