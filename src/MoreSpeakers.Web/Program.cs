@@ -107,9 +107,11 @@ builder.Services.ConfigureApplicationCookie(options =>
 // Add Authorization with AdminOnly policy
 builder.Services.AddAuthorization(options =>
 {
+    // Baseline Admin area policy: only Administrators can enter the Admin area
     options.AddPolicy("AdminOnly", policy =>
         policy.RequireRole(AppRoles.Administrator));
 
+    // Keep Administrator with full access to all policies
     options.AddPolicy(PolicyNames.ManageUsers, policy =>
         policy.RequireRole(AppRoles.Administrator, AppRoles.UserManager, AppRoles.Moderator));
 
@@ -140,24 +142,6 @@ builder.Services.AddRazorPages(options =>
     // Reports/analytics pages → ViewReports policy
     options.Conventions.AuthorizeAreaFolder("Admin", "/Reports", policy: PolicyNames.ViewReports);
     options.Filters.Add<MustChangePasswordFilter>();
-});
-
-// Add authorization policies for least-privilege admin operations
-builder.Services.AddAuthorization(options =>
-{
-    // Baseline Admin area policy: only Administrators can enter the Admin area
-    options.AddPolicy("AdminOnly", policy =>
-        policy.RequireRole(AppRoles.Administrator));
-
-    // Keep Administrator with full access to all policies
-    options.AddPolicy(PolicyNames.ManageUsers, policy =>
-        policy.RequireRole(AppRoles.Administrator, AppRoles.UserManager, AppRoles.Moderator));
-
-    options.AddPolicy(PolicyNames.ManageCatalog, policy =>
-        policy.RequireRole(AppRoles.Administrator, AppRoles.CatalogManager, AppRoles.Moderator));
-
-    options.AddPolicy(PolicyNames.ViewReports, policy =>
-        policy.RequireRole(AppRoles.Administrator, AppRoles.Reporter, AppRoles.Moderator));
 });
 
 // Add Azure Storage services
