@@ -380,6 +380,33 @@ public class UserManagerTests
     }
 
     [Fact]
+    public async Task GeneratePasswordResetTokenAsync_should_delegate()
+    {
+        var sut = CreateSut();
+        var user = new User { Id = Guid.NewGuid() };
+        _dataStoreMock.Setup(d => d.GeneratePasswordResetTokenAsync(user)).ReturnsAsync("token");
+
+        var result = await sut.GeneratePasswordResetTokenAsync(user);
+
+        result.Should().Be("token");
+        _dataStoreMock.Verify(d => d.GeneratePasswordResetTokenAsync(user), Times.Once);
+    }
+
+    [Fact]
+    public async Task ResetPasswordAsync_should_delegate()
+    {
+        var sut = CreateSut();
+        var user = new User { Id = Guid.NewGuid() };
+        var expected = IdentityResult.Success;
+        _dataStoreMock.Setup(d => d.ResetPasswordAsync(user, "token", "new")).ReturnsAsync(expected);
+
+        var result = await sut.ResetPasswordAsync(user, "token", "new");
+
+        result.Should().Be(expected);
+        _dataStoreMock.Verify(d => d.ResetPasswordAsync(user, "token", "new"), Times.Once);
+    }
+
+    [Fact]
     public async Task GetSpeakerTypesAsync_should_delegate()
     {
         var expected = new List<SpeakerType> { new() { Id = 1, Name = "New" } };

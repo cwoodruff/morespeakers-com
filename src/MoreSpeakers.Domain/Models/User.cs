@@ -31,6 +31,8 @@ public class User: IdentityUser<Guid>
     public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedDate { get; set; } = DateTime.UtcNow;
 
+    public bool MustChangePassword { get; set; } = false;
+
     // Navigation properties
     public SpeakerType SpeakerType { get; set; } = null!;
     public ICollection<UserExpertise> UserExpertise { get; set; } = new List<UserExpertise>();

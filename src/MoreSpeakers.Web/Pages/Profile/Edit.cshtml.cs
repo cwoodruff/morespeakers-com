@@ -161,6 +161,9 @@ public class EditModel(
 
             if (changeResult.Succeeded)
             {
+                identityUser.MustChangePassword = false;
+                await userManager.SaveAsync(identityUser);
+
                 HasValidationErrors = false;
                 SuccessMessage = "Password changed successfully!";
                 PasswordInput = new PasswordChangeInputModel(); // Clear form

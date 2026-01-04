@@ -19,6 +19,8 @@ public interface IUserManager
     Task<User?> GetUserIdAsync(ClaimsPrincipal user);
     Task<string> GenerateEmailConfirmationTokenAsync(User user);
     Task<bool> ConfirmEmailAsync(User user, string token);
+    Task<string> GeneratePasswordResetTokenAsync(User user);
+    Task<IdentityResult> ResetPasswordAsync(User user, string token, string newPassword);
     
     // Passkey support
     Task<IdentityResult> AddOrUpdatePasskeyAsync(User user, UserPasskeyInfo passkey);
