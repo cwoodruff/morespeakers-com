@@ -8,7 +8,7 @@ using MoreSpeakers.Managers;
 using MoreSpeakers.Web.Services;
 using MoreSpeakers.Data;
 using MoreSpeakers.Web.Endpoints;
-
+using MoreSpeakers.Web.Filters;
 using Serilog;
 using Serilog.Exceptions;
 using MoreSpeakers.Web.Authorization;
@@ -137,6 +137,7 @@ builder.Services.AddRazorPages(options =>
     options.Conventions.AuthorizeAreaFolder("Admin", "/Catalog", policy: PolicyNames.ManageCatalog);
     // Reports/analytics pages → ViewReports policy
     options.Conventions.AuthorizeAreaFolder("Admin", "/Reports", policy: PolicyNames.ViewReports);
+    options.Filters.Add<MustChangePasswordFilter>();
 });
 
 // Add authorization policies for least-privilege admin operations

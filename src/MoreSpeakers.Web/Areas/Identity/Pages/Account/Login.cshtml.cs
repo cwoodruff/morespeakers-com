@@ -13,10 +13,12 @@ public class LoginModel : PageModel
 {
     private readonly ILogger<LoginModel> _logger;
     private readonly SignInManager<Data.Models.User> _signInManager;
+    private readonly UserManager<Data.Models.User> _userManager;
 
-    public LoginModel(SignInManager<Data.Models.User> signInManager, ILogger<LoginModel> logger)
+    public LoginModel(SignInManager<Data.Models.User> signInManager, UserManager<Data.Models.User> userManager, ILogger<LoginModel> logger)
     {
         _signInManager = signInManager;
+        _userManager = userManager;
         _logger = logger;
     }
 
@@ -77,6 +79,15 @@ public class LoginModel : PageModel
             if (result.Succeeded)
             {
                 _logger.LogInformation("User logged in");
+
+                // Check if user must change password
+                var user = await _userManager.FindByEmailAsync(Input.Email);
+                if (user?.MustChangePassword == true)
+                {
+                    _logger.LogInformation("User must change password, redirecting to profile");
+                    return RedirectToPage("/Profile/Edit", new { area = "", tab = "password" });
+                }
+
                 return LocalRedirect(returnUrl);
             }
 
