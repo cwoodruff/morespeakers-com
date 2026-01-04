@@ -141,7 +141,12 @@ builder.Services.AddRazorPages(options =>
     options.Conventions.AuthorizeAreaFolder("Admin", "/Catalog", policy: PolicyNames.ManageCatalog);
     // Reports/analytics pages → ViewReports policy
     options.Conventions.AuthorizeAreaFolder("Admin", "/Reports", policy: PolicyNames.ViewReports);
-    options.Filters.Add<MustChangePasswordFilter>();
+    
+    // services.AddRazorPages()
+    //     .AddMvcOptions(options =>
+    //     {
+    //         options.Filters.Add(new MustChangePasswordFilter(new UserManager()));
+    //     });
 });
 
 // Add Azure Storage services
