@@ -1,6 +1,5 @@
 using System.Text.Json;
 
-using Azure.Storage.Blobs;
 using Azure.Storage.Queues;
 using Microsoft.Extensions.Logging;
 using MoreSpeakers.Domain.Interfaces;
@@ -15,23 +14,12 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace MoreSpeakers.Managers;
 
-public class OpenGraphSpeakerProfileImageGenerator: IOpenGraphSpeakerProfileImageGenerator
+public class OpenGraphSpeakerProfileImageGenerator(
+    HttpClient httpClient,
+    QueueServiceClient queueServiceClient,
+    ILogger<OpenGraphSpeakerProfileImageGenerator> logger)
+    : IOpenGraphSpeakerProfileImageGenerator
 {
-    private readonly HttpClient _httpClient;
-    private readonly BlobServiceClient _blobClient;
-    private readonly QueueServiceClient _queueServiceClient;
-    private readonly ISettings _settings;
-    private readonly ILogger<OpenGraphSpeakerProfileImageGenerator> _logger;
-
-    public OpenGraphSpeakerProfileImageGenerator(HttpClient httpClient, BlobServiceClient blobClient, QueueServiceClient queueServiceClient, ISettings settings, ILogger<OpenGraphSpeakerProfileImageGenerator> logger)
-    {
-        _httpClient = httpClient;
-        _blobClient = blobClient;
-        _queueServiceClient = queueServiceClient;
-        _settings = settings;
-        _logger = logger;
-    }
-
     /// <summary>
     /// The default value for the width of the generated image.
     /// </summary>
@@ -50,9 +38,9 @@ public class OpenGraphSpeakerProfileImageGenerator: IOpenGraphSpeakerProfileImag
     public async Task QueueSpeakerOpenGraphProfileImageCreation(Guid id, string headshotUrl, string speakerName)
     {
         var message = new CreateOpenGraphProfileImage { UserId = id, ProfileImageUrl = headshotUrl, SpeakerName = speakerName };
-        var queue = new Queue(_queueServiceClient, Domain.Constants.Queues.CreateOpenGraphProfileImage);
-        await queue.AddMessageAsync(JsonSerializer.Serialize(message));
-        _logger.LogInformation("Queued OpenGraph profile image creation for speaker {Id}", id);
+        var queue = new Queue(queueServiceClient, Domain.Constants.Queues.CreateOpenGraphProfileImage);
+        await queue.AddMessageWithBase64EncodingAsync(message);
+        logger.LogInformation("Queued OpenGraph profile image creation for speaker {Id}", id);
     }
 
 
@@ -79,7 +67,7 @@ public class OpenGraphSpeakerProfileImageGenerator: IOpenGraphSpeakerProfileImag
 
         try
         {
-            var response = await _httpClient.GetAsync(url);
+            var response = await httpClient.GetAsync(url);
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadAsStreamAsync();
         }

@@ -11,8 +11,6 @@ using JosephGuadagno.AzureHelpers.Storage;
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models.Messages;
 
-using Serilog.Core;
-
 using SixLabors.ImageSharp;
 
 using ISettings = MoreSpeakers.Functions.Interfaces.ISettings;
@@ -62,6 +60,7 @@ public class ProcessOpenGraphSpeakerProfileImageGenerationMessage
             var blobs = new Blobs(blobContainer);
             var speakerImageStream = new MemoryStream();
             await speakerImage.SaveAsPngAsync(speakerImageStream);
+            speakerImageStream.Position = 0;
             await blobs.UploadAndOverwriteIfExistsAsync(blobName, speakerImageStream);
 
             // If we made it here, we're done

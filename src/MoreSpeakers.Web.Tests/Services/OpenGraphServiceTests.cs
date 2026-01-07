@@ -1,4 +1,6 @@
 using FluentAssertions;
+using Moq;
+using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models;
 using MoreSpeakers.Web.Services;
 
@@ -7,10 +9,14 @@ namespace MoreSpeakers.Web.Tests.Services;
 public class OpenGraphServiceTests
 {
     private readonly OpenGraphService _service;
+    private readonly Mock<ISettings> _settingsMock;
+    private const string BlobUrl = "https://blob.example.com/";
 
     public OpenGraphServiceTests()
     {
-        _service = new OpenGraphService();
+        _settingsMock = new Mock<ISettings>();
+        _settingsMock.Setup(s => s.OpenGraph).Returns(new OpenGraphSettings { SpeakerCardBlobUrl = BlobUrl });
+        _service = new OpenGraphService(_settingsMock.Object);
     }
 
     [Fact]
@@ -36,7 +42,7 @@ public class OpenGraphServiceTests
         result["og:description"].Should().Be(user.Bio);
         result["og:profile:first_name"].Should().Be("John");
         result["og:profile:last_name"].Should().Be("Doe");
-        result["og:image"].Should().Be("https://example.com/headshot.jpg");
+        result["og:image"].Should().Be($"{BlobUrl}{user.Id}.png");
     }
 
     [Fact]

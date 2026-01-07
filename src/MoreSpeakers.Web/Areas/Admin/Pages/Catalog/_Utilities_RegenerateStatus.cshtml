@@ -1,0 +1,15 @@
+@model int
+<div class="col-12" id="regenerate-status">
+    @switch (Model)
+    {
+        case 1:
+            <p>Queued 1 speaker card regeneration</p>
+            break;
+        case > 1:
+            <p>Queued @Model speaker card regenerations</p>
+            break;
+        default:
+            <p>Did not queue and speaker card regenerations</p>
+            break;
+    }
+</div>

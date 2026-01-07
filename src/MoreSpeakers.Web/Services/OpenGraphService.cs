@@ -1,8 +1,9 @@
+using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models;
 
 namespace MoreSpeakers.Web.Services;
 
-public class OpenGraphService : IOpenGraphService
+public class OpenGraphService(ISettings settings) : IOpenGraphService
 {
     public Dictionary<string, string> GenerateUserMetadata(User user, string profileUrl)
     {
@@ -18,7 +19,7 @@ public class OpenGraphService : IOpenGraphService
 
         if (!string.IsNullOrWhiteSpace(user.HeadshotUrl))
         {
-            metadata.Add("og:image", user.HeadshotUrl);
+            metadata.Add("og:image", $"{settings.OpenGraph.SpeakerCardBlobUrl}{user.Id}.png");
         }
 
         return metadata;
