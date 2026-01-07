@@ -12,11 +12,13 @@ namespace MoreSpeakers.Managers;
 public class UserManager: IUserManager
 {
     private readonly IUserDataStore _dataStore;
+    private readonly IOpenGraphSpeakerProfileImageGenerator _openGraphSpeakerProfileImageGenerator;
     private readonly ILogger<UserManager> _logger;
 
-    public UserManager(IUserDataStore dataStore, ILogger<UserManager> logger)
+    public UserManager(IUserDataStore dataStore, IOpenGraphSpeakerProfileImageGenerator openGraphSpeakerProfileImageGenerator, ILogger<UserManager> logger)
     {
         _dataStore = dataStore;
+        _openGraphSpeakerProfileImageGenerator = openGraphSpeakerProfileImageGenerator;
         _logger = logger;
     }
     
@@ -36,7 +38,13 @@ public class UserManager: IUserManager
 
     public async Task<IdentityResult> CreateAsync(User user, string password)
     {
-        return await _dataStore.CreateAsync(user, password);
+        var result = await _dataStore.CreateAsync(user, password);
+        if (result.Succeeded && !string.IsNullOrWhiteSpace(user.HeadshotUrl))
+        {
+            await _openGraphSpeakerProfileImageGenerator.QueueSpeakerOpenGraphProfileImageCreation(user.Id,
+                user.HeadshotUrl, user.FullName);
+        }
+        return result;
     }
 
     public async Task<User?> FindByEmailAsync(string email)
@@ -111,7 +119,13 @@ public class UserManager: IUserManager
 
     public async Task<User> SaveAsync(User entity)
     {
-        return await _dataStore.SaveAsync(entity);
+        var savedUser = await _dataStore.SaveAsync(entity);
+        if (!string.IsNullOrEmpty(savedUser.HeadshotUrl))
+        {
+            await _openGraphSpeakerProfileImageGenerator.QueueSpeakerOpenGraphProfileImageCreation(savedUser.Id,
+                savedUser.HeadshotUrl, savedUser.FullName);
+        }
+        return savedUser;
     }
 
     public async Task<List<User>> GetAllAsync()

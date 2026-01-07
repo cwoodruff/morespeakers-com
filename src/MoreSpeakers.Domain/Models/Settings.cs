@@ -31,4 +31,9 @@ public class Settings : ISettings
     /// The Application Insights settings.
     /// </summary>
     public required PaginationSettings Pagination { get; init; }
+
+    /// <summary>
+    /// The Open Graph speaker card blob URL.
+    /// </summary>
+    public required OpenGraphSettings OpenGraph { get; init; }
 }

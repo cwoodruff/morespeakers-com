@@ -31,4 +31,10 @@ public interface ISettings
     /// The Pagination settings.
     /// </summary>
     PaginationSettings Pagination { get; init; }
+
+    /// <summary>
+    /// The Open Graph settings
+    /// </summary>
+    OpenGraphSettings OpenGraph { get; init; }
+
 }

@@ -17,4 +17,8 @@ public static class Queues
     /// This queue is used for handling ACS EmailDeliveryReportReceived events
     /// </summary>
     public const string BouncedEmails = "bounced-emails";
+    /// <summary>
+    /// This queue is used for creating Open Graph profile images.
+    /// </summary>
+    public const string CreateOpenGraphProfileImage = "create-open-graph-profile-image";
 }
