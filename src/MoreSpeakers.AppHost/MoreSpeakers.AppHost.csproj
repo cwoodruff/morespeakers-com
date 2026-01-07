@@ -51,7 +51,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Morespeakers.Functions\Morespeakers.Functions.csproj" />
+        <ProjectReference Include="..\MoreSpeakers.Functions\MoreSpeakers.Functions.csproj" />
         <ProjectReference Include="..\MoreSpeakers.Web\MoreSpeakers.Web.csproj" />
     </ItemGroup>
 

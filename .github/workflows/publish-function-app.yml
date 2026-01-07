@@ -14,7 +14,7 @@ env:
   AZURE_FUNCTIONAPP_PACKAGE_PATH: ./published
   CONFIGURATION: Release
   DOTNET_CORE_VERSION: 10.0.x
-  WORKING_DIRECTORY: ./src/Morespeakers.Functions/
+  WORKING_DIRECTORY: ./src/MoreSpeakers.Functions/
 
 jobs:
   build:
@@ -73,4 +73,3 @@ jobs:
           app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
           package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
           slot-name: Production
-    
