@@ -69,7 +69,7 @@ MoreSpeakers/
 │   ├── MoreSpeakers.AppHost/         # .NET Aspire orchestration
 │   ├── MoreSpeakers.ServiceDefaults/ # .NET Aspire service defaults
 │   ├── MoreSpeakers.Domain/          # Domain models and abstractions
-│   ├── Morespeakers.Functions/       # Azure Functions (e.g., email notifications)
+│   ├── MoreSpeakers.Functions/       # Azure Functions (e.g., email notifications)
 │   ├── MoreSpeakers.Managers/        # Application services/managers/business logic
 │   ├── MoreSpeakers.Tests/           # Automated tests
 │   └── MoreSpeakers.Web/             # Main web application

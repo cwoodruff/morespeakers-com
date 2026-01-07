@@ -38,7 +38,7 @@ var db = sql.AddDatabase("MoreSpeakers")
     .WithCreationScript(sqlText);
 
 // Add the Azure Functions
-builder.AddAzureFunctionsProject<Morespeakers_Functions>("functions")
+builder.AddAzureFunctionsProject<MoreSpeakers_Functions>("functions")
     .WithRoleAssignments(storage,
         // Storage Account Contributor and Storage Blob Data Owner roles are required by the Azure Functions host
         StorageBuiltInRole.StorageAccountContributor, StorageBuiltInRole.StorageBlobDataOwner,

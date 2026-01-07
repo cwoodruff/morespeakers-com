@@ -35,7 +35,7 @@ dotnet tool install -g Microsoft.Web.LibraryManager.Cli
 After installing Library Manager, or if you already have it, open up a terminal/command prompt and navigate to the project directory.
 
 ```bash
-cd /src/Morespeakers.Web
+cd /src/MoreSpeakers.Web
 libman restore
 ```
 
