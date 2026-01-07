@@ -11,7 +11,7 @@ namespace MoreSpeakers.Managers.Tests;
 public class UserManagerTests
 {
     private readonly Mock<IUserDataStore> _dataStoreMock = new();
-    private readonly Mock<IOpenGraphGenerator> _openGraphGeneratorMock = new();
+    private readonly Mock<IOpenGraphSpeakerProfileImageGenerator> _openGraphGeneratorMock = new();
     private readonly Mock<ILogger<UserManager>> _loggerMock = new();
 
     private UserManager CreateSut() => new(_dataStoreMock.Object, _openGraphGeneratorMock.Object, _loggerMock.Object);
@@ -57,7 +57,7 @@ public class UserManagerTests
 
         result.Should().BeSameAs(expected);
         _dataStoreMock.Verify(d => d.CreateAsync(user, "pwd"), Times.Once);
-        _openGraphGeneratorMock.Verify(o => o.QueueSpeakerOpenGraphProfileImageCreation(user.Id, user.HeadshotUrl), Times.Once);
+        _openGraphGeneratorMock.Verify(o => o.QueueSpeakerOpenGraphProfileImageCreation(user.Id, user.HeadshotUrl, user.FullName), Times.Once);
     }
 
     [Fact]
@@ -72,7 +72,7 @@ public class UserManagerTests
 
         result.Should().BeSameAs(expected);
         _dataStoreMock.Verify(d => d.CreateAsync(user, "pwd"), Times.Once);
-        _openGraphGeneratorMock.Verify(o => o.QueueSpeakerOpenGraphProfileImageCreation(It.IsAny<Guid>(), It.IsAny<string>()), Times.Never);
+        _openGraphGeneratorMock.Verify(o => o.QueueSpeakerOpenGraphProfileImageCreation(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
     }
 
     [Fact]
@@ -173,7 +173,7 @@ public class UserManagerTests
     [Fact]
     public async Task SaveAsync_should_delegate_and_queue_opengraph_when_headshot_exists()
     {
-        var entity = new User { Id = Guid.NewGuid(), HeadshotUrl = "http://headshot" };
+        var entity = new User { Id = Guid.NewGuid(), HeadshotUrl = "http://headshot", FirstName = "Test", LastName = "User"};
         _dataStoreMock.Setup(d => d.SaveAsync(entity)).ReturnsAsync(entity);
         var sut = CreateSut();
 
@@ -181,7 +181,7 @@ public class UserManagerTests
 
         result.Should().BeSameAs(entity);
         _dataStoreMock.Verify(d => d.SaveAsync(entity), Times.Once);
-        _openGraphGeneratorMock.Verify(o => o.QueueSpeakerOpenGraphProfileImageCreation(entity.Id, entity.HeadshotUrl), Times.Once);
+        _openGraphGeneratorMock.Verify(o => o.QueueSpeakerOpenGraphProfileImageCreation(entity.Id, entity.HeadshotUrl, entity.FullName), Times.Once);
     }
 
     [Fact]

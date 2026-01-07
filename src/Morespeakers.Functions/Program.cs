@@ -6,10 +6,15 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using MoreSpeakers.Functions.Interfaces;
+
+using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Functions.Models;
+using MoreSpeakers.Managers;
+
 using Serilog;
 using Serilog.Exceptions;
+
+using ISettings = MoreSpeakers.Functions.Interfaces.ISettings;
 
 var currentDirectory = Directory.GetCurrentDirectory();
 
@@ -20,7 +25,8 @@ builder.ConfigureFunctionsWebApplication();
 var settings = new Settings
 {
     AzureCommunicationsConnectionString = string.Empty,
-    BouncedEmailStatuses = string.Empty
+    BouncedEmailStatuses = string.Empty,
+    LogoImageUrl = string.Empty
 };
 
 builder.Configuration.SetBasePath(currentDirectory);
@@ -41,6 +47,9 @@ builder.Services
 builder.AddAzureBlobServiceClient("AzureStorageBlobs");
 builder.AddAzureTableServiceClient("AzureStorageTables");
 builder.AddAzureQueueServiceClient("AzureStorageQueues");
+
+builder.Services.AddHttpClient();
+builder.Services.AddScoped<IOpenGraphSpeakerProfileImageGenerator, OpenGraphSpeakerProfileImageGenerator>();
 
 builder.Build().Run();
 

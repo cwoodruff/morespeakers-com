@@ -33,7 +33,8 @@ var settings = new Settings
     GitHub = null!,
     AutoMapper = null!,
     ApplicationInsights = null!,
-    Pagination = null!
+    Pagination = null!,
+    OpenGraph = null!
 };
 builder.Configuration.AddEnvironmentVariables();
 builder.Configuration.Bind("Settings", settings);
@@ -170,7 +171,7 @@ builder.Services.AddScoped<Microsoft.AspNetCore.Identity.UI.Services.IEmailSende
 builder.Services.AddScoped<ITemplatedEmailSender, TemplatedEmailSender>();
 builder.Services.AddScoped<IRazorPartialToStringRenderer, RazorPartialToStringRenderer>();
 builder.Services.AddScoped<IOpenGraphService, OpenGraphService>();
-builder.Services.AddScoped<IOpenGraphGenerator, OpenGraphGenerator>();
+builder.Services.AddScoped<IOpenGraphSpeakerProfileImageGenerator, OpenGraphSpeakerProfileImageGenerator>();
 
 // Register GitHub Service and Add in-memory caching (required by GitHubService constructor)
 builder.Services.AddMemoryCache();

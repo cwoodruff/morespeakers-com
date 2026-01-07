@@ -18,4 +18,9 @@ public class Settings: ISettings
     /// Gets or sets the email statuses that are considered bounced.
     /// </summary>
     public required string BouncedEmailStatuses { get; set; }
+
+    /// <summary>
+    /// Gets or sets the URL of the logo image.
+    /// </summary>
+    public required string LogoImageUrl { get; set; }
 }

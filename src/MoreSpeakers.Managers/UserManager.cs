@@ -12,13 +12,13 @@ namespace MoreSpeakers.Managers;
 public class UserManager: IUserManager
 {
     private readonly IUserDataStore _dataStore;
-    private readonly IOpenGraphGenerator _openGraphGenerator;
+    private readonly IOpenGraphSpeakerProfileImageGenerator _openGraphSpeakerProfileImageGenerator;
     private readonly ILogger<UserManager> _logger;
 
-    public UserManager(IUserDataStore dataStore, IOpenGraphGenerator openGraphGenerator, ILogger<UserManager> logger)
+    public UserManager(IUserDataStore dataStore, IOpenGraphSpeakerProfileImageGenerator openGraphSpeakerProfileImageGenerator, ILogger<UserManager> logger)
     {
         _dataStore = dataStore;
-        _openGraphGenerator = openGraphGenerator;
+        _openGraphSpeakerProfileImageGenerator = openGraphSpeakerProfileImageGenerator;
         _logger = logger;
     }
     
@@ -39,9 +39,10 @@ public class UserManager: IUserManager
     public async Task<IdentityResult> CreateAsync(User user, string password)
     {
         var result = await _dataStore.CreateAsync(user, password);
-        if (result.Succeeded)
+        if (result.Succeeded && !string.IsNullOrWhiteSpace(user.HeadshotUrl))
         {
-            await _openGraphGenerator.QueueSpeakerOpenGraphProfileImageCreation(user.Id, user.HeadshotUrl);
+            await _openGraphSpeakerProfileImageGenerator.QueueSpeakerOpenGraphProfileImageCreation(user.Id,
+                user.HeadshotUrl, user.FullName);
         }
         return result;
     }
@@ -119,7 +120,11 @@ public class UserManager: IUserManager
     public async Task<User> SaveAsync(User entity)
     {
         var savedUser = await _dataStore.SaveAsync(entity);
-        await _openGraphGenerator.QueueSpeakerOpenGraphProfileImageCreation(savedUser.Id, savedUser.HeadshotUrl);
+        if (!string.IsNullOrEmpty(savedUser.HeadshotUrl))
+        {
+            await _openGraphSpeakerProfileImageGenerator.QueueSpeakerOpenGraphProfileImageCreation(savedUser.Id,
+                savedUser.HeadshotUrl, savedUser.FullName);
+        }
         return savedUser;
     }
 

@@ -24,4 +24,9 @@ public static class TelemetryEvents
         public const string MentorshipAccepted = "Manager-MentorshipAccepted";
         public const string MentorshipCompleted = "Manager-MentorshipCompleted";
     }
+
+    public static class OpenGraph
+    {
+        public const string OpenGraphProfileImageCreated = "OpenGraph-ProfileImageCreated";
+    }
 }

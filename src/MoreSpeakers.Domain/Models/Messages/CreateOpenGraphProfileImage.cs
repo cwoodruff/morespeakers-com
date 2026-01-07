@@ -12,11 +12,15 @@ public class CreateOpenGraphProfileImage
     /// This will be used to for the name of the file. It will be {id].png
     /// </remarks>
     public Guid UserId { get; set; }
+
     /// <summary>
     /// The URL of the profile image.
     /// </summary>
-    /// <remarks>
-    /// If null or empty, the generic profile image will be used. bi bi-person-fill.svg
-    /// </remarks>
-    public string? ProfileImageUrl { get; set; }
+    public required string ProfileImageUrl { get; set; }
+
+    /// <summary>
+    /// The speaker's name.
+    /// </summary>
+    public required string SpeakerName { get; set; }
+
 }

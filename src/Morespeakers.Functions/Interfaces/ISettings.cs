@@ -14,4 +14,9 @@ public interface ISettings
     /// Gets or sets the email statuses that are considered bounced.
     /// </summary>
     public string BouncedEmailStatuses { get; set; }
+
+    /// <summary>
+    /// Gets or sets the URL of the logo image.
+    /// </summary>
+    public string LogoImageUrl { get; set; }
 }
