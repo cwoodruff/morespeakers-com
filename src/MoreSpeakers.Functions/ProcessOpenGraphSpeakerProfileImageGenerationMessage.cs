@@ -1,7 +1,4 @@
-using System.Text;
-
 using Azure.Storage.Blobs;
-using Azure.Storage.Queues;
 using Microsoft.ApplicationInsights;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
@@ -21,7 +18,6 @@ namespace MoreSpeakers.Functions;
 public class ProcessOpenGraphSpeakerProfileImageGenerationMessage
 {
     private readonly IOpenGraphSpeakerProfileImageGenerator _openGraphSpeakerProfileImageGenerator;
-    private readonly QueueServiceClient _queueServiceClient;
     private readonly BlobServiceClient _blobServiceClient;
     private readonly ISettings _settings;
     private readonly TelemetryClient _telemetryClient;
@@ -30,14 +26,12 @@ public class ProcessOpenGraphSpeakerProfileImageGenerationMessage
     public ProcessOpenGraphSpeakerProfileImageGenerationMessage(
         IOpenGraphSpeakerProfileImageGenerator openGraphSpeakerProfileImageGenerator,
         BlobServiceClient blobServiceClient,
-        QueueServiceClient queueServiceClient,
         ISettings settings,
         TelemetryClient telemetryClient,
         ILogger<ProcessOpenGraphSpeakerProfileImageGenerationMessage> logger)
     {
         _openGraphSpeakerProfileImageGenerator = openGraphSpeakerProfileImageGenerator;
         _blobServiceClient = blobServiceClient;
-        _queueServiceClient = queueServiceClient;
         _settings = settings;
         _telemetryClient = telemetryClient;
         _logger = logger;
@@ -50,8 +44,19 @@ public class ProcessOpenGraphSpeakerProfileImageGenerationMessage
 
         try
         {
+            // Load the Ubuntu font
+            var fontFile = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, @"..\..\..\Ubuntu-R.ttf"));
+            var ubuntuFont = _openGraphSpeakerProfileImageGenerator.GetFontFamilyFromFile(fontFile);
+            if (ubuntuFont == null)
+            {
+                _logger.LogError("ProcessOpenGraphSpeakerProfileImageGenerationMessage: Unable to load Ubuntu font");
+                throw new ApplicationException("Unable to load Ubuntu font");
+            }
+
             // Create the image
-            var speakerImage = await _openGraphSpeakerProfileImageGenerator.GenerateSpeakerProfileFromUrlsAsync(createOpenGraphProfileImage.ProfileImageUrl, _settings.LogoImageUrl, createOpenGraphProfileImage.SpeakerName);
+            var speakerImage = await _openGraphSpeakerProfileImageGenerator.GenerateSpeakerProfileFromUrlsAsync(
+                createOpenGraphProfileImage.ProfileImageUrl, _settings.LogoImageUrl,
+                createOpenGraphProfileImage.SpeakerName, ubuntuFont.Value);
 
             // Save the image to blob storage
             var blobName = $"{createOpenGraphProfileImage.UserId}.png";
@@ -68,9 +73,9 @@ public class ProcessOpenGraphSpeakerProfileImageGenerationMessage
                 new Dictionary<string, string> { { "UserId", createOpenGraphProfileImage.UserId.ToString() } });
             _logger.LogDebug("ProcessOpenGraphSpeakerProfileImageGenerationMessage: Done generating OpenGraph profile image card for UserId \'{UserId}\'", createOpenGraphProfileImage.UserId);
         }
-        catch
+        catch (Exception e)
         {
-            _logger.LogError("ProcessOpenGraphSpeakerProfileImageGenerationMessage: Failed to generate OpenGraph profile image card for UserId '{UserId}', url: '{Url}", createOpenGraphProfileImage.UserId, createOpenGraphProfileImage.ProfileImageUrl);
+            _logger.LogError(e,"ProcessOpenGraphSpeakerProfileImageGenerationMessage: Failed to generate OpenGraph profile image card for UserId '{UserId}', url: '{Url}", createOpenGraphProfileImage.UserId, createOpenGraphProfileImage.ProfileImageUrl);
             throw;
         }
     }
