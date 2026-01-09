@@ -45,12 +45,19 @@ public class ProcessOpenGraphSpeakerProfileImageGenerationMessage
         try
         {
             // Load the Ubuntu font
-            var fontFile = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, @"..\..\..\Ubuntu-R.ttf"));
+            var fileName = "Ubuntu-R.ttf";
+            var fontDirectory = FindFileInCurrentDirectoryOrParentDirectories(fileName);
+            if (string.IsNullOrEmpty(fontDirectory))
+            {
+                _logger.LogError("ProcessOpenGraphSpeakerProfileImageGenerationMessage: Unable to find font '{FileName}'", fileName);
+                throw new ApplicationException($"Unable to find font file '{fileName}'");
+            }
+            var fontFile = Path.Combine(fontDirectory, fileName);
             var ubuntuFont = _openGraphSpeakerProfileImageGenerator.GetFontFamilyFromFile(fontFile);
             if (ubuntuFont == null)
             {
-                _logger.LogError("ProcessOpenGraphSpeakerProfileImageGenerationMessage: Unable to load Ubuntu font");
-                throw new ApplicationException("Unable to load Ubuntu font");
+                _logger.LogError("ProcessOpenGraphSpeakerProfileImageGenerationMessage: Unable to load font '{FileName}'", fontFile);
+                throw new ApplicationException($"Unable to load font '{fontFile}'");
             }
 
             // Create the image
@@ -78,5 +85,26 @@ public class ProcessOpenGraphSpeakerProfileImageGenerationMessage
             _logger.LogError(e,"ProcessOpenGraphSpeakerProfileImageGenerationMessage: Failed to generate OpenGraph profile image card for UserId '{UserId}', url: '{Url}", createOpenGraphProfileImage.UserId, createOpenGraphProfileImage.ProfileImageUrl);
             throw;
         }
+    }
+
+    private string FindFileInCurrentDirectoryOrParentDirectories(string fileName)
+    {
+        var currentDirectory = Environment.CurrentDirectory;
+        var root = Path.GetPathRoot(currentDirectory);
+
+        while (currentDirectory != root && currentDirectory != string.Empty && Path.Exists(currentDirectory))
+        {
+
+            // Check if any files in the current directory match the wildcards
+            if (Directory.GetFiles(currentDirectory, fileName).Any())
+            {
+                return currentDirectory;
+            }
+
+            // Move to the parent directory
+            currentDirectory = Directory.GetParent(currentDirectory)?.FullName;
+        }
+
+        return string.Empty;
     }
 }
