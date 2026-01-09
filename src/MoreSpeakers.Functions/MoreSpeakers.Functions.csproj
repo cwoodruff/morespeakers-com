@@ -100,4 +100,8 @@
   <ItemGroup>
     <Using Include="System.Threading.ExecutionContext" Alias="ExecutionContext" />
   </ItemGroup>
+  <ItemGroup>
+    <None Remove="Ubuntu-R.ttf" />
+    <Content Include="Ubuntu-R.ttf" />
+  </ItemGroup>
 </Project>
