@@ -17,21 +17,6 @@ env:
   WORKING_DIRECTORY: ./src/MoreSpeakers.Functions/
 
 jobs:
-  create-file:
-      runs-on: ubuntu-latest
-      steps:
-        - name: Checkout repository
-          uses: actions/checkout@v4
-  
-        - name: Create .env file from secret
-          run: |
-            cd "${{ env.WORKING_DIRECTORY }}"
-            
-            # Write the secret to the file safely
-            echo "${{ secrets.SIX_LABORS_LICENSE }}" > sixlabors.lic
-            
-            # Optional: verify file creation (do NOT print secret contents)
-            ls -l config
   build:
     runs-on: ubuntu-latest
     permissions:
@@ -39,7 +24,17 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
+      
+      - name: Create .env file from secret
+        run: |
+            cd "${{ env.WORKING_DIRECTORY }}"
+            
+            # Write the secret to the file safely
+            echo "${{ secrets.SIX_LABORS_LICENSE }}" > sixlabors.lic
+            
+            # Optional: verify file creation (do NOT print secret contents)
+            ls -l "${{ env.WORKING_DIRECTORY }}"
+            
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v4
         with:
