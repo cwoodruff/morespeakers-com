@@ -25,15 +25,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Create .env file from secret
+      - name: Create the Six Labors license file
         run: |
             cd "${{ env.WORKING_DIRECTORY }}"
             
-            # Write the secret to the file safely
+            # Create the Six Labors license file
             echo "${{ secrets.SIX_LABORS_LICENSE }}" > sixlabors.lic
-            
-            # Optional: verify file creation (do NOT print secret contents)
-            ls -l 
             
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v4
