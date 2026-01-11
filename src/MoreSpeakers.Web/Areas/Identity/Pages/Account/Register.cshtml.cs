@@ -50,6 +50,7 @@ public class RegisterModel : PageModel
     public IEnumerable<SpeakerType> SpeakerTypes { get; set; } = new List<SpeakerType>();
     public IEnumerable<ExpertiseCategory> ExpertiseCategories { get; set; } = new List<ExpertiseCategory>();
     public IEnumerable<Sector> Sectors { get; set; } = new List<Sector>();
+    public IEnumerable<SocialMediaSite> SocialMediaSites { get; set; } = new List<SocialMediaSite>();
     
     // Properties required by _RegistrationContainer.cshtml
     public int CurrentStep { get; set; } = RegistrationProgressions.SpeakerProfileNeeded;
@@ -331,6 +332,7 @@ public class RegisterModel : PageModel
         ExpertiseCategories = await _expertiseManager.GetAllCategoriesAsync();
         Sectors = await _sectorManager.GetAllSectorsAsync();
         SpeakerTypes = await _userManager.GetSpeakerTypesAsync();
+        SocialMediaSites = await _socialMediaSiteManager.GetAllAsync();
     }
 
     private bool ValidateStep(int step)
@@ -631,16 +633,32 @@ public class RegisterModel : PageModel
         return Partial("_RegistrationContainer", this);
     }
 
-    public async Task<IActionResult> OnGetAddSocialMediaRowAsync(int socialMediaSitesCount = 0)
+    public async Task<IActionResult> OnGetAddSocialMediaRowAsync()
     {
         try
         {
-            socialMediaSitesCount++;
+            var alreadySelectedIds = new List<int>();
+            foreach (var key in Request.Query.Keys)
+            {
+                if (key.StartsWith("Input.SocialMediaSiteId"))
+                {
+                    if (int.TryParse(Request.Query[key], out var id))
+                    {
+                        alreadySelectedIds.Add(id);
+                    }
+                }
+            }
+
+
+            var socialMediaSites = await _socialMediaSiteManager.GetAllAsync();
+            var filteredSites = socialMediaSites
+                .Where(s => !alreadySelectedIds.Contains(s.Id))
+                .ToList();
             var model = new UserSocialMediaSiteRowViewModel
             {
                 UserSocialMediaSite = null,
-                SocialMediaSites = await _socialMediaSiteManager.GetAllAsync(),
-                ItemNumber = socialMediaSitesCount
+                SocialMediaSites = filteredSites,
+                ItemNumber = alreadySelectedIds.Count
             };
             return Partial("_UserSocialMediaSiteRow", model);
         }

@@ -381,16 +381,31 @@ public class EditModel(
     }
 
 
-    public async Task<IActionResult> OnGetAddSocialMediaRowAsync(int socialMediaSitesCount = 0)
+    public async Task<IActionResult> OnGetAddSocialMediaRowAsync()
     {
         try
         {
-            socialMediaSitesCount++;
+            var alreadySelectedIds = new List<int>();
+            foreach (var key in Request.Query.Keys)
+            {
+                if (key.StartsWith("Input.SocialMediaSiteId"))
+                {
+                    if (int.TryParse(Request.Query[key], out var id))
+                    {
+                        alreadySelectedIds.Add(id);
+                    }
+                }
+            }
+
+            var socialMediaSites = await socialMediaSiteManager.GetAllAsync();
+            var filteredSites = socialMediaSites
+                .Where(s => !alreadySelectedIds.Contains(s.Id))
+                .ToList();
             var model = new UserSocialMediaSiteRowViewModel
             {
                 UserSocialMediaSite = null,
-                SocialMediaSites = await socialMediaSiteManager.GetAllAsync(),
-                ItemNumber = socialMediaSitesCount
+                SocialMediaSites = filteredSites,
+                ItemNumber = alreadySelectedIds.Count
             };
             return Partial("_UserSocialMediaSiteRow", model);
         }

@@ -1,7 +1,7 @@
 @model Web.Models.ViewModels.UserSocialMediaSiteRowViewModel
 
 @{
-    var socialMediaSiteId = Model.UserSocialMediaSite?.SocialMediaSiteId ?? 1;
+    var socialMediaSiteId = Model.UserSocialMediaSite?.SocialMediaSiteId ?? Model.SocialMediaSites[0].Id;
     var socialId = Model.UserSocialMediaSite?.SocialId ?? string.Empty;
 }
 

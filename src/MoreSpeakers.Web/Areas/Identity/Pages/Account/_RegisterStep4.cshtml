@@ -1,3 +1,4 @@
+@using MoreSpeakers.Web.Models.ViewModels
 @model MoreSpeakers.Web.Areas.Identity.Pages.Account.RegisterModel
 
 <div class="form-step" data-step="4">
@@ -22,6 +23,25 @@
         </div>
         <div class="col-12" id="socialMediaContainer">
             <input type="hidden" name="socialMediaSitesCount" value="0" />
+            @{
+                var index = 0;
+                var socialMediaSites = Model.SocialMediaSites?.ToList() ?? new List<MoreSpeakers.Domain.Models.SocialMediaSite>();
+            }
+
+            @if (Model.Input?.UserSocialMediaSites != null)
+            {
+                foreach (var userSocialMediaSite in Model.Input.UserSocialMediaSites)
+                {
+                    var model = new UserSocialMediaSiteRowViewModel
+                    {
+                        UserSocialMediaSite = userSocialMediaSite,
+                        SocialMediaSites = socialMediaSites,
+                        ItemNumber = index
+                    };
+                    index++;
+                    @await Html.PartialAsync("_UserSocialMediaSiteRow", model)
+                }
+            }
         </div>
         <div id="replaceSocialMediaRow">
             <div id="addingRowSpinner" class="htmx-indicator">
@@ -33,7 +53,7 @@
             <button class="btn btn-primary float-end" type="button"
                     hx-get="/Register?handler=AddSocialMediaRow"
                     hx-target="[name=socialMediaSitesCount], :nth-last-child(1 of .social-media-row)"
-                    hx-include="[name='socialMediaSitesCount']"
+                    hx-include="[name='socialMediaSitesCount'], [name^='Input.SocialMediaSiteId']"
                     hx-indicator="#addingRowSpinner"
                     hx-swap="afterend"
                     hx-on::after-request="document.querySelector('[name=socialMediaSitesCount]').value = document.querySelector(':nth-last-child(1 of .social-media-row)').dataset.id">
@@ -78,4 +98,3 @@
         }
     }
 </div>
-
