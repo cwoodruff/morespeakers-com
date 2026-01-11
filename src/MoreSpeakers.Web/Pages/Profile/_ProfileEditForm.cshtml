@@ -125,7 +125,7 @@
         </div>
         <div class="col-12">
             <div class="mb-3">
-                @if (!string.IsNullOrEmpty(Model.ProfileUser?.HeadshotUrl))
+                @if (!string.IsNullOrEmpty(Model.ProfileUser.HeadshotUrl))
                 {
                     <img src="@Model.ProfileUser.HeadshotUrl" 
                          alt="Current headshot" 
@@ -199,7 +199,7 @@
                 ExpertiseCategories = Model.ExpertiseCategories,
                 Sectors = Model.Sectors
             };
-            @await Html.PartialAsync("_NewExpertise", newExpertiseResponse);
+            @await Html.PartialAsync("_NewExpertise", newExpertiseResponse)
         }
     </div>
 
@@ -212,26 +212,23 @@
             <div class="form-text mb-3">Add your social media profiles and professional links.</div>
         </div>
         <div class="col-12" id="socialMediaContainer">
+            <input type="hidden" name="socialMediaSitesCount" value="0" />
             @{
                 var index = 0;
                 var socialMediaSites = Model.SocialMediaSites.ToList();
             }
 
-            @if (Model.ProfileUser?.UserSocialMediaSites != null)
+            @foreach (var userSocialMediaSite in Model.ProfileUser.UserSocialMediaSites)
             {
-                foreach (var userSocialMediaSite in Model.ProfileUser.UserSocialMediaSites)
+                var model = new UserSocialMediaSiteRowViewModel
                 {
-                    var model = new UserSocialMediaSiteRowViewModel
-                    {
-                        UserSocialMediaSite = userSocialMediaSite,
-                        SocialMediaSites = socialMediaSites,
-                        ItemNumber = index
-                    };
-                    index++;
-                    @await Html.PartialAsync("_UserSocialMediaSiteRow", model)
-                }
+                    UserSocialMediaSite = userSocialMediaSite,
+                    SocialMediaSites = socialMediaSites,
+                    ItemNumber = index
+                };
+                index++;
+                @await Html.PartialAsync("_UserSocialMediaSiteRow", model)
             }
-            <input type="hidden" name="socialMediaSitesCount" value="@index"/>
         </div>
         <div id="replaceSocialMediaRow">
             <div id="addingRowSpinner" class="htmx-indicator">
@@ -243,7 +240,7 @@
             <button class="btn btn-primary float-end" type="button"
                     hx-get="/Profile/Edit?handler=AddSocialMediaRow"
                     hx-target="[name=socialMediaSitesCount], :nth-last-child(1 of .social-media-row)"
-                    hx-include="[name='socialMediaSitesCount']"
+                    hx-include="[name='socialMediaSitesCount'], [name^='Input.SocialMediaSiteId']"
                     hx-indicator="#addingRowSpinner"
                     hx-swap="afterend"
                     hx-on::after-request="document.querySelector('[name=socialMediaSitesCount]').value = document.querySelector(':nth-last-child(1 of .social-media-row)').dataset.id">
