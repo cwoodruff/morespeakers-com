@@ -1,6 +1,7 @@
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights.WindowsServer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Rewrite;
 
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models;
@@ -201,6 +202,14 @@ if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler("/Error");
     app.UseHsts();
 }
+
+app.UseRewriter(new RewriteOptions().Add(context =>
+{
+    if (context.HttpContext.Request.Path == "/Identity/Account/Logout")
+    {
+        context.HttpContext.Response.Redirect("/");
+    }
+}));
 
 // Handle 404 errors
 app.UseStatusCodePagesWithReExecute("/NotFound");
