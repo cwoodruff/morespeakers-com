@@ -21,7 +21,7 @@ function initializeTooltips() {
 
 // Enhanced form validation
 function initializeFormValidation() {
-    const forms = document.querySelectorAll('form[data-validate]');
+    const forms = document.querySelectorAll('form.data-validate');
 
     forms.forEach(form => {
         form.addEventListener('submit', function (e) {
@@ -62,6 +62,8 @@ function initializeFormValidation() {
             return this.optional(element) || isValid;
         }, "Could not verify that this URL is a valid image");
     }
+
+
 }
 
 // Validate individual form field
@@ -70,9 +72,18 @@ function validateField(field) {
     const feedback = field.parentNode.querySelector('.invalid-feedback');
 
     if (!isValid && feedback) {
-        feedback.style.display = 'block';
+        feedback.classList.add('d-block');
+        feedback.classList.remove('d-none');
     } else if (feedback) {
-        feedback.style.display = 'none';
+        feedback.classList.add('d-none');
+        feedback.classList.remove('d-block');
+    }
+
+    const submitBtn = feedback.closest('form').querySelector('button[type="submit"]');
+    if (isValid) {
+        submitBtn.disabled = false;
+    } else {
+        submitBtn.disabled = true;
     }
 
     return isValid;
@@ -225,4 +236,3 @@ function fixMissingSpeakerImage(image) {
     placeHolderDiv.appendChild(placeHolder);
     imageParent.replaceChild(placeHolderDiv, image);
 }
-
