@@ -224,20 +224,23 @@ function fixMissingSpeakerImage(image) {
     if (image.nodeName.toLowerCase() !== "img" || image.naturalWidth > 0 || image.naturalHeight > 0) {
         return;
     }
-
     const headshotContainer = document.getElementById('headshot-container');
-    headshotContainer.replaceChildren();
-    const placeHolder = document.createElement('i');
-    placeHolder.className = "bi bi-person-fill d-flex speaker-default-headshot";
-    placeHolder.id = "speaker-image-placeholder";
-    headshotContainer.appendChild(placeHolder);
+    createPlaceHolderImage(headshotContainer);
 }
 
 function replaceImage(imgUrl) {
     const imageHeadshot = document.getElementById('currentHeadshot');
     const imagePlaceholder = document.getElementById('speaker-image-placeholder');
-    if (imagePlaceholder && imgUrl === '') {
-        // Do nothing
+    const headshotContainer = document.getElementById('headshot-container');
+
+    if (imgUrl === '') {
+        if (imagePlaceholder) {
+            // Do nothing
+        }
+        else {
+            // Need to create the placeholder
+            createPlaceHolderImage(headshotContainer);
+        }
     }
     else
     {
@@ -247,14 +250,26 @@ function replaceImage(imgUrl) {
         }
         else {
             // Need to replace the placeholder image with a real image
-            const headshotContainer = document.getElementById('headshot-container');
-            headshotContainer.replaceChildren();
-            const newHeadshot = document.createElement('img')
-            newHeadshot.src = imgUrl;
-            newHeadshot.alt="Current headshot";
-            newHeadshot.className= "object-fit-contain border shadow-sm image-thumbnail rounded speaker-img";
-            newHeadshot.id = 'currentHeadshot';
-            headshotContainer.appendChild(newHeadshot);
+            createHeadshotImage(headshotContainer, imgUrl);
         }
     }
+}
+
+function createPlaceHolderImage(containerDiv)
+{
+    containerDiv.replaceChildren();
+    const placeHolder = document.createElement('i');
+    placeHolder.className = "bi bi-person-fill d-flex speaker-default-headshot";
+    placeHolder.id = "speaker-image-placeholder";
+    containerDiv.appendChild(placeHolder);
+}
+
+function createHeadshotImage(containerDiv, imgUrl) {
+    containerDiv.replaceChildren();
+    const newHeadshot = document.createElement('img')
+    newHeadshot.src = imgUrl;
+    newHeadshot.alt="Current headshot";
+    newHeadshot.className= "object-fit-contain border shadow-sm image-thumbnail rounded speaker-img";
+    newHeadshot.id = 'currentHeadshot';
+    containerDiv.appendChild(newHeadshot);
 }

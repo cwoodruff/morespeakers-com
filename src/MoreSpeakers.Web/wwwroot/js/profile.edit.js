@@ -1,31 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize any additional functionality
 
-    let headshotInput = document.getElementById('Input_HeadshotUrl');
-    if (headshotInput) {
-        headshotInput.addEventListener('input', function() {
-            $.ajax({
-                    type: "HEAD",
-                    async: false,
-                    url: headshotInput.value,
-                    success: function (data, textStatus, jqXHR) {
-                        let header = jqXHR.getResponseHeader('content-type');
-                        if (header && header.includes('image'))
-                        {
-                            replaceImage(headshotInput.value);
-                        }
-                        else
-                        {
-                            replaceImage('');
-                        }
-                    },
-                    error: function (jqXHR, textStatus, errorThrown) {
-                        replaceImage('');
-                    }
-                }
-            );
-        });
-    }
+    initializeHeadshotProcessing();
 
     // Auto-hide success messages after 5 seconds
     setTimeout(function() {
@@ -54,3 +30,28 @@ document.addEventListener('htmx:afterRequest', function(event) {
         trigger.classList.add('active');
     }
 });
+
+function initializeHeadshotProcessing() {
+    let headshotInput = document.getElementById('Input_HeadshotUrl');
+    if (headshotInput) {
+        headshotInput.addEventListener('input', function () {
+            $.ajax({
+                    type: "HEAD",
+                    async: false,
+                    url: headshotInput.value,
+                    success: function (data, textStatus, jqXHR) {
+                        let header = jqXHR.getResponseHeader('content-type');
+                        if (header && header.includes('image')) {
+                            replaceImage(headshotInput.value);
+                        } else {
+                            replaceImage('');
+                        }
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        replaceImage('');
+                    }
+                }
+            );
+        });
+    }
+}

@@ -70,37 +70,37 @@
     </div>
 
     <div class="row">
-        <div class="col-md-6 mb-3">
-            <label asp-for="Input.SessionizeUrl" class="form-label fw-medium">Sessionize Profile URL</label>
-            <div class="input-group">
-                <span class="input-group-text border-end-0">
-                    <i class="bi bi-link text-muted"></i>
-                </span>
-                <input asp-for="Input.SessionizeUrl" class="form-control border-start-0"
-                       maxlength="500" type="url"
-                       placeholder="https://sessionize.com/your-profile"/>
-            </div>
-            <span asp-validation-for="Input.SessionizeUrl" class="text-danger small"></span>
-            <div class="form-text">
-                <small class="text-muted">Optional: Link to your Sessionize speaker profile</small>
-            </div>
+        <label asp-for="Input.SessionizeUrl" class="form-label fw-medium">Sessionize Profile URL</label>
+        <div class="input-group">
+            <span class="input-group-text border-end-0">
+                <i class="bi bi-link text-muted"></i>
+            </span>
+            <input asp-for="Input.SessionizeUrl" class="form-control border-start-0"
+                   maxlength="500" type="url"
+                   placeholder="https://sessionize.com/your-profile"/>
         </div>
-
-        <div class="col-md-6 mb-3">
-            <label asp-for="Input.HeadshotUrl" class="form-label fw-medium">Headshot URL</label>
-            <div class="input-group">
-                <span class="input-group-text border-end-0">
-                    <i class="bi bi-image text-muted"></i>
-                </span>
-                <input asp-for="Input.HeadshotUrl" class="form-control border-start-0" data-rule-is-img-url
-                       maxlength="500" type="url"
-                       placeholder="https://example.com/your-photo.jpg"/>
-            </div>
-            <span asp-validation-for="Input.HeadshotUrl" class="text-danger small"></span>
-            <div class="form-text">
-                <small class="text-muted">Optional: Direct link to your profile photo</small>
-            </div>
+        <span asp-validation-for="Input.SessionizeUrl" class="text-danger small"></span>
+        <div class="form-text">
+            <small class="text-muted">Optional: Link to your Sessionize speaker profile</small>
         </div>
+    </div>
+    <div class="row">
+        <label asp-for="Input.HeadshotUrl" class="form-label fw-medium">Headshot URL</label>
+        <div class="input-group">
+            <span class="input-group-text border-end-0">
+                <i class="bi bi-image text-muted"></i>
+            </span>
+            <input asp-for="Input.HeadshotUrl" class="form-control border-start-0" data-rule-is-img-url
+                   maxlength="500" type="url"
+                   placeholder="https://example.com/your-photo.jpg"/>
+        </div>
+        <span asp-validation-for="Input.HeadshotUrl" class="text-danger small"></span>
+        <div class="form-text">
+            <small class="text-muted">Optional: Direct link to your profile photo</small>
+        </div>
+    </div>
+    <div class="row" id="headshot-container">
+        <i class="bi bi-person-fill text-muted speaker-default-headshot" id="speaker-image-placeholder"></i>
     </div>
 </div>
 
