@@ -38,6 +38,7 @@ function initializeRegistrationForm() {
             button.innerHTML = originalContent;
             button.removeAttribute('data-original-content');
         }
+        initializeHeadshotProcessing();
         updatePageHeader();
     });
 }
@@ -94,5 +95,30 @@ function updatePageHeader() {
         } else {
             pageHeader.innerHTML = '<h1 class="h3 fw-bold text-primary">Create Your Speaker Profile</h1><p class="text-muted">Tell us about yourself and join the community</p>';
         }
+    }
+}
+
+function initializeHeadshotProcessing() {
+    let headshotInput = document.getElementById('Input_HeadshotUrl');
+    if (headshotInput) {
+        headshotInput.addEventListener('input', function () {
+            $.ajax({
+                    type: "HEAD",
+                    async: false,
+                    url: headshotInput.value,
+                    success: function (data, textStatus, jqXHR) {
+                        let header = jqXHR.getResponseHeader('content-type');
+                        if (header && header.includes('image')) {
+                            replaceImage(headshotInput.value);
+                        } else {
+                            replaceImage('');
+                        }
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        replaceImage('');
+                    }
+                }
+            );
+        });
     }
 }

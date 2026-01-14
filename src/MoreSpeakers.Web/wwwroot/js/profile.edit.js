@@ -1,6 +1,8 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize any additional functionality
-    
+
+    initializeHeadshotProcessing();
+
     // Auto-hide success messages after 5 seconds
     setTimeout(function() {
         const successAlerts = document.querySelectorAll('.alert-success');
@@ -29,3 +31,27 @@ document.addEventListener('htmx:afterRequest', function(event) {
     }
 });
 
+function initializeHeadshotProcessing() {
+    let headshotInput = document.getElementById('Input_HeadshotUrl');
+    if (headshotInput) {
+        headshotInput.addEventListener('input', function () {
+            $.ajax({
+                    type: "HEAD",
+                    async: false,
+                    url: headshotInput.value,
+                    success: function (data, textStatus, jqXHR) {
+                        let header = jqXHR.getResponseHeader('content-type');
+                        if (header && header.includes('image')) {
+                            replaceImage(headshotInput.value);
+                        } else {
+                            replaceImage('');
+                        }
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        replaceImage('');
+                    }
+                }
+            );
+        });
+    }
+}

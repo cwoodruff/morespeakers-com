@@ -125,22 +125,17 @@
             </h5>
         </div>
         <div class="col-12">
-            <div class="mb-3">
+            <div class="mb-3" id="headshot-container">
                 @if (!string.IsNullOrEmpty(Model.ProfileUser.HeadshotUrl))
                 {
                     <img src="@Model.ProfileUser.HeadshotUrl" 
                          alt="Current headshot" 
                          class="object-fit-contain border shadow-sm image-thumbnail rounded speaker-img" 
-                         style="width: 9em; height: 9em; object-fit: cover;" 
                          id="currentHeadshot" />
                 }
                 else
                 {
-                    <div class="border shadow-sm rounded d-flex align-items-center justify-content-center" 
-                         style="width: 9em; height: 9em; margin: 0 auto;" 
-                         id="currentHeadshot">
-                        <i class="bi bi-person-fill text-muted" style="font-size: 9rem;"></i>
-                    </div>
+                    <i class="bi bi-person-fill text-muted speaker-default-headshot" id="speaker-image-placeholder"></i>
                 }
             </div>
             <div class="mb-3">
