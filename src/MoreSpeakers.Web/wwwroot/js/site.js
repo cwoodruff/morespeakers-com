@@ -62,8 +62,6 @@ function initializeFormValidation() {
             return this.optional(element) || isValid;
         }, "Could not verify that this URL is a valid image");
     }
-
-
 }
 
 // Validate individual form field
@@ -79,7 +77,7 @@ function validateField(field) {
         feedback.classList.remove('d-block');
     }
 
-    const submitBtn = feedback.closest('form').querySelector('button[type="submit"]');
+    const submitBtn = field.closest('form').querySelector('button[type="submit"]');
     if (isValid) {
         submitBtn.disabled = false;
     } else {
@@ -227,12 +225,36 @@ function fixMissingSpeakerImage(image) {
         return;
     }
 
-    const imageParent = image.parentNode;
-    const placeHolderDiv = document.createElement('div');
-    placeHolderDiv.className = "align-items-center justify-content-center";
+    const headshotContainer = document.getElementById('headshot-container');
+    headshotContainer.replaceChildren();
     const placeHolder = document.createElement('i');
-    placeHolder.className = "bi bi-person-fill d-flex justify-content-center align-items-center";
-    placeHolder.style.fontSize = "8rem";
-    placeHolderDiv.appendChild(placeHolder);
-    imageParent.replaceChild(placeHolderDiv, image);
+    placeHolder.className = "bi bi-person-fill d-flex speaker-default-headshot";
+    placeHolder.id = "speaker-image-placeholder";
+    headshotContainer.appendChild(placeHolder);
+}
+
+function replaceImage(imgUrl) {
+    const imageHeadshot = document.getElementById('currentHeadshot');
+    const imagePlaceholder = document.getElementById('speaker-image-placeholder');
+    if (imagePlaceholder && imgUrl === '') {
+        // Do nothing
+    }
+    else
+    {
+        // this means a valid image was provided
+        if (imageHeadshot) {
+            imageHeadshot.src = imgUrl;
+        }
+        else {
+            // Need to replace the placeholder image with a real image
+            const headshotContainer = document.getElementById('headshot-container');
+            headshotContainer.replaceChildren();
+            const newHeadshot = document.createElement('img')
+            newHeadshot.src = imgUrl;
+            newHeadshot.alt="Current headshot";
+            newHeadshot.className= "object-fit-contain border shadow-sm image-thumbnail rounded speaker-img";
+            newHeadshot.id = 'currentHeadshot';
+            headshotContainer.appendChild(newHeadshot);
+        }
+    }
 }
