@@ -328,3 +328,13 @@ CREATE TABLE UserSocialMediaSites
 CREATE INDEX IX_UserSocialMediaSites_UserId
     on UserSocialMediaSites (UserId)
 go
+
+CREATE TABLE [dbo].[EmailTemplates](
+    Location [nvarchar](150) not null primary key,
+    Content [nvarchar](max) not null,
+    CreatedDate datetime2 default getutcdate() not null,
+    IsActive [bit] not null default 1,
+    LastModified [datetime2] default getutcdate() not null,
+    LastRequested [datetime2] NULL,
+)
+GO
