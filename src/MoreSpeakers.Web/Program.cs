@@ -160,11 +160,13 @@ builder.Services.AddScoped<IMentoringDataStore, MentoringDataStore>();
 builder.Services.AddScoped<ISocialMediaSiteDataStore, SocialMediaSiteDataStore>();
 builder.Services.AddScoped<ISectorDataStore, SectorDataStore>(); 
 builder.Services.AddScoped<IUserDataStore, UserDataStore>();
+builder.Services.AddScoped<IEmailTemplateDataStore, EmailTemplateDataStore>();
 builder.Services.AddScoped<IExpertiseManager, ExpertiseManager>();
 builder.Services.AddScoped<IMentoringManager, MentoringManager>();
 builder.Services.AddScoped<ISectorManager, SectorManager>();
 builder.Services.AddScoped<ISocialMediaSiteManager, SocialMediaSiteManager>();
 builder.Services.AddScoped<IUserManager, UserManager>();
+builder.Services.AddScoped<IEmailTemplateManager, EmailTemplateManager>();
 
 builder.Services.AddScoped<IFileUploadService, FileUploadService>();
 builder.Services.AddScoped<IEmailSender, EmailSender>();
