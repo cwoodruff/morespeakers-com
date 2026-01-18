@@ -14,9 +14,12 @@ public class MoreSpeakersProfile : Profile
         CreateMap<Models.MentorshipType, Domain.Models.MentorshipType>().ReverseMap();
         CreateMap<Models.Sector, Domain.Models.Sector>().ReverseMap();
         CreateMap<Models.SpeakerType, Domain.Models.SpeakerType>().ReverseMap();
-        CreateMap<Models.User, Domain.Models.User>().ReverseMap();
+        CreateMap<Models.User, Domain.Models.User>()
+            .ForMember(dest => dest.MustChangePassword, opt => opt.Ignore())
+            .ReverseMap();
         CreateMap<Models.UserExpertise, Domain.Models.UserExpertise>().ReverseMap();
         CreateMap<Models.SocialMediaSite, Domain.Models.SocialMediaSite>().ReverseMap();
         CreateMap<Models.UserSocialMediaSites, Domain.Models.UserSocialMediaSite>().ReverseMap();
+        CreateMap<Models.EmailTemplate, Domain.Models.EmailTemplate>().ReverseMap();
     }
 }
