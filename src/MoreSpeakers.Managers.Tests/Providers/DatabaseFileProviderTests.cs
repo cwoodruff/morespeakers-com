@@ -23,7 +23,7 @@ public class DatabaseFileProviderTests
         // Arrange
         var path = "Templates/Welcome.cshtml";
         var template = new EmailTemplate { Location = path, Content = "Welcome!" };
-        _managerMock.Setup(m => m.GetAsync(path)).ReturnsAsync(template);
+        _managerMock.Setup(m => m.GetByLocationAsync(path)).ReturnsAsync(template);
 
         // Act
         var result = _provider.GetFileInfo(path);
@@ -32,7 +32,7 @@ public class DatabaseFileProviderTests
         result.Should().NotBeNull();
         result.Exists.Should().BeTrue();
         result.Name.Should().Be(path);
-        _managerMock.Verify(m => m.GetAsync(path), Times.Once);
+        _managerMock.Verify(m => m.GetByLocationAsync(path), Times.Once);
     }
 
     [Fact]
@@ -40,7 +40,7 @@ public class DatabaseFileProviderTests
     {
         // Arrange
         var path = "Missing.cshtml";
-        _managerMock.Setup(m => m.GetAsync(path)).ReturnsAsync((EmailTemplate?)null);
+        _managerMock.Setup(m => m.GetByLocationAsync(path)).ReturnsAsync((EmailTemplate?)null);
 
         // Act
         var result = _provider.GetFileInfo(path);
@@ -66,7 +66,7 @@ public class DatabaseFileProviderTests
         // Arrange
         var filter = "Templates/Welcome.cshtml";
         var template = new EmailTemplate { Location = filter };
-        _managerMock.Setup(m => m.GetAsync(filter)).ReturnsAsync(template);
+        _managerMock.Setup(m => m.GetByLocationAsync(filter)).ReturnsAsync(template);
 
         // Act
         var result = _provider.Watch(filter);
@@ -80,7 +80,7 @@ public class DatabaseFileProviderTests
     {
         // Arrange
         var filter = "Missing.cshtml";
-        _managerMock.Setup(m => m.GetAsync(filter)).ReturnsAsync((EmailTemplate?)null);
+        _managerMock.Setup(m => m.GetByLocationAsync(filter)).ReturnsAsync((EmailTemplate?)null);
 
         // Act
         var result = _provider.Watch(filter);

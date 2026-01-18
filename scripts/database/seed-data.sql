@@ -200,9 +200,10 @@ IF NOT EXISTS (SELECT 1 FROM AspNetRoles WHERE NormalizedName = 'MODERATOR')
     VALUES (NEWID(), N'Moderator', N'MODERATOR', CONVERT(nvarchar(128), NEWID()));
 
 
+SET IDENTITY_INSERT MoreSpeakers.dbo.EmailTemplates ON;
 INSERT INTO [dbo].[EmailTemplates]
-([Location], [Content])
-VALUES (
+(Id, Location, Content)
+VALUES (1,
     '/Pages/Shared/_EmailLayout.cshtml',
     N'<!DOCTYPE html>
     <html lang="en">
@@ -253,8 +254,8 @@ VALUES (
     );
 
 INSERT INTO [dbo].[EmailTemplates]
-([Location], [Content])
-VALUES (
+(Id, Location, Content)
+VALUES (2,
     '/EmailTemplates/ConfirmUserEmail.cshtml',
     N'@model MoreSpeakers.Domain.Models.UserConfirmationEmail
 
@@ -273,8 +274,8 @@ In order to take the next step in your journey, please confirm your email addres
     );
 
 INSERT INTO [dbo].[EmailTemplates]
-([Location], [Content])
-VALUES (
+(Id, Location, Content)
+VALUES (3,
     '/EmailTemplates/MentorshipRequestAcceptedFromMentee.cshtml',
     '@model MoreSpeakers.Domain.Models.Mentorship
 
@@ -294,8 +295,8 @@ Layout = "~/Pages/Shared/_EmailLayout.cshtml";
     );
 
 INSERT INTO [dbo].[EmailTemplates]
-([Location], [Content])
-VALUES (
+(Id, Location, Content)
+VALUES (4,
     '/EmailTemplates/MentorshipRequestAcceptedToMentor.cshtml',
     '@model MoreSpeakers.Domain.Models.Mentorship
 
@@ -320,8 +321,8 @@ Phone Number - @Model.Mentee.PhoneNumber
     );
 
 INSERT INTO [dbo].[EmailTemplates]
-([Location], [Content])
-VALUES (
+(Id, Location, Content)
+VALUES (5,
     '/EmailTemplates/MentorshipRequestCancelledFromMentee.cshtml',
     '@model MoreSpeakers.Domain.Models.Mentorship
 
@@ -337,8 +338,8 @@ Layout = "~/Pages/Shared/_EmailLayout.cshtml";
     );
 
 INSERT INTO [dbo].[EmailTemplates]
-([Location], [Content])
-VALUES (
+(Id, Location, Content)
+VALUES (6,
     '/EmailTemplates/MentorshipRequestCancelledToMentor.cshtml',
     '@model MoreSpeakers.Domain.Models.Mentorship
 
@@ -354,8 +355,8 @@ Layout = "~/Pages/Shared/_EmailLayout.cshtml";
     );
 
 INSERT INTO [dbo].[EmailTemplates]
-([Location], [Content])
-VALUES (
+(Id, Location, Content)
+VALUES (7,
     '/EmailTemplates/MentorshipRequestDeclinedFromMentee.cshtml',
     N'@model MoreSpeakers.Domain.Models.Mentorship
 
@@ -373,8 +374,8 @@ Layout = "~/Pages/Shared/_EmailLayout.cshtml";
     );
 
 INSERT INTO [dbo].[EmailTemplates]
-([Location], [Content])
-VALUES (
+(Id, Location, Content)
+VALUES (8,
     '/EmailTemplates/MentorshipRequestDeclinedToMentor.cshtml',
     N'@model MoreSpeakers.Domain.Models.Mentorship
 
@@ -390,8 +391,8 @@ Layout = "~/Pages/Shared/_EmailLayout.cshtml";
     );
 
 INSERT INTO [dbo].[EmailTemplates]
-([Location], [Content])
-VALUES (
+(Id, Location, Content)
+VALUES (9,
     '/EmailTemplates/MentorshipRequestFromMentee.cshtml',
     '@model MoreSpeakers.Domain.Models.Mentorship
 
@@ -408,8 +409,8 @@ Layout = "~/Pages/Shared/_EmailLayout.cshtml";
     );
 
 INSERT INTO [dbo].[EmailTemplates]
-([Location], [Content])
-VALUES (
+(Id, Location, Content)
+VALUES (10,
     '/EmailTemplates/MentorshipRequestToMentor.cshtml',
     '@model MoreSpeakers.Domain.Models.Mentorship
 
@@ -425,8 +426,8 @@ Layout = "~/Pages/Shared/_EmailLayout.cshtml";
     );
 
 INSERT INTO [dbo].[EmailTemplates]
-([Location], [Content])
-VALUES (
+(Id, Location, Content)
+VALUES (11,
     '/EmailTemplates/PasswordReset.cshtml',
     '@model MoreSpeakers.Domain.Models.UserPasswordResetEmail;
 
@@ -456,8 +457,8 @@ The MoreSpeakers Team</p>
     );
 
 INSERT INTO [dbo].[EmailTemplates]
-([Location], [Content])
-VALUES (
+(Id, Location, Content)
+VALUES (12,
     '/EmailTemplates/WelcomeEmail.cshtml',
     N'@model MoreSpeakers.Domain.Models.User
 
@@ -515,3 +516,4 @@ Layout = "~/Pages/Shared/_EmailLayout.cshtml";
 <p>To activate your account and access all features, please check your email for a confirmation link. If you don''t see it in your inbox, don''t forget to check your spam folder.</p>
 '
     );
+SET IDENTITY_INSERT MoreSpeakers.dbo.EmailTemplates OFF;

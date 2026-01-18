@@ -1,0 +1,42 @@
+@page "{id:int}"
+@model MoreSpeakers.Web.Areas.Admin.Pages.Catalog.EmailTemplates.DeleteModel
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+@{
+    ViewData["Title"] = "Delete Email Template";
+}
+
+<h1 class="mb-4">Delete Email Template</h1>
+
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-area="Admin" asp-page="/Index">Admin</a></li>
+        <li class="breadcrumb-item"><a asp-page="Index">Email Templates</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Delete</li>
+    </ol>
+</nav>
+
+<div class="alert alert-danger mb-4">
+    <h4 class="alert-heading"><i class="bi bi-exclamation-triangle-fill me-2"></i>Warning!</h4>
+    <p>Are you sure you want to delete this email template? This action cannot be undone.</p>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-sm-3">Location</dt>
+            <dd class="col-sm-9"><code>@Model.EmailTemplate.Location</code></dd>
+
+            <dt class="col-sm-3">Last Modified</dt>
+            <dd class="col-sm-9">@Model.EmailTemplate.LastModified.ToString("F")</dd>
+        </dl>
+    </div>
+</div>
+
+<form method="post">
+    <input type="hidden" asp-for="Id" />
+    <button type="submit" class="btn btn-danger">
+        <i class="bi bi-trash3 me-1"></i>Confirm Delete
+    </button>
+    <a asp-page="Index" class="btn btn-outline-secondary ms-2">Cancel</a>
+</form>

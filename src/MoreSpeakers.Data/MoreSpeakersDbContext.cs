@@ -236,12 +236,14 @@ public class MoreSpeakersDbContext
         builder.Entity<EmailTemplate>(entity =>
         {
             entity.ToTable("EmailTemplates");
-            entity.HasKey(e => e.Location);
-            entity.Property(e => e.Location).HasMaxLength(150);
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Location).IsRequired().HasMaxLength(150);
             entity.Property(e => e.Content).IsRequired();
             entity.Property(e => e.CreatedDate).HasDefaultValueSql("GETUTCDATE()");
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.LastModified).HasDefaultValueSql("GETUTCDATE()");
+
+            entity.HasIndex(e => e.Location).IsUnique();
         });
 
         // Seed initial data

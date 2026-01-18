@@ -20,7 +20,7 @@ public class DatabaseFileProvider : IFileProvider
             return new NotFoundFileInfo(subpath);
         }
 
-        var template = _emailTemplateManager.GetAsync(subpath).GetAwaiter().GetResult();
+        var template = _emailTemplateManager.GetByLocationAsync(subpath).GetAwaiter().GetResult();
         return template != null ? new DatabaseFileInfo(template, subpath) : new NotFoundFileInfo(subpath);
     }
 
@@ -36,7 +36,7 @@ public class DatabaseFileProvider : IFileProvider
             return NullChangeToken.Singleton;
         }
 
-        var template = _emailTemplateManager.GetAsync(filter).GetAwaiter().GetResult();
+        var template = _emailTemplateManager.GetByLocationAsync(filter).GetAwaiter().GetResult();
         return template != null ? new DatabaseChangeToken(template) : NullChangeToken.Singleton;
     }
 }
