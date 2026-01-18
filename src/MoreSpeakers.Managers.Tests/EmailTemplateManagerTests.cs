@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models;
+using MoreSpeakers.Domain.Models.AdminUsers;
 
 namespace MoreSpeakers.Managers.Tests;
 
@@ -16,28 +17,42 @@ public class EmailTemplateManagerTests
     [Fact]
     public async Task GetAsync_should_delegate()
     {
-        var location = "Templates/Welcome.cshtml";
-        _dataStoreMock.Setup(d => d.GetAsync(location)).ReturnsAsync(new EmailTemplate { Location = location });
+        var id = 1;
+        _dataStoreMock.Setup(d => d.GetAsync(id)).ReturnsAsync(new EmailTemplate { Id = id });
         var sut = CreateSut();
 
-        var result = await sut.GetAsync(location);
+        var result = await sut.GetAsync(id);
+
+        result.Should().NotBeNull();
+        result!.Id.Should().Be(id);
+        _dataStoreMock.Verify(d => d.GetAsync(id), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetByLocationAsync_should_delegate()
+    {
+        var location = "Templates/Welcome.cshtml";
+        _dataStoreMock.Setup(d => d.GetByLocationAsync(location)).ReturnsAsync(new EmailTemplate { Location = location });
+        var sut = CreateSut();
+
+        var result = await sut.GetByLocationAsync(location);
 
         result.Should().NotBeNull();
         result!.Location.Should().Be(location);
-        _dataStoreMock.Verify(d => d.GetAsync(location), Times.Once);
+        _dataStoreMock.Verify(d => d.GetByLocationAsync(location), Times.Once);
     }
 
     [Fact]
     public async Task DeleteAsync_should_delegate()
     {
-        var location = "Templates/Old.cshtml";
-        _dataStoreMock.Setup(d => d.DeleteAsync(location)).ReturnsAsync(true);
+        var id = 1;
+        _dataStoreMock.Setup(d => d.DeleteAsync(id)).ReturnsAsync(true);
         var sut = CreateSut();
 
-        var result = await sut.DeleteAsync(location);
+        var result = await sut.DeleteAsync(id);
 
         result.Should().BeTrue();
-        _dataStoreMock.Verify(d => d.DeleteAsync(location), Times.Once);
+        _dataStoreMock.Verify(d => d.DeleteAsync(id), Times.Once);
     }
 
     [Fact]
@@ -64,5 +79,20 @@ public class EmailTemplateManagerTests
 
         result.Should().BeSameAs(expected);
         _dataStoreMock.Verify(d => d.GetAllAsync(), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetAllTemplatesAsync_with_filters_should_delegate()
+    {
+        var expected = new List<EmailTemplate> { new() { Location = "L1" } };
+        var active = TriState.True;
+        var q = "test";
+        _dataStoreMock.Setup(d => d.GetAllTemplatesAsync(active, q)).ReturnsAsync(expected);
+        var sut = CreateSut();
+
+        var result = await sut.GetAllTemplatesAsync(active, q);
+
+        result.Should().BeSameAs(expected);
+        _dataStoreMock.Verify(d => d.GetAllTemplatesAsync(active, q), Times.Once);
     }
 }

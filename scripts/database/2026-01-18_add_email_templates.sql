@@ -1,16 +1,17 @@
-
 CREATE TABLE [dbo].[EmailTemplates](
-    Location [nvarchar](150) not null primary key,
+    Id INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_EmailTemplates PRIMARY KEY,
+    Location [nvarchar](150) not null unique,
     Content [nvarchar](max) not null,
     CreatedDate datetime2 default getutcdate() not null,
     IsActive [bit] not null default 1,
     LastModified [datetime2] default getutcdate() not null,
-    LastRequested [datetime2] NULL,
-);
+    LastRequested [datetime2] NULL)
+GO
 
+SET IDENTITY_INSERT MoreSpeakers.dbo.EmailTemplates ON;
 INSERT INTO [dbo].[EmailTemplates]
-    ([Location], [Content])
-VALUES (
+    (Id, Location, Content)
+VALUES (1,
         '/Pages/Shared/_EmailLayout.cshtml',
         N'<!DOCTYPE html>
         <html lang="en">
@@ -61,8 +62,8 @@ VALUES (
        );
 
 INSERT INTO [dbo].[EmailTemplates]
-([Location], [Content])
-VALUES (
+    (Id, Location, Content)
+VALUES (2,
            '/EmailTemplates/ConfirmUserEmail.cshtml',
            N'@model MoreSpeakers.Domain.Models.UserConfirmationEmail
 
@@ -81,8 +82,8 @@ In order to take the next step in your journey, please confirm your email addres
        );
 
 INSERT INTO [dbo].[EmailTemplates]
-([Location], [Content])
-VALUES (
+    (Id, Location, Content)
+VALUES (3,
            '/EmailTemplates/MentorshipRequestAcceptedFromMentee.cshtml',
            '@model MoreSpeakers.Domain.Models.Mentorship
 
@@ -102,8 +103,8 @@ VALUES (
        );
 
 INSERT INTO [dbo].[EmailTemplates]
-([Location], [Content])
-VALUES (
+    (Id, Location, Content)
+VALUES (4,
            '/EmailTemplates/MentorshipRequestAcceptedToMentor.cshtml',
            '@model MoreSpeakers.Domain.Models.Mentorship
 
@@ -128,8 +129,8 @@ VALUES (
        );
 
 INSERT INTO [dbo].[EmailTemplates]
-([Location], [Content])
-VALUES (
+    (Id, Location, Content)
+VALUES (5,
            '/EmailTemplates/MentorshipRequestCancelledFromMentee.cshtml',
            '@model MoreSpeakers.Domain.Models.Mentorship
 
@@ -145,8 +146,8 @@ VALUES (
        );
 
 INSERT INTO [dbo].[EmailTemplates]
-([Location], [Content])
-VALUES (
+    (Id, Location, Content)
+VALUES (6,
            '/EmailTemplates/MentorshipRequestCancelledToMentor.cshtml',
            '@model MoreSpeakers.Domain.Models.Mentorship
 
@@ -162,8 +163,8 @@ VALUES (
        );
 
 INSERT INTO [dbo].[EmailTemplates]
-([Location], [Content])
-VALUES (
+    (Id, Location, Content)
+VALUES (7,
            '/EmailTemplates/MentorshipRequestDeclinedFromMentee.cshtml',
            N'@model MoreSpeakers.Domain.Models.Mentorship
 
@@ -181,8 +182,8 @@ VALUES (
        );
 
 INSERT INTO [dbo].[EmailTemplates]
-([Location], [Content])
-VALUES (
+    (Id, Location, Content)
+VALUES (8,
            '/EmailTemplates/MentorshipRequestDeclinedToMentor.cshtml',
            N'@model MoreSpeakers.Domain.Models.Mentorship
 
@@ -198,8 +199,8 @@ VALUES (
        );
 
 INSERT INTO [dbo].[EmailTemplates]
-([Location], [Content])
-VALUES (
+    (Id, Location, Content)
+VALUES (9,
            '/EmailTemplates/MentorshipRequestFromMentee.cshtml',
            '@model MoreSpeakers.Domain.Models.Mentorship
 
@@ -216,8 +217,8 @@ VALUES (
        );
 
 INSERT INTO [dbo].[EmailTemplates]
-([Location], [Content])
-VALUES (
+    (Id, Location, Content)
+VALUES (10,
            '/EmailTemplates/MentorshipRequestToMentor.cshtml',
            '@model MoreSpeakers.Domain.Models.Mentorship
 
@@ -233,8 +234,8 @@ VALUES (
        );
 
 INSERT INTO [dbo].[EmailTemplates]
-([Location], [Content])
-VALUES (
+    (Id, Location, Content)
+VALUES (11,
            '/EmailTemplates/PasswordReset.cshtml',
            '@model MoreSpeakers.Domain.Models.UserPasswordResetEmail;
 
@@ -264,8 +265,8 @@ The MoreSpeakers Team</p>
        );
 
 INSERT INTO [dbo].[EmailTemplates]
-([Location], [Content])
-VALUES (
+    (Id, Location, Content)
+VALUES (12,
            '/EmailTemplates/WelcomeEmail.cshtml',
            N'@model MoreSpeakers.Domain.Models.User
 
@@ -323,3 +324,4 @@ VALUES (
 <p>To activate your account and access all features, please check your email for a confirmation link. If you don''t see it in your inbox, don''t forget to check your spam folder.</p>
 '
        );
+SET IDENTITY_INSERT MoreSpeakers.dbo.EmailTemplates OFF;

@@ -5,6 +5,9 @@ namespace MoreSpeakers.Domain.Models;
 public class EmailTemplate
 {
     [Key]
+    public int Id { get; set; }
+
+    [Required]
     [MaxLength(150)]
     public string Location { get; set; } = string.Empty;
 

@@ -330,7 +330,8 @@ CREATE INDEX IX_UserSocialMediaSites_UserId
 go
 
 CREATE TABLE [dbo].[EmailTemplates](
-    Location [nvarchar](150) not null primary key,
+    Id INT IDENTITY(1,1) NOT NULL CONSTRAINT PK_EmailTemplates PRIMARY KEY,
+    Location [nvarchar](150) not null unique,
     Content [nvarchar](max) not null,
     CreatedDate datetime2 default getutcdate() not null,
     IsActive [bit] not null default 1,

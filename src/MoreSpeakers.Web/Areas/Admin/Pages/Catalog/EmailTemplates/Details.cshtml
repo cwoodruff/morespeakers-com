@@ -1,0 +1,72 @@
+@page "{id:int}"
+@model MoreSpeakers.Web.Areas.Admin.Pages.Catalog.EmailTemplates.DetailsModel
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+@{
+    ViewData["Title"] = "Email Template Details";
+}
+
+<h1 class="mb-4">Email Template Details</h1>
+
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-area="Admin" asp-page="/Index">Admin</a></li>
+        <li class="breadcrumb-item"><a asp-page="Index">Email Templates</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Details</li>
+    </ol>
+</nav>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Metadata</h5>
+        <div>
+            @if (Model.EmailTemplate.IsActive)
+            {
+                <span class="badge bg-success">Active</span>
+            }
+            else
+            {
+                <span class="badge bg-secondary">Inactive</span>
+            }
+        </div>
+    </div>
+    <div class="card-body">
+        <dl class="row mb-0">
+            <dt class="col-sm-3">Location</dt>
+            <dd class="col-sm-9"><code>@Model.EmailTemplate.Location</code></dd>
+
+            <dt class="col-sm-3">Created Date</dt>
+            <dd class="col-sm-9">@Model.EmailTemplate.CreatedDate.ToString("F")</dd>
+
+            <dt class="col-sm-3">Last Modified</dt>
+            <dd class="col-sm-9">@Model.EmailTemplate.LastModified.ToString("F")</dd>
+
+            @if (Model.EmailTemplate.LastRequested.HasValue)
+            {
+                <dt class="col-sm-3">Last Requested</dt>
+                <dd class="col-sm-9">@Model.EmailTemplate.LastRequested.Value.ToString("F")</dd>
+            }
+        </dl>
+    </div>
+</div>
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header">
+        <h5 class="mb-0">Content</h5>
+    </div>
+    <div class="card-body p-0">
+        <pre class="bg-light p-3 mb-0" style="max-height: 600px; overflow-y: auto;"><code>@Model.EmailTemplate.Content</code></pre>
+    </div>
+</div>
+
+<div class="mb-5">
+    <a asp-page="Index" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>Back to List
+    </a>
+    <a asp-page="Edit" asp-route-id="@Model.EmailTemplate.Id" class="btn btn-primary ms-2">
+        <i class="bi bi-pencil me-1"></i>Edit
+    </a>
+    <a asp-page="Delete" asp-route-id="@Model.EmailTemplate.Id" class="btn btn-danger ms-2">
+        <i class="bi bi-trash3 me-1"></i>Delete
+    </a>
+</div>
