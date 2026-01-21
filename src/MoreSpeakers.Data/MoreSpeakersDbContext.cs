@@ -24,7 +24,6 @@ public class MoreSpeakersDbContext
     public DbSet<MentorshipExpertise> MentorshipExpertise { get; set; }
     public DbSet<SocialMediaSite> SocialMediaSite { get; set; }
     public DbSet<UserSocialMediaSites> UserSocialMediaSite { get; set; }
-    public DbSet<EmailTemplate> EmailTemplates { get; set; }
     
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -232,20 +231,6 @@ public class MoreSpeakersDbContext
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
-        // Configure EmailTemplate entity
-        builder.Entity<EmailTemplate>(entity =>
-        {
-            entity.ToTable("EmailTemplates");
-            entity.HasKey(e => e.Id);
-            entity.Property(e => e.Location).IsRequired().HasMaxLength(150);
-            entity.Property(e => e.Content).IsRequired();
-            entity.Property(e => e.CreatedDate).HasDefaultValueSql("GETUTCDATE()");
-            entity.Property(e => e.IsActive).HasDefaultValue(true);
-            entity.Property(e => e.LastModified).HasDefaultValueSql("GETUTCDATE()");
-
-            entity.HasIndex(e => e.Location).IsUnique();
-        });
-
         // Seed initial data
         SeedData(builder);
     }
@@ -331,10 +316,5 @@ public class MoreSpeakersDbContext
             .Where(e => e.State == EntityState.Modified);
 
         foreach (var entry in entries) entry.Entity.UpdatedDate = DateTime.UtcNow;
-
-        var emailTemplateEntries = ChangeTracker.Entries<EmailTemplate>()
-            .Where(e => e.State == EntityState.Modified);
-
-        foreach (var entry in emailTemplateEntries) entry.Entity.LastModified = DateTime.UtcNow;
     }
 }
