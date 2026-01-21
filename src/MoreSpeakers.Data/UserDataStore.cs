@@ -282,6 +282,44 @@ public class UserDataStore : IUserDataStore
         return roleNames;
     }
 
+    public async Task<IdentityResult> AddToRolesAsync(Guid userId, IEnumerable<string> roles)
+    {
+        try
+        {
+            var identityUser = await _userManager.FindByIdAsync(userId.ToString());
+            if (identityUser == null)
+            {
+                return IdentityResult.Failed(new IdentityError { Description = "User not found" });
+            }
+
+            return await _userManager.AddToRolesAsync(identityUser, roles);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to add roles to user {UserId}", userId);
+            return IdentityResult.Failed(new IdentityError { Description = ex.Message });
+        }
+    }
+
+    public async Task<IdentityResult> RemoveFromRolesAsync(Guid userId, IEnumerable<string> roles)
+    {
+        try
+        {
+            var identityUser = await _userManager.FindByIdAsync(userId.ToString());
+            if (identityUser == null)
+            {
+                return IdentityResult.Failed(new IdentityError { Description = "User not found" });
+            }
+
+            return await _userManager.RemoveFromRolesAsync(identityUser, roles);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to remove roles from user {UserId}", userId);
+            return IdentityResult.Failed(new IdentityError { Description = ex.Message });
+        }
+    }
+
     private sealed class AdminUser
     {
         public Guid Id { get; set; }

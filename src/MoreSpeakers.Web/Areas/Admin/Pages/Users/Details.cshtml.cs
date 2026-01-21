@@ -26,6 +26,8 @@ public class DetailsModel : PageModel
 
     public required User User { get; set; }
     public IReadOnlyList<string> Roles { get; private set; } = Array.Empty<string>();
+    public IReadOnlyList<string> AllRoles { get; private set; } = Array.Empty<string>();
+    [BindProperty] public List<string> SelectedRoles { get; set; } = new();
     public DateTimeOffset? LastSignInUtc { get; private set; } = null;
 
     public async Task<IActionResult> OnGetAsync(Guid id)
@@ -45,11 +47,14 @@ public class DetailsModel : PageModel
         try
         {
             Roles = await _userManager.GetRolesForUserAsync(id);
+            AllRoles = await _userManager.GetAllRoleNamesAsync();
+            SelectedRoles = Roles.ToList();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to retrieve roles for user {UserId}", id);
             Roles = Array.Empty<string>();
+            AllRoles = Array.Empty<string>();
         }
 
         User = user;
@@ -105,24 +110,96 @@ public class DetailsModel : PageModel
             return RedirectToPage(new { id });
         }
 
-        // Re-hydrate model state for partial
+        return await GetDetailsResult(id);
+    }
+
+    public async Task<IActionResult> OnPostUpdateRolesAsync(Guid id)
+    {
+        if (id == Guid.Empty)
+        {
+            return NotFound();
+        }
+
         var user = await _userManager.GetAsync(id);
         if (user == null)
         {
             return NotFound();
         }
-        User = user;
-        try
-        {
-            Roles = await _userManager.GetRolesForUserAsync(id);
-        }
-        catch
-        {
-            Roles = Array.Empty<string>();
-        }
-        LastSignInUtc = null;
-        return Partial("_UserSecurityCard", this);
 
+        var currentRoles = await _userManager.GetRolesForUserAsync(id);
+        var rolesToAdd = SelectedRoles.Except(currentRoles, StringComparer.OrdinalIgnoreCase).ToList();
+        var rolesToRemove = currentRoles.Except(SelectedRoles, StringComparer.OrdinalIgnoreCase).ToList();
+
+        // Prevent removing the last administrator
+        if (rolesToRemove.Contains(Domain.Constants.UserRoles.Administrator, StringComparer.OrdinalIgnoreCase))
+        {
+            var adminCount = await _userManager.GetUserCountInRoleAsync(Domain.Constants.UserRoles.Administrator);
+            if (adminCount <= 1)
+            {
+                TempData["ErrorMessage"] = "Cannot remove Administrator role: this is the last administrator account.";
+                return await GetDetailsResult(id);
+            }
+        }
+
+        if (rolesToAdd.Any())
+        {
+            var result = await _userManager.AddToRolesAsync(id, rolesToAdd);
+            if (!result.Succeeded)
+            {
+                TempData["ErrorMessage"] = "Failed to add roles: " + string.Join(", ", result.Errors.Select(e => e.Description));
+                return await GetDetailsResult(id);
+            }
+        }
+
+        if (rolesToRemove.Any())
+        {
+            var result = await _userManager.RemoveFromRolesAsync(id, rolesToRemove);
+            if (!result.Succeeded)
+            {
+                TempData["ErrorMessage"] = "Failed to remove roles: " + string.Join(", ", result.Errors.Select(e => e.Description));
+                return await GetDetailsResult(id);
+            }
+        }
+
+        TempData["StatusMessage"] = "Roles updated successfully.";
+        return await GetDetailsResult(id);
+    }
+
+    private async Task<IActionResult> GetDetailsResult(Guid id)
+    {
+        var user = await _userManager.GetAsync(id);
+        if (user == null) return NotFound();
+
+        User = user;
+        Roles = await _userManager.GetRolesForUserAsync(id);
+        AllRoles = await _userManager.GetAllRoleNamesAsync();
+        SelectedRoles = Roles.ToList();
+        LastSignInUtc = null;
+
+        if (Request.Headers.TryGetValue("HX-Request", out var hx) && string.Equals(hx, "true", StringComparison.OrdinalIgnoreCase))
+        {
+            // If the request came from a specific card, return only that card's partial.
+            // Otherwise, we might need a default or return nothing/badrequest if unknown.
+            // But usually we know where it came from based on the handler called.
+            // To be safe and "most HTMX", we can use HX-Target header if available.
+            
+            if (Request.Headers.TryGetValue("HX-Target", out var target))
+            {
+                if (target == "user-security-card")
+                {
+                    return Partial("_UserSecurityCard", this);
+                }
+                if (target == "user-roles-card")
+                {
+                    return Partial("_UserRolesCard", this);
+                }
+            }
+            
+            // Fallback for handlers that didn't specify or if we want to be explicit in the handler
+            return Page(); // This might not be what we want for HTMX if we expect a partial
+        }
+
+        return RedirectToPage(new { id });
     }
 
     public async Task<IActionResult> OnPostSetLockoutEndAsync(Guid id, DateTimeOffset? lockoutEndUtc)
@@ -164,30 +241,7 @@ public class DetailsModel : PageModel
             ? (lockoutEndUtc.HasValue ? "Lockout end updated." : "Lockout removed.")
             : "Failed to update lockout end.";
 
-        // HTMX partial refresh path
-        if (!Request.Headers.TryGetValue("HX-Request", out var hx) ||
-            !string.Equals(hx, "true", StringComparison.OrdinalIgnoreCase))
-        {
-            return RedirectToPage(new { id });
-        }
-
-        var user = await _userManager.GetAsync(id);
-        if (user == null)
-        {
-            return NotFound();
-        }
-        User = user;
-        try
-        {
-            Roles = await _userManager.GetRolesForUserAsync(id);
-        }
-        catch
-        {
-            Roles = Array.Empty<string>();
-        }
-        LastSignInUtc = null;
-        return Partial("_UserSecurityCard", this);
-
+        return await GetDetailsResult(id);
     }
 
     public async Task<IActionResult> OnPostUnlockAsync(Guid id)
@@ -203,28 +257,7 @@ public class DetailsModel : PageModel
             ? "User has been unlocked."
             : "Failed to unlock the user.";
 
-        // HTMX partial refresh path
-        if (Request.Headers.TryGetValue("HX-Request", out var hx) && string.Equals(hx, "true", StringComparison.OrdinalIgnoreCase))
-        {
-            var user = await _userManager.GetAsync(id);
-            if (user == null)
-            {
-                return NotFound();
-            }
-            User = user;
-            try
-            {
-                Roles = await _userManager.GetRolesForUserAsync(id);
-            }
-            catch
-            {
-                Roles = Array.Empty<string>();
-            }
-            LastSignInUtc = null;
-            return Partial("_UserSecurityCard", this);
-        }
-
-        return RedirectToPage(new { id });
+        return await GetDetailsResult(id);
     }
 
     public async Task<IActionResult> OnPostTriggerPasswordResetAsync(Guid id)
@@ -251,14 +284,7 @@ public class DetailsModel : PageModel
             ? "Password reset email has been sent."
             : "Failed to send password reset email.";
 
-        if (Request.Headers.TryGetValue("HX-Request", out var hx) && string.Equals(hx, "true", StringComparison.OrdinalIgnoreCase))
-        {
-            User = user;
-            Roles = await _userManager.GetRolesForUserAsync(id);
-            return Partial("_UserSecurityCard", this);
-        }
-
-        return RedirectToPage(new { id });
+        return await GetDetailsResult(id);
     }
 
     public async Task<IActionResult> OnPostSetTemporaryPasswordAsync(Guid id)
@@ -284,13 +310,6 @@ public class DetailsModel : PageModel
             TempData["ErrorMessage"] = "Failed to set temporary password: " + string.Join(", ", result.Errors.Select(e => e.Description));
         }
 
-        if (Request.Headers.TryGetValue("HX-Request", out var hx) && string.Equals(hx, "true", StringComparison.OrdinalIgnoreCase))
-        {
-            User = user;
-            Roles = await _userManager.GetRolesForUserAsync(id);
-            return Partial("_UserSecurityCard", this);
-        }
-
-        return RedirectToPage(new { id });
+        return await GetDetailsResult(id);
     }
 }
