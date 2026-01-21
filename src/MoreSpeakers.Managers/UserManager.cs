@@ -226,6 +226,16 @@ public class UserManager: IUserManager
         return await _dataStore.GetRolesForUserAsync(userId);
     }
 
+    public async Task<IdentityResult> AddToRolesAsync(Guid userId, IEnumerable<string> roles)
+    {
+        return await _dataStore.AddToRolesAsync(userId, roles);
+    }
+
+    public async Task<IdentityResult> RemoveFromRolesAsync(Guid userId, IEnumerable<string> roles)
+    {
+        return await _dataStore.RemoveFromRolesAsync(userId, roles);
+    }
+
     // ------------------------------------------
     // Admin Users (Lock/Unlock)
     // ------------------------------------------

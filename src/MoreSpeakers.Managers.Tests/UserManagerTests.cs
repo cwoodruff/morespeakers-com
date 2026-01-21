@@ -437,4 +437,34 @@ public class UserManagerTests
         result.Should().BeSameAs(expected);
         _dataStoreMock.Verify(d => d.GetSpeakerTypesAsync(), Times.Once);
     }
+
+    [Fact]
+    public async Task AddToRolesAsync_should_delegate()
+    {
+        var sut = CreateSut();
+        var userId = Guid.NewGuid();
+        var roles = new[] { "Role1", "Role2" };
+        var expected = IdentityResult.Success;
+        _dataStoreMock.Setup(d => d.AddToRolesAsync(userId, roles)).ReturnsAsync(expected);
+
+        var result = await sut.AddToRolesAsync(userId, roles);
+
+        result.Should().Be(expected);
+        _dataStoreMock.Verify(d => d.AddToRolesAsync(userId, roles), Times.Once);
+    }
+
+    [Fact]
+    public async Task RemoveFromRolesAsync_should_delegate()
+    {
+        var sut = CreateSut();
+        var userId = Guid.NewGuid();
+        var roles = new[] { "Role1", "Role2" };
+        var expected = IdentityResult.Success;
+        _dataStoreMock.Setup(d => d.RemoveFromRolesAsync(userId, roles)).ReturnsAsync(expected);
+
+        var result = await sut.RemoveFromRolesAsync(userId, roles);
+
+        result.Should().Be(expected);
+        _dataStoreMock.Verify(d => d.RemoveFromRolesAsync(userId, roles), Times.Once);
+    }
 }

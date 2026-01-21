@@ -59,6 +59,11 @@ public class IndexModel(IUserManager userManager, ILogger<IndexModel> logger) : 
         _logger.LogInformation("[AdminUsers] q={Q}, lockout={Lockout}, emailConfirmed={EmailConfirmed}, role={Role}, sort={Sort}, dir={Dir}, page={Page}, pageSize={PageSize}, total={Total}",
             filter.Query, Query.Lockout, Query.EmailConfirmed, filter.RoleName, Query.Sort, Query.Dir, Result.Page, Result.PageSize, Result.TotalCount);
 
+        if (Request.Headers.TryGetValue("HX-Request", out var hx) && string.Equals(hx, "true", StringComparison.OrdinalIgnoreCase))
+        {
+            return Partial("_UserList", this);
+        }
+
         return Page();
     }
 
