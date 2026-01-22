@@ -85,7 +85,7 @@
                 <button type="button" id="nextBtn" class="btn btn-primary"
                         hx-post="/Register?handler=ValidateStep"
                         hx-target="#registrationContainer"
-                        hx-include="#registerForm"
+                        hx-include="#registerForm, #Input_PhoneNumber"
                         hx-vals='{"step": "@currentStep"}'
                         hx-swap="innerHTML">
                     Next<i class="bi bi-arrow-right ms-2"></i>

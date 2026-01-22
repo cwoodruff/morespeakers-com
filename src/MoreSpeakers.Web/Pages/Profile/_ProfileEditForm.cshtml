@@ -64,10 +64,7 @@
             <div class="col-md-6">
                 <label asp-for="Input.PhoneNumber" class="form-label fw-medium">Country Code + Phone Number</label>
                 <div class="input-group">
-                    <span class="input-group-text border-end-0">
-                        <i class="bi bi-telephone text-muted"></i>
-                    </span>
-                    <input asp-for="Input.PhoneNumber" class="form-control border-start-0"
+                    <input asp-for="Input.PhoneNumber" class="form-control" data-rule-validate-international-phone-number
                            autocomplete="mobile" type="tel"
                            minlength="11" maxlength="50"
                            placeholder="Enter your phone number with country code"/>
@@ -126,7 +123,7 @@
         </div>
         <div class="col-12">
             <div class="mb-3" id="headshot-container">
-                @if (!string.IsNullOrEmpty(Model.ProfileUser.HeadshotUrl))
+                @if (!string.IsNullOrEmpty(Model.ProfileUser?.HeadshotUrl))
                 {
                     <img src="@Model.ProfileUser.HeadshotUrl" 
                          alt="Current headshot" 
@@ -214,16 +211,19 @@
                 var socialMediaSites = Model.SocialMediaSites.ToList();
             }
 
-            @foreach (var userSocialMediaSite in Model.ProfileUser.UserSocialMediaSites)
+            @if (Model.ProfileUser is not null && Model.ProfileUser.UserSocialMediaSites is not null)
             {
-                var model = new UserSocialMediaSiteRowViewModel
+                @foreach (var userSocialMediaSite in Model.ProfileUser.UserSocialMediaSites)
                 {
-                    UserSocialMediaSite = userSocialMediaSite,
-                    SocialMediaSites = socialMediaSites,
-                    ItemNumber = index
-                };
-                index++;
-                @await Html.PartialAsync("_UserSocialMediaSiteRow", model)
+                    var model = new UserSocialMediaSiteRowViewModel
+                    {
+                        UserSocialMediaSite = userSocialMediaSite,
+                        SocialMediaSites = socialMediaSites,
+                        ItemNumber = index
+                    };
+                    index++;
+                    @await Html.PartialAsync("_UserSocialMediaSiteRow", model)
+                }
             }
         </div>
         <div id="replaceSocialMediaRow">
@@ -253,7 +253,7 @@
             </div>
             Updating profile...
         </div>
-        <button type="submit" class="btn btn-primary">
+        <button type="submit" class="btn btn-primary" id="submitButton">
             <i class="bi bi-floppy me-2"></i>Update Profile
         </button>
     </div>

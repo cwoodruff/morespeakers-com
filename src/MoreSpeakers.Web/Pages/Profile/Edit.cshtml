@@ -72,7 +72,15 @@
 </div>
 
 @section Scripts {
-<partial name="_ValidationScriptsPartial" />
+    <partial name="_ValidationScriptsPartial" />
+    <environment include="Production">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/intl-tel-input@25.15.0/build/css/intlTelInput.min.css" integrity="sha256-iY2t8z6TIv68G9vhPsXexC/94OIu8zNHmYCHu6txQAM=" crossorigin="anonymous">
+        <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@25.15.0/build/js/intlTelInputWithUtils.min.js" integrity="sha256-tOTK/UYZmVjo2ZSuySvB8F/yryCSbb0HcPYYNJAOhmw=" crossorigin="anonymous"></script>
+    </environment>
+    <environment exclude="Production">
+        <link rel="stylesheet" href="~/lib/intl-tel-input/build/css/intlTelInput.css" />
+        <script src="~/lib/intl-tel-input/build/js/intlTelInputWithUtils.js"></script>
+    </environment>
 <script src="~/js/profile.edit.js" asp-append-version="true"></script>
 <script src="~/js/expertise.js" asp-append-version="true"></script>
 <script src="~/js/expertise-selector.js" asp-append-version="true"></script>
