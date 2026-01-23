@@ -300,7 +300,7 @@ function initializeHeadshotProcessing() {
 
 function initializeTelephoneInput(submitButtonSelector = '#nextBtn', phoneSelector = "#Input_PhoneNumber") {
     const phoneInput = document.querySelector(phoneSelector);
-    if (!phoneInput || phoneInput.hidden) return;
+    if (!phoneInput || phoneInput.type.toLowerCase() === 'hidden') return;
     document.querySelector(submitButtonSelector).addEventListener("click", function() {
         phoneInput.value = phoneInput.iti.getNumber(intlTelInput.utils.numberFormat.E164);
     })

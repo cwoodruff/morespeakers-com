@@ -26,14 +26,6 @@ function initializeRegistrationForm() {
             button.disabled = true;
             button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Creating Expertise Area...';
         }
-
-        if (button.id === 'nextBtn') {
-            // update the phone number
-            const phoneInput = document.querySelector("#Input_PhoneNumber");
-            if (phoneInput && !phoneInput.hidden) {
-                phoneInput.value = phoneInput.iti.getNumber(intlTelInput.utils.numberFormat.E164);
-            }
-        }
     });
 
     document.addEventListener('htmx:afterRequest', function (event) {
@@ -48,12 +40,24 @@ function initializeRegistrationForm() {
             button.removeAttribute('data-original-content');
         }
         initializeHeadshotProcessing();
-        initializeTelephoneInput();
         updatePageHeader();
     });
 
+    document.addEventListener('htmx:configRequest', function (event) {
+        const element = event.detail.elt;
+        const stepNumber = Number(document.getElementById('CurrentStep').value);
+        if (element && element.id === 'nextBtn' && stepNumber === 1)
+        {
+            const phoneInput = document.getElementById('Input_PhoneNumber');
+            const phoneParameter = event.detail.parameters['Input.PhoneNumber']
+            if (phoneInput && !(phoneInput.type.toLowerCase() === 'hidden') && phoneParameter) {
+                event.detail.parameters['Input.PhoneNumber'] = phoneInput.iti.getNumber(intlTelInput.utils.numberFormat.E164);
+            }
+        }
+    })
+
     document.addEventListener('htmx:afterSettle', function(event) {
-        initializeTelephoneInput("#submitButton");
+        initializeTelephoneInput("#nextBtn");
     });
 }
 
