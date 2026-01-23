@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models;
+using MoreSpeakers.Domain.Models.AdminUsers;
 
 namespace MoreSpeakers.Managers.Tests;
 
@@ -64,5 +65,44 @@ public class SectorManagerTests
 
         result.Should().BeTrue();
         _dataStore.Verify(ds => ds.DeleteAsync(1), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetSectorWithRelationshipsAsync_should_delegate()
+    {
+        var expected = new Sector { Id = 2, Name = "Finance" };
+        _dataStore.Setup(ds => ds.GetSectorWithRelationshipsAsync(2)).ReturnsAsync(expected);
+
+        var manager = new SectorManager(_dataStore.Object, _logger.Object);
+        var result = await manager.GetSectorWithRelationshipsAsync(2);
+
+        result.Should().BeSameAs(expected);
+        _dataStore.Verify(ds => ds.GetSectorWithRelationshipsAsync(2), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetAllSectorsAsync_should_delegate_with_filters()
+    {
+        var expected = new List<Sector> { new() { Id = 3, Name = "Healthcare" } };
+        _dataStore.Setup(ds => ds.GetAllSectorsAsync(TriState.False, "care", true)).ReturnsAsync(expected);
+
+        var manager = new SectorManager(_dataStore.Object, _logger.Object);
+        var result = await manager.GetAllSectorsAsync(TriState.False, "care", true);
+
+        result.Should().BeSameAs(expected);
+        _dataStore.Verify(ds => ds.GetAllSectorsAsync(TriState.False, "care", true), Times.Once);
+    }
+
+    [Fact]
+    public async Task DeleteAsync_by_entity_calls_datastore()
+    {
+        var sector = new Sector { Id = 5, Name = "Education" };
+        _dataStore.Setup(ds => ds.DeleteAsync(sector)).ReturnsAsync(true);
+
+        var manager = new SectorManager(_dataStore.Object, _logger.Object);
+        var result = await manager.DeleteAsync(sector);
+
+        result.Should().BeTrue();
+        _dataStore.Verify(ds => ds.DeleteAsync(sector), Times.Once);
     }
 }
