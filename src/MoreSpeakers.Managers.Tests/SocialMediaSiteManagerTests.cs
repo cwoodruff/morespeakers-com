@@ -90,4 +90,28 @@ public class SocialMediaSiteManagerTests
         result.Should().BeTrue();
         _dataStoreMock.Verify(d => d.DeleteAsync(entity), Times.Once);
     }
+
+    [Fact]
+    public async Task RefCountAsync_should_delegate()
+    {
+        _dataStoreMock.Setup(d => d.RefCountAsync(3)).ReturnsAsync(2);
+        var sut = CreateSut();
+
+        var result = await sut.RefCountAsync(3);
+
+        result.Should().Be(2);
+        _dataStoreMock.Verify(d => d.RefCountAsync(3), Times.Once);
+    }
+
+    [Fact]
+    public async Task InUseAsync_should_delegate()
+    {
+        _dataStoreMock.Setup(d => d.InUseAsync(4)).ReturnsAsync(true);
+        var sut = CreateSut();
+
+        var result = await sut.InUseAsync(4);
+
+        result.Should().BeTrue();
+        _dataStoreMock.Verify(d => d.InUseAsync(4), Times.Once);
+    }
 }

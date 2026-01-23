@@ -193,6 +193,62 @@ public class ExpertiseManagerTests
         result.Should().BeFalse();
         _dataStoreMock.Verify(d => d.SoftDeleteAsync(6), Times.Once);
     }
+
+    [Fact]
+    public async Task SoftDeleteAsync_should_return_false_on_exception()
+    {
+        _dataStoreMock.Setup(d => d.SoftDeleteAsync(12)).ThrowsAsync(new InvalidOperationException("boom"));
+        var sut = CreateSut();
+
+        var result = await sut.SoftDeleteAsync(12);
+
+        result.Should().BeFalse();
+        _loggerMock.Verify(l => l.Log(
+            LogLevel.Error,
+            It.IsAny<EventId>(),
+            It.Is<It.IsAnyType>((v, _) => v.ToString()!.Contains("Failed to soft delete expertise")),
+            It.IsAny<Exception>(),
+            It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetAllExpertisesAsync_should_delegate()
+    {
+        var expected = new List<Expertise> { new() { Id = 3, Name = "AI" } };
+        _dataStoreMock.Setup(d => d.GetAllExpertisesAsync(TriState.False, "search")).ReturnsAsync(expected);
+        var sut = CreateSut();
+
+        var result = await sut.GetAllExpertisesAsync(TriState.False, "search");
+
+        result.Should().BeSameAs(expected);
+        _dataStoreMock.Verify(d => d.GetAllExpertisesAsync(TriState.False, "search"), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetAllActiveCategoriesForSector_should_delegate()
+    {
+        var expected = new List<ExpertiseCategory> { new() { Id = 1, Name = "Tech" } };
+        _dataStoreMock.Setup(d => d.GetAllActiveCategoriesForSector(2)).ReturnsAsync(expected);
+        var sut = CreateSut();
+
+        var result = await sut.GetAllActiveCategoriesForSector(2);
+
+        result.Should().BeSameAs(expected);
+        _dataStoreMock.Verify(d => d.GetAllActiveCategoriesForSector(2), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetBySectorIdAsync_should_delegate()
+    {
+        var expected = new List<Expertise> { new() { Id = 8, Name = "Cloud" } };
+        _dataStoreMock.Setup(d => d.GetBySectorIdAsync(4)).ReturnsAsync(expected);
+        var sut = CreateSut();
+
+        var result = await sut.GetBySectorIdAsync(4);
+
+        result.Should().BeSameAs(expected);
+        _dataStoreMock.Verify(d => d.GetBySectorIdAsync(4), Times.Once);
+    }
 }
 
 public class ExpertiseManagerCategoryTests

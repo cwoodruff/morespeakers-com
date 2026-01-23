@@ -1,10 +1,12 @@
 using System.Security.Claims;
 using FluentAssertions;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using Moq;
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models;
+using MoreSpeakers.Domain.Models.AdminUsers;
 
 namespace MoreSpeakers.Managers.Tests;
 
@@ -65,6 +67,21 @@ public class UserManagerTests
     {
         var user = new User { Id = Guid.NewGuid(), Email = "a@b.com", HeadshotUrl = "http://headshot" };
         var expected = IdentityResult.Failed();
+        _dataStoreMock.Setup(d => d.CreateAsync(user, "pwd")).ReturnsAsync(expected);
+        var sut = CreateSut();
+
+        var result = await sut.CreateAsync(user, "pwd");
+
+        result.Should().BeSameAs(expected);
+        _dataStoreMock.Verify(d => d.CreateAsync(user, "pwd"), Times.Once);
+        _openGraphGeneratorMock.Verify(o => o.QueueSpeakerOpenGraphProfileImageCreation(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task CreateAsync_should_not_queue_opengraph_when_headshot_missing()
+    {
+        var user = new User { Id = Guid.NewGuid(), Email = "a@b.com", HeadshotUrl = "" };
+        var expected = IdentityResult.Success;
         _dataStoreMock.Setup(d => d.CreateAsync(user, "pwd")).ReturnsAsync(expected);
         var sut = CreateSut();
 
@@ -466,5 +483,212 @@ public class UserManagerTests
 
         result.Should().Be(expected);
         _dataStoreMock.Verify(d => d.RemoveFromRolesAsync(userId, roles), Times.Once);
+    }
+
+    [Fact]
+    public async Task AddOrUpdatePasskeyAsync_should_delegate()
+    {
+        var sut = CreateSut();
+        var user = new User { Id = Guid.NewGuid() };
+        var passkey = new UserPasskeyInfo(new byte[10], new byte[10], DateTimeOffset.UtcNow, 0, ["transport"],true, true, true, new byte[10], new byte[10] );
+        var expected = IdentityResult.Success;
+        _dataStoreMock.Setup(d => d.AddOrUpdatePasskeyAsync(user, passkey)).ReturnsAsync(expected);
+
+        var result = await sut.AddOrUpdatePasskeyAsync(user, passkey);
+
+        result.Should().Be(expected);
+        _dataStoreMock.Verify(d => d.AddOrUpdatePasskeyAsync(user, passkey), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetUserPasskeysAsync_should_delegate()
+    {
+        var userId = Guid.NewGuid();
+        var expected = new List<UserPasskey> { new() { Id = "pk1", UserId = userId, FriendlyName = "Browser" } };
+        _dataStoreMock.Setup(d => d.GetUserPasskeysAsync(userId)).ReturnsAsync(expected);
+        var sut = CreateSut();
+
+        var result = await sut.GetUserPasskeysAsync(userId);
+
+        result.Should().BeSameAs(expected);
+        _dataStoreMock.Verify(d => d.GetUserPasskeysAsync(userId), Times.Once);
+    }
+
+    [Fact]
+    public async Task RemovePasskeyAsync_should_decode_and_delegate()
+    {
+        var userId = Guid.NewGuid();
+        var credentialBytes = new byte[] { 1, 2, 3 };
+        var credentialId = WebEncoders.Base64UrlEncode(credentialBytes);
+        _dataStoreMock.Setup(d => d.RemovePasskeyAsync(userId, It.IsAny<byte[]>())).ReturnsAsync(true);
+        var sut = CreateSut();
+
+        var result = await sut.RemovePasskeyAsync(userId, credentialId);
+
+        result.Should().BeTrue();
+        _dataStoreMock.Verify(d => d.RemovePasskeyAsync(userId, It.Is<byte[]>(b => b.SequenceEqual(credentialBytes))), Times.Once);
+    }
+
+    [Fact]
+    public async Task RemovePasskeyAsync_should_return_false_on_invalid_base64()
+    {
+        var userId = Guid.NewGuid();
+        var sut = CreateSut();
+
+        var result = await sut.RemovePasskeyAsync(userId, "not-base64");
+
+        result.Should().BeFalse();
+        _dataStoreMock.Verify(d => d.RemovePasskeyAsync(It.IsAny<Guid>(), It.IsAny<byte[]>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task SaveAsync_should_not_queue_opengraph_when_headshot_missing()
+    {
+        var entity = new User { Id = Guid.NewGuid(), HeadshotUrl = "" };
+        _dataStoreMock.Setup(d => d.SaveAsync(entity)).ReturnsAsync(entity);
+        var sut = CreateSut();
+
+        var result = await sut.SaveAsync(entity);
+
+        result.Should().BeSameAs(entity);
+        _openGraphGeneratorMock.Verify(o => o.QueueSpeakerOpenGraphProfileImageCreation(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task AdminSearchUsersAsync_should_delegate()
+    {
+        var filter = new UserAdminFilter { Query = "test" };
+        var sort = new UserAdminSort { By = UserAdminSortBy.Email, Direction = SortDirection.Desc };
+        var expected = new PagedResult<UserListRow> { Items = new List<UserListRow>(), TotalCount = 0, Page = 1, PageSize = 10 };
+        _dataStoreMock.Setup(d => d.AdminSearchUsersAsync(filter, sort, 1, 10)).ReturnsAsync(expected);
+        var sut = CreateSut();
+
+        var result = await sut.AdminSearchUsersAsync(filter, sort, 1, 10);
+
+        result.Should().BeSameAs(expected);
+        _dataStoreMock.Verify(d => d.AdminSearchUsersAsync(filter, sort, 1, 10), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetAllRoleNamesAsync_should_delegate()
+    {
+        var expected = new List<string> { "Admin" };
+        _dataStoreMock.Setup(d => d.GetAllRoleNamesAsync()).ReturnsAsync(expected);
+        var sut = CreateSut();
+
+        var result = await sut.GetAllRoleNamesAsync();
+
+        result.Should().BeSameAs(expected);
+        _dataStoreMock.Verify(d => d.GetAllRoleNamesAsync(), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetRolesForUserAsync_should_delegate()
+    {
+        var userId = Guid.NewGuid();
+        var expected = new List<string> { "User" };
+        _dataStoreMock.Setup(d => d.GetRolesForUserAsync(userId)).ReturnsAsync(expected);
+        var sut = CreateSut();
+
+        var result = await sut.GetRolesForUserAsync(userId);
+
+        result.Should().BeSameAs(expected);
+        _dataStoreMock.Verify(d => d.GetRolesForUserAsync(userId), Times.Once);
+    }
+
+    [Fact]
+    public async Task EnableLockoutAsync_should_return_false_for_empty_user()
+    {
+        var sut = CreateSut();
+
+        var result = await sut.EnableLockoutAsync(Guid.Empty, true);
+
+        result.Should().BeFalse();
+        _dataStoreMock.Verify(d => d.EnableLockoutAsync(It.IsAny<Guid>(), It.IsAny<bool>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task SetLockoutEndAsync_should_return_false_for_empty_user()
+    {
+        var sut = CreateSut();
+
+        var result = await sut.SetLockoutEndAsync(Guid.Empty, DateTimeOffset.UtcNow);
+
+        result.Should().BeFalse();
+        _dataStoreMock.Verify(d => d.SetLockoutEndAsync(It.IsAny<Guid>(), It.IsAny<DateTimeOffset?>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task UnlockAsync_should_return_false_for_empty_user()
+    {
+        var sut = CreateSut();
+
+        var result = await sut.UnlockAsync(Guid.Empty);
+
+        result.Should().BeFalse();
+        _dataStoreMock.Verify(d => d.UnlockAsync(It.IsAny<Guid>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task EnableLockoutAsync_should_delegate_for_valid_user()
+    {
+        var userId = Guid.NewGuid();
+        _dataStoreMock.Setup(d => d.EnableLockoutAsync(userId, true)).ReturnsAsync(true);
+        var sut = CreateSut();
+
+        var result = await sut.EnableLockoutAsync(userId, true);
+
+        result.Should().BeTrue();
+        _dataStoreMock.Verify(d => d.EnableLockoutAsync(userId, true), Times.Once);
+    }
+
+    [Fact]
+    public async Task SetLockoutEndAsync_should_delegate_for_valid_user()
+    {
+        var userId = Guid.NewGuid();
+        var lockout = DateTimeOffset.UtcNow;
+        _dataStoreMock.Setup(d => d.SetLockoutEndAsync(userId, lockout)).ReturnsAsync(true);
+        var sut = CreateSut();
+
+        var result = await sut.SetLockoutEndAsync(userId, lockout);
+
+        result.Should().BeTrue();
+        _dataStoreMock.Verify(d => d.SetLockoutEndAsync(userId, lockout), Times.Once);
+    }
+
+    [Fact]
+    public async Task UnlockAsync_should_delegate_for_valid_user()
+    {
+        var userId = Guid.NewGuid();
+        _dataStoreMock.Setup(d => d.UnlockAsync(userId)).ReturnsAsync(true);
+        var sut = CreateSut();
+
+        var result = await sut.UnlockAsync(userId);
+
+        result.Should().BeTrue();
+        _dataStoreMock.Verify(d => d.UnlockAsync(userId), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetUserCountInRoleAsync_should_trim_role_name()
+    {
+        _dataStoreMock.Setup(d => d.GetUserCountInRoleAsync("Admin")).ReturnsAsync(3);
+        var sut = CreateSut();
+
+        var result = await sut.GetUserCountInRoleAsync(" Admin ");
+
+        result.Should().Be(3);
+        _dataStoreMock.Verify(d => d.GetUserCountInRoleAsync("Admin"), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetUserCountInRoleAsync_should_return_zero_for_empty()
+    {
+        var sut = CreateSut();
+
+        var result = await sut.GetUserCountInRoleAsync(" ");
+
+        result.Should().Be(0);
+        _dataStoreMock.Verify(d => d.GetUserCountInRoleAsync(It.IsAny<string>()), Times.Never);
     }
 }
