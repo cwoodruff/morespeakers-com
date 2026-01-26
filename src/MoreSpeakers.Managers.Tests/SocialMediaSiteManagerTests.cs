@@ -15,7 +15,7 @@ public class SocialMediaSiteManagerTests
 
     private SocialMediaSiteManager CreateSut() => new(_dataStoreMock.Object, _loggerMock.Object, GetInMemoryTelemetryClient());
         
-    private TelemetryClient GetInMemoryTelemetryClient()
+    private static TelemetryClient GetInMemoryTelemetryClient()
     {
         var telemetryConfiguration = new TelemetryConfiguration
         {

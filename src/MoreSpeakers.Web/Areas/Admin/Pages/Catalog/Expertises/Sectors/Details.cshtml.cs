@@ -17,11 +17,8 @@ public class DetailsModel(ISectorManager sectorManager) : PageModel
     public async Task<IActionResult> OnGetAsync()
     {
         Sector = await _sectorManager.GetSectorWithRelationshipsAsync(Id);
-        if (Sector is null)
-        {
-            return RedirectToPage("Index");
-        }
-
-        return Page();
+        return Sector is null
+            ? RedirectToPage("Index")
+            : Page();
     }
 }

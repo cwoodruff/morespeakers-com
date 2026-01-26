@@ -19,7 +19,7 @@ public class CreatePageTests
     {
         var expertiseManager = new Mock<IExpertiseManager>();
         var sectorManager = new Mock<ISectorManager>();
-        sectorManager.Setup(m => m.GetAllAsync()).ReturnsAsync(new List<Sector>());
+        sectorManager.Setup(m => m.GetAllAsync()).ReturnsAsync([]);
         var logger = new Mock<ILogger<CreateModel>>();
         var page = new CreateModel(expertiseManager.Object, sectorManager.Object, logger.Object);
         page.ModelState.AddModelError("Input.Name", "Required");
@@ -37,7 +37,7 @@ public class CreatePageTests
         expertiseManager.Setup(m => m.SaveCategoryAsync(It.IsAny<ExpertiseCategory>()))
             .ReturnsAsync((ExpertiseCategory c) => { c.Id = 123; return c; });
         var sectorManager = new Mock<ISectorManager>();
-        sectorManager.Setup(m => m.GetAllAsync()).ReturnsAsync(new List<Sector> { new() { Id = 1, Name = "Tech" } });
+        sectorManager.Setup(m => m.GetAllAsync()).ReturnsAsync([new Sector { Id = 1, Name = "Tech" }]);
         var logger = new Mock<ILogger<CreateModel>>();
         var page = new CreateModel(expertiseManager.Object, sectorManager.Object, logger.Object)
         {

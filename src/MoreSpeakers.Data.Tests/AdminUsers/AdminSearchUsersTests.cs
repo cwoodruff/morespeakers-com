@@ -21,7 +21,7 @@ public class AdminSearchUsersTests
 
         // Minimal dependencies (not used by methods under test)
         var userStore = new Mock<IUserStore<User>>();
-        var userManager = new UserManager<User>(userStore.Object, null, null, null, null, null, null, null, null);
+        var userManager = new UserManager<User>(userStore.Object, null!, null!, null!, null!, null!, null!, null!, null!);
 
         var mapper = new Mock<AutoMapper.IMapper>().Object;
         var amSettings = new Mock<IAutoMapperSettings>().Object;
@@ -79,7 +79,7 @@ public class AdminSearchUsersTests
         AddUser(ctx, "alice@example.com", "alice", emailConfirmed: true, lockedOut: false, role: "Administrator");
         AddUser(ctx, "bob@example.com", "bobby", emailConfirmed: false, lockedOut: false, role: "Moderator");
         AddUser(ctx, "carol@test.com", "carol", emailConfirmed: true, lockedOut: true, role: null);
-        await ctx.SaveChangesAsync();
+        await ctx.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         // Search by email substring
         var result1 = await store.AdminSearchUsersAsync(new UserAdminFilter { Query = "example" },
@@ -102,7 +102,7 @@ public class AdminSearchUsersTests
         AddUser(ctx, "a@x.com", "a", emailConfirmed: true, lockedOut: false);
         AddUser(ctx, "b@x.com", "b", emailConfirmed: false, lockedOut: false);
         AddUser(ctx, "c@x.com", "c", emailConfirmed: true, lockedOut: true);
-        await ctx.SaveChangesAsync();
+        await ctx.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var onlyConfirmed = await store.AdminSearchUsersAsync(new UserAdminFilter { EmailConfirmed = TriState.True },
             new UserAdminSort(), 1, 50);
@@ -134,7 +134,7 @@ public class AdminSearchUsersTests
         AddUser(ctx, "admin2@x.com", "admin2", role: "Administrator");
         AddUser(ctx, "mod1@x.com", "mod1", role: "Moderator");
         AddUser(ctx, "user1@x.com", "user1", role: null);
-        await ctx.SaveChangesAsync();
+        await ctx.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var res = await store.AdminSearchUsersAsync(new UserAdminFilter { RoleName = "Administrator" }, new UserAdminSort(), 1, 20);
         Assert.Equal(2, res.TotalCount);
@@ -154,7 +154,7 @@ public class AdminSearchUsersTests
             var created = DateTime.UtcNow.AddDays(-i);
             AddUser(ctx, email, username, emailConfirmed: i % 2 == 0, lockedOut: i % 3 == 0, created: created);
         }
-        await ctx.SaveChangesAsync();
+        await ctx.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         // Sort by Email descending, take page 2 (page size 10)
         var sort = new UserAdminSort { By = UserAdminSortBy.Email, Direction = SortDirection.Desc };
@@ -163,7 +163,7 @@ public class AdminSearchUsersTests
         Assert.Equal(10, page2.Items.Count);
         // Verify first item on page 2 is the 11th email in descending order
         var allDesc = (await store.AdminSearchUsersAsync(new UserAdminFilter(), sort, 1, 100)).Items.Select(i => i.Email).ToList();
-        Assert.Equal(allDesc.Skip(10).First(), page2.Items.First().Email);
+        Assert.Equal(allDesc.Skip(10).First(), page2.Items[0].Email);
 
         // Sort by CreatedUtc ascending
         var byCreatedAsc = await store.AdminSearchUsersAsync(new UserAdminFilter(),
@@ -172,6 +172,8 @@ public class AdminSearchUsersTests
         var createdDates = byCreatedAsc.Items.Select(i => i.CreatedUtc).ToList();
         Assert.True(createdDates.SequenceEqual(createdDates.OrderBy(d => d)));
     }
+
+    private static readonly string[] ExpectedSortedRoles = ["Administrator", "Moderator", "User"];
 
     [Fact]
     public async Task GetAllRoleNamesAsync_Returns_Sorted_Roles()
@@ -182,9 +184,9 @@ public class AdminSearchUsersTests
         ctx.Roles.AddRange(new IdentityRole<Guid> { Id = Guid.NewGuid(), Name = "Moderator", NormalizedName = "MODERATOR" },
             new IdentityRole<Guid> { Id = Guid.NewGuid(), Name = "Administrator", NormalizedName = "ADMINISTRATOR" },
             new IdentityRole<Guid> { Id = Guid.NewGuid(), Name = "User", NormalizedName = "USER" });
-        await ctx.SaveChangesAsync();
+        await ctx.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var roles = await store.GetAllRoleNamesAsync();
-        Assert.Equal(new[] { "Administrator", "Moderator", "User" }, roles);
+        Assert.Equal(ExpectedSortedRoles, roles);
     }
 }

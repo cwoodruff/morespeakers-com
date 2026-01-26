@@ -72,12 +72,9 @@ public static class PasskeyEndpoints
 
         // Store credential in Identity (for auth)
         var identityResult = await userManager.AddOrUpdatePasskeyAsync(user, attestation.Passkey);
-        if (!identityResult.Succeeded)
-        {
-            return Results.BadRequest("Failed to save passkey to identity store.");
-        }
-
-        return Results.Ok();
+        return !identityResult.Succeeded
+            ? Results.BadRequest("Failed to save passkey to identity store.")
+            : Results.Ok();
     }
 
     private static async Task<IResult> GetLoginOptions(
@@ -100,12 +97,9 @@ public static class PasskeyEndpoints
         SignInManager<DataUser> signInManager)
     {
         var result = await signInManager.PasskeySignInAsync(request.CredentialJson);
-        if (result.Succeeded)
-        {
-            return Results.Ok();
-        }
-
-        return Results.Unauthorized();
+        return result.Succeeded
+            ? Results.Ok()
+            : Results.Unauthorized();
     }
 
     private static async Task<IResult> DeletePasskey(
@@ -119,7 +113,8 @@ public static class PasskeyEndpoints
         // Remove from Identity store and metadata via Manager logic
         var result = await userManager.RemovePasskeyAsync(user.Id, id);
 
-        if (!result) return Results.NotFound();
-        return Results.Ok();
+        return !result
+            ? Results.NotFound()
+            : Results.Ok();
     }
 }

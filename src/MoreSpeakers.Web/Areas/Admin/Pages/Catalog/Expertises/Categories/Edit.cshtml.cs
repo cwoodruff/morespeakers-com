@@ -35,7 +35,7 @@ public class EditModel(IExpertiseManager expertiseManager, ISectorManager sector
     [BindProperty]
     public InputModel Input { get; set; } = new();
 
-    public List<Sector> Sectors { get; private set; } = new();
+    public List<Sector> Sectors { get; private set; } = [];
 
     public async Task<IActionResult> OnGetAsync()
     {

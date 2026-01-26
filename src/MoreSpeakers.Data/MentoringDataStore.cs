@@ -411,7 +411,7 @@ public class MentoringDataStore: IMentoringDataStore
             }
 
             // Add focus areas if provided
-            if (focusAreaIds != null && focusAreaIds.Any())
+            if (focusAreaIds != null && focusAreaIds.Count != 0)
             {
                 foreach (var expertiseId in focusAreaIds)
                 {

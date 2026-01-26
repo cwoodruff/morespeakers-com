@@ -11,5 +11,5 @@ public class SpeakerType
     [Required] [MaxLength(200)] public string Description { get; set; } = string.Empty;
 
     // Navigation properties
-    public ICollection<User> Users { get; set; } = new List<User>();
+    public ICollection<User> Users { get; set; } = [];
 }

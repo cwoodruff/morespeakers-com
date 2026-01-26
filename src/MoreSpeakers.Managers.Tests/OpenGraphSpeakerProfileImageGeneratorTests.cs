@@ -1,7 +1,6 @@
 using System.Net;
 using System.Text;
 
-using Azure;
 using Azure.Core.Pipeline;
 using Azure.Storage;
 using Azure.Storage.Queues;
@@ -20,10 +19,9 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace MoreSpeakers.Managers.Tests;
 
-public class OpenGraphSpeakerProfileImageGeneratorTests : IDisposable
+public sealed class OpenGraphSpeakerProfileImageGeneratorTests : IDisposable
 {
     private readonly MockHttpMessageHandler _mockHttp;
-    private readonly Mock<QueueServiceClient> _queueServiceClientMock;
     private readonly Mock<ILogger<OpenGraphSpeakerProfileImageGenerator>> _loggerMock;
     private readonly OpenGraphSpeakerProfileImageGenerator _generator;
     private readonly string _tempFontFile;
@@ -82,9 +80,9 @@ public class OpenGraphSpeakerProfileImageGeneratorTests : IDisposable
     {
         _mockHttp = new MockHttpMessageHandler();
         var httpClient = _mockHttp.ToHttpClient();
-        _queueServiceClientMock = new Mock<QueueServiceClient>();
+        Mock<QueueServiceClient> queueServiceClientMock = new();
         _loggerMock = new Mock<ILogger<OpenGraphSpeakerProfileImageGenerator>>();
-        _generator = new OpenGraphSpeakerProfileImageGenerator(httpClient, _queueServiceClientMock.Object, _loggerMock.Object);
+        _generator = new OpenGraphSpeakerProfileImageGenerator(httpClient, queueServiceClientMock.Object, _loggerMock.Object);
 
         // Create a dummy font file if possible, or use a known one.
         // For testing purposes, we might need a real font file to avoid ImageSharp/Fonts exceptions.
@@ -96,11 +94,9 @@ public class OpenGraphSpeakerProfileImageGeneratorTests : IDisposable
         _tempImageFile = Path.Combine(Path.GetTempPath(), "testimage.png");
         _tempLogoFile = Path.Combine(Path.GetTempPath(), "testlogo.png");
 
-        using (var img = new Image<Rgba32>(100, 100))
-        {
-            img.SaveAsPng(_tempImageFile);
-            img.SaveAsPng(_tempLogoFile);
-        }
+        using var img = new Image<Rgba32>(100, 100);
+        img.SaveAsPng(_tempImageFile);
+        img.SaveAsPng(_tempLogoFile);
     }
 
     public void Dispose()
@@ -136,7 +132,7 @@ public class OpenGraphSpeakerProfileImageGeneratorTests : IDisposable
     {
         await Assert.ThrowsAsync<ArgumentException>(() =>
             _generator.GenerateSpeakerProfileFromUrlsAsync("invalid-url", "http://logo.com/i.png", "Name", ["Arial"]));
-        
+
         await Assert.ThrowsAsync<ArgumentException>(() =>
             _generator.GenerateSpeakerProfileFromUrlsAsync("http://speaker.com/i.png", "invalid-url", "Name", ["Arial"]));
     }
@@ -146,9 +142,9 @@ public class OpenGraphSpeakerProfileImageGeneratorTests : IDisposable
     {
         await Assert.ThrowsAsync<ArgumentNullException>(() =>
             _generator.GenerateSpeakerProfileFromUrlsAsync("http://speaker.com/i.png", "http://logo.com/i.png", "Name", (string[])null!));
-        
+
         await Assert.ThrowsAsync<ArgumentNullException>(() =>
-            _generator.GenerateSpeakerProfileFromUrlsAsync("http://speaker.com/i.png", "http://logo.com/i.png", "Name", Array.Empty<string>()));
+            _generator.GenerateSpeakerProfileFromUrlsAsync("http://speaker.com/i.png", "http://logo.com/i.png", "Name", []));
     }
 
     [Fact]
@@ -159,7 +155,7 @@ public class OpenGraphSpeakerProfileImageGeneratorTests : IDisposable
         using (var img = new Image<Rgba32>(100, 100))
         {
             using var ms = new MemoryStream();
-            img.SaveAsPng(ms);
+            await img.SaveAsPngAsync(ms);
             imageBytes = ms.ToArray();
         }
 
@@ -180,7 +176,7 @@ public class OpenGraphSpeakerProfileImageGeneratorTests : IDisposable
     {
         await Assert.ThrowsAsync<ArgumentException>(() =>
             _generator.GenerateSpeakerProfileFromUrlsAsync("invalid-url", "http://logo.com/i.png", "Name", "font.ttf"));
-        
+
         await Assert.ThrowsAsync<ArgumentException>(() =>
             _generator.GenerateSpeakerProfileFromUrlsAsync("http://speaker.com/i.png", "invalid-url", "Name", "font.ttf"));
     }
@@ -191,7 +187,7 @@ public class OpenGraphSpeakerProfileImageGeneratorTests : IDisposable
         var ff = SystemFonts.Families.First();
         await Assert.ThrowsAsync<ArgumentException>(() =>
             _generator.GenerateSpeakerProfileFromUrlsAsync("invalid-url", "http://logo.com/i.png", "Name", ff));
-        
+
         await Assert.ThrowsAsync<ArgumentException>(() =>
             _generator.GenerateSpeakerProfileFromUrlsAsync("http://speaker.com/i.png", "invalid-url", "Name", ff));
     }
@@ -242,7 +238,7 @@ public class OpenGraphSpeakerProfileImageGeneratorTests : IDisposable
     {
         await Assert.ThrowsAsync<FileNotFoundException>(() =>
             _generator.GenerateSpeakerProfileFromFilesAsync("nonexistent.png", _tempLogoFile, "Name", ["Arial"]));
-        
+
         await Assert.ThrowsAsync<FileNotFoundException>(() =>
             _generator.GenerateSpeakerProfileFromFilesAsync(_tempImageFile, "nonexistent.png", "Name", ["Arial"]));
     }
@@ -283,7 +279,7 @@ public class OpenGraphSpeakerProfileImageGeneratorTests : IDisposable
         using (var img = new Image<Rgba32>(100, 100))
         {
             using var ms = new MemoryStream();
-            img.SaveAsPng(ms);
+            await img.SaveAsPngAsync(ms);
             imageBytes = ms.ToArray();
         }
 
@@ -303,13 +299,13 @@ public class OpenGraphSpeakerProfileImageGeneratorTests : IDisposable
     public async Task GenerateSpeakerProfileFromUrlsAsync_WithFontFile_Success()
     {
         var fontFile = Directory.GetFiles(Environment.GetFolderPath(Environment.SpecialFolder.Fonts), "*.ttf").FirstOrDefault();
-        if (fontFile == null) return;
+        if (string.IsNullOrWhiteSpace(fontFile)) return;
 
         byte[] imageBytes;
         using (var img = new Image<Rgba32>(100, 100))
         {
             using var ms = new MemoryStream();
-            img.SaveAsPng(ms);
+            await img.SaveAsPngAsync(ms);
             imageBytes = ms.ToArray();
         }
 
@@ -329,7 +325,7 @@ public class OpenGraphSpeakerProfileImageGeneratorTests : IDisposable
         // But for portability, maybe we just skip or use a dummy if we can't.
         // Let's try to find any .ttf file in the system fonts.
         var fontFile = Directory.GetFiles(Environment.GetFolderPath(Environment.SpecialFolder.Fonts), "*.ttf").FirstOrDefault();
-        if (fontFile == null) return; // Skip if no fonts found
+        if (string.IsNullOrWhiteSpace(fontFile)) return; // Skip if no fonts found
 
         var result = await _generator.GenerateSpeakerProfileFromFilesAsync(_tempImageFile, _tempLogoFile, "John Doe", fontFile);
         Assert.NotNull(result);
@@ -357,7 +353,7 @@ public class OpenGraphSpeakerProfileImageGeneratorTests : IDisposable
     public void GenerateSpeakerProfile_WithFontFile_Success()
     {
         var fontFile = Directory.GetFiles(Environment.GetFolderPath(Environment.SpecialFolder.Fonts), "*.ttf").FirstOrDefault();
-        if (fontFile == null) return;
+        if (string.IsNullOrWhiteSpace(fontFile)) return;
 
         using var speakerImg = new Image<Rgba32>(100, 100);
         using var logoImg = new Image<Rgba32>(100, 100);
@@ -381,7 +377,7 @@ public class OpenGraphSpeakerProfileImageGeneratorTests : IDisposable
     public void GetFontFamilyFromFile_Success()
     {
         var fontFile = Directory.GetFiles(Environment.GetFolderPath(Environment.SpecialFolder.Fonts), "*.ttf").FirstOrDefault();
-        if (fontFile == null) return;
+        if (string.IsNullOrWhiteSpace(fontFile)) return;
 
         var font = _generator.GetFontFamilyFromFile(fontFile);
         Assert.NotNull(font);
@@ -392,9 +388,9 @@ public class OpenGraphSpeakerProfileImageGeneratorTests : IDisposable
     {
         // Create a fake font file that is not a real font
         File.WriteAllText(_tempFontFile, "not a font");
-        
+
         var font = _generator.GetFontFamilyFromFile(_tempFontFile);
-        
+
         Assert.Null(font);
         _loggerMock.Verify(l => l.Log(
             LogLevel.Error,
@@ -455,7 +451,7 @@ public class OpenGraphSpeakerProfileImageGeneratorTests : IDisposable
     {
         using var speakerImg = new Image<Rgba32>(100, 100);
         using var logoImg = new Image<Rgba32>(100, 100);
-        
+
         File.WriteAllText(_tempFontFile, "not a font");
 
         Assert.Throws<ApplicationException>(() =>

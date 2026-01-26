@@ -24,7 +24,7 @@ public class ActiveModel : PageModel
         _logger = logger;       
     }
 
-    public List<Domain.Models.Mentorship> ActiveMentorships { get; set; } = new();
+    public List<Domain.Models.Mentorship> ActiveMentorships { get; set; } = [];
     public Guid CurrentUserId { get; set; }
 
     public async Task<IActionResult> OnGetAsync()

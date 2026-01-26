@@ -5,23 +5,6 @@
 @{
     ViewData["Title"] = "Users";
     var q = Model.Query;
-    int totalPages = (int)Math.Ceiling((double)Model.Result.TotalCount / Math.Max(1, Model.Result.PageSize));
-    totalPages = Math.Max(1, totalPages);
-
-    string SortDirFor(string col)
-    {
-        var isSame = string.Equals(q.Sort, col, StringComparison.OrdinalIgnoreCase);
-        var dir = isSame && string.Equals(q.Dir, "asc", StringComparison.OrdinalIgnoreCase) ? "desc" : "asc";
-        return dir;
-    }
-
-    string CaretFor(string col)
-    {
-        var isActive = string.Equals(q.Sort, col, StringComparison.OrdinalIgnoreCase);
-        if (!isActive) return "";
-        var asc = string.Equals(q.Dir, "asc", StringComparison.OrdinalIgnoreCase);
-        return asc ? "<i class=\"bi bi-caret-up-fill ms-1\"></i>" : "<i class=\"bi bi-caret-down-fill ms-1\"></i>";
-    }
 }
 
 <div class="d-flex align-items-center mb-3">
@@ -69,7 +52,7 @@
     <div class="col-6 col-md-2">
       <label for="pageSize" class="form-label">Page size</label>
       <select class="form-select" id="pageSize" name="pageSize">
-        @{ int[] sizes = new []{10,20,50,100}; }
+        @{ int[] sizes = [10,20,50,100]; }
         @foreach (var s in sizes)
         {
           <option value="@s" selected="@(q.PageSize==s ? "selected" : null)">@s</option>

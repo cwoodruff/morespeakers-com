@@ -22,5 +22,5 @@ public class ExpertiseCategory
     public Sector? Sector { get; set; }
 
     // Navigation properties
-    public ICollection<Expertise> Expertises { get; set; } = new List<Expertise>();
+    public ICollection<Expertise> Expertises { get; set; } = [];
 }

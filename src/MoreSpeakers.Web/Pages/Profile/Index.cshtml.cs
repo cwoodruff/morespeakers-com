@@ -80,7 +80,7 @@ public class IndexModel(IUserManager userManager, IOpenGraphService openGraphSer
                 new { UserId = identityUser?.Id ?? Guid.Empty });
         }
 
-        var profileUrl = linkGenerator.GetUriByPage(HttpContext, "/Profile/Index", null, new { Id = UserProfile.Id }) ??
+        var profileUrl = linkGenerator.GetUriByPage(HttpContext, "/Profile/Index", null, new { UserProfile.Id }) ??
                          "https://www.morespeakers.com/";
         ViewData[Constants.ViewBagTags.OpenGraph] = openGraphService.GenerateUserMetadata(UserProfile, profileUrl);
 

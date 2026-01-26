@@ -20,7 +20,7 @@ public class EditPageTests
         var expertiseManager = new Mock<IExpertiseManager>();
         expertiseManager.Setup(m => m.GetCategoryAsync(999)).ReturnsAsync((ExpertiseCategory?)null);
         var sectorManager = new Mock<ISectorManager>();
-        sectorManager.Setup(m => m.GetAllAsync()).ReturnsAsync(new List<Sector>());
+        sectorManager.Setup(m => m.GetAllAsync()).ReturnsAsync([]);
         var logger = new Mock<ILogger<EditModel>>();
         var page = new EditModel(expertiseManager.Object, sectorManager.Object, logger.Object)
         {
@@ -47,7 +47,7 @@ public class EditPageTests
         var expertiseManager = new Mock<IExpertiseManager>();
         expertiseManager.Setup(m => m.GetCategoryAsync(5)).ReturnsAsync(category);
         var sectorManager = new Mock<ISectorManager>();
-        sectorManager.Setup(m => m.GetAllAsync()).ReturnsAsync(new List<Sector>());
+        sectorManager.Setup(m => m.GetAllAsync()).ReturnsAsync([]);
         var logger = new Mock<ILogger<EditModel>>();
         var page = new EditModel(expertiseManager.Object, sectorManager.Object, logger.Object)
         {
@@ -68,7 +68,7 @@ public class EditPageTests
     {
         var expertiseManager = new Mock<IExpertiseManager>();
         var sectorManager = new Mock<ISectorManager>();
-        sectorManager.Setup(m => m.GetAllAsync()).ReturnsAsync(new List<Sector>());
+        sectorManager.Setup(m => m.GetAllAsync()).ReturnsAsync([]);
         var logger = new Mock<ILogger<EditModel>>();
         var page = new EditModel(expertiseManager.Object, sectorManager.Object, logger.Object)
         {
@@ -88,7 +88,7 @@ public class EditPageTests
         var expertiseManager = new Mock<IExpertiseManager>();
         expertiseManager.Setup(m => m.GetCategoryAsync(42)).ReturnsAsync((ExpertiseCategory?)null);
         var sectorManager = new Mock<ISectorManager>();
-        sectorManager.Setup(m => m.GetAllAsync()).ReturnsAsync(new List<Sector>());
+        sectorManager.Setup(m => m.GetAllAsync()).ReturnsAsync([]);
         var logger = new Mock<ILogger<EditModel>>();
         var page = new EditModel(expertiseManager.Object, sectorManager.Object, logger.Object)
         {
@@ -118,7 +118,7 @@ public class EditPageTests
         expertiseManager.Setup(m => m.GetCategoryAsync(8)).ReturnsAsync(existing);
         expertiseManager.Setup(m => m.SaveCategoryAsync(It.IsAny<ExpertiseCategory>())).ReturnsAsync((ExpertiseCategory c) => c);
         var sectorManager = new Mock<ISectorManager>();
-        sectorManager.Setup(m => m.GetAllAsync()).ReturnsAsync(new List<Sector>());
+        sectorManager.Setup(m => m.GetAllAsync()).ReturnsAsync([]);
         var logger = new Mock<ILogger<EditModel>>();
         var page = new EditModel(expertiseManager.Object, sectorManager.Object, logger.Object)
         {

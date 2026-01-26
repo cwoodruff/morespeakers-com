@@ -170,11 +170,9 @@ public class UserManager: IUserManager
 
     public async Task<IEnumerable<UserSocialMediaSite>> GetUserSocialMediaSitesAsync(Guid userId)
     {
-        if (userId == Guid.Empty)
-        {
-            throw new ArgumentException("Invalid user id");
-        }
-        return await _dataStore.GetUserSocialMediaSitesAsync(userId);
+        return userId == Guid.Empty
+            ? throw new ArgumentException("Invalid user id")
+            : await _dataStore.GetUserSocialMediaSitesAsync(userId);
     }
     
     public async Task<bool> AddExpertiseToUserAsync(Guid userId, int expertiseId)

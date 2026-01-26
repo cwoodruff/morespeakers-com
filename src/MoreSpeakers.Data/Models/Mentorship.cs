@@ -26,5 +26,5 @@ public class Mentorship
     // Navigation properties
     public User Mentor { get; set; } = null!;
     public User Mentee { get; set; } = null!;
-    public ICollection<MentorshipExpertise> FocusAreas { get; set; } = new List<MentorshipExpertise>();
+    public ICollection<MentorshipExpertise> FocusAreas { get; set; } = [];
 }

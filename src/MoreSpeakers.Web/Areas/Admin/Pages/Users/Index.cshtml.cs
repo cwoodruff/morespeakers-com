@@ -29,7 +29,7 @@ public class IndexModel(IUserManager userManager, ILogger<IndexModel> logger) : 
     public QueryModel Query { get; set; } = new();
 
     public required PagedResult<UserListRow> Result { get; set; }
-    public IReadOnlyList<string> Roles { get; set; } = Array.Empty<string>();
+    public IReadOnlyList<string> Roles { get; set; } = [];
 
     public async Task<IActionResult> OnGetAsync()
     {
@@ -77,8 +77,9 @@ public class IndexModel(IUserManager userManager, ILogger<IndexModel> logger) : 
 
     private static TriState ParseTriState(string? value)
     {
-        if (string.IsNullOrWhiteSpace(value)) return TriState.Any;
-        return TriStateMap.TryGetValue(value.Trim(), out var state) ? state : TriState.Any;
+        return string.IsNullOrWhiteSpace(value)
+            ? TriState.Any
+            : TriStateMap.TryGetValue(value.Trim(), out var state) ? state : TriState.Any;
     }
 
     private static readonly Dictionary<string, UserAdminSortBy> SortByMap = new(StringComparer.OrdinalIgnoreCase)
@@ -94,7 +95,8 @@ public class IndexModel(IUserManager userManager, ILogger<IndexModel> logger) : 
 
     private static UserAdminSortBy ParseSortBy(string? value)
     {
-        if (string.IsNullOrWhiteSpace(value)) return UserAdminSortBy.Email;
-        return SortByMap.TryGetValue(value.Trim(), out var by) ? by : UserAdminSortBy.Email;
+        return string.IsNullOrWhiteSpace(value)
+            ? UserAdminSortBy.Email
+            : SortByMap.TryGetValue(value.Trim(), out var by) ? by : UserAdminSortBy.Email;
     }
 }

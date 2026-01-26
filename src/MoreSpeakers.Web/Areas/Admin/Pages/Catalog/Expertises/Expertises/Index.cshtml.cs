@@ -11,7 +11,7 @@ public class IndexModel(IExpertiseManager expertiseManager, ILogger<IndexModel> 
     private readonly IExpertiseManager _expertiseManager = expertiseManager;
     private readonly ILogger<IndexModel> _logger = logger;
 
-    public List<Expertise> Items { get; private set; } = new();
+    public List<Expertise> Items { get; private set; } = [];
 
     [BindProperty(SupportsGet = true)]
     public string? Q { get; set; }
@@ -27,7 +27,7 @@ public class IndexModel(IExpertiseManager expertiseManager, ILogger<IndexModel> 
     
     public async Task<IActionResult> OnPostDeactivateAsync(int id)
     {
-        var expertise = await _expertiseManager.GetAsync(id);
+        var expertise = (await _expertiseManager.GetAsync(id))!;
 
         if (!expertise.IsActive)
         {
@@ -42,7 +42,7 @@ public class IndexModel(IExpertiseManager expertiseManager, ILogger<IndexModel> 
 
     public async Task<IActionResult> OnPostActivateAsync(int id)
     {
-        var expertise = await _expertiseManager.GetAsync(id);
+        var expertise = (await _expertiseManager.GetAsync(id))!;
         
         if (expertise.IsActive)
         {

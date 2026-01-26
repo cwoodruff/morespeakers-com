@@ -17,21 +17,21 @@
     <h5 class="mb-4">Your Speaker Profile</h5>
 
     <div class="mb-3">
-        <label asp-for="Input.SpeakerTypeId" class="form-label fw-medium">Speaker Type</label>
+        <label asp-for="Input!.SpeakerTypeId" class="form-label fw-medium">Speaker Type</label>
         <div class="row">
 
             @foreach (var speakerType in Model.SpeakerTypes)
             {
-                var isMatch = Enum.GetName(typeof(MoreSpeakers.Domain.Models.SpeakerTypeEnum), Model.Input.SpeakerTypeId) == speakerType.Name;
+                var isMatch = Enum.GetName(typeof(MoreSpeakers.Domain.Models.SpeakerTypeEnum), Model.Input!.SpeakerTypeId) == speakerType.Name;
                 <div class="col-md-6 mb-3">
                     <div class="card speaker-type-card @(isMatch ? "selected text-bg-success" : "")"
                          style="cursor: pointer; transition: all 0.2s ease-in-out;"
-                         _="on click 
-                            remove .text-bg-success from .speaker-type-card 
-                            add .text-bg-success to me 
+                         _="on click
+                            remove .text-bg-success from .speaker-type-card
+                            add .text-bg-success to me
                             set #speakerType@(speakerType.Id).checked to true">
                         <div class="card-body text-center">
-                            <input type="radio" asp-for="Input.SpeakerTypeId" value="@speakerType.Id"
+                            <input type="radio" asp-for="Input!.SpeakerTypeId" value="@speakerType.Id"
                                    class="d-none speaker-type-radio" id="speakerType@(speakerType.Id)"
                                    checked="@(isMatch)"/>
                             <label for="speakerType@(speakerType.Id)" class="w-100 m-0" style="cursor: pointer;">
@@ -44,57 +44,57 @@
                 </div>
             }
         </div>
-        <span asp-validation-for="Input.SpeakerTypeId" class="text-danger small"></span>
+        <span asp-validation-for="Input!.SpeakerTypeId" class="text-danger small"></span>
     </div>
 
     <div class="mb-3">
-        <label asp-for="Input.Bio" class="form-label fw-medium">Bio</label>
-        <textarea asp-for="Input.Bio" class="form-control" rows="4"
+        <label asp-for="Input!.Bio" class="form-label fw-medium">Bio</label>
+        <textarea asp-for="Input!.Bio" class="form-control" rows="4"
                     data-rule-minlength="20" data-rule-maxlength="6000"
                     minlength="20" maxlength="6000"
                     placeholder="Tell us about yourself, your speaking experience, and what makes you passionate about sharing knowledge...">
         </textarea>
-        <span asp-validation-for="Input.Bio" class="text-danger small"></span>
+        <span asp-validation-for="Input!.Bio" class="text-danger small"></span>
         <div class="form-text">
             <small class="text-muted">This will be displayed on your public profile.</small>
         </div>
     </div>
 
     <div class="mb-3">
-        <label asp-for="Input.Goals" class="form-label fw-medium">Goals</label>
-        <textarea asp-for="Input.Goals" class="form-control" rows="3"
+        <label asp-for="Input!.Goals" class="form-label fw-medium">Goals</label>
+        <textarea asp-for="Input!.Goals" class="form-control" rows="3"
                     data-rule-minlength="20" data-rule-maxlength="2000"
                     minlength="20" maxlength="2000"
                     placeholder="What are your speaking goals? What do you hope to achieve through mentorship?"></textarea>
-        <span asp-validation-for="Input.Goals" class="text-danger small"></span>
+        <span asp-validation-for="Input!.Goals" class="text-danger small"></span>
     </div>
 
     <div class="row">
-        <label asp-for="Input.SessionizeUrl" class="form-label fw-medium">Sessionize Profile URL</label>
+        <label asp-for="Input!.SessionizeUrl" class="form-label fw-medium">Sessionize Profile URL</label>
         <div class="input-group">
             <span class="input-group-text border-end-0">
                 <i class="bi bi-link text-muted"></i>
             </span>
-            <input asp-for="Input.SessionizeUrl" class="form-control border-start-0"
+            <input asp-for="Input!.SessionizeUrl" class="form-control border-start-0"
                    maxlength="500" type="url"
                    placeholder="https://sessionize.com/your-profile"/>
         </div>
-        <span asp-validation-for="Input.SessionizeUrl" class="text-danger small"></span>
+        <span asp-validation-for="Input!.SessionizeUrl" class="text-danger small"></span>
         <div class="form-text">
             <small class="text-muted">Optional: Link to your Sessionize speaker profile</small>
         </div>
     </div>
     <div class="row">
-        <label asp-for="Input.HeadshotUrl" class="form-label fw-medium">Headshot URL</label>
+        <label asp-for="Input!.HeadshotUrl" class="form-label fw-medium">Headshot URL</label>
         <div class="input-group">
             <span class="input-group-text border-end-0">
                 <i class="bi bi-image text-muted"></i>
             </span>
-            <input asp-for="Input.HeadshotUrl" class="form-control border-start-0" data-rule-is-img-url
+            <input asp-for="Input!.HeadshotUrl" class="form-control border-start-0" data-rule-is-img-url
                    maxlength="500" type="url"
                    placeholder="https://example.com/your-photo.jpg"/>
         </div>
-        <span asp-validation-for="Input.HeadshotUrl" class="text-danger small"></span>
+        <span asp-validation-for="Input!.HeadshotUrl" class="text-danger small"></span>
         <div class="form-text">
             <small class="text-muted">Optional: Direct link to your profile photo</small>
         </div>
@@ -107,10 +107,10 @@
 <!-- Persist Step 1 values across HTMX steps -->
 <div aria-hidden="true" class="d-none">
     <input type="hidden" asp-for="CurrentStep" />
-    <input type="hidden" asp-for="Input.FirstName"/>
-    <input type="hidden" asp-for="Input.LastName"/>
-    <input type="hidden" asp-for="Input.Email"/>
-    <input type="hidden" asp-for="Input.PhoneNumber"/>
-    <input type="hidden" asp-for="Input.Password"/>
-    <input type="hidden" asp-for="Input.ConfirmPassword"/>
+    <input type="hidden" asp-for="Input!.FirstName"/>
+    <input type="hidden" asp-for="Input!.LastName"/>
+    <input type="hidden" asp-for="Input!.Email"/>
+    <input type="hidden" asp-for="Input!.PhoneNumber"/>
+    <input type="hidden" asp-for="Input!.Password"/>
+    <input type="hidden" asp-for="Input!.ConfirmPassword"/>
 </div>
