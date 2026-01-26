@@ -10,7 +10,7 @@ public class IndexModel(ISocialMediaSiteManager manager) : PageModel
     [BindProperty(SupportsGet = true)]
     public string? Q { get; set; }
 
-    public List<SocialMediaSite> Items { get; private set; } = new();
+    public List<SocialMediaSite> Items { get; private set; } = [];
 
     public async Task OnGet()
     {
@@ -18,14 +18,13 @@ public class IndexModel(ISocialMediaSiteManager manager) : PageModel
         if (!string.IsNullOrWhiteSpace(Q))
         {
             var q = Q.Trim();
-            Items = all
+            Items = [.. all
                 .Where(s => s.Name.Contains(q, StringComparison.OrdinalIgnoreCase))
-                .OrderBy(s => s.Name)
-                .ToList();
+                .OrderBy(s => s.Name)];
         }
         else
         {
-            Items = all.OrderBy(s => s.Name).ToList();
+            Items = [.. all.OrderBy(s => s.Name)];
         }
     }
 }

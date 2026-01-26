@@ -17,21 +17,15 @@ namespace MoreSpeakers.Managers.Tests;
 
 public class GitHubServiceTests
 {
-    private sealed class TestHttpMessageHandler : HttpMessageHandler
+    private sealed class TestHttpMessageHandler(Func<HttpRequestMessage, Task<HttpResponseMessage>> handler)
+        : HttpMessageHandler
     {
-        private readonly Func<HttpRequestMessage, Task<HttpResponseMessage>> _handler;
-
-        public TestHttpMessageHandler(Func<HttpRequestMessage, Task<HttpResponseMessage>> handler)
-        {
-            _handler = handler;
-        }
-
         public HttpRequestMessage? LastRequest { get; private set; }
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             LastRequest = request;
-            return await _handler(request);
+            return await handler(request);
         }
     }
 

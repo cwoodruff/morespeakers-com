@@ -24,11 +24,11 @@ public class DetailsModel : PageModel
         _logger = logger;
     }
 
-    public required User User { get; set; }
-    public IReadOnlyList<string> Roles { get; private set; } = Array.Empty<string>();
-    public IReadOnlyList<string> AllRoles { get; private set; } = Array.Empty<string>();
-    [BindProperty] public List<string> SelectedRoles { get; set; } = new();
-    public DateTimeOffset? LastSignInUtc { get; private set; } = null;
+    public new required User User { get; set; }
+    public IReadOnlyList<string> Roles { get; private set; } = [];
+    public IReadOnlyList<string> AllRoles { get; private set; } = [];
+    [BindProperty] public List<string> SelectedRoles { get; set; } = [];
+    public DateTimeOffset? LastSignInUtc { get; private set; }
 
     public async Task<IActionResult> OnGetAsync(Guid id)
     {
@@ -48,13 +48,13 @@ public class DetailsModel : PageModel
         {
             Roles = await _userManager.GetRolesForUserAsync(id);
             AllRoles = await _userManager.GetAllRoleNamesAsync();
-            SelectedRoles = Roles.ToList();
+            SelectedRoles = [.. Roles];
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to retrieve roles for user {UserId}", id);
-            Roles = Array.Empty<string>();
-            AllRoles = Array.Empty<string>();
+            Roles = [];
+            AllRoles = [];
         }
 
         User = user;
@@ -62,7 +62,7 @@ public class DetailsModel : PageModel
         LastSignInUtc = null;
 
         // Avoid caching admin details in intermediaries if an HttpContext is available
-        Response.Headers["Cache-Control"] = "no-store";
+        Response.Headers.CacheControl = "no-store";
 
         return Page();
     }
@@ -141,7 +141,7 @@ public class DetailsModel : PageModel
             }
         }
 
-        if (rolesToAdd.Any())
+        if (rolesToAdd.Count != 0)
         {
             var result = await _userManager.AddToRolesAsync(id, rolesToAdd);
             if (!result.Succeeded)
@@ -151,7 +151,7 @@ public class DetailsModel : PageModel
             }
         }
 
-        if (rolesToRemove.Any())
+        if (rolesToRemove.Count != 0)
         {
             var result = await _userManager.RemoveFromRolesAsync(id, rolesToRemove);
             if (!result.Succeeded)
@@ -173,7 +173,7 @@ public class DetailsModel : PageModel
         User = user;
         Roles = await _userManager.GetRolesForUserAsync(id);
         AllRoles = await _userManager.GetAllRoleNamesAsync();
-        SelectedRoles = Roles.ToList();
+        SelectedRoles = [.. Roles];
         LastSignInUtc = null;
 
         if (Request.Headers.TryGetValue("HX-Request", out var hx) && string.Equals(hx, "true", StringComparison.OrdinalIgnoreCase))
@@ -293,7 +293,7 @@ public class DetailsModel : PageModel
         if (user == null) return NotFound();
 
         // Generate a random temporary password
-        var tempPassword = Guid.NewGuid().ToString("N").Substring(0, 12);
+        var tempPassword = Guid.NewGuid().ToString("N")[..12];
         
         var token = await _userManager.GeneratePasswordResetTokenAsync(user);
         var result = await _userManager.ResetPasswordAsync(user, token, tempPassword);

@@ -88,7 +88,7 @@ builder.Services.AddDefaultIdentity<MoreSpeakers.Data.Models.User>(options =>
     })
     .AddRoles<IdentityRole<Guid>>()
     .AddEntityFrameworkStores<MoreSpeakersDbContext>();
-    
+
 // Configure Passkey Options
 builder.Services.Configure<IdentityPasskeyOptions>(options =>
 {
@@ -106,23 +106,15 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.AccessDeniedPath = "/Pages/NotFound";
 });
 
-// Add Authorization with AdminOnly policy
-builder.Services.AddAuthorization(options =>
-{
-    // Baseline Admin area policy: only Administrators can enter the Admin area
-    options.AddPolicy("AdminOnly", policy =>
-        policy.RequireRole(AppRoles.Administrator));
-
-    // Keep Administrator with full access to all policies
-    options.AddPolicy(PolicyNames.ManageUsers, policy =>
-        policy.RequireRole(AppRoles.Administrator, AppRoles.UserManager, AppRoles.Moderator));
-
-    options.AddPolicy(PolicyNames.ManageCatalog, policy =>
-        policy.RequireRole(AppRoles.Administrator, AppRoles.CatalogManager, AppRoles.Moderator));
-
-    options.AddPolicy(PolicyNames.ViewReports, policy =>
+builder.Services.AddAuthorizationBuilder()
+    .AddPolicy("AdminOnly", policy =>
+        policy.RequireRole(AppRoles.Administrator)) // Baseline Admin area policy: only Administrators can enter the Admin area
+    .AddPolicy(PolicyNames.ManageUsers, policy =>
+        policy.RequireRole(AppRoles.Administrator, AppRoles.UserManager, AppRoles.Moderator))// Keep Administrator with full access to all policies
+    .AddPolicy(PolicyNames.ManageCatalog, policy =>
+        policy.RequireRole(AppRoles.Administrator, AppRoles.CatalogManager, AppRoles.Moderator))
+    .AddPolicy(PolicyNames.ViewReports, policy =>
         policy.RequireRole(AppRoles.Administrator, AppRoles.Reporter, AppRoles.Moderator));
-});
 
 // Add Razor Pages
 builder.Services.AddRazorPages(options =>
@@ -141,7 +133,7 @@ builder.Services.AddRazorPages(options =>
     options.Conventions.AuthorizeAreaFolder("Admin", "/Catalog", policy: PolicyNames.ManageCatalog);
     // Reports/analytics pages → ViewReports policy
     options.Conventions.AuthorizeAreaFolder("Admin", "/Reports", policy: PolicyNames.ViewReports);
-    
+
     // services.AddRazorPages()
     //     .AddMvcOptions(options =>
     //     {
@@ -158,7 +150,7 @@ builder.AddAzureQueueServiceClient("AzureStorageQueues");
 builder.Services.AddScoped<IExpertiseDataStore, ExpertiseDataStore>();
 builder.Services.AddScoped<IMentoringDataStore, MentoringDataStore>();
 builder.Services.AddScoped<ISocialMediaSiteDataStore, SocialMediaSiteDataStore>();
-builder.Services.AddScoped<ISectorDataStore, SectorDataStore>(); 
+builder.Services.AddScoped<ISectorDataStore, SectorDataStore>();
 builder.Services.AddScoped<IUserDataStore, UserDataStore>();
 builder.Services.AddScoped<IExpertiseManager, ExpertiseManager>();
 builder.Services.AddScoped<IMentoringManager, MentoringManager>();
@@ -258,6 +250,3 @@ void ConfigureLogging(IConfigurationRoot configurationRoot, IServiceCollection s
         loggingBuilder.AddSerilog(logger);
     });
 }
-
-// Expose Program for WebApplicationFactory in integration tests
-public partial class Program { }

@@ -1,4 +1,3 @@
-using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using MoreSpeakers.Domain.Interfaces;
@@ -11,9 +10,9 @@ public class CreateModel(ISocialMediaSiteManager manager) : PageModel
     [BindProperty]
     public SocialMediaSite Form { get; set; } = new()
     {
-        Name = null,
-        Icon = null,
-        UrlFormat = null
+        Name = string.Empty,
+        Icon = string.Empty,
+        UrlFormat = string.Empty
     };
 
     public string UrlExample => BuildExample(Form.UrlFormat);

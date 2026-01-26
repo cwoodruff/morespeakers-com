@@ -16,7 +16,7 @@ public class DetailsModel(IExpertiseManager expertiseManager, ISectorManager sec
 
     public ExpertiseCategory? Category { get; private set; }
     public Sector? Sector { get; private set; }
-    public List<Expertise> Expertises { get; private set; } = new();
+    public List<Expertise> Expertises { get; private set; } = [];
 
     public async Task<IActionResult> OnGetAsync()
     {

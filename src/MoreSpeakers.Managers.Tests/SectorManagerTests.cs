@@ -22,7 +22,7 @@ public class SectorManagerTests
         var result = await manager.GetAsync(1);
 
         result.Should().NotBeNull();
-        result!.Id.Should().Be(1);
+        result.Id.Should().Be(1);
         result.Name.Should().Be("Technology");
     }
 
@@ -30,7 +30,7 @@ public class SectorManagerTests
     public async Task GetAllAsync_passes_onlyActive_to_datastore()
     {
         _dataStore.Setup(ds => ds.GetAllAsync())
-            .ReturnsAsync(new List<Sector> { new() { Id = 1, Name = "Technology", IsActive = true } });
+            .ReturnsAsync([new() { Id = 1, Name = "Technology", IsActive = true }]);
 
         var manager = new SectorManager(_dataStore.Object, _logger.Object);
         var result = await manager.GetAllAsync();

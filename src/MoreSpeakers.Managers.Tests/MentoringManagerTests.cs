@@ -16,7 +16,7 @@ public class MentoringManagerTests
 
     private MentoringManager CreateSut() => new(_dataStoreMock.Object, _loggerMock.Object, GetInMemoryTelemetryClient());
     
-    private TelemetryClient GetInMemoryTelemetryClient()
+    private static TelemetryClient GetInMemoryTelemetryClient()
     {
         var telemetryConfiguration = new TelemetryConfiguration
         {
@@ -142,7 +142,7 @@ public class MentoringManagerTests
         _dataStoreMock.Setup(d => d.CreateMentorshipRequestAsync(mentorship, It.IsAny<List<int>>())).ReturnsAsync(false);
         var sut = CreateSut();
 
-        var result = await sut.CreateMentorshipRequestAsync(mentorship, new List<int>());
+        var result = await sut.CreateMentorshipRequestAsync(mentorship, []);
 
         result.Should().BeFalse();
         _dataStoreMock.Verify(d => d.CreateMentorshipRequestAsync(mentorship, It.IsAny<List<int>>()), Times.Once);
@@ -172,7 +172,7 @@ public class MentoringManagerTests
         _dataStoreMock.Setup(d => d.RespondToRequestAsync(mentorshipId, userId, false, null)).ReturnsAsync(expected);
         var sut = CreateSut();
 
-        var result = await sut.RespondToRequestAsync(mentorshipId, userId, false, null);
+        var result = await sut.RespondToRequestAsync(mentorshipId, userId, false);
 
         result.Should().BeSameAs(expected);
         _dataStoreMock.Verify(d => d.RespondToRequestAsync(mentorshipId, userId, false, null), Times.Once);
@@ -297,7 +297,7 @@ public class MentoringManagerTests
         _dataStoreMock.Setup(d => d.GetMentorsExceptForUserAsync(userId, MentorshipType.NewToExperienced, new List<string> { "AI" }, true)).ReturnsAsync(expected);
         var sut = CreateSut();
 
-        var result = await sut.GetMentorsExceptForUserAsync(userId, MentorshipType.NewToExperienced, new List<string> { "AI" }, true);
+        var result = await sut.GetMentorsExceptForUserAsync(userId, MentorshipType.NewToExperienced, ["AI"]);
 
         result.Should().BeSameAs(expected);
         _dataStoreMock.Verify(d => d.GetMentorsExceptForUserAsync(userId, MentorshipType.NewToExperienced, It.IsAny<List<string>>(), true), Times.Once);
@@ -340,7 +340,8 @@ public class MentoringManagerTests
         _dataStoreMock.Setup(d => d.RequestMentorshipWithDetailsAsync(requesterId, targetId, MentorshipType.NewToExperienced, "msg", It.IsAny<List<int>?>(), "weekly")).ReturnsAsync(expected);
         var sut = CreateSut();
 
-        var result = await sut.RequestMentorshipWithDetailsAsync(requesterId, targetId, MentorshipType.NewToExperienced, "msg", new List<int> { 1, 2 }, "weekly");
+        var result = await sut.RequestMentorshipWithDetailsAsync(requesterId, targetId, MentorshipType.NewToExperienced, "msg",
+            [1, 2], "weekly");
 
         result.Should().BeSameAs(expected);
         _dataStoreMock.Verify(d => d.RequestMentorshipWithDetailsAsync(requesterId, targetId, MentorshipType.NewToExperienced, "msg", It.IsAny<List<int>?>(), "weekly"), Times.Once);

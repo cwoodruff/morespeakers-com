@@ -22,7 +22,7 @@ public class UserManagerTests
     [Fact]
     public async Task GetUserAsync_should_delegate()
     {
-        var principal = new ClaimsPrincipal(new ClaimsIdentity(new[] { new Claim(ClaimTypes.Email, "a@b.com") }));
+        var principal = new ClaimsPrincipal(new ClaimsIdentity([new Claim(ClaimTypes.Email, "a@b.com")]));
         var expected = new User { Email = "a@b.com" };
         _dataStoreMock.Setup(d => d.GetUserAsync(principal)).ReturnsAsync(expected);
         var sut = CreateSut();
@@ -256,7 +256,7 @@ public class UserManagerTests
     [Fact]
     public async Task SearchSpeakersAsync_should_delegate_all_parameters()
     {
-        var expected = new SpeakerSearchResult { Speakers = new List<User>(), RowCount = 0, PageSize = 10, TotalPages = 1, CurrentPage = 1 };
+        var expected = new SpeakerSearchResult { Speakers = [], RowCount = 0, PageSize = 10, TotalPages = 1, CurrentPage = 1 };
         var expertiseIds = new List<int> { 2 };
         _dataStoreMock.Setup(d => d.SearchSpeakersAsync("term", 1, expertiseIds, SpeakerSearchOrderBy.Name, 3, 10)).ReturnsAsync(expected);
         var sut = CreateSut();
@@ -559,7 +559,7 @@ public class UserManagerTests
     {
         var filter = new UserAdminFilter { Query = "test" };
         var sort = new UserAdminSort { By = UserAdminSortBy.Email, Direction = SortDirection.Desc };
-        var expected = new PagedResult<UserListRow> { Items = new List<UserListRow>(), TotalCount = 0, Page = 1, PageSize = 10 };
+        var expected = new PagedResult<UserListRow> { Items = [], TotalCount = 0, Page = 1, PageSize = 10 };
         _dataStoreMock.Setup(d => d.AdminSearchUsersAsync(filter, sort, 1, 10)).ReturnsAsync(expected);
         var sut = CreateSut();
 

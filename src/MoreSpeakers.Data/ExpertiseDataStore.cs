@@ -248,7 +248,7 @@ public class ExpertiseDataStore : IExpertiseDataStore
             return true;
         }
 
-        var hasExpertises = entity.Expertises.Any();
+        var hasExpertises = entity.Expertises.Count != 0;
         if (hasExpertises)
         {
             _logger.LogWarning("Attempted to delete category with id {Id} that still has expertises", id);

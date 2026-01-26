@@ -23,7 +23,7 @@ public class ExpertiseManagerTests
 
         var result = await sut.GetAsync(5);
 
-        result.Id.Should().Be(5);
+        result!.Id.Should().Be(5);
         _dataStoreMock.Verify(d => d.GetAsync(5), Times.Once);
     }
 

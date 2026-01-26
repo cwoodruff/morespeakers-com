@@ -21,7 +21,7 @@ public class MentoringManager: IMentoringManager
         _telemetryClient = telemetryClient;
     }
     
-    public async Task<Mentorship> GetAsync(Guid primaryKey)
+    public async Task<Mentorship?> GetAsync(Guid primaryKey)
     {
         return await _dataStore.GetAsync(primaryKey);
     }

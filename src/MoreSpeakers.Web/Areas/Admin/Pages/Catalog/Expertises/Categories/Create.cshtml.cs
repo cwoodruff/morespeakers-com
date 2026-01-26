@@ -32,7 +32,7 @@ public class CreateModel(IExpertiseManager expertiseManager, ISectorManager sect
     [BindProperty]
     public InputModel Input { get; set; } = new();
 
-    public List<Sector> Sectors { get; private set; } = new();
+    public List<Sector> Sectors { get; private set; } = [];
 
     public async Task OnGet()
     {

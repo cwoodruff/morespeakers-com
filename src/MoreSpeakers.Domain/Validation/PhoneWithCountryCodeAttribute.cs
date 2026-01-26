@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 
 namespace MoreSpeakers.Domain.Validation;
 
-public class PhoneWithCountryCodeAttribute : ValidationAttribute
+public partial class PhoneWithCountryCodeAttribute : ValidationAttribute
 {
     protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
     {
@@ -13,12 +13,12 @@ public class PhoneWithCountryCodeAttribute : ValidationAttribute
         }
 
         // Regex to check for country code (e.g., +1, +44, etc.)
-        var regex = new Regex(@"^\+\d{1,3}\s?\d+$");
-        if (!regex.IsMatch(value.ToString() ?? string.Empty))
-        {
-            return new ValidationResult("The phone number must include a valid country code (e.g., +1).");
-        }
-
-        return ValidationResult.Success;
+        var regex = PhoneWithCountryCodeRegex();
+        return !regex.IsMatch(value.ToString() ?? string.Empty)
+            ? new ValidationResult("The phone number must include a valid country code (e.g., +1).")
+            : ValidationResult.Success;
     }
+
+    [GeneratedRegex(@"^\+\d{1,3}\s?\d+$")]
+    private static partial Regex PhoneWithCountryCodeRegex();
 }

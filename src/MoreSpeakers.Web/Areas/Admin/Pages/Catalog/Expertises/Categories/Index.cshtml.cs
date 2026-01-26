@@ -18,12 +18,12 @@ public class IndexModel(IExpertiseManager expertiseManager, ILogger<IndexModel> 
     [BindProperty(SupportsGet = true)]
     public TriState Status { get; set; } = TriState.Any;
 
-    public List<ExpertiseCategory> Items { get; private set; } = new();
+    public List<ExpertiseCategory> Items { get; private set; } = [];
 
     public async Task OnGet()
     {
         var expertiseCategories = await _expertiseManager.GetAllCategoriesAsync(Status, Q);
-        Items = expertiseCategories.ToList();
+        Items = [.. expertiseCategories];
     }
 
     public async Task<IActionResult> OnPostDeactivateAsync(int id)

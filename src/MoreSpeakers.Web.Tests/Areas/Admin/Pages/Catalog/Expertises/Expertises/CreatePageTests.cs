@@ -1,6 +1,5 @@
 using FluentAssertions;
 
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -20,7 +19,7 @@ namespace MoreSpeakers.Web.Tests.Areas.Admin.Pages.Catalog.Expertises.Expertises
 
 public class CreatePageTests
 {
-    private CreateModel CreatePageModel(Mock<IExpertiseManager> expertiseManager, Mock<ISectorManager> sectorManager)
+    private static CreateModel CreatePageModel(Mock<IExpertiseManager> expertiseManager, Mock<ISectorManager> sectorManager)
     {
         var httpContext = new DefaultHttpContext();
         var modelState = new ModelStateDictionary();
@@ -45,10 +44,7 @@ public class CreatePageTests
         var expertiseManager = new Mock<IExpertiseManager>();
         var sectorManager = new Mock<ISectorManager>();
         sectorManager.Setup(m => m.GetAllSectorsAsync(It.IsAny<MoreSpeakers.Domain.Models.AdminUsers.TriState>(), It.IsAny<string?>(), false))
-            .ReturnsAsync(new List<Sector>
-            {
-                new() { Id = 1, Name = "Sector 1" }
-            });
+            .ReturnsAsync([new Sector { Id = 1, Name = "Sector 1" }]);
         
         var page = CreatePageModel(expertiseManager, sectorManager);
 
@@ -64,7 +60,7 @@ public class CreatePageTests
         var expertiseManager = new Mock<IExpertiseManager>();
         var sectorManager = new Mock<ISectorManager>();
         sectorManager.Setup(m => m.GetAllSectorsAsync(It.IsAny<MoreSpeakers.Domain.Models.AdminUsers.TriState>(), It.IsAny<string?>(), false))
-            .ReturnsAsync(new List<Sector> { new() { Id = 1, Name = "Sector 1" } });
+            .ReturnsAsync([new Sector { Id = 1, Name = "Sector 1" }]);
         
         var page = CreatePageModel(expertiseManager, sectorManager);
         page.ModelState.AddModelError("Input.Name", "Required");
@@ -105,10 +101,7 @@ public class CreatePageTests
         var expertiseManager = new Mock<IExpertiseManager>();
         var sectorManager = new Mock<ISectorManager>();
         expertiseManager.Setup(m => m.GetAllActiveCategoriesForSector(1))
-            .ReturnsAsync(new List<ExpertiseCategory>
-            {
-                new() { Id = 1, Name = "Category 1" }
-            });
+            .ReturnsAsync([new ExpertiseCategory { Id = 1, Name = "Category 1" }]);
         
         var page = CreatePageModel(expertiseManager, sectorManager);
 

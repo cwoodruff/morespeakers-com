@@ -7,7 +7,7 @@ public class SpeakerResultsViewModel
     /// <summary>
     /// The speakers that match the search criteria.
     /// </summary>
-    public IEnumerable<User> Speakers { get; init; } = new List<User>();
+    public IEnumerable<User> Speakers { get; init; } = [];
     
     /// <summary>
     /// The current logged-in user, if any.

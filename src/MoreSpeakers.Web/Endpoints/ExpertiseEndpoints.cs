@@ -42,5 +42,5 @@ public static class ExpertiseEndpoints
     }
 
     private static JsonSerializerOptions GetSerializeOptions =>
-        new JsonSerializerOptions(JsonSerializerDefaults.Web) { ReferenceHandler = ReferenceHandler.Preserve };
+        new(JsonSerializerDefaults.Web) { ReferenceHandler = ReferenceHandler.Preserve };
 }

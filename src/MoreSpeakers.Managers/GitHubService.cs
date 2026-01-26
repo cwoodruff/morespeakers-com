@@ -28,7 +28,7 @@ public class GitHubService : IGitHubService
         var cacheKey = _settings.GitHub.CacheKey;
         if (_cache.TryGetValue(cacheKey, out IEnumerable<GitHubContributor>? contributors))
         {
-            return contributors ?? new List<GitHubContributor>();
+            return contributors ?? [];
         }
 
         try
@@ -58,6 +58,6 @@ public class GitHubService : IGitHubService
                 _settings.GitHub.RepoOwner, _settings.GitHub.RepoName);
         }
 
-        return new List<GitHubContributor>();
+        return [];
     }
 }
