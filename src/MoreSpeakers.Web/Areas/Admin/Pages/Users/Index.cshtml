@@ -5,6 +5,23 @@
 @{
     ViewData["Title"] = "Users";
     var q = Model.Query;
+    int totalPages = (int)Math.Ceiling((double)Model.Result.TotalCount / Math.Max(1, Model.Result.PageSize));
+    totalPages = Math.Max(1, totalPages);
+
+    string SortDirFor(string col)
+    {
+        var isSame = string.Equals(q.Sort, col, StringComparison.OrdinalIgnoreCase);
+        var dir = isSame && string.Equals(q.Dir, "asc", StringComparison.OrdinalIgnoreCase) ? "desc" : "asc";
+        return dir;
+    }
+
+    string CaretFor(string col)
+    {
+        var isActive = string.Equals(q.Sort, col, StringComparison.OrdinalIgnoreCase);
+        if (!isActive) return "";
+        var asc = string.Equals(q.Dir, "asc", StringComparison.OrdinalIgnoreCase);
+        return asc ? "<i class=\"bi bi-caret-up-fill ms-1\"></i>" : "<i class=\"bi bi-caret-down-fill ms-1\"></i>";
+    }
 }
 
 <div class="d-flex align-items-center mb-3">
@@ -12,9 +29,7 @@
     <span class="text-muted ms-3">@Model.Result.TotalCount total</span>
   </div>
 
-<form method="get" class="mb-3"
-      hx-get hx-target="#user-list-container" hx-push-url="true" hx-trigger="change, submit"
-      hx-indicator=".htmx-indicator">
+<form method="get" class="mb-3">
   <div class="row g-2 align-items-end">
     <div class="col-12 col-md-4">
       <label for="q" class="form-label">Search (email or username)</label>
