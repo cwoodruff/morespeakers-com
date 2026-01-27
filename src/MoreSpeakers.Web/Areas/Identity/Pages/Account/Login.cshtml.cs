@@ -27,26 +27,26 @@ public class LoginModel : PageModel
     ///     directly from your code. This API may change or be removed in future releases.
     /// </summary>
     [BindProperty]
-    public InputModel Input { get; set; }
+    public InputModel? Input { get; set; }
 
     /// <summary>
     ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
     ///     directly from your code. This API may change or be removed in future releases.
     /// </summary>
-    public IList<AuthenticationScheme> ExternalLogins { get; set; }
+    public IList<AuthenticationScheme>? ExternalLogins { get; set; }
 
     /// <summary>
     ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
     ///     directly from your code. This API may change or be removed in future releases.
     /// </summary>
-    public string ReturnUrl { get; set; }
+    public string? ReturnUrl { get; set; }
 
     /// <summary>
     ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
     ///     directly from your code. This API may change or be removed in future releases.
     /// </summary>
     [TempData]
-    public string ErrorMessage { get; set; }
+    public string? ErrorMessage { get; set; }
 
     public async Task OnGetAsync(string? returnUrl = null)
     {
@@ -60,7 +60,7 @@ public class LoginModel : PageModel
         // Clear the existing external cookie to ensure a clean login process
         await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
 
-        ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
+        ExternalLogins = [.. (await _signInManager.GetExternalAuthenticationSchemesAsync())];
 
         ReturnUrl = returnUrl;
     }
@@ -69,13 +69,13 @@ public class LoginModel : PageModel
     {
         returnUrl ??= Url.Content("~/");
 
-        ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
+        ExternalLogins = [.. (await _signInManager.GetExternalAuthenticationSchemesAsync())];
 
         if (ModelState.IsValid)
         {
             // This doesn't count login failures towards account lockout
             // To enable password failures to trigger account lockout, set lockoutOnFailure: true
-            var result = await _signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, false);
+            var result = await _signInManager.PasswordSignInAsync(Input!.Email, Input.Password, Input.RememberMe, false);
             if (result.Succeeded)
             {
                 _logger.LogInformation("User logged in");
@@ -122,7 +122,7 @@ public class LoginModel : PageModel
         /// </summary>
         [Required]
         [EmailAddress]
-        public string Email { get; init; }
+        public required string Email { get; init; }
 
         /// <summary>
         ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
@@ -130,13 +130,13 @@ public class LoginModel : PageModel
         /// </summary>
         [Required]
         [DataType(DataType.Password)]
-        public string Password { get; init; }
+        public required string Password { get; init; }
 
         /// <summary>
         ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
         ///     directly from your code. This API may change or be removed in future releases.
         /// </summary>
         [Display(Name = "Remember me?")]
-        public bool RememberMe { get; init; }
+        public required bool RememberMe { get; init; }
     }
 }

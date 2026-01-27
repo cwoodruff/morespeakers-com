@@ -101,7 +101,7 @@ public class SectorDataStore : ISectorDataStore
         if (entity is null)
             return true;
 
-        if (entity.ExpertiseCategories.Any())
+        if (entity.ExpertiseCategories.Count != 0)
             return false;
 
         _context.Sectors.Remove(entity);

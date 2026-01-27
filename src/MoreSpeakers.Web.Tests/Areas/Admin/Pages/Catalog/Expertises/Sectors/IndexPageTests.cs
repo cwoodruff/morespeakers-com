@@ -52,7 +52,7 @@ public class IndexPageTests
         };
         var manager = new Mock<ISectorManager>();
         manager.Setup(m => m.GetAllSectorsAsync(TriState.True, "tech", false))
-            .ReturnsAsync(items.Where(s => s.IsActive && s.Name.Contains("tech", StringComparison.OrdinalIgnoreCase)).ToList());
+            .ReturnsAsync([.. items.Where(s => s.IsActive && s.Name.Contains("tech", StringComparison.OrdinalIgnoreCase))]);
         var logger = new Mock<ILogger<IndexModel>>();
         var page = new IndexModel(manager.Object, logger.Object) { Q = "tech", Status = TriState.True };
 
@@ -70,7 +70,7 @@ public class IndexPageTests
         var page = new IndexModel(manager.Object, logger.Object) { Q = "alpha", Status = TriState.False };
 
         manager.Setup(m => m.GetAllSectorsAsync(TriState.False, "alpha", false))
-            .ReturnsAsync(new List<Sector>());
+            .ReturnsAsync([]);
 
         await page.OnGet();
 

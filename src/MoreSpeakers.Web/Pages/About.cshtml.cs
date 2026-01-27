@@ -13,7 +13,7 @@ public class AboutModel : PageModel
         _gitHubService = gitHubService;
     }
 
-    public IEnumerable<GitHubContributor> Contributors { get; set; } = new List<GitHubContributor>();
+    public IEnumerable<GitHubContributor> Contributors { get; set; } = [];
 
     public async Task OnGet()
     {

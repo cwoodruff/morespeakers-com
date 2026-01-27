@@ -23,20 +23,20 @@ public class ForgotPasswordModel : PageModel
     }
 
     [BindProperty]
-    public InputModel Input { get; set; }
+    public InputModel? Input { get; set; }
 
     public class InputModel
     {
         [Required]
         [EmailAddress]
-        public string Email { get; set; }
+        public required string Email { get; init; }
     }
 
     public async Task<IActionResult> OnPostAsync()
     {
         if (ModelState.IsValid)
         {
-            var user = await _userManager.FindByEmailAsync(Input.Email);
+            var user = await _userManager.FindByEmailAsync(Input!.Email);
             if (user is not { EmailConfirmed: true }) // Minimal check for existing user, simplified for this flow
             {
                 // Find user and check if email is confirmed. For security, don't reveal that the user does not exist or is not confirmed

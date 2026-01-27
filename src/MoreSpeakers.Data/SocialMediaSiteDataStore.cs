@@ -51,7 +51,7 @@ public class SocialMediaSiteDataStore: ISocialMediaSiteDataStore
         return _mapper.Map<List<SocialMediaSite>>(socialMediaSites);
     }
     
-    public async Task<SocialMediaSite> GetAsync(int primaryKey)
+    public async Task<SocialMediaSite?> GetAsync(int primaryKey)
     {
         var socialMediaSite = await _context.SocialMediaSite.FirstOrDefaultAsync(sms => sms.Id == primaryKey);
         return _mapper.Map<SocialMediaSite>(socialMediaSite);

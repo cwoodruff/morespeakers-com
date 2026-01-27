@@ -6,3 +6,29 @@
 .speaker-default-headshot {
     font-size: 6rem;
 }
+
+.iti {
+    width: 100%;
+    display: block;
+}
+
+[data-bs-theme="dark"] {
+    .iti {
+        --iti-input-bg: #212519;
+        --iti-search-bg: #212519;
+        --iti-dropdown-bg: #212519;
+
+        --iti-input-color: #ffffff;
+        --iti-search-color: #ffffff;
+        --iti-dialcode-color: #eeeeee;
+        --iti-countryname-color: #ffffff;
+
+        --iti-arrow-color: #ffffff;
+        --iti-input-placeholder-color: #cccccc;
+        --iti-search-placeholder-color: #cccccc;
+
+        --iti-border-color: #ffffff;
+
+        --iti-hover-color: rgba(255, 255, 255, 0.1);
+    }
+}

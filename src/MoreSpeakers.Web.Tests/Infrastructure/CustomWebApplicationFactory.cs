@@ -10,15 +10,12 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
 {
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        builder.ConfigureTestServices(services =>
-        {
-            services.AddAuthentication(options =>
+        builder.ConfigureTestServices(services => services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = TestAuthDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = TestAuthDefaults.AuthenticationScheme;
                 options.DefaultSignInScheme = TestAuthDefaults.AuthenticationScheme;
             }).AddScheme<AuthenticationSchemeOptions, TestAuthHandler>(
-                TestAuthDefaults.AuthenticationScheme, options => { });
-        });
+                TestAuthDefaults.AuthenticationScheme, options => { }));
     }
 }

@@ -22,6 +22,5 @@ public class MoreSpeakersProfile : Profile
         CreateMap<Models.UserExpertise, Domain.Models.UserExpertise>().ReverseMap();
         CreateMap<Models.SocialMediaSite, Domain.Models.SocialMediaSite>().ReverseMap();
         CreateMap<Models.UserSocialMediaSites, Domain.Models.UserSocialMediaSite>().ReverseMap();
-        CreateMap<Models.EmailTemplate, Domain.Models.EmailTemplate>().ReverseMap();
     }
 }

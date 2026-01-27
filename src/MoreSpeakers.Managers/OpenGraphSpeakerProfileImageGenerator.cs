@@ -392,12 +392,8 @@ public class OpenGraphSpeakerProfileImageGenerator(
         string[] fontFamilyNames,
         int width = 1200, int height = 630)
     {
-        var fontFamilyToUse = GetFontFamilyFromList(fontFamilyNames);
-        if (fontFamilyToUse == null)
-        {
-            throw new ApplicationException("No fonts found in the list of fonts provided.");
-        }
-        return GenerateSpeakerProfile(speakerImage, logoImage, speakerName, (FontFamily)fontFamilyToUse.Value, width, height);
+        var fontFamilyToUse = GetFontFamilyFromList(fontFamilyNames) ?? throw new ApplicationException("No fonts found in the list of fonts provided.");
+        return GenerateSpeakerProfile(speakerImage, logoImage, speakerName, fontFamilyToUse, width, height);
     }
 
     /// <summary>
@@ -414,12 +410,8 @@ public class OpenGraphSpeakerProfileImageGenerator(
         string fontFamilyFile,
         int width = 1200, int height = 630)
     {
-        var fontFamilyToUse = GetFontFamilyFromFile(fontFamilyFile);
-        if (fontFamilyToUse == null)
-        {
-            throw new ApplicationException("No fonts found in the list of fonts provided.");
-        }
-        return GenerateSpeakerProfile(speakerImage, logoImage, speakerName, (FontFamily)fontFamilyToUse.Value, width, height);
+        var fontFamilyToUse = GetFontFamilyFromFile(fontFamilyFile) ?? throw new ApplicationException("No fonts found in the list of fonts provided.");
+        return GenerateSpeakerProfile(speakerImage, logoImage, speakerName, fontFamilyToUse, width, height);
     }
 
     /// <summary>
@@ -442,11 +434,8 @@ using var canvas = new Image<Rgba32>(width, height);
             new PointF(0, 0),
             new PointF(width, height),
             GradientRepetitionMode.None,
-            new[]
-            {
-                new ColorStop(0f, Color.ParseHex("#E95420")), // orange-red
-                new ColorStop(1f, Color.ParseHex("#F7C873"))  // warm yellow
-            });
+            new ColorStop(0f, Color.ParseHex("#E95420")),
+            new ColorStop(1f, Color.ParseHex("#F7C873")));
 
         canvas.Mutate(ctx => ctx.Fill(gradientBrush));
 

@@ -8,9 +8,9 @@ public class UserConfirmationEmail
     /// <summary>
     /// The URL to confirm the user.
     /// </summary>
-    public string ConfirmationUrl { get; set; } = string.Empty;
+    public required string ConfirmationUrl { get; init; }
     /// <summary>
     /// The user to confirm.
     /// </summary>
-    public User User { get; set; }
+    public required User User { get; init; }
 }

@@ -30,7 +30,7 @@ public class IndexModel(IUserManager userManager, ILogger<IndexModel> logger) : 
     public QueryModel Query { get; set; } = new();
 
     public required PagedResult<UserListRow> Result { get; set; }
-    public IReadOnlyList<string> Roles { get; set; } = Array.Empty<string>();
+    public IReadOnlyList<string> Roles { get; set; } = [];
 
     public async Task<IActionResult> OnGetAsync()
     {
@@ -61,6 +61,11 @@ public class IndexModel(IUserManager userManager, ILogger<IndexModel> logger) : 
         _logger.LogInformation("[AdminUsers] q={Q}, lockout={Lockout}, emailConfirmed={EmailConfirmed}, role={Role}, sort={Sort}, dir={Dir}, page={Page}, pageSize={PageSize}, total={Total}",
             filter.Query, Query.Lockout, Query.EmailConfirmed, filter.RoleName, Query.Sort, Query.Dir, Result.Page, Result.PageSize, Result.TotalCount);
 
+        if (Request.Headers.TryGetValue("HX-Request", out var hx) && string.Equals(hx, "true", StringComparison.OrdinalIgnoreCase))
+        {
+            return Partial("_UserList", this);
+        }
+
         return Page();
     }
 
@@ -76,8 +81,9 @@ public class IndexModel(IUserManager userManager, ILogger<IndexModel> logger) : 
 
     private static TriState ParseTriState(string? value)
     {
-        if (string.IsNullOrWhiteSpace(value)) return TriState.Any;
-        return TriStateMap.TryGetValue(value.Trim(), out var state) ? state : TriState.Any;
+        return string.IsNullOrWhiteSpace(value)
+            ? TriState.Any
+            : TriStateMap.TryGetValue(value.Trim(), out var state) ? state : TriState.Any;
     }
 
     private static readonly Dictionary<string, UserAdminSortBy> SortByMap = new(StringComparer.OrdinalIgnoreCase)
@@ -93,7 +99,8 @@ public class IndexModel(IUserManager userManager, ILogger<IndexModel> logger) : 
 
     private static UserAdminSortBy ParseSortBy(string? value)
     {
-        if (string.IsNullOrWhiteSpace(value)) return UserAdminSortBy.Email;
-        return SortByMap.TryGetValue(value.Trim(), out var by) ? by : UserAdminSortBy.Email;
+        return string.IsNullOrWhiteSpace(value)
+            ? UserAdminSortBy.Email
+            : SortByMap.TryGetValue(value.Trim(), out var by) ? by : UserAdminSortBy.Email;
     }
 }

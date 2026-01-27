@@ -37,11 +37,11 @@ public class UserDataStore : IUserDataStore
         _loggerFactory = loggerFactory;
         _settings = settings;
     }
-    
+
     // ------------------------------------------
     // Wrapper methods for AspNetCore Identity
     // ------------------------------------------
-    
+
     public async Task<User?> GetUserAsync(ClaimsPrincipal user)
     {
         var identityUserByClaim = await _userManager.GetUserAsync(user);
@@ -84,7 +84,7 @@ public class UserDataStore : IUserDataStore
             var result = await _userManager.CreateAsync(identityUser, password);
             if (!result.Succeeded)
             {
-                _logger.LogError("Failed to create user with id: {UserId}", user.Id);                
+                _logger.LogError("Failed to create user with id: {UserId}", user.Id);
             }
             return result;
         }
@@ -132,8 +132,10 @@ public class UserDataStore : IUserDataStore
         {
             var q = filter.Query.Trim();
             var qLower = q.ToLower();
+#pragma warning disable CA1862 // Use the 'StringComparison' method overloads to perform case-insensitive string comparisons
             users = users.Where(u => (u.Email != null && u.Email.ToLower().Contains(qLower)) ||
                                      (u.UserName != null && u.UserName.ToLower().Contains(qLower)));
+#pragma warning restore CA1862 // Use the 'StringComparison' method overloads to perform case-insensitive string comparisons
         }
 
         // Email confirmed tri-state
@@ -197,52 +199,35 @@ public class UserDataStore : IUserDataStore
                                     select r.Name).FirstOrDefault(),
                             // CreatedDate in DB is stored in UTC (default GETUTCDATE()).
                             // Avoid non-translatable DateTime.SpecifyKind; simple cast translates in EF.
-                            CreatedUtc = (DateTimeOffset?) u.CreatedDate,
-                            LastSignInUtc = (DateTimeOffset?) null
+                            CreatedUtc = u.CreatedDate,
+                            LastSignInUtc = null
                         };
 
         // Sorting
-        IOrderedQueryable<AdminUser> ordered;
-        switch (sort.By)
+        IOrderedQueryable<AdminUser> ordered = sort.By switch
         {
-            case UserAdminSortBy.UserName:
-                ordered = sort.Direction == SortDirection.Asc
-                    ? projected.OrderBy(x => x.UserName).ThenBy(x => x.Email).ThenBy(x => x.Id)
-                    : projected.OrderByDescending(x => x.UserName).ThenBy(x => x.Email).ThenBy(x => x.Id);
-                break;
-            case UserAdminSortBy.EmailConfirmed:
-                ordered = sort.Direction == SortDirection.Asc
-                    ? projected.OrderBy(x => x.EmailConfirmed).ThenBy(x => x.Email).ThenBy(x => x.Id)
-                    : projected.OrderByDescending(x => x.EmailConfirmed).ThenBy(x => x.Email).ThenBy(x => x.Id);
-                break;
-            case UserAdminSortBy.LockedOut:
-                ordered = sort.Direction == SortDirection.Asc
-                    ? projected.OrderBy(x => x.IsLockedOut).ThenBy(x => x.Email).ThenBy(x => x.Id)
-                    : projected.OrderByDescending(x => x.IsLockedOut).ThenBy(x => x.Email).ThenBy(x => x.Id);
-                break;
-            case UserAdminSortBy.Role:
-                ordered = sort.Direction == SortDirection.Asc
-                    ? projected.OrderBy(x => x.Role).ThenBy(x => x.Email).ThenBy(x => x.Id)
-                    : projected.OrderByDescending(x => x.Role).ThenBy(x => x.Email).ThenBy(x => x.Id);
-                break;
-            case UserAdminSortBy.CreatedUtc:
-                ordered = sort.Direction == SortDirection.Asc
-                    ? projected.OrderBy(x => x.CreatedUtc).ThenBy(x => x.Email).ThenBy(x => x.Id)
-                    : projected.OrderByDescending(x => x.CreatedUtc).ThenBy(x => x.Email).ThenBy(x => x.Id);
-                break;
-            case UserAdminSortBy.LastSignInUtc:
-                ordered = sort.Direction == SortDirection.Asc
-                    ? projected.OrderBy(x => x.LastSignInUtc).ThenBy(x => x.Email).ThenBy(x => x.Id)
-                    : projected.OrderByDescending(x => x.LastSignInUtc).ThenBy(x => x.Email).ThenBy(x => x.Id);
-                break;
-            case UserAdminSortBy.Email:
-            default:
-                ordered = sort.Direction == SortDirection.Asc
-                    ? projected.OrderBy(x => x.Email).ThenBy(x => x.Id)
-                    : projected.OrderByDescending(x => x.Email).ThenBy(x => x.Id);
-                break;
-        }
-
+            UserAdminSortBy.UserName => sort.Direction == SortDirection.Asc
+                                ? projected.OrderBy(x => x.UserName).ThenBy(x => x.Email).ThenBy(x => x.Id)
+                                : projected.OrderByDescending(x => x.UserName).ThenBy(x => x.Email).ThenBy(x => x.Id),
+            UserAdminSortBy.EmailConfirmed => sort.Direction == SortDirection.Asc
+                                ? projected.OrderBy(x => x.EmailConfirmed).ThenBy(x => x.Email).ThenBy(x => x.Id)
+                                : projected.OrderByDescending(x => x.EmailConfirmed).ThenBy(x => x.Email).ThenBy(x => x.Id),
+            UserAdminSortBy.LockedOut => sort.Direction == SortDirection.Asc
+                                ? projected.OrderBy(x => x.IsLockedOut).ThenBy(x => x.Email).ThenBy(x => x.Id)
+                                : projected.OrderByDescending(x => x.IsLockedOut).ThenBy(x => x.Email).ThenBy(x => x.Id),
+            UserAdminSortBy.Role => sort.Direction == SortDirection.Asc
+                                ? projected.OrderBy(x => x.Role).ThenBy(x => x.Email).ThenBy(x => x.Id)
+                                : projected.OrderByDescending(x => x.Role).ThenBy(x => x.Email).ThenBy(x => x.Id),
+            UserAdminSortBy.CreatedUtc => sort.Direction == SortDirection.Asc
+                                ? projected.OrderBy(x => x.CreatedUtc).ThenBy(x => x.Email).ThenBy(x => x.Id)
+                                : projected.OrderByDescending(x => x.CreatedUtc).ThenBy(x => x.Email).ThenBy(x => x.Id),
+            UserAdminSortBy.LastSignInUtc => sort.Direction == SortDirection.Asc
+                                ? projected.OrderBy(x => x.LastSignInUtc).ThenBy(x => x.Email).ThenBy(x => x.Id)
+                                : projected.OrderByDescending(x => x.LastSignInUtc).ThenBy(x => x.Email).ThenBy(x => x.Id),
+            _ => sort.Direction == SortDirection.Asc
+                                ? projected.OrderBy(x => x.Email).ThenBy(x => x.Id)
+                                : projected.OrderByDescending(x => x.Email).ThenBy(x => x.Id),
+        };
         var pageItems = await ordered
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
@@ -292,6 +277,38 @@ public class UserDataStore : IUserDataStore
         return roleNames;
     }
 
+    public async Task<IdentityResult> AddToRolesAsync(Guid userId, IEnumerable<string> roles)
+    {
+        try
+        {
+            var identityUser = await _userManager.FindByIdAsync(userId.ToString());
+            return identityUser == null
+                ? IdentityResult.Failed(new IdentityError { Description = "User not found" })
+                : await _userManager.AddToRolesAsync(identityUser, roles);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to add roles to user {UserId}", userId);
+            return IdentityResult.Failed(new IdentityError { Description = ex.Message });
+        }
+    }
+
+    public async Task<IdentityResult> RemoveFromRolesAsync(Guid userId, IEnumerable<string> roles)
+    {
+        try
+        {
+            var identityUser = await _userManager.FindByIdAsync(userId.ToString());
+            return identityUser == null
+                ? IdentityResult.Failed(new IdentityError { Description = "User not found" })
+                : await _userManager.RemoveFromRolesAsync(identityUser, roles);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to remove roles from user {UserId}", userId);
+            return IdentityResult.Failed(new IdentityError { Description = ex.Message });
+        }
+    }
+
     private sealed class AdminUser
     {
         public Guid Id { get; set; }
@@ -315,41 +332,34 @@ public class UserDataStore : IUserDataStore
     {
         var identityUser = await _userManager.FindByIdAsync(user.Id.ToString());
 
-        if (identityUser == null)
-        {
-            return IdentityResult.Failed(new IdentityError { Description = "User not found" });       
-        }
-        
-        return await _userManager.ConfirmEmailAsync(identityUser, token);
+        return identityUser == null
+            ? IdentityResult.Failed(new IdentityError { Description = "User not found" })
+            : await _userManager.ConfirmEmailAsync(identityUser, token);
     }
 
     public async Task<string> GeneratePasswordResetTokenAsync(User user)
     {
         var identityUser = await _userManager.FindByIdAsync(user.Id.ToString());
-        if (identityUser == null) return string.Empty;
-        return await _userManager.GeneratePasswordResetTokenAsync(identityUser);
+        return identityUser == null
+            ? string.Empty
+            : await _userManager.GeneratePasswordResetTokenAsync(identityUser);
     }
 
     public async Task<IdentityResult> ResetPasswordAsync(User user, string token, string newPassword)
     {
         var identityUser = await _userManager.FindByIdAsync(user.Id.ToString());
-        if (identityUser == null)
-        {
-            return IdentityResult.Failed(new IdentityError { Description = "User not found" });
-        }
-        return await _userManager.ResetPasswordAsync(identityUser, token, newPassword);
+        return identityUser == null
+            ? IdentityResult.Failed(new IdentityError { Description = "User not found" })
+            : await _userManager.ResetPasswordAsync(identityUser, token, newPassword);
     }
 
     // Passkey Support
     public async Task<IdentityResult> AddOrUpdatePasskeyAsync(User user, UserPasskeyInfo passkey)
     {
         var identityUser = await _userManager.FindByIdAsync(user.Id.ToString());
-        if (identityUser == null)
-        {
-            return IdentityResult.Failed(new IdentityError { Description = "User not found" });
-        }
-
-        return await _userManager.AddOrUpdatePasskeyAsync(identityUser, passkey);
+        return identityUser == null
+            ? IdentityResult.Failed(new IdentityError { Description = "User not found" })
+            : await _userManager.AddOrUpdatePasskeyAsync(identityUser, passkey);
     }
 
     public async Task<IEnumerable<UserPasskey>> GetUserPasskeysAsync(Guid userId)
@@ -366,7 +376,7 @@ public class UserDataStore : IUserDataStore
         {
             // pk.Data contains metadata in .NET 10 Identity
             // We access the Name property directly
-            var friendlyName = pk.Data?.Name ?? "Passkey";
+            var friendlyName = pk.Data.Name ?? "Passkey";
 
             // Convert CredentialId bytes to Base64Url safe string for ID
             var credentialIdBase64 = Convert.ToBase64String(pk.CredentialId)
@@ -376,12 +386,12 @@ public class UserDataStore : IUserDataStore
 
             results.Add(new UserPasskey
             {
-                Id = credentialIdBase64, 
+                Id = credentialIdBase64,
                 UserId = pk.UserId,
                 FriendlyName = friendlyName
             });
         }
-            
+
         return results;
     }
 
@@ -579,7 +589,7 @@ public class UserDataStore : IUserDataStore
     // ------------------------------------------
     // Application Methods
     // ------------------------------------------
-    
+
     public async Task<User?> GetAsync(Guid primaryKey)
     {
         var user = await _context.Users
@@ -603,19 +613,19 @@ public class UserDataStore : IUserDataStore
         {
             var dbUser = _mapper.Map<Models.User>(user);
             _context.Entry(dbUser).State = EntityState.Added;
-                
+
             // Save the user expertise
             foreach (var expertise in user.UserExpertise)
             {
                 var dbUserExpertise = _mapper.Map<Models.UserExpertise>(expertise);
                 _context.UserExpertise.Add(dbUserExpertise);
             }
-            
+
             // Save the user social media sites
             foreach (var socialMediaSite in user.UserSocialMediaSites)
             {
-                var dbUserSocialMediaSite = _mapper.Map<Models.UserSocialMediaSites>(socialMediaSite);
-                _context.UserSocialMediaSite.Add(dbUserSocialMediaSite);           
+                var dbUserSocialMediaSite = _mapper.Map<UserSocialMediaSites>(socialMediaSite);
+                _context.UserSocialMediaSite.Add(dbUserSocialMediaSite);
             }
 
             var result = await _context.SaveChangesAsync() != 0;
@@ -642,13 +652,13 @@ public class UserDataStore : IUserDataStore
                 .Include(u => u.UserSocialMediaSites)
                 .ThenInclude(sms => sms.SocialMediaSite)
                 .FirstOrDefaultAsync(e => e.Id == user.Id);
-            
+
             if (dbUser == null)
             {
                 user.Id = Guid.NewGuid();
                 return await AddUser(user);
             }
-            
+
             // Custom mapping is needed to handle the UserExpertise and UserSocialMediaSites collections.
             // Entity Framework Core does not support updating collections.
             var map = new MapperConfiguration(cfg =>
@@ -662,20 +672,20 @@ public class UserDataStore : IUserDataStore
                 cfg.CreateMap<Models.SpeakerType, SpeakerType>().ReverseMap();
             }, _loggerFactory);
             var mapper = map.CreateMapper();
-            
+
             mapper.Map(user, dbUser);
-            
+
             // Expertises
             var dbUserExpertisesIds = dbUser.UserExpertise.Select(ue => ue.ExpertiseId).ToList();
             var userExpertisesIds = user.UserExpertise.Select(ue => ue.ExpertiseId).ToList();
-            
+
             // Expertises in user.UserExpertises but not in dbUser.UserExpertises (Add)
             var expertisesToAdd = userExpertisesIds.Except(dbUserExpertisesIds);
             foreach (var expertiseId in expertisesToAdd)
             {
                 dbUser.UserExpertise.Add(new Data.Models.UserExpertise { UserId = dbUser.Id, ExpertiseId = expertiseId });
             }
-            
+
             // Expertises in dbUser.UserExpertises but not in user.UserExpertises (Remove)
             var expertisesToRemove = dbUserExpertisesIds.Except(userExpertisesIds);
             foreach (var expertiseId in expertisesToRemove)
@@ -684,13 +694,13 @@ public class UserDataStore : IUserDataStore
                 if (dbUserExpertise != null)
                 {
                     _context.UserExpertise.Remove(dbUserExpertise);
-                }           
+                }
             }
-            
+
             // Social Media Sites
             var dbUserSocialMediaSitesIds = dbUser.UserSocialMediaSites.Select(ue => ue.SocialMediaSiteId).ToList();
             var userSocialMediaSitesIds = user.UserSocialMediaSites.Select(ue => ue.SocialMediaSiteId).ToList();
-            
+
             // Social Media Sites in user.UserSocialMediaSites but not in dbUser.UserSocialMediaSites (Add)
             var socialMediaSitesToAdd = userSocialMediaSitesIds.Except(dbUserSocialMediaSitesIds);
             foreach (var socialMediaSiteId in socialMediaSitesToAdd)
@@ -702,7 +712,7 @@ public class UserDataStore : IUserDataStore
                     SocialId = user.UserSocialMediaSites.FirstOrDefault(sms => sms.SocialMediaSiteId == socialMediaSiteId)?.SocialId ?? string.Empty
                 });
             }
-            
+
             // Social Media Sites in dbUser.UserSocialMediaSites but not in user.UserSocialMediaSites (Remove)
             var socialMediaSitesToRemove = dbUserSocialMediaSitesIds.Except(userSocialMediaSitesIds);
             foreach (var socialMediaSiteId in socialMediaSitesToRemove)
@@ -711,27 +721,24 @@ public class UserDataStore : IUserDataStore
                 if (dbUserSocialMediaSite != null)
                 {
                     _context.UserSocialMediaSite.Remove(dbUserSocialMediaSite);
-                }           
+                }
             }
-            
+
             // Social Media sites that exist in both dbUser.UserSocialMediaSites and user.UserSocialMediaSites
             // Used to see what may need to be updated
             var socialMediaSitesToUpdate = dbUserSocialMediaSitesIds.Intersect(userSocialMediaSitesIds);
             foreach (var socialMediaSiteId in socialMediaSitesToUpdate)
             {
                 var dbUserSocialMediaSite = dbUser.UserSocialMediaSites.FirstOrDefault(sms => sms.SocialMediaSiteId == socialMediaSiteId);
-                if (dbUserSocialMediaSite != null)
-                {
-                    dbUserSocialMediaSite.SocialId = user.UserSocialMediaSites.FirstOrDefault(sms => sms.SocialMediaSiteId == socialMediaSiteId)?.SocialId ?? string.Empty;
-                }           
+                dbUserSocialMediaSite?.SocialId = user.UserSocialMediaSites.FirstOrDefault(sms => sms.SocialMediaSiteId == socialMediaSiteId)?.SocialId ?? string.Empty;
             }
-            
+
             var result = await _context.SaveChangesAsync() != 0;
             if (result)
             {
                 return _mapper.Map<User>(dbUser);
             }
-            
+
         }
         catch (Exception ex)
         {
@@ -801,7 +808,7 @@ public class UserDataStore : IUserDataStore
             .Where(u => u.SpeakerType.Id == (int)SpeakerTypeEnum.NewSpeaker)
             .OrderBy(u => u.FirstName)
             .ToListAsync();
-            
+
         return _mapper.Map<IEnumerable<User>>(users);
     }
 
@@ -816,7 +823,7 @@ public class UserDataStore : IUserDataStore
             .Where(u => u.SpeakerType.Id == (int)SpeakerTypeEnum.ExperiencedSpeaker)
             .OrderBy(u => u.FirstName)
             .ToListAsync();
-        
+
         return _mapper.Map<IEnumerable<User>>(users);
     }
 
@@ -846,9 +853,9 @@ public class UserDataStore : IUserDataStore
         {
             query = query.Where(u => u.SpeakerTypeId == speakerTypeId.Value);
         }
-        
+
         // Expertise
-        if (expertiseIds != null && expertiseIds.Any())
+        if (expertiseIds != null && expertiseIds.Count != 0)
         {
             foreach (var expertiseId in expertiseIds)
             {
@@ -860,33 +867,30 @@ public class UserDataStore : IUserDataStore
         query = query.Where(u => !u.IsDeleted);
 
         // Sort Order
-        switch (sortOrder)
+        query = sortOrder switch
         {
-            case SpeakerSearchOrderBy.Newest:
-                query = query.OrderByDescending(u => u.CreatedDate);
-                break;
-            
-            case SpeakerSearchOrderBy.Expertise:
-                query = query.OrderBy(u => u.UserExpertise.Count).ThenBy(u => u.LastName).ThenBy(u => u.FirstName);
-                break;
-            
-            case SpeakerSearchOrderBy.Name:
-            default:
-                query = query.OrderBy(u => u.LastName).ThenBy(u => u.FirstName);
-                break;
-        }
-
+            SpeakerSearchOrderBy.Newest
+                => query.OrderByDescending(u => u.CreatedDate),
+            SpeakerSearchOrderBy.Expertise
+                => query
+                .OrderBy(u => u.UserExpertise.Count)
+                .ThenBy(u => u.LastName)
+                .ThenBy(u => u.FirstName),
+            _ => query
+                .OrderBy(u => u.LastName)
+                .ThenBy(u => u.FirstName),
+        };
         var users = await query.ToListAsync();
         var totalCount = users.Count;
-        
+
         if (page.HasValue && pageSize.HasValue)
         {
-            users = users.Skip((page.Value - 1) * pageSize.Value).Take(pageSize.Value).ToList();
+            users = [.. users.Skip((page.Value - 1) * pageSize.Value).Take(pageSize.Value)];
         }
 
         if (page.HasValue)
         {
-            
+
         }
         var results = new SpeakerSearchResult
         {
@@ -896,7 +900,7 @@ public class UserDataStore : IUserDataStore
             CurrentPage = page ?? 1,
             TotalPages = page.HasValue ? RoundDivide(totalCount , (pageSize ?? totalCount)) : 1
         };
-        
+
         return results;
     }
 
@@ -914,7 +918,7 @@ public class UserDataStore : IUserDataStore
             .Where(u => u.UserExpertise.Any(ue => ue.ExpertiseId == expertiseId))
             .OrderBy(u => u.FirstName)
             .ToListAsync();
-        
+
         return _mapper.Map<IEnumerable<User>>(users);
     }
 
@@ -922,7 +926,7 @@ public class UserDataStore : IUserDataStore
     {
         try
         {
-            var dbUserSocialMediaSite = _mapper.Map<Models.UserSocialMediaSites>(userSocialMediaSite);
+            var dbUserSocialMediaSite = _mapper.Map<UserSocialMediaSites>(userSocialMediaSite);
             _context.UserSocialMediaSite.Add(dbUserSocialMediaSite);
 
             var result = await _context.SaveChangesAsync() != 0;
@@ -967,13 +971,13 @@ public class UserDataStore : IUserDataStore
             return false;
         }
     }
-    
+
     public async Task<IEnumerable<UserSocialMediaSite>> GetUserSocialMediaSitesAsync(Guid userId)
     {
         var userSocialMediaSitesList = await _context.UserSocialMediaSite
             .Where(sm => sm.UserId == userId)
             .ToListAsync();
-        return _mapper.Map<List<UserSocialMediaSite>>(userSocialMediaSitesList);   
+        return _mapper.Map<List<UserSocialMediaSite>>(userSocialMediaSitesList);
     }
 
     public async Task<bool> AddExpertiseToUserAsync(Guid userId, int expertiseId)
@@ -1028,7 +1032,7 @@ public class UserDataStore : IUserDataStore
             return false;
         }
     }
-    
+
     public async Task<IEnumerable<UserExpertise>> GetUserExpertisesForUserAsync(Guid userId)
     {
         var userExpertises = await _context.UserExpertise
@@ -1046,7 +1050,7 @@ public class UserDataStore : IUserDataStore
         var experiencedSpeakers = await _context.Users.CountAsync(u => u.SpeakerType.Id == (int) SpeakerTypeEnum.ExperiencedSpeaker);
 
         var activeMentorships = await _context.Mentorship.CountAsync(m => m.Status == Models.MentorshipStatus.Active);
-        
+
         return (newSpeakers, experiencedSpeakers, activeMentorships);
 
     }
@@ -1058,7 +1062,7 @@ public class UserDataStore : IUserDataStore
             .OrderBy(u => Guid.NewGuid())
             .Take(count)
             .ToListAsync();
-        
+
         return _mapper.Map<List<User>>(speakers);
     }
 

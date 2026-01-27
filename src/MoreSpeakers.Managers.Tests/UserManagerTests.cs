@@ -1,10 +1,12 @@
 using System.Security.Claims;
 using FluentAssertions;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using Moq;
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models;
+using MoreSpeakers.Domain.Models.AdminUsers;
 
 namespace MoreSpeakers.Managers.Tests;
 
@@ -20,7 +22,7 @@ public class UserManagerTests
     [Fact]
     public async Task GetUserAsync_should_delegate()
     {
-        var principal = new ClaimsPrincipal(new ClaimsIdentity(new[] { new Claim(ClaimTypes.Email, "a@b.com") }));
+        var principal = new ClaimsPrincipal(new ClaimsIdentity([new Claim(ClaimTypes.Email, "a@b.com")]));
         var expected = new User { Email = "a@b.com" };
         _dataStoreMock.Setup(d => d.GetUserAsync(principal)).ReturnsAsync(expected);
         var sut = CreateSut();
@@ -65,6 +67,21 @@ public class UserManagerTests
     {
         var user = new User { Id = Guid.NewGuid(), Email = "a@b.com", HeadshotUrl = "http://headshot" };
         var expected = IdentityResult.Failed();
+        _dataStoreMock.Setup(d => d.CreateAsync(user, "pwd")).ReturnsAsync(expected);
+        var sut = CreateSut();
+
+        var result = await sut.CreateAsync(user, "pwd");
+
+        result.Should().BeSameAs(expected);
+        _dataStoreMock.Verify(d => d.CreateAsync(user, "pwd"), Times.Once);
+        _openGraphGeneratorMock.Verify(o => o.QueueSpeakerOpenGraphProfileImageCreation(It.IsAny<Guid>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task CreateAsync_should_not_queue_opengraph_when_headshot_missing()
+    {
+        var user = new User { Id = Guid.NewGuid(), Email = "a@b.com", HeadshotUrl = "" };
+        var expected = IdentityResult.Success;
         _dataStoreMock.Setup(d => d.CreateAsync(user, "pwd")).ReturnsAsync(expected);
         var sut = CreateSut();
 
@@ -239,7 +256,7 @@ public class UserManagerTests
     [Fact]
     public async Task SearchSpeakersAsync_should_delegate_all_parameters()
     {
-        var expected = new SpeakerSearchResult { Speakers = new List<User>(), RowCount = 0, PageSize = 10, TotalPages = 1, CurrentPage = 1 };
+        var expected = new SpeakerSearchResult { Speakers = [], RowCount = 0, PageSize = 10, TotalPages = 1, CurrentPage = 1 };
         var expertiseIds = new List<int> { 2 };
         _dataStoreMock.Setup(d => d.SearchSpeakersAsync("term", 1, expertiseIds, SpeakerSearchOrderBy.Name, 3, 10)).ReturnsAsync(expected);
         var sut = CreateSut();

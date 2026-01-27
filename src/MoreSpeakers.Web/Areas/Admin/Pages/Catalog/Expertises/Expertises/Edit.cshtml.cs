@@ -40,13 +40,13 @@ public class EditModel(IExpertiseManager expertiseManager, ISectorManager sector
     [BindProperty(SupportsGet = true)]
     public int SectorId { get; set; }
     
-    public List<Sector> Sectors { get; set; } = new();
-    public List<ExpertiseCategory> ExpertiseCategories { get; set; } = new();
+    public List<Sector> Sectors { get; set; } = [];
+    public List<ExpertiseCategory> ExpertiseCategories { get; set; } = [];
 
 
     public async Task<IActionResult> OnGetAsync()
     {
-        var expertise = await _expertiseManager.GetAsync(Id);
+        var expertise = (await _expertiseManager.GetAsync(Id))!;
 
         Sectors = await _sectorManager.GetAllSectorsAsync();
         ExpertiseCategories = await _expertiseManager.GetAllCategoriesAsync();
@@ -75,7 +75,7 @@ public class EditModel(IExpertiseManager expertiseManager, ISectorManager sector
             return Page();
         }
 
-        var expertise = await _expertiseManager.GetAsync(Id);
+        var expertise = (await _expertiseManager.GetAsync(Id))!;
 
         expertise.Name = Input.Name.Trim();
         expertise.Description = string.IsNullOrWhiteSpace(Input.Description) ? null : Input.Description!.Trim();

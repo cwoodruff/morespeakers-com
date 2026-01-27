@@ -73,10 +73,7 @@
     <div class="mb-3">
         <label asp-for="Input.PhoneNumber" class="form-label fw-medium">Country Code + Phone Number</label>
         <div class="input-group">
-            <span class="input-group-text border-end-0">
-                <i class="bi bi-telephone text-muted"></i>
-            </span>
-            <input asp-for="Input.PhoneNumber" class="form-control border-start-0" 
+            <input asp-for="Input.PhoneNumber" class="form-control" data-rule-validate-international-phone-number="true"
                    autocomplete="mobile" type="tel"
                    minlength="11" maxlength="50"
                    placeholder="Enter your phone number with country code"/>

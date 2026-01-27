@@ -61,6 +61,9 @@ function initializeFormValidation() {
             );
             return this.optional(element) || isValid;
         }, "Could not verify that this URL is a valid image");
+        jQuery.validator.addMethod("validate-international-phone-number", function(value, element) {
+            return this.optional(element) || element.iti.isValidNumber();
+        }, "Please enter a valid International Phone Number");
     }
 }
 
@@ -78,11 +81,7 @@ function validateField(field) {
     }
 
     const submitBtn = field.closest('form').querySelector('button[type="submit"]');
-    if (isValid) {
-        submitBtn.disabled = false;
-    } else {
-        submitBtn.disabled = true;
-    }
+    submitBtn.disabled = !isValid;
 
     return isValid;
 }
@@ -272,4 +271,46 @@ function createHeadshotImage(containerDiv, imgUrl) {
     newHeadshot.className= "object-fit-contain border shadow-sm image-thumbnail rounded speaker-img";
     newHeadshot.id = 'currentHeadshot';
     containerDiv.appendChild(newHeadshot);
+}
+
+function initializeHeadshotProcessing() {
+    let headshotInput = document.getElementById('Input_HeadshotUrl');
+    if (headshotInput) {
+        headshotInput.addEventListener('input', function () {
+            $.ajax({
+                    type: "HEAD",
+                    async: false,
+                    url: headshotInput.value,
+                    success: function (data, textStatus, jqXHR) {
+                        let header = jqXHR.getResponseHeader('content-type');
+                        if (header && header.includes('image')) {
+                            replaceImage(headshotInput.value);
+                        } else {
+                            replaceImage('');
+                        }
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        replaceImage('');
+                    }
+                }
+            );
+        });
+    }
+}
+
+function initializeTelephoneInput(submitButtonSelector = '#nextBtn', phoneSelector = "#Input_PhoneNumber") {
+    const phoneInput = document.querySelector(phoneSelector);
+    if (!phoneInput || phoneInput.type.toLowerCase() === 'hidden') return;
+    document.querySelector(submitButtonSelector).addEventListener("click", function() {
+        phoneInput.value = phoneInput.iti.getNumber(intlTelInput.utils.numberFormat.E164);
+    })
+    window.intlTelInput(phoneInput, {
+        initialCountry: "auto",
+        geoIpLookup: (success, failure) => {
+            fetch("https://ipapi.co/json")
+                .then((res) => res.json())
+                .then((data) => success(data.country_code))
+                .catch(() => failure());
+        }
+    });
 }

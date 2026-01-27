@@ -42,6 +42,10 @@
     {
       "library": "bootswatch@5.3.8",
       "destination": "wwwroot/lib/bootswatch"
+    },
+    {
+      "library": "intl-tel-input@25.15.0",
+      "destination": "wwwroot/lib/intl-tel-input"
     }
   ]
 }

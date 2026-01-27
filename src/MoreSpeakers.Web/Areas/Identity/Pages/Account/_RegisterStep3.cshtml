@@ -21,13 +21,13 @@
             var expertiseListDisplay = new ExpertiseListDisplayViewModel
             {
                 AvailableExpertises = Model.AvailableExpertises,
-                SelectedExpertiseIds = Model.Input.SelectedExpertiseIds,
+                SelectedExpertiseIds = Model.Input!.SelectedExpertiseIds,
                 ExpertiseCategories = Model.ExpertiseCategories,
                 Sectors = Model.Sectors
             };
             @await Html.PartialAsync("_ExpertiseSelector", expertiseListDisplay)
         }
-        <span asp-validation-for="Input.SelectedExpertiseIds" class="text-danger small"></span>
+        <span asp-validation-for="Input!.SelectedExpertiseIds" class="text-danger small"></span>
     </div>
     @{
         var newExpertiseResponse = new NewExpertiseCreatedResponse
@@ -43,17 +43,17 @@
 <div aria-hidden="true" class="d-none">
     <!-- Step 1 fields -->
     <input type="hidden" asp-for="CurrentStep" />
-    <input type="hidden" asp-for="Input.FirstName" />
-    <input type="hidden" asp-for="Input.LastName" />
-    <input type="hidden" asp-for="Input.Email" />
-    <input type="hidden" asp-for="Input.PhoneNumber" />
-    <input type="hidden" asp-for="Input.Password" />
-    <input type="hidden" asp-for="Input.ConfirmPassword" />
+    <input type="hidden" asp-for="Input!.FirstName" />
+    <input type="hidden" asp-for="Input!.LastName" />
+    <input type="hidden" asp-for="Input!.Email" />
+    <input type="hidden" asp-for="Input!.PhoneNumber" />
+    <input type="hidden" asp-for="Input!.Password" />
+    <input type="hidden" asp-for="Input!.ConfirmPassword" />
 
     <!-- Step 2 fields -->
-    <input type="hidden" asp-for="Input.Bio" />
-    <input type="hidden" asp-for="Input.Goals" />
-    <input type="hidden" asp-for="Input.SessionizeUrl" />
-    <input type="hidden" asp-for="Input.HeadshotUrl" />
-    <input type="hidden" asp-for="Input.SpeakerTypeId" />
+    <input type="hidden" asp-for="Input!.Bio" />
+    <input type="hidden" asp-for="Input!.Goals" />
+    <input type="hidden" asp-for="Input!.SessionizeUrl" />
+    <input type="hidden" asp-for="Input!.HeadshotUrl" />
+    <input type="hidden" asp-for="Input!.SpeakerTypeId" />
 </div>

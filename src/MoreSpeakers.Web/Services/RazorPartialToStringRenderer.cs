@@ -26,12 +26,7 @@ public class RazorPartialToStringRenderer : IRazorPartialToStringRenderer
 
     public async Task<string> RenderPartialToStringAsync<TModel>(string partialName, TModel model)
     {
-        var httpContext = _httpContextAccessor.HttpContext;
-        if (httpContext == null)
-        {
-            throw new InvalidOperationException("HttpContext is null");
-        }
-        
+        var httpContext = _httpContextAccessor.HttpContext ?? throw new InvalidOperationException("HttpContext is null");
         var actionContext = new ActionContext(httpContext, new RouteData(), new PageActionDescriptor());
         var partial = FindView(actionContext, partialName);
         await using var output = new StringWriter();

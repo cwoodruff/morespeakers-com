@@ -10,7 +10,7 @@ public class IndexModel : PageModel
     private readonly IExpertiseManager _expertiseManager;
     private readonly IUserManager _userManager;
     private readonly ILogger<IndexModel> _logger;
-    
+
     public IndexModel(
         IExpertiseManager expertiseManager,
         IUserManager userManager,
@@ -25,19 +25,20 @@ public class IndexModel : PageModel
     public int NewSpeakersCount { get; set; }
     public int ExperiencedSpeakersCount { get; set; }
     public int ActiveMentorshipsCount { get; set; }
-    public IEnumerable<User> FeaturedSpeakers { get; set; } = new List<User>();
-    public IEnumerable<Expertise> PopularExpertise { get; set; } = new List<Expertise>();
+    public IEnumerable<User> FeaturedSpeakers { get; set; } = [];
+    public IEnumerable<Expertise> PopularExpertise { get; set; } = [];
 
     public async Task OnGetAsync()
     {
         try
         {
             // Get statistics
-            var stats = await _userManager.GetStatisticsForApplicationAsync();
-        
-            NewSpeakersCount = stats.newSpeakers;
-            ExperiencedSpeakersCount = stats.experiencedSpeakers;
-            ActiveMentorshipsCount = stats.activeMentorships;
+            (int newSpeakers, int experiencedSpeakers, int activeMentorships)
+                = await _userManager.GetStatisticsForApplicationAsync();
+
+            NewSpeakersCount = newSpeakers;
+            ExperiencedSpeakersCount = experiencedSpeakers;
+            ActiveMentorshipsCount = activeMentorships;
 
             // Get featured speakers (experienced speakers with profiles)
             FeaturedSpeakers = await _userManager.GetFeaturedSpeakersAsync(3);

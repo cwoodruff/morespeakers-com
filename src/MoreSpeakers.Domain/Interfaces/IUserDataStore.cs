@@ -51,6 +51,8 @@ public interface IUserDataStore: IDataStorePrimaryKeyGuid<User>
     Task<PagedResult<UserListRow>> AdminSearchUsersAsync(UserAdminFilter filter, UserAdminSort sort, int page, int pageSize);
     Task<IReadOnlyList<string>> GetAllRoleNamesAsync();
     Task<IReadOnlyList<string>> GetRolesForUserAsync(Guid userId);
+    Task<IdentityResult> AddToRolesAsync(Guid userId, IEnumerable<string> roles);
+    Task<IdentityResult> RemoveFromRolesAsync(Guid userId, IEnumerable<string> roles);
 
     // ------------------------------------------
     // Admin Users (Lock/Unlock)

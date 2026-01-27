@@ -18,7 +18,7 @@ public class DetailsModel(IExpertiseManager expertiseManager, ISectorManager sec
 
     public async Task<IActionResult> OnGetAsync()
     {
-        Expertise = await _expertiseManager.GetAsync(Id);
+        Expertise = (await _expertiseManager.GetAsync(Id))!;
 
         ExpertiseCategory = await _expertiseManager.GetCategoryAsync(Expertise.ExpertiseCategoryId);
         return Page();

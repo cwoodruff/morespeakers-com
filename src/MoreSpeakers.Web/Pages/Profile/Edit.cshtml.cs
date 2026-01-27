@@ -26,12 +26,12 @@ public class EditModel(
     [BindProperty] public PasswordChangeInputModel PasswordInput { get; set; } = new();
 
     public User ProfileUser { get; set; } = null!;
-    public IEnumerable<Expertise> AvailableExpertises { get; set; } = new List<Expertise>();
-    public IEnumerable<ExpertiseCategory> ExpertiseCategories { get; set; } = new List<ExpertiseCategory>();
-    public IEnumerable<Sector> Sectors { get; set; } = new List<Sector>();
-    public IEnumerable<SocialMediaSite> SocialMediaSites { get; set; } = new List<SocialMediaSite>();
+    public IEnumerable<Expertise> AvailableExpertises { get; set; } = [];
+    public IEnumerable<ExpertiseCategory> ExpertiseCategories { get; set; } = [];
+    public IEnumerable<Sector> Sectors { get; set; } = [];
+    public IEnumerable<SocialMediaSite> SocialMediaSites { get; set; } = [];
     
-    public IEnumerable<UserPasskey> UserPasskeys { get; set; } = new List<UserPasskey>();
+    public IEnumerable<UserPasskey> UserPasskeys { get; set; } = [];
 
     // Properties for HTMX state management
     public string ActiveTab { get; set; } = "profile";
@@ -80,7 +80,7 @@ public class EditModel(
             return Partial("_ProfileEditForm", this);
         }
 
-        var userProfile = await UpdateUserFromModelAsync(User);
+        var userProfile = await UpdateUserFromModelAsync();
         if (userProfile is null)
         {
             HasValidationErrors = true;
@@ -190,17 +190,13 @@ public class EditModel(
         }
     }
 
-    private List<ValidationResult> ValidateProfileEditInputModel(UserProfileViewModel model)
-    {
-        return ValidateModel(model);
-    }
+    private static List<ValidationResult> ValidateProfileEditInputModel(UserProfileViewModel model)
+        => ValidateModel(model);
 
-    private List<ValidationResult> ValidatePasswordInputModel(PasswordChangeInputModel model)
-    {
-        return ValidateModel(model);
-    }
+    private static List<ValidationResult> ValidatePasswordInputModel(PasswordChangeInputModel model)
+        => ValidateModel(model);
 
-    private List<ValidationResult> ValidateModel(object model)
+    private static List<ValidationResult> ValidateModel(object model)
     {
         var context = new ValidationContext(model, null, null);
         var results = new List<ValidationResult>();
@@ -241,7 +237,7 @@ public class EditModel(
     /// Returns a populated user object based on the current user's identity with updates to the data from the Input model.
     /// </summary>
     /// <returns></returns>
-    private async Task<User?> UpdateUserFromModelAsync(ClaimsPrincipal signedInUser)
+    private async Task<User?> UpdateUserFromModelAsync()
     {
         User? identityUser = null;
 
@@ -261,11 +257,11 @@ public class EditModel(
                 return null;
             }
 
-            userProfile.FirstName = Input.FirstName;
-            userProfile.LastName = Input.LastName;
+            userProfile.FirstName = Input.FirstName!;
+            userProfile.LastName = Input.LastName!;
             userProfile.PhoneNumber = Input.PhoneNumber;
-            userProfile.Bio = Input.Bio;
-            userProfile.Goals = Input.Goals;
+            userProfile.Bio = Input.Bio!;
+            userProfile.Goals = Input.Goals!;
             userProfile.SessionizeUrl = Input.SessionizeUrl;
             userProfile.SpeakerTypeId = (int)Input.SpeakerTypeId;
             userProfile.UpdatedDate = DateTime.UtcNow;
@@ -359,17 +355,12 @@ public class EditModel(
             Input.Goals = user.Goals;
             Input.SessionizeUrl = user.SessionizeUrl ?? string.Empty;
             Input.HeadshotUrl = user.HeadshotUrl ?? string.Empty;
-            Input.SelectedExpertiseIds = user.UserExpertise.Select(ue => ue.ExpertiseId).ToArray();
-            Input.UserSocialMediaSites = user.UserSocialMediaSites.ToList();
+            Input.SelectedExpertiseIds = [.. user.UserExpertise.Select(ue => ue.ExpertiseId)];
+            Input.UserSocialMediaSites = [.. user.UserSocialMediaSites];
 
-            if (Enum.IsDefined(typeof(SpeakerTypeEnum), user.SpeakerTypeId))
-            {
-                Input.SpeakerTypeId = (SpeakerTypeEnum)user.SpeakerTypeId;
-            }
-            else
-            {
-                Input.SpeakerTypeId = SpeakerTypeEnum.NewSpeaker;
-            }
+            Input.SpeakerTypeId = Enum.IsDefined(typeof(SpeakerTypeEnum), user.SpeakerTypeId)
+                ? (SpeakerTypeEnum)user.SpeakerTypeId
+                : SpeakerTypeEnum.NewSpeaker;
             return true;
         }
         catch (Exception ex)
@@ -386,14 +377,11 @@ public class EditModel(
         try
         {
             var alreadySelectedIds = new List<int>();
-            foreach (var key in Request.Query.Keys)
+            foreach (var key in Request.Query.Keys.Where(key => key.StartsWith("Input.SocialMediaSiteId")))
             {
-                if (key.StartsWith("Input.SocialMediaSiteId"))
+                if (int.TryParse(Request.Query[key], out var id))
                 {
-                    if (int.TryParse(Request.Query[key], out var id))
-                    {
-                        alreadySelectedIds.Add(id);
-                    }
+                    alreadySelectedIds.Add(id);
                 }
             }
 
@@ -444,8 +432,8 @@ public class EditModel(
         // Check for similar expertise (fuzzy matching for suggestions)
         var similarExpertise = await expertiseManager.FuzzySearchForExistingExpertise(trimmedName, 5);
 
-        List<Expertise> expertises = similarExpertise.ToList();
-        if (expertises.Any())
+        List<Expertise> expertises = [.. similarExpertise];
+        if (expertises.Count != 0)
         {
 
             var suggestions = string.Join(", ", expertises.Select(s => s.Name));
@@ -518,7 +506,7 @@ public class EditModel(
             }
             AvailableExpertises = await expertiseManager.GetAllExpertisesAsync();
             SocialMediaSites = await socialMediaSiteManager.GetAllAsync();
-            Input.SelectedExpertiseIds = Input.SelectedExpertiseIds.Concat([expertiseId]).ToArray();
+            Input.SelectedExpertiseIds = [.. Input.SelectedExpertiseIds.Concat([expertiseId])];
 
             this.NewExpertiseResponse = new NewExpertiseCreatedResponse
             {
