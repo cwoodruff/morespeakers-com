@@ -554,32 +554,6 @@ public class UserDataStore : IUserDataStore
         }
     }
 
-    public async Task<bool> HardDeleteAsync(Guid userId)
-    {
-        try
-        {
-            var user = await _context.Users
-                .Include(u => u.UserExpertise)
-                .Include(u => u.UserSocialMediaSites)
-                .FirstOrDefaultAsync(u => u.Id == userId);
-
-            if (user == null) return true;
-
-            // Delete related entities first (cascade if needed, but here we do it explicitly to be safe)
-            _context.UserExpertise.RemoveRange(user.UserExpertise);
-            _context.UserSocialMediaSite.RemoveRange(user.UserSocialMediaSites);
-            
-            _context.Users.Remove(user);
-
-            return await _context.SaveChangesAsync() > 0;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to hard delete user {UserId}", userId);
-            return false;
-        }
-    }
-
     public async Task<bool> RemovePasskeyAsync(Guid userId, byte[] credentialId)
     {
         try

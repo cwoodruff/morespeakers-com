@@ -65,5 +65,4 @@ public interface IUserDataStore: IDataStorePrimaryKeyGuid<User>
     // ------------------------------------------
     Task<bool> SoftDeleteAsync(Guid userId);
     Task<bool> RestoreAsync(Guid userId);
-    Task<bool> HardDeleteAsync(Guid userId);
 }

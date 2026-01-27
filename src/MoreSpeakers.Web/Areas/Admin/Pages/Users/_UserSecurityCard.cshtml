@@ -167,7 +167,7 @@
 
           <form class="d-inline ms-2"
                 method="post"
-                asp-page-handler="HardDelete"
+                asp-page-handler="Delete"
                 asp-route-id="@Model.User.Id"
                 hx-confirm="PERMANENTLY delete this user? This action cannot be undone. Ensure GDPR export is complete if required.">
             <button type="submit" class="btn btn-danger">

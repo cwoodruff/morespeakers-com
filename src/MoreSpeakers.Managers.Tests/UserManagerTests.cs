@@ -463,17 +463,4 @@ public class UserManagerTests
         result.Should().BeTrue();
         _dataStoreMock.Verify(d => d.RestoreAsync(id), Times.Once);
     }
-
-    [Fact]
-    public async Task HardDeleteAsync_should_delegate()
-    {
-        var id = Guid.NewGuid();
-        _dataStoreMock.Setup(d => d.HardDeleteAsync(id)).ReturnsAsync(true);
-        var sut = CreateSut();
-
-        var result = await sut.HardDeleteAsync(id);
-
-        result.Should().BeTrue();
-        _dataStoreMock.Verify(d => d.HardDeleteAsync(id), Times.Once);
-    }
 }

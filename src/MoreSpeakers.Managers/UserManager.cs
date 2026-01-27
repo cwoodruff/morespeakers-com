@@ -292,15 +292,4 @@ public class UserManager: IUserManager
         }
         return ok;
     }
-
-    public async Task<bool> HardDeleteAsync(Guid userId)
-    {
-        if (userId == Guid.Empty) return false;
-        var ok = await _dataStore.HardDeleteAsync(userId);
-        if (ok)
-        {
-            _logger.LogInformation("[AdminAudit] User {UserId} was HARD-DELETED", userId);
-        }
-        return ok;
-    }
 }

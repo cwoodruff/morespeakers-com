@@ -348,7 +348,7 @@ public class DetailsModel : PageModel
         return RedirectToPage(new { id });
     }
 
-    public async Task<IActionResult> OnPostHardDeleteAsync(Guid id)
+    public async Task<IActionResult> OnPostDeleteAsync(Guid id)
     {
         if (id == Guid.Empty) return NotFound();
 
@@ -372,7 +372,7 @@ public class DetailsModel : PageModel
             }
         }
 
-        var ok = await _userManager.HardDeleteAsync(id);
+        var ok = await _userManager.DeleteAsync(id);
         if (ok)
         {
             TempData["StatusMessage"] = "User has been permanently deleted.";

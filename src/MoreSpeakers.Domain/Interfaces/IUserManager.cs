@@ -70,5 +70,4 @@ public interface IUserManager
     // ------------------------------------------
     Task<bool> SoftDeleteAsync(Guid userId);
     Task<bool> RestoreAsync(Guid userId);
-    Task<bool> HardDeleteAsync(Guid userId);
 }
