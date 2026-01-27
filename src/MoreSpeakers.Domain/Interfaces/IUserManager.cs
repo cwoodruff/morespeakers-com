@@ -64,4 +64,11 @@ public interface IUserManager
     Task<bool> SetLockoutEndAsync(Guid userId, DateTimeOffset? lockoutEndUtc);
     Task<bool> UnlockAsync(Guid userId);
     Task<int> GetUserCountInRoleAsync(string roleName);
+
+    // ------------------------------------------
+    // Admin Users (Soft/Hard Delete)
+    // ------------------------------------------
+    Task<bool> SoftDeleteAsync(Guid userId);
+    Task<bool> RestoreAsync(Guid userId);
+    Task<bool> HardDeleteAsync(Guid userId);
 }

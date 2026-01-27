@@ -55,6 +55,14 @@
       </select>
     </div>
     <div class="col-6 col-md-2">
+      <label for="deleted" class="form-label">Deleted</label>
+      <select class="form-select" id="deleted" name="deleted">
+        <option value="any" selected="@(q.Deleted=="any" ? "selected" : null)">Any</option>
+        <option value="deleted" selected="@(q.Deleted=="deleted" ? "selected" : null)">Deleted</option>
+        <option value="false" selected="@(q.Deleted=="false" ? "selected" : null)">Active</option>
+      </select>
+    </div>
+    <div class="col-6 col-md-2">
       <label for="role" class="form-label">Role</label>
       <select class="form-select" id="role" name="role">
         <option value="" selected="@string.IsNullOrWhiteSpace(q.Role)">Any</option>
@@ -98,11 +106,14 @@
           @Html.Raw(CaretFor("emailconfirmed"))
         </th>
         <th class="text-center">
-          <a asp-page="/Users/Index" asp-route-q="@q.Q" asp-route-lockout="@q.Lockout" asp-route-emailConfirmed="@q.EmailConfirmed" asp-route-role="@q.Role" asp-route-pageSize="@q.PageSize" asp-route-sort="lockout" asp-route-dir="@SortDirFor("lockout")">Lockout</a>
+          <a asp-page="/Users/Index" asp-route-q="@q.Q" asp-route-lockout="@q.Lockout" asp-route-emailConfirmed="@q.EmailConfirmed" asp-route-deleted="@q.Deleted" asp-route-role="@q.Role" asp-route-pageSize="@q.PageSize" asp-route-sort="lockout" asp-route-dir="@SortDirFor("lockout")">Lockout</a>
           @Html.Raw(CaretFor("lockout"))
         </th>
+        <th class="text-center">
+          Deleted
+        </th>
         <th>
-          <a asp-page="/Users/Index" asp-route-q="@q.Q" asp-route-lockout="@q.Lockout" asp-route-emailConfirmed="@q.EmailConfirmed" asp-route-role="@q.Role" asp-route-pageSize="@q.PageSize" asp-route-sort="role" asp-route-dir="@SortDirFor("role")">Role</a>
+          <a asp-page="/Users/Index" asp-route-q="@q.Q" asp-route-lockout="@q.Lockout" asp-route-emailConfirmed="@q.EmailConfirmed" asp-route-deleted="@q.Deleted" asp-route-role="@q.Role" asp-route-pageSize="@q.PageSize" asp-route-sort="role" asp-route-dir="@SortDirFor("role")">Role</a>
           @Html.Raw(CaretFor("role"))
         </th>
         <th>
@@ -133,6 +144,9 @@
           </td>
           <td class="text-center">
             @if (user.IsLockedOut) { <i class="bi bi-lock text-danger" aria-label="Locked out"></i> } else { <i class="bi bi-unlock text-secondary" aria-label="Not locked out"></i> }
+          </td>
+          <td class="text-center">
+            @if (user.IsDeleted) { <i class="bi bi-trash text-danger" aria-label="Deleted"></i> } else { <i class="bi bi-check-circle text-success" aria-label="Active"></i> }
           </td>
           <td>@user.Role</td>
           <td>@(user.CreatedUtc?.ToString("yyyy-MM-dd"))</td>

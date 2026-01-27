@@ -11,6 +11,7 @@ public sealed class UserAdminFilter
     public string? Query { get; init; }
     public TriState EmailConfirmed { get; init; } = TriState.Any;
     public TriState LockedOut { get; init; } = TriState.Any;
+    public TriState IsDeleted { get; init; } = TriState.Any;
     public string? RoleName { get; init; }
 }
 
@@ -21,6 +22,7 @@ public sealed class UserListRow
     public string UserName { get; init; } = string.Empty;
     public bool EmailConfirmed { get; init; }
     public bool IsLockedOut { get; init; }
+    public bool IsDeleted { get; init; }
     public string? Role { get; init; }
     public DateTimeOffset? CreatedUtc { get; init; }
     public DateTimeOffset? LastSignInUtc { get; init; }

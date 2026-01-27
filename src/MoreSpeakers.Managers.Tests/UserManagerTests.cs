@@ -437,4 +437,43 @@ public class UserManagerTests
         result.Should().BeSameAs(expected);
         _dataStoreMock.Verify(d => d.GetSpeakerTypesAsync(), Times.Once);
     }
+
+    [Fact]
+    public async Task SoftDeleteAsync_should_delegate()
+    {
+        var id = Guid.NewGuid();
+        _dataStoreMock.Setup(d => d.SoftDeleteAsync(id)).ReturnsAsync(true);
+        var sut = CreateSut();
+
+        var result = await sut.SoftDeleteAsync(id);
+
+        result.Should().BeTrue();
+        _dataStoreMock.Verify(d => d.SoftDeleteAsync(id), Times.Once);
+    }
+
+    [Fact]
+    public async Task RestoreAsync_should_delegate()
+    {
+        var id = Guid.NewGuid();
+        _dataStoreMock.Setup(d => d.RestoreAsync(id)).ReturnsAsync(true);
+        var sut = CreateSut();
+
+        var result = await sut.RestoreAsync(id);
+
+        result.Should().BeTrue();
+        _dataStoreMock.Verify(d => d.RestoreAsync(id), Times.Once);
+    }
+
+    [Fact]
+    public async Task HardDeleteAsync_should_delegate()
+    {
+        var id = Guid.NewGuid();
+        _dataStoreMock.Setup(d => d.HardDeleteAsync(id)).ReturnsAsync(true);
+        var sut = CreateSut();
+
+        var result = await sut.HardDeleteAsync(id);
+
+        result.Should().BeTrue();
+        _dataStoreMock.Verify(d => d.HardDeleteAsync(id), Times.Once);
+    }
 }

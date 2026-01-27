@@ -152,6 +152,14 @@ public class UserDataStore : IUserDataStore
             _ => users
         };
 
+        // Deleted tri-state
+        users = filter.IsDeleted switch
+        {
+            TriState.True => users.Where(u => u.IsDeleted),
+            TriState.False => users.Where(u => !u.IsDeleted),
+            _ => users.Where(u => !u.IsDeleted) // Default to hiding deleted users
+        };
+
         // Role filter via join
         if (!string.IsNullOrWhiteSpace(filter.RoleName))
         {
@@ -181,6 +189,7 @@ public class UserDataStore : IUserDataStore
                             UserName = u.UserName,
                             EmailConfirmed = u.EmailConfirmed,
                             IsLockedOut = u.LockoutEnabled && u.LockoutEnd != null && u.LockoutEnd > now,
+                            IsDeleted = u.IsDeleted,
                             Role = (from ur in _context.UserRoles
                                     join r in _context.Roles on ur.RoleId equals r.Id
                                     where ur.UserId == u.Id
@@ -244,6 +253,7 @@ public class UserDataStore : IUserDataStore
                 UserName = x.UserName!,
                 EmailConfirmed = x.EmailConfirmed,
                 IsLockedOut = x.IsLockedOut,
+                IsDeleted = x.IsDeleted,
                 Role = x.Role,
                 CreatedUtc = x.CreatedUtc,
                 LastSignInUtc = x.LastSignInUtc
@@ -289,6 +299,7 @@ public class UserDataStore : IUserDataStore
         public string? UserName { get; set; }
         public bool EmailConfirmed { get; set; }
         public bool IsLockedOut { get; set; }
+        public bool IsDeleted { get; set; }
         public string? Role { get; set; }
         public DateTimeOffset? CreatedUtc { get; set; }
         public DateTimeOffset? LastSignInUtc { get; set; }
@@ -485,7 +496,8 @@ public class UserDataStore : IUserDataStore
         {
             var count = await (from ur in _context.UserRoles.AsNoTracking()
                                join r in _context.Roles.AsNoTracking() on ur.RoleId equals r.Id
-                               where r.Name == roleName
+                               join u in _context.Users.AsNoTracking() on ur.UserId equals u.Id
+                               where r.Name == roleName && !u.IsDeleted
                                select ur.UserId)
                 .Distinct()
                 .CountAsync();
@@ -495,6 +507,76 @@ public class UserDataStore : IUserDataStore
         {
             _logger.LogError(ex, "[AdminLockout] GetUserCountInRoleAsync failed for role {Role}", roleName);
             return 0;
+        }
+    }
+
+    // ------------------------------------------
+    // Admin Users (Soft/Hard Delete)
+    // ------------------------------------------
+
+    public async Task<bool> SoftDeleteAsync(Guid userId)
+    {
+        try
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            if (user == null) return false;
+
+            user.IsDeleted = true;
+            user.DeletedAt = DateTimeOffset.UtcNow;
+            user.UpdatedDate = DateTime.UtcNow;
+
+            return await _context.SaveChangesAsync() > 0;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to soft delete user {UserId}", userId);
+            return false;
+        }
+    }
+
+    public async Task<bool> RestoreAsync(Guid userId)
+    {
+        try
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            if (user == null) return false;
+
+            user.IsDeleted = false;
+            user.DeletedAt = null;
+            user.UpdatedDate = DateTime.UtcNow;
+
+            return await _context.SaveChangesAsync() > 0;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to restore user {UserId}", userId);
+            return false;
+        }
+    }
+
+    public async Task<bool> HardDeleteAsync(Guid userId)
+    {
+        try
+        {
+            var user = await _context.Users
+                .Include(u => u.UserExpertise)
+                .Include(u => u.UserSocialMediaSites)
+                .FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user == null) return true;
+
+            // Delete related entities first (cascade if needed, but here we do it explicitly to be safe)
+            _context.UserExpertise.RemoveRange(user.UserExpertise);
+            _context.UserSocialMediaSite.RemoveRange(user.UserSocialMediaSites);
+            
+            _context.Users.Remove(user);
+
+            return await _context.SaveChangesAsync() > 0;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to hard delete user {UserId}", userId);
+            return false;
         }
     }
 
@@ -799,6 +881,9 @@ public class UserDataStore : IUserDataStore
                 query = query.Where(u => u.UserExpertise.Any(ue => ue.ExpertiseId == expertiseId));
             }
         }
+
+        // Hide soft-deleted users from public search
+        query = query.Where(u => !u.IsDeleted);
 
         // Sort Order
         switch (sortOrder)

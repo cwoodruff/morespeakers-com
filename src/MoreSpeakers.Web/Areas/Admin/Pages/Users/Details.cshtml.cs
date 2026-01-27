@@ -293,4 +293,95 @@ public class DetailsModel : PageModel
 
         return RedirectToPage(new { id });
     }
+
+    public async Task<IActionResult> OnPostSoftDeleteAsync(Guid id)
+    {
+        if (id == Guid.Empty) return NotFound();
+
+        // Prevent self-delete
+        var current = await _userManager.GetUserIdAsync(HttpContext.User);
+        if (current?.Id == id)
+        {
+            TempData["ErrorMessage"] = "You cannot delete your own account.";
+            return RedirectToPage(new { id });
+        }
+
+        // Prevent deleting the last admin
+        var roles = await _userManager.GetRolesForUserAsync(id);
+        if (roles.Contains("Administrator", StringComparer.OrdinalIgnoreCase))
+        {
+            var adminCount = await _userManager.GetUserCountInRoleAsync("Administrator");
+            if (adminCount <= 1)
+            {
+                TempData["ErrorMessage"] = "Cannot delete: this is the last administrator account.";
+                return RedirectToPage(new { id });
+            }
+        }
+
+        var ok = await _userManager.SoftDeleteAsync(id);
+        TempData[ok ? "StatusMessage" : "ErrorMessage"] = ok ? "User has been soft-deleted." : "Failed to soft-delete user.";
+
+        if (Request.Headers.TryGetValue("HX-Request", out var hx) && string.Equals(hx, "true", StringComparison.OrdinalIgnoreCase))
+        {
+            User = (await _userManager.GetAsync(id))!;
+            Roles = await _userManager.GetRolesForUserAsync(id);
+            return Partial("_UserSecurityCard", this);
+        }
+
+        return RedirectToPage(new { id });
+    }
+
+    public async Task<IActionResult> OnPostRestoreAsync(Guid id)
+    {
+        if (id == Guid.Empty) return NotFound();
+
+        var ok = await _userManager.RestoreAsync(id);
+        TempData[ok ? "StatusMessage" : "ErrorMessage"] = ok ? "User has been restored." : "Failed to restore user.";
+
+        if (Request.Headers.TryGetValue("HX-Request", out var hx) && string.Equals(hx, "true", StringComparison.OrdinalIgnoreCase))
+        {
+            User = (await _userManager.GetAsync(id))!;
+            Roles = await _userManager.GetRolesForUserAsync(id);
+            return Partial("_UserSecurityCard", this);
+        }
+
+        return RedirectToPage(new { id });
+    }
+
+    public async Task<IActionResult> OnPostHardDeleteAsync(Guid id)
+    {
+        if (id == Guid.Empty) return NotFound();
+
+        // Prevent self-delete
+        var current = await _userManager.GetUserIdAsync(HttpContext.User);
+        if (current?.Id == id)
+        {
+            TempData["ErrorMessage"] = "You cannot delete your own account.";
+            return RedirectToPage(new { id });
+        }
+
+        // Prevent deleting the last admin
+        var roles = await _userManager.GetRolesForUserAsync(id);
+        if (roles.Contains("Administrator", StringComparer.OrdinalIgnoreCase))
+        {
+            var adminCount = await _userManager.GetUserCountInRoleAsync("Administrator");
+            if (adminCount <= 1)
+            {
+                TempData["ErrorMessage"] = "Cannot delete: this is the last administrator account.";
+                return RedirectToPage(new { id });
+            }
+        }
+
+        var ok = await _userManager.HardDeleteAsync(id);
+        if (ok)
+        {
+            TempData["StatusMessage"] = "User has been permanently deleted.";
+            return RedirectToPage("Index");
+        }
+        else
+        {
+            TempData["ErrorMessage"] = "Failed to permanently delete user.";
+            return RedirectToPage(new { id });
+        }
+    }
 }
