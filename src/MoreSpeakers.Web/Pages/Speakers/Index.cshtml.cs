@@ -33,10 +33,10 @@ public class IndexModel : PageModel
         _logger = logger;
     }
 
-    public IEnumerable<User> Speakers { get; set; } = new List<User>();
-    public IEnumerable<Expertise> AllExpertise { get; set; } = new List<Expertise>();
-    public IEnumerable<Sector> Sectors { get; set; } = new List<Sector>();
-    public IEnumerable<ExpertiseCategory> Categories { get; set; } = new List<ExpertiseCategory>();
+    public IEnumerable<User> Speakers { get; set; } = [];
+    public IEnumerable<Expertise> AllExpertise { get; set; } = [];
+    public IEnumerable<Sector> Sectors { get; set; } = [];
+    public IEnumerable<ExpertiseCategory> Categories { get; set; } = [];
 
     [BindProperty(SupportsGet = true)] public string? SearchTerm { get; set; }
 
@@ -57,7 +57,7 @@ public class IndexModel : PageModel
 
     [BindProperty(SupportsGet = true)] public SpeakerResultsViewType ViewType { get; set; } = SpeakerResultsViewType.CardView;
     
-    [BindProperty(SupportsGet = true)] public SearchResultCountViewModel SearchResultsCount { get; set; } = new Models.ViewModels.SearchResultCountViewModel();
+    [BindProperty(SupportsGet = true)] public SearchResultCountViewModel SearchResultsCount { get; set; } = new();
 
     public async Task<IActionResult> OnGetAsync()
     {
@@ -93,7 +93,7 @@ public class IndexModel : PageModel
             var searchResultsModel = new SearchResultCountViewModel
             {
                 AreFiltersApplied =
-                    !string.IsNullOrEmpty(SearchTerm) || (ExpertiseFilter != null && ExpertiseFilter.Any()) || SpeakerTypeFilter.HasValue || SectorFilter.HasValue || CategoryFilter.HasValue,
+                    !string.IsNullOrEmpty(SearchTerm) || (ExpertiseFilter != null && ExpertiseFilter.Count != 0) || SpeakerTypeFilter.HasValue || SectorFilter.HasValue || CategoryFilter.HasValue,
                 TotalResults = searchResults.RowCount
             };
             SearchResultsCount = searchResultsModel;

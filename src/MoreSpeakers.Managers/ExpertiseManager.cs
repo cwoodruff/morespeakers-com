@@ -17,7 +17,7 @@ public class ExpertiseManager: IExpertiseManager
         _logger = logger;
     }
 
-    public async Task<Expertise> GetAsync(int primaryKey)
+    public async Task<Expertise?> GetAsync(int primaryKey)
     {
         return await _dataStore.GetAsync(primaryKey);
     }

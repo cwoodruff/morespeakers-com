@@ -21,8 +21,8 @@ public class EditPageTests
         var manager = new Mock<IExpertiseManager>();
         var sectorManager = new Mock<ISectorManager>();
         // Sectors and categories loaded on GET
-        sectorManager.Setup(m => m.GetAllAsync()).ReturnsAsync(new List<Sector> { new() { Id = 10, Name = "S" } });
-        manager.Setup(m => m.GetAllCategoriesAsync()).ReturnsAsync(new List<ExpertiseCategory> { new() { Id = 2, Name = "Cat" } });
+        sectorManager.Setup(m => m.GetAllAsync()).ReturnsAsync([new Sector { Id = 10, Name = "S" }]);
+        manager.Setup(m => m.GetAllCategoriesAsync()).ReturnsAsync([new ExpertiseCategory { Id = 2, Name = "Cat" }]);
 
         manager.Setup(m => m.GetAsync(1)).ReturnsAsync(new Expertise { Id = 1, Name = "X", ExpertiseCategoryId = 2, IsActive = true });
         manager.Setup(m => m.GetCategoryAsync(2)).ReturnsAsync(new ExpertiseCategory { Id = 2, Name = "Cat", SectorId = 10 });

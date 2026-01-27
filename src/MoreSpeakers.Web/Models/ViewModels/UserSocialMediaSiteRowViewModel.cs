@@ -9,5 +9,5 @@ public class UserSocialMediaSiteRowViewModel
 {
     public int ItemNumber { get; set; }
     public UserSocialMediaSite? UserSocialMediaSite { get; set; }
-    public List<SocialMediaSite> SocialMediaSites { get; set; } = new();
+    public List<SocialMediaSite> SocialMediaSites { get; set; } = [];
 }

@@ -21,5 +21,5 @@ public class Sector
 
     public bool IsActive { get; set; } = true;
 
-    public ICollection<ExpertiseCategory> ExpertiseCategories { get; set; } = new List<ExpertiseCategory>();
+    public ICollection<ExpertiseCategory> ExpertiseCategories { get; set; } = [];
 }

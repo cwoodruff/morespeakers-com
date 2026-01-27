@@ -1,0 +1,48 @@
+@model MoreSpeakers.Web.Areas.Admin.Pages.Users.DetailsModel
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<!-- Out-of-band toast updates for HTMX responses -->
+@if (TempData["StatusMessage"] is string || TempData["ErrorMessage"] is string)
+{
+    <div id="toasts-oob" hx-swap-oob="true" aria-live="polite">
+        @await Html.PartialAsync("_ToastMessages")
+    </div>
+}
+
+<div id="user-roles-card" class="card">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <span>Roles</span>
+  </div>
+  <div class="card-body">
+    <div class="htmx-indicator mb-2" aria-hidden="true">
+      <div class="spinner-border spinner-border-sm text-secondary" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+
+    <form method="post"
+          asp-page-handler="UpdateRoles"
+          asp-route-id="@Model.User.Id"
+          hx-post="?handler=UpdateRoles"
+          hx-target="#user-roles-card"
+          hx-select="#user-roles-card"
+          hx-swap="outerHTML"
+          hx-disabled-elt="button"
+          hx-indicator="#user-roles-card .htmx-indicator">
+      
+      <div class="mb-3">
+        @foreach (var role in Model.AllRoles)
+        {
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="SelectedRoles" value="@role" id="role_@role" @(Model.SelectedRoles.Contains(role, StringComparer.OrdinalIgnoreCase) ? "checked" : "")>
+            <label class="form-check-label" for="role_@role">
+              @role
+            </label>
+          </div>
+        }
+      </div>
+
+      <button type="submit" class="btn btn-primary">Update Roles</button>
+    </form>
+  </div>
+</div>

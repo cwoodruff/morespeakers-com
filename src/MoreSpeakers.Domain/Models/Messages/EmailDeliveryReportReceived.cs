@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿#nullable disable
+using System.Text.Json.Serialization;
 
 namespace MoreSpeakers.Domain.Models.Messages;
 

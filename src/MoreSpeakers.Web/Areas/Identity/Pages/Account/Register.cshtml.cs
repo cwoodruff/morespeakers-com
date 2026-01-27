@@ -1,4 +1,3 @@
-using Microsoft.ApplicationInsights;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -21,16 +20,14 @@ public class RegisterModel : PageModel
     private readonly ITemplatedEmailSender _templatedEmailSender;
     private readonly ISocialMediaSiteManager _socialMediaSiteManager;
     private readonly ISectorManager _sectorManager;
-    private readonly TelemetryClient _telemetryClient;
     private readonly ILogger<RegisterModel> _logger;
-    
+
     public RegisterModel(
         IExpertiseManager expertiseManager,
         IUserManager userManager,
         ITemplatedEmailSender templatedEmailSender,
         ISocialMediaSiteManager socialMediaSiteManager,
         ISectorManager sectorManager,
-        TelemetryClient telemetryClient,
         ILogger<RegisterModel> logger)
     {
         _expertiseManager = expertiseManager;
@@ -38,26 +35,25 @@ public class RegisterModel : PageModel
         _templatedEmailSender = templatedEmailSender;
         _socialMediaSiteManager = socialMediaSiteManager;
         _sectorManager = sectorManager;
-        _telemetryClient = telemetryClient;
         _logger = logger;
     }
 
     [BindProperty]
-    public UserProfileForRegisterViewModel Input { get; set; }
+    public UserProfileForRegisterViewModel? Input { get; set; }
 
     // Lookup values
-    public IEnumerable<Expertise> AvailableExpertises { get; set; } = new List<Expertise>();
-    public IEnumerable<SpeakerType> SpeakerTypes { get; set; } = new List<SpeakerType>();
-    public IEnumerable<ExpertiseCategory> ExpertiseCategories { get; set; } = new List<ExpertiseCategory>();
-    public IEnumerable<Sector> Sectors { get; set; } = new List<Sector>();
-    public IEnumerable<SocialMediaSite> SocialMediaSites { get; set; } = new List<SocialMediaSite>();
-    
+    public IEnumerable<Expertise> AvailableExpertises { get; set; } = [];
+    public IEnumerable<SpeakerType> SpeakerTypes { get; set; } = [];
+    public IEnumerable<ExpertiseCategory> ExpertiseCategories { get; set; } = [];
+    public IEnumerable<Sector> Sectors { get; set; } = [];
+    public IEnumerable<SocialMediaSite> SocialMediaSites { get; set; } = [];
+
     // Properties required by _RegistrationContainer.cshtml
     public int CurrentStep { get; set; } = RegistrationProgressions.SpeakerProfileNeeded;
     public bool HasValidationErrors { get; set; }
     public string ValidationMessage { get; set; } = string.Empty;
     public string SuccessMessage { get; set; } = string.Empty;
-    
+
     // Properties required for NewExpertise setup
     public NewExpertiseCreatedResponse NewExpertiseResponse { get; set; } = new();
 
@@ -95,7 +91,7 @@ public class RegisterModel : PageModel
         // Additional async validations for step 1 (e.g., email uniqueness)
         if (step == RegistrationProgressions.SpeakerProfileNeeded && stepValid)
         {
-            if (!string.IsNullOrWhiteSpace(Input.Email))
+            if (!string.IsNullOrWhiteSpace(Input!.Email))
             {
                 var existingUser = await _userManager.FindByEmailAsync(Input.Email);
                 if (existingUser != null)
@@ -142,9 +138,8 @@ public class RegisterModel : PageModel
         return Partial("_RegistrationContainer", this);
     }
 
-    private string GetValidationMessage(int step)
-    {
-        return step switch
+    private static string GetValidationMessage(int step) =>
+        step switch
         {
             RegistrationProgressions.SpeakerProfileNeeded => "Please complete all required account information before proceeding.",
             RegistrationProgressions.RequiredInformationNeeded => "Please fill out your speaker profile completely.",
@@ -152,18 +147,15 @@ public class RegisterModel : PageModel
             RegistrationProgressions.SocialMediaNeeded => "Please add at least one social media account.",
             _ => "Please complete the required information."
         };
-    }
 
-    private string GetSuccessMessage(int step)
-    {
-        return step switch
+    private static string GetSuccessMessage(int step) =>
+        step switch
         {
             RegistrationProgressions.SpeakerProfileNeeded => "Account information saved successfully!",
             RegistrationProgressions.RequiredInformationNeeded => "Profile information saved successfully!",
             RegistrationProgressions.ExpertiseNeeded => "Expertise areas saved successfully!",
             _ => "Information saved successfully!"
         };
-    }
 
     public async Task<IActionResult> OnPostPreviousStepAsync(int step)
     {
@@ -187,13 +179,13 @@ public class RegisterModel : PageModel
 
     public async Task<IActionResult> OnPostValidateEmailAsync()
     {
-        string? email = Input.Email;
-        
+        string email = Input!.Email;
+
         if (string.IsNullOrWhiteSpace(email))
         {
             return new JsonResult(new { isValid = true, message = "" });
         }
-        
+
         // Check if the email address format is valid
         if (!new EmailAddressAttribute().IsValid(email))
         {
@@ -212,7 +204,7 @@ public class RegisterModel : PageModel
 
     public async Task<IActionResult> OnPostValidateNewExpertiseAsync()
     {
-        if (string.IsNullOrWhiteSpace(Input.NewExpertise))
+        if (string.IsNullOrWhiteSpace(Input!.NewExpertise))
         {
             return new JsonResult(new NewExpertiseResponse
             {
@@ -233,14 +225,14 @@ public class RegisterModel : PageModel
                 Message = $"Expertise '{expertiseName}' already exists."
             });
         }
-        
+
         // Check for similar expertise (fuzzy matching for suggestions)
         var similarExpertise = await _expertiseManager.FuzzySearchForExistingExpertise(trimmedName, 5);
 
-        List<Expertise> expertises = similarExpertise.ToList();
-        if (expertises.Any())
+        List<Expertise> expertises = [.. similarExpertise];
+        if (expertises.Count != 0)
         {
-            
+
             var suggestions = string.Join(", ", expertises.Select(s => s.Name));
             return new JsonResult(new NewExpertiseResponse
             {
@@ -259,7 +251,7 @@ public class RegisterModel : PageModel
     {
         ExpertiseCategories = await _expertiseManager.GetAllCategoriesAsync();
         Sectors = await _sectorManager.GetAllSectorsAsync();
-        if (string.IsNullOrWhiteSpace(Input.NewExpertise))
+        if (string.IsNullOrWhiteSpace(Input!.NewExpertise))
         {
             this.NewExpertiseResponse = new NewExpertiseCreatedResponse()
             {
@@ -303,7 +295,7 @@ public class RegisterModel : PageModel
                 return Partial("_RegisterStep3", this);
             }
             AvailableExpertises = await _expertiseManager.GetAllExpertisesAsync();
-            Input.SelectedExpertiseIds = Input.SelectedExpertiseIds.Concat([expertiseId]).ToArray();
+            Input.SelectedExpertiseIds = [.. Input.SelectedExpertiseIds, expertiseId];
             this.NewExpertiseResponse = new NewExpertiseCreatedResponse
             {
                 SavingExpertiseFailed = false, SaveExpertiseMessage =  string.Empty,
@@ -343,7 +335,7 @@ public class RegisterModel : PageModel
         switch (step)
         {
             case RegistrationProgressions.SpeakerProfileNeeded: // Account step
-                if (string.IsNullOrWhiteSpace(Input.FirstName))
+                if (string.IsNullOrWhiteSpace(Input!.FirstName))
                 {
                     ModelState.AddModelError("Input.FirstName", "First name is required.");
                     ModelState.AddModelError("", "First name is required.");
@@ -422,7 +414,7 @@ public class RegisterModel : PageModel
                 }
                 break;
             case RegistrationProgressions.RequiredInformationNeeded: // Profile step
-                if (Input.SpeakerTypeId <= 0)
+                if (Input!.SpeakerTypeId <= 0)
                 {
                     ModelState.AddModelError("Input.SpeakerTypeId", "Please select a speaker type.");
                     ModelState.AddModelError("", "Please select a speaker type.");
@@ -450,7 +442,7 @@ public class RegisterModel : PageModel
                 }
                 break;
             case RegistrationProgressions.ExpertiseNeeded: // Expertise step
-                if (Input.SelectedExpertiseIds.Length == 0)
+                if (Input!.SelectedExpertiseIds.Length == 0)
                 {
                     ModelState.AddModelError("Input.SelectedExpertiseIds",
                         "Please select at least one area of expertise.");
@@ -493,13 +485,13 @@ public class RegisterModel : PageModel
 
         var user = new User
         {
-            Email = Input.Email,
+            Email = Input!.Email,
             UserName = Input.Email,
-            FirstName = Input.FirstName,
-            LastName = Input.LastName,
+            FirstName = Input.FirstName!,
+            LastName = Input.LastName!,
             PhoneNumber = Input.PhoneNumber,
-            Bio = Input.Bio,
-            Goals = Input.Goals,
+            Bio = Input.Bio!,
+            Goals = Input.Goals!,
             SessionizeUrl = Input.SessionizeUrl,
             HeadshotUrl = Input.HeadshotUrl,
             SpeakerTypeId = (int)Input.SpeakerTypeId,
@@ -549,14 +541,14 @@ public class RegisterModel : PageModel
             ValidationMessage = "Could not find user after saving registration. Please try again.";
             return Partial("_RegistrationContainer", this);
         }
-        
+
         // User Experiences
         user.UserExpertise.Clear();
         foreach (var ue in Input.SelectedExpertiseIds)
         {
             user.UserExpertise.Add(new UserExpertise { ExpertiseId = ue });
         }
-        
+
         // Social Media Sites
         var socialDictionary = SocialMediaSiteHelper.ParseSocialMediaPairs(Request.Form);
         user.UserSocialMediaSites.Clear();
@@ -605,7 +597,7 @@ public class RegisterModel : PageModel
             null,
             new { area = "Identity", token = encodedToken, email = user.Email },
             Request.Scheme);
-        if (confirmationLink == null)
+        if (string.IsNullOrWhiteSpace(confirmationLink))
         {
             _logger.LogWarning("Failed to generate confirmation link for user {UserId}", user.Id);
         }

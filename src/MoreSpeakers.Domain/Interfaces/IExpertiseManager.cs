@@ -5,7 +5,7 @@ namespace MoreSpeakers.Domain.Interfaces;
 
 public interface IExpertiseManager
 {
-    public Task<Expertise> GetAsync(int primaryKey);
+    public Task<Expertise?> GetAsync(int primaryKey);
     public Task<bool> DeleteAsync(int primaryKey);
     public Task<bool> DeleteAsync(Expertise entity);
     public Task<Expertise> SaveAsync(Expertise entity);

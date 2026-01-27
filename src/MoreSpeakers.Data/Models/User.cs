@@ -35,8 +35,8 @@ public class User : IdentityUser<Guid>
     
     // Navigation properties
     public SpeakerType SpeakerType { get; set; } = null!;
-    public ICollection<UserExpertise> UserExpertise { get; set; } = new List<UserExpertise>();
-    public ICollection<Mentorship> MentorshipsAsMentor { get; set; } = new List<Mentorship>();
-    public ICollection<Mentorship> MentorshipsAsMentee { get; set; } = new List<Mentorship>();
-    public ICollection<UserSocialMediaSites> UserSocialMediaSites { get; set; } = new List<UserSocialMediaSites>();
+    public ICollection<UserExpertise> UserExpertise { get; set; } = [];
+    public ICollection<Mentorship> MentorshipsAsMentor { get; set; } = [];
+    public ICollection<Mentorship> MentorshipsAsMentee { get; set; } = [];
+    public ICollection<UserSocialMediaSites> UserSocialMediaSites { get; set; } = [];
 }

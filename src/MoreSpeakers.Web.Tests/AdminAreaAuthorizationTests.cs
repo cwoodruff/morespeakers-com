@@ -10,23 +10,17 @@ using Microsoft.Extensions.Options;
 
 namespace MoreSpeakers.Web.Tests;
 
-public class AdminAreaAuthorizationTests : IClassFixture<WebApplicationFactory<Program>>
+public class AdminAreaAuthorizationTests(WebApplicationFactory<Program> factory)
+    : IClassFixture<WebApplicationFactory<Program>>
 {
-    private readonly WebApplicationFactory<Program> _factory;
-
-    public AdminAreaAuthorizationTests(WebApplicationFactory<Program> factory)
-    {
-        _factory = factory;
-    }
-
     [Fact]
     public async Task Anonymous_Get_Admin_Redirects_To_Login()
     {
         // Default app configuration uses cookie auth -> anonymous should be redirected to Login
-        var client = _factory.WithWebHostBuilder(_ => { })
+        var client = factory.WithWebHostBuilder(_ => { })
             .CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
 
-        var resp = await client.GetAsync("/Admin");
+        var resp = await client.GetAsync("/Admin", TestContext.Current.CancellationToken);
 
         Assert.Equal(HttpStatusCode.Redirect, resp.StatusCode);
         var location = resp.Headers.Location?.ToString() ?? string.Empty;
@@ -39,7 +33,7 @@ public class AdminAreaAuthorizationTests : IClassFixture<WebApplicationFactory<P
     {
         var client = CreateAuthenticatedClient(isAdmin: false);
 
-        var resp = await client.GetAsync("/Admin");
+        var resp = await client.GetAsync("/Admin", TestContext.Current.CancellationToken);
 
         if (resp.StatusCode == HttpStatusCode.Redirect)
         {
@@ -57,24 +51,23 @@ public class AdminAreaAuthorizationTests : IClassFixture<WebApplicationFactory<P
     {
         var client = CreateAuthenticatedClient(isAdmin: true);
 
-        var html = await client.GetStringAsync("/Admin");
+        var html = await client.GetStringAsync("/Admin", TestContext.Current.CancellationToken);
 
         Assert.Contains("Admin • Dashboard", html);
     }
 
     private HttpClient CreateAuthenticatedClient(bool isAdmin)
     {
-        var factory = _factory.WithWebHostBuilder(builder =>
-        {
-            builder.ConfigureTestServices(services =>
+        var factory1 = factory.WithWebHostBuilder(builder
+            => builder.ConfigureTestServices(services =>
             {
                 // Register a fake authentication scheme and make it the default for tests
                 services.AddAuthentication(options =>
                     {
-                        options.DefaultAuthenticateScheme = TestAuthHandler.Scheme;
-                        options.DefaultChallengeScheme = TestAuthHandler.Scheme;
+                        options.DefaultAuthenticateScheme = TestAuthHandler.SchemeName;
+                        options.DefaultChallengeScheme = TestAuthHandler.SchemeName;
                     })
-                    .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>(TestAuthHandler.Scheme, _ => { });
+                    .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>(TestAuthHandler.SchemeName, _ => { });
 
                 // Provide claims for the test principal via DI so the handler can read them
                 services.AddScoped(_ => new TestUserContext
@@ -82,10 +75,9 @@ public class AdminAreaAuthorizationTests : IClassFixture<WebApplicationFactory<P
                     Name = isAdmin ? "admin@test" : "user@test",
                     IsAdmin = isAdmin
                 });
-            });
-        });
+            }));
 
-        return factory.CreateClient(new WebApplicationFactoryClientOptions
+        return factory1.CreateClient(new WebApplicationFactoryClientOptions
         {
             AllowAutoRedirect = false
         });
@@ -93,41 +85,35 @@ public class AdminAreaAuthorizationTests : IClassFixture<WebApplicationFactory<P
 
     private sealed class TestUserContext
     {
-        public string Name { get; set; } = "test";
-        public bool IsAdmin { get; set; }
+        public string Name { get; init; } = "test";
+        public bool IsAdmin { get; init; }
     }
 
-    private sealed class TestAuthHandler : AuthenticationHandler<AuthenticationSchemeOptions>
+    private sealed class TestAuthHandler(
+        IOptionsMonitor<AuthenticationSchemeOptions> options,
+        ILoggerFactory logger,
+        UrlEncoder encoder,
+        TestUserContext ctx)
+        : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
     {
-        public const string Scheme = "TestAuth";
-        private readonly TestUserContext _ctx;
-
-        public TestAuthHandler(
-            IOptionsMonitor<AuthenticationSchemeOptions> options,
-            ILoggerFactory logger,
-            UrlEncoder encoder,
-            ISystemClock clock,
-            TestUserContext ctx) : base(options, logger, encoder, clock)
-        {
-            _ctx = ctx;
-        }
+        public const string SchemeName = "TestAuth";
 
         protected override Task<AuthenticateResult> HandleAuthenticateAsync()
         {
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Name, _ctx.Name),
-                new Claim(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString())
+                new(ClaimTypes.Name, ctx.Name),
+                new(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString())
             };
 
-            if (_ctx.IsAdmin)
+            if (ctx.IsAdmin)
             {
                 claims.Add(new Claim(ClaimTypes.Role, "Administrator"));
             }
 
-            var identity = new ClaimsIdentity(claims, Scheme);
+            var identity = new ClaimsIdentity(claims, SchemeName);
             var principal = new ClaimsPrincipal(identity);
-            var ticket = new AuthenticationTicket(principal, Scheme);
+            var ticket = new AuthenticationTicket(principal, SchemeName);
             return Task.FromResult(AuthenticateResult.Success(ticket));
         }
     }

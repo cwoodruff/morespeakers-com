@@ -60,6 +60,6 @@ public class DetailsPageTests
         page.Sector.Should().NotBeNull();
         page.Expertises.Should().HaveCount(2);
         page.Sector!.Name.Should().Be("Tech");
-        page.Expertises.Select(e => e.Name).Should().Contain(new[] { "Analytics", "ML" });
+        page.Expertises.Select(e => e.Name).Should().Contain(["Analytics", "ML"]);
     }
 }

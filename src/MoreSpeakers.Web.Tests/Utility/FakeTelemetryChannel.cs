@@ -2,7 +2,7 @@ using Microsoft.ApplicationInsights.Channel;
 
 namespace MoreSpeakers.Web.Tests.Utility;
 
-public class FakeTelemetryChannel : ITelemetryChannel
+public sealed class FakeTelemetryChannel : ITelemetryChannel
 {
     public List<ITelemetry> SentTelemetries { get; } = [];
     public void Send(ITelemetry item)

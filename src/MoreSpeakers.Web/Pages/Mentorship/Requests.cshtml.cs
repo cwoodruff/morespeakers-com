@@ -69,7 +69,7 @@ public class RequestsModel : PageModel
                 return Unauthorized();
             }
 
-            var mentorship = await _mentoringManager.GetAsync(mentorshipId);
+            var mentorship = (await _mentoringManager.GetAsync(mentorshipId))!;
             if (mentorship.MentorId != currentUser.Id)
             {
                 return NotFound();

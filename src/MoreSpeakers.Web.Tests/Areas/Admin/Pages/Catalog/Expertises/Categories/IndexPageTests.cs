@@ -48,7 +48,7 @@ public class IndexPageTests
             new() { Id = 3, Name = "Healthcare", IsActive = true, SectorId = 2 },
         };
         var manager = new Mock<IExpertiseManager>();
-        manager.Setup(m => m.GetAllCategoriesAsync(TriState.True, "tech")).ReturnsAsync(new List<ExpertiseCategory> { items[0] });
+        manager.Setup(m => m.GetAllCategoriesAsync(TriState.True, "tech")).ReturnsAsync([items[0]]);
         var logger = new Mock<ILogger<IndexModel>>();
         var page = new IndexModel(manager.Object, logger.Object)
         {

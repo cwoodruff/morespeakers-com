@@ -5,23 +5,6 @@
 @{
     ViewData["Title"] = "Users";
     var q = Model.Query;
-    int totalPages = (int)Math.Ceiling((double)Model.Result.TotalCount / Math.Max(1, Model.Result.PageSize));
-    totalPages = Math.Max(1, totalPages);
-
-    string SortDirFor(string col)
-    {
-        var isSame = string.Equals(q.Sort, col, StringComparison.OrdinalIgnoreCase);
-        var dir = isSame && string.Equals(q.Dir, "asc", StringComparison.OrdinalIgnoreCase) ? "desc" : "asc";
-        return dir;
-    }
-
-    string CaretFor(string col)
-    {
-        var isActive = string.Equals(q.Sort, col, StringComparison.OrdinalIgnoreCase);
-        if (!isActive) return "";
-        var asc = string.Equals(q.Dir, "asc", StringComparison.OrdinalIgnoreCase);
-        return asc ? "<i class=\"bi bi-caret-up-fill ms-1\"></i>" : "<i class=\"bi bi-caret-down-fill ms-1\"></i>";
-    }
 }
 
 <div class="d-flex align-items-center mb-3">
@@ -29,7 +12,9 @@
     <span class="text-muted ms-3">@Model.Result.TotalCount total</span>
   </div>
 
-<form method="get" class="mb-3">
+<form method="get" class="mb-3"
+      hx-get hx-target="#user-list-container" hx-push-url="true" hx-trigger="change, submit"
+      hx-indicator=".htmx-indicator">
   <div class="row g-2 align-items-end">
     <div class="col-12 col-md-4">
       <label for="q" class="form-label">Search (email or username)</label>
@@ -75,7 +60,7 @@
     <div class="col-6 col-md-2">
       <label for="pageSize" class="form-label">Page size</label>
       <select class="form-select" id="pageSize" name="pageSize">
-        @{ int[] sizes = new []{10,20,50,100}; }
+        @{ int[] sizes = [10,20,50,100]; }
         @foreach (var s in sizes)
         {
           <option value="@s" selected="@(q.PageSize==s ? "selected" : null)">@s</option>
@@ -84,7 +69,11 @@
     </div>
     <div class="col-12 col-md-12 d-flex gap-2">
       <button type="submit" class="btn btn-primary"><i class="bi bi-funnel me-1"></i>Apply</button>
-      <a asp-area="Admin" asp-page="/Users/Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-counterclockwise me-1"></i>Reset</a>
+      <a asp-area="Admin" asp-page="/Users/Index" class="btn btn-outline-secondary"
+         hx-get hx-target="#user-list-container" hx-push-url="true"><i class="bi bi-arrow-counterclockwise me-1"></i>Reset</a>
+      <div class="htmx-indicator spinner-border spinner-border-sm text-primary ms-auto mb-1" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
     </div>
   </div>
 </form>
@@ -156,28 +145,3 @@
     </tbody>
   </table>
 </div>
-
-<nav aria-label="Users pagination">
-  <ul class="pagination justify-content-end">
-    <li class="page-item @(Model.Result.Page <= 1 ? "disabled" : null)">
-      <a class="page-link" asp-page="/Users/Index" asp-route-q="@q.Q" asp-route-lockout="@q.Lockout" asp-route-emailConfirmed="@q.EmailConfirmed" asp-route-role="@q.Role" asp-route-sort="@q.Sort" asp-route-dir="@q.Dir" asp-route-pageSize="@q.PageSize" asp-route-page="@(Model.Result.Page - 1)" aria-label="Previous">
-        <span aria-hidden="true">&laquo;</span>
-      </a>
-    </li>
-    @for (var p = 1; p <= totalPages; p++)
-    {
-      <li class="page-item @(p == Model.Result.Page ? "active" : null)">
-        <a class="page-link" asp-page="/Users/Index" asp-route-q="@q.Q" asp-route-lockout="@q.Lockout" asp-route-emailConfirmed="@q.EmailConfirmed" asp-route-role="@q.Role" asp-route-sort="@q.Sort" asp-route-dir="@q.Dir" asp-route-pageSize="@q.PageSize" asp-route-page="@p">@p</a>
-      </li>
-    }
-    <li class="page-item @(Model.Result.Page >= totalPages ? "disabled" : null)">
-      <a class="page-link" asp-page="/Users/Index" asp-route-q="@q.Q" asp-route-lockout="@q.Lockout" asp-route-emailConfirmed="@q.EmailConfirmed" asp-route-role="@q.Role" asp-route-sort="@q.Sort" asp-route-dir="@q.Dir" asp-route-pageSize="@q.PageSize" asp-route-page="@(Model.Result.Page + 1)" aria-label="Next">
-        <span aria-hidden="true">&raquo;</span>
-      </a>
-    </li>
-  </ul>
-  @if (totalPages > 1)
-  {
-    <div class="text-muted small text-end">Page @Model.Result.Page of @totalPages</div>
-  }
-</nav>

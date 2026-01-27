@@ -12,5 +12,5 @@ public class UserPasswordResetEmail
     /// <summary>
     /// The user to confirm.
     /// </summary>
-    public User User { get; set; }
+    public required User User { get; init; }
 }

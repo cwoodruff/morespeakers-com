@@ -9,10 +9,8 @@ public class MappingTests
     [Fact]
     public void MappingProfile_IsValid()
     {
-        var configuration = new MapperConfiguration(cfg =>
-        {
-            cfg.AddProfile<MappingProfiles.MoreSpeakersProfile>();
-        }, new LoggerFactory());
+        var configuration = new MapperConfiguration(cfg
+            => cfg.AddProfile<MappingProfiles.MoreSpeakersProfile>(), new LoggerFactory());
 
         try
         {

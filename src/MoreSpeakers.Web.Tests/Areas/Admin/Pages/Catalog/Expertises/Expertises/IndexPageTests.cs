@@ -49,10 +49,7 @@ public class IndexPageTests
             new() { Id = 3, Name = "Retail", Description = "Commerce" },
         };
         var manager = new Mock<IExpertiseManager>();
-        manager.Setup(m => m.GetAllExpertisesAsync(TriState.Any, "tech")).ReturnsAsync(new List<Expertise>
-        {
-            items[0], items[1]
-        });
+        manager.Setup(m => m.GetAllExpertisesAsync(TriState.Any, "tech")).ReturnsAsync([items[0], items[1]]);
         var logger = new Mock<ILogger<IndexModel>>();
         var page = new IndexModel(manager.Object, logger.Object) { Q = "tech", Status = TriState.Any };
 
@@ -61,6 +58,6 @@ public class IndexPageTests
 
         // Assert
         page.Items.Should().HaveCount(2);
-        page.Items.Select(e => e.Id).Should().BeEquivalentTo(new[] { 1, 2 });
+        page.Items.Select(e => e.Id).Should().BeEquivalentTo([1, 2]);
     }
 }

@@ -18,8 +18,8 @@ public class SocialMediaSiteManager: ISocialMediaSiteManager
         _logger = logger;
         _telemetryClient = telemetryClient;
     }
-    
-    public async Task<SocialMediaSite> GetAsync(int primaryKey)
+
+    public async Task<SocialMediaSite?> GetAsync(int primaryKey)
     {
         return await _dataStore.GetAsync(primaryKey);
     }
@@ -43,12 +43,12 @@ public class SocialMediaSiteManager: ISocialMediaSiteManager
     {
         return await _dataStore.DeleteAsync(entity);
     }
-    
+
     public async Task<int> RefCountAsync(int primaryKey)
     {
         return await _dataStore.RefCountAsync(primaryKey);
     }
-    
+
     public async Task<bool> InUseAsync(int primaryKey)
     {
         return await _dataStore.InUseAsync(primaryKey);

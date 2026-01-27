@@ -5,7 +5,7 @@ public class MentorshipRequestViewModel
     public Domain.Models.User Mentor { get; set; } = null!;
     public Domain.Models.User Mentee { get; set; } = null!;
     public Domain.Models.MentorshipType MentorshipType { get; set; }
-    public List<Domain.Models.Expertise> AvailableExpertise { get; set; } = new();
+    public List<Domain.Models.Expertise> AvailableExpertise { get; set; } = [];
     public string Message { get; set; } = string.Empty;
 
     public string GetPlaceholderText()

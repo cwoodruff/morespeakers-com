@@ -34,7 +34,7 @@ public class CreateModel(IExpertiseManager expertiseManager, ISectorManager sect
     [BindProperty]
     public InputModel Input { get; set; } = new();
 
-    public List<Sector> Sectors { get; private set; } = new();
+    public List<Sector> Sectors { get; private set; } = [];
 
     public async Task OnGetAsync()
     {
@@ -67,7 +67,7 @@ public class CreateModel(IExpertiseManager expertiseManager, ISectorManager sect
         var categories = await _expertiseManager.GetAllActiveCategoriesForSector(sectorId);
         var viewModel = new ExpertiseCategoryDropDownViewModel
         {
-            ExpertiseCategories = categories.OrderBy(c => c.Name).ToList()
+            ExpertiseCategories = [.. categories.OrderBy(c => c.Name)]
         };
 
         return Partial("_ExpertiseCategorySelectItem", viewModel);

@@ -1,6 +1,7 @@
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
     initializeRegistrationForm();
+    initializeTelephoneInput();
     handleEmailValidation();
 });
 
@@ -40,6 +41,23 @@ function initializeRegistrationForm() {
         }
         initializeHeadshotProcessing();
         updatePageHeader();
+    });
+
+    document.addEventListener('htmx:configRequest', function (event) {
+        const element = event.detail.elt;
+        const stepNumber = Number(document.getElementById('CurrentStep').value);
+        if (element && element.id === 'nextBtn' && stepNumber === 1)
+        {
+            const phoneInput = document.getElementById('Input_PhoneNumber');
+            const phoneParameter = event.detail.parameters['Input.PhoneNumber']
+            if (phoneInput && !(phoneInput.type.toLowerCase() === 'hidden') && phoneParameter) {
+                event.detail.parameters['Input.PhoneNumber'] = phoneInput.iti.getNumber(intlTelInput.utils.numberFormat.E164);
+            }
+        }
+    })
+
+    document.addEventListener('htmx:afterSettle', function(event) {
+        initializeTelephoneInput("#nextBtn");
     });
 }
 
@@ -95,30 +113,5 @@ function updatePageHeader() {
         } else {
             pageHeader.innerHTML = '<h1 class="h3 fw-bold text-primary">Create Your Speaker Profile</h1><p class="text-muted">Tell us about yourself and join the community</p>';
         }
-    }
-}
-
-function initializeHeadshotProcessing() {
-    let headshotInput = document.getElementById('Input_HeadshotUrl');
-    if (headshotInput) {
-        headshotInput.addEventListener('input', function () {
-            $.ajax({
-                    type: "HEAD",
-                    async: false,
-                    url: headshotInput.value,
-                    success: function (data, textStatus, jqXHR) {
-                        let header = jqXHR.getResponseHeader('content-type');
-                        if (header && header.includes('image')) {
-                            replaceImage(headshotInput.value);
-                        } else {
-                            replaceImage('');
-                        }
-                    },
-                    error: function (jqXHR, textStatus, errorThrown) {
-                        replaceImage('');
-                    }
-                }
-            );
-        });
     }
 }

@@ -13,7 +13,7 @@
 
 <div class="row g-3">
   <div class="col-12 col-lg-6">
-    <div class="card">
+    <div id="user-profile-card" class="card">
       <div class="card-header">Profile</div>
       <div class="card-body">
         <dl class="row mb-0">
@@ -30,24 +30,7 @@
   </div>
 
   <div class="col-12">
-    <div class="card">
-      <div class="card-header">Roles</div>
-      <div class="card-body">
-        @if (Model.Roles.Any())
-        {
-          <ul class="mb-0">
-            @foreach (var role in Model.Roles)
-            {
-              <li>@role</li>
-            }
-          </ul>
-        }
-        else
-        {
-          <span class="text-muted">None</span>
-        }
-      </div>
-    </div>
+    @await Html.PartialAsync("_UserRolesCard", Model)
   </div>
 </div>
 

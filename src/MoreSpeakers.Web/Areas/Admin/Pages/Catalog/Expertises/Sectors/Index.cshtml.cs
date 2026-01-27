@@ -17,7 +17,7 @@ public class IndexModel(ISectorManager manager, ILogger<IndexModel> logger) : Pa
     [BindProperty(SupportsGet = true)]
     public TriState Status { get; set; } = TriState.Any;
 
-    public List<Sector> Items { get; private set; } = new();
+    public List<Sector> Items { get; private set; } = [];
 
     public async Task OnGet()
     {

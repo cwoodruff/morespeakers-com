@@ -170,11 +170,9 @@ public class UserManager: IUserManager
 
     public async Task<IEnumerable<UserSocialMediaSite>> GetUserSocialMediaSitesAsync(Guid userId)
     {
-        if (userId == Guid.Empty)
-        {
-            throw new ArgumentException("Invalid user id");
-        }
-        return await _dataStore.GetUserSocialMediaSitesAsync(userId);
+        return userId == Guid.Empty
+            ? throw new ArgumentException("Invalid user id")
+            : await _dataStore.GetUserSocialMediaSitesAsync(userId);
     }
     
     public async Task<bool> AddExpertiseToUserAsync(Guid userId, int expertiseId)
@@ -224,6 +222,16 @@ public class UserManager: IUserManager
     public async Task<IReadOnlyList<string>> GetRolesForUserAsync(Guid userId)
     {
         return await _dataStore.GetRolesForUserAsync(userId);
+    }
+
+    public async Task<IdentityResult> AddToRolesAsync(Guid userId, IEnumerable<string> roles)
+    {
+        return await _dataStore.AddToRolesAsync(userId, roles);
+    }
+
+    public async Task<IdentityResult> RemoveFromRolesAsync(Guid userId, IEnumerable<string> roles)
+    {
+        return await _dataStore.RemoveFromRolesAsync(userId, roles);
     }
 
     // ------------------------------------------

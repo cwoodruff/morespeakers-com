@@ -1,7 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize any additional functionality
-
     initializeHeadshotProcessing();
+    initializeTelephoneInput('#submitButton');
 
     // Auto-hide success messages after 5 seconds
     setTimeout(function() {
@@ -22,36 +21,15 @@ document.addEventListener('htmx:afterRequest', function(event) {
 
     // Only update tabs if the request was successful and triggered by a tab link
     if (event.detail.successful && trigger && trigger.classList.contains('nav-link') && trigger.closest('#profileTabs')) {
-        // Remove active class from all tabs
+        // Remove the 'active' class from all tabs
         const tabs = document.querySelectorAll('#profileTabs .nav-link');
         tabs.forEach(tab => tab.classList.remove('active'));
 
-        // Add active class to the clicked tab
+        // Add the 'active' class to the clicked tab
         trigger.classList.add('active');
     }
 });
 
-function initializeHeadshotProcessing() {
-    let headshotInput = document.getElementById('Input_HeadshotUrl');
-    if (headshotInput) {
-        headshotInput.addEventListener('input', function () {
-            $.ajax({
-                    type: "HEAD",
-                    async: false,
-                    url: headshotInput.value,
-                    success: function (data, textStatus, jqXHR) {
-                        let header = jqXHR.getResponseHeader('content-type');
-                        if (header && header.includes('image')) {
-                            replaceImage(headshotInput.value);
-                        } else {
-                            replaceImage('');
-                        }
-                    },
-                    error: function (jqXHR, textStatus, errorThrown) {
-                        replaceImage('');
-                    }
-                }
-            );
-        });
-    }
-}
+document.addEventListener('htmx:afterSettle', function(event) {
+    initializeTelephoneInput("#submitButton");
+});

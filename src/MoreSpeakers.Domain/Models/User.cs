@@ -38,10 +38,10 @@ public class User: IdentityUser<Guid>
 
     // Navigation properties
     public SpeakerType SpeakerType { get; set; } = null!;
-    public ICollection<UserExpertise> UserExpertise { get; set; } = new List<UserExpertise>();
-    public ICollection<Mentorship> MentorshipsAsMentor { get; set; } = new List<Mentorship>();
-    public ICollection<Mentorship> MentorshipsAsMentee { get; set; } = new List<Mentorship>();
-    public ICollection<UserSocialMediaSite> UserSocialMediaSites { get; set; } = new List<UserSocialMediaSite>();
+    public ICollection<UserExpertise> UserExpertise { get; set; } = [];
+    public ICollection<Mentorship> MentorshipsAsMentor { get; set; } = [];
+    public ICollection<Mentorship> MentorshipsAsMentee { get; set; } = [];
+    public ICollection<UserSocialMediaSite> UserSocialMediaSites { get; set; } = [];
 
     // Computed properties
     public string FullName => $"{FirstName} {LastName}";
