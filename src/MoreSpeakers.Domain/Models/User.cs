@@ -31,6 +31,9 @@ public class User: IdentityUser<Guid>
     public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedDate { get; set; } = DateTime.UtcNow;
 
+    public bool IsDeleted { get; set; } = false;
+    public DateTimeOffset? DeletedAt { get; set; }
+
     public bool MustChangePassword { get; set; } = false;
 
     // Navigation properties

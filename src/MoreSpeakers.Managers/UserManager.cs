@@ -275,4 +275,29 @@ public class UserManager: IUserManager
         }
         return await _dataStore.GetUserCountInRoleAsync(roleName.Trim());
     }
+
+    // ------------------------------------------
+    // Admin Users (Soft/Hard Delete)
+    // ------------------------------------------
+    public async Task<bool> SoftDeleteAsync(Guid userId)
+    {
+        if (userId == Guid.Empty) return false;
+        var ok = await _dataStore.SoftDeleteAsync(userId);
+        if (ok)
+        {
+            _logger.LogInformation("[AdminAudit] User {UserId} was soft-deleted", userId);
+        }
+        return ok;
+    }
+
+    public async Task<bool> RestoreAsync(Guid userId)
+    {
+        if (userId == Guid.Empty) return false;
+        var ok = await _dataStore.RestoreAsync(userId);
+        if (ok)
+        {
+            _logger.LogInformation("[AdminAudit] User {UserId} was restored", userId);
+        }
+        return ok;
+    }
 }

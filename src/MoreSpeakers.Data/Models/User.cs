@@ -29,6 +29,9 @@ public class User : IdentityUser<Guid>
 
     public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedDate { get; set; } = DateTime.UtcNow;
+
+    public bool IsDeleted { get; set; } = false;
+    public DateTimeOffset? DeletedAt { get; set; }
     
     // Navigation properties
     public SpeakerType SpeakerType { get; set; } = null!;
