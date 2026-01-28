@@ -31,4 +31,22 @@
 
         --iti-hover-color: rgba(255, 255, 255, 0.1);
     }
+
+    .hero-light {
+        display: none !important;
+    }
+
+    .hero-dark {
+        display: block !important;
+    }
+}
+
+[data-bs-theme="light"] {
+    .hero-light {
+        display: block !important;
+    }
+
+    .hero-dark {
+        display: none !important;
+    }
 }
