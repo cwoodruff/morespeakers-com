@@ -9,7 +9,7 @@ using MoreSpeakers.Web.Services;
 
 namespace MoreSpeakers.Web.Pages.Speakers;
 
-public class IndexModel : PageModel
+public partial class IndexModel : PageModel
 {
     private const int PageSize = 12;
     private readonly IExpertiseManager _expertiseManager;
@@ -20,7 +20,7 @@ public class IndexModel : PageModel
     private readonly IRazorPartialToStringRenderer _partialRenderer;
     private readonly ILogger<IndexModel> _logger;
 
-    public IndexModel(IExpertiseManager expertiseManager, ISectorManager sectorManager, IUserManager userManager, 
+    public IndexModel(IExpertiseManager expertiseManager, ISectorManager sectorManager, IUserManager userManager,
         IMentoringManager mentoringManager, ITemplatedEmailSender templatedEmailSender,
         IRazorPartialToStringRenderer partialRenderer, ILogger<IndexModel> logger)
     {
@@ -28,8 +28,8 @@ public class IndexModel : PageModel
         _sectorManager = sectorManager;
         _userManager = userManager;
         _mentoringManager = mentoringManager;
-        _templatedEmailSender = templatedEmailSender;      
-        _partialRenderer = partialRenderer;       
+        _templatedEmailSender = templatedEmailSender;
+        _partialRenderer = partialRenderer;
         _logger = logger;
     }
 
@@ -52,11 +52,11 @@ public class IndexModel : PageModel
     [BindProperty(SupportsGet = true)] public int CurrentPage { get; set; } = 1;
 
     [BindProperty(SupportsGet = true)] public int TotalCount { get; set; }
-    
+
     [BindProperty(SupportsGet = true)] public int TotalPages { get; set; }
 
     [BindProperty(SupportsGet = true)] public SpeakerResultsViewType ViewType { get; set; } = SpeakerResultsViewType.CardView;
-    
+
     [BindProperty(SupportsGet = true)] public SearchResultCountViewModel SearchResultsCount { get; set; } = new();
 
     public async Task<IActionResult> OnGetAsync()
@@ -123,7 +123,7 @@ public class IndexModel : PageModel
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error loading speakers");
+            LogErrorLoadingSpeakers(ex);
         }
 
         return Page();
@@ -156,28 +156,18 @@ public class IndexModel : PageModel
 
     public async Task<IActionResult> OnGetExpertisesAsync(int categoryFilter, int sectorFilter)
     {
-        IEnumerable<Expertise> expertises;
-
-        if (categoryFilter > 0)
-        {
-            expertises = await _expertiseManager.GetByCategoryIdAsync(categoryFilter);
-        }
-        else if (sectorFilter > 0)
-        {
-            expertises = await _expertiseManager.GetBySectorIdAsync(sectorFilter);
-        }
-        else
-        {
-            expertises = await _expertiseManager.GetAllExpertisesAsync();
-        }
-
-        return Partial("_ExpertiseCheckboxes", expertises);
+        return Partial("_ExpertiseCheckboxes",
+            categoryFilter > 0
+                ? await _expertiseManager.GetByCategoryIdAsync(categoryFilter)
+                : sectorFilter > 0
+                    ? await _expertiseManager.GetBySectorIdAsync(sectorFilter)
+                    : await _expertiseManager.GetAllExpertisesAsync());
     }
 
     public async Task<IActionResult> OnGetRequestModalAsync(Guid mentorId, MentorshipType type)
     {
         User? currentUser = null;
-        
+
         try
         {
             currentUser = await _userManager.GetUserAsync(User);
@@ -208,7 +198,7 @@ public class IndexModel : PageModel
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error loading mentor request modal for user '{User}'", currentUser?.Id);
+            LogErrorLoadingMentorRequestModel(ex, currentUser?.Id);
             throw;
         }
     }
@@ -245,17 +235,17 @@ public class IndexModel : PageModel
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error sending mentorship request for user '{User}'", currentUser?.Id);
+            LogErrorSendingMentorshipRequest(ex, currentUser?.Id);
             throw;
         }
-        
+
         // Send emails to both mentee and mentor
         var emailSent = await _templatedEmailSender.SendTemplatedEmail("~/EmailTemplates/MentorshipRequestFromMentee.cshtml",
             Domain.Constants.TelemetryEvents.EmailGenerated.MentorshipRequested,
             "Your mentorship request was sent", mentorship.Mentee, mentorship);
         if (!emailSent)
         {
-            _logger.LogError("Failed to send mentorship request email to mentee");
+            LogFailedToSendMentorshipRequestEmailToMentee();
             // TODO: Create a visual indicator that the email was not sent
         }
 
@@ -264,7 +254,7 @@ public class IndexModel : PageModel
             "A mentorship was requested", mentorship.Mentor, mentorship);
         if (!emailSent)
         {
-            _logger.LogError("Failed to send mentorship request email to mentor");
+            LogFailedToSendMentorshipRequestEmailToMentor();
             // TODO: Create a visual indicator that the email was not sent
         }
 

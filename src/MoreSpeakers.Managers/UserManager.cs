@@ -9,7 +9,7 @@ using MoreSpeakers.Domain.Models.AdminUsers;
 
 namespace MoreSpeakers.Managers;
 
-public class UserManager: IUserManager
+public partial class UserManager: IUserManager
 {
     private readonly IUserDataStore _dataStore;
     private readonly IOpenGraphSpeakerProfileImageGenerator _openGraphSpeakerProfileImageGenerator;
@@ -98,7 +98,7 @@ public class UserManager: IUserManager
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to remove passkey for user {UserId}", userId);
+            LogFailedToRemovePasskey(ex, userId);
             return false;
         }
     }
@@ -241,7 +241,7 @@ public class UserManager: IUserManager
     {
         if (userId == Guid.Empty)
         {
-            _logger.LogWarning("EnableLockoutAsync called with empty user id");
+            LogEnableLockoutCalledWithEmptyUserId();
             return false;
         }
         return await _dataStore.EnableLockoutAsync(userId, enabled);
@@ -251,7 +251,7 @@ public class UserManager: IUserManager
     {
         if (userId == Guid.Empty)
         {
-            _logger.LogWarning("SetLockoutEndAsync called with empty user id");
+            LogSetLockoutEndCalledWithEmptyUserId();
             return false;
         }
         return await _dataStore.SetLockoutEndAsync(userId, lockoutEndUtc);
@@ -259,20 +259,19 @@ public class UserManager: IUserManager
 
     public async Task<bool> UnlockAsync(Guid userId)
     {
-        if (userId == Guid.Empty)
+        if (userId != Guid.Empty)
         {
-            _logger.LogWarning("UnlockAsync called with empty user id");
-            return false;
+            return await _dataStore.UnlockAsync(userId);
         }
-        return await _dataStore.UnlockAsync(userId);
+
+        LogUnlockCalledWithEmptyUserId();
+        return false;
     }
 
     public async Task<int> GetUserCountInRoleAsync(string roleName)
     {
-        if (string.IsNullOrWhiteSpace(roleName))
-        {
-            return 0;
-        }
-        return await _dataStore.GetUserCountInRoleAsync(roleName.Trim());
+        return string.IsNullOrWhiteSpace(roleName)
+            ? 0
+            : await _dataStore.GetUserCountInRoleAsync(roleName.Trim());
     }
 }

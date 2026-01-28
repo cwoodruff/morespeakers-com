@@ -5,7 +5,7 @@ using MoreSpeakers.Domain.Models;
 
 namespace MoreSpeakers.Web.Pages;
 
-public class IndexModel : PageModel
+public partial class IndexModel : PageModel
 {
     private readonly IExpertiseManager _expertiseManager;
     private readonly IUserManager _userManager;
@@ -48,7 +48,7 @@ public class IndexModel : PageModel
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error loading index page");
+            LogErrorLoadingIndexPage(ex);
             // TODO: Show toast?
             throw;
         }

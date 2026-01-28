@@ -8,7 +8,7 @@ using MoreSpeakers.Domain.Models;
 
 namespace MoreSpeakers.Web.Areas.Admin.Pages.Catalog.Expertises.Categories;
 
-public class CreateModel(IExpertiseManager expertiseManager, ISectorManager sectorManager, ILogger<CreateModel> logger) : PageModel
+public partial class CreateModel(IExpertiseManager expertiseManager, ISectorManager sectorManager, ILogger<CreateModel> logger) : PageModel
 {
     private readonly IExpertiseManager _expertiseManager = expertiseManager;
     private readonly ISectorManager _sectorManager = sectorManager;
@@ -57,7 +57,7 @@ public class CreateModel(IExpertiseManager expertiseManager, ISectorManager sect
         };
 
         var saved = await _expertiseManager.SaveCategoryAsync(category);
-        _logger.LogInformation("[Admin:Categories] Created category {Id} {Name}", saved.Id, saved.Name);
+        LogAdminCategoriesCreated(saved.Id, saved.Name);
         return RedirectToPage("Index");
     }
 }

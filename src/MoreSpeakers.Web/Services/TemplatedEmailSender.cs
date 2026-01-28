@@ -5,7 +5,7 @@ using MoreSpeakers.Domain.Models;
 
 namespace MoreSpeakers.Web.Services;
 
-public class TemplatedEmailSender: ITemplatedEmailSender
+public partial class TemplatedEmailSender: ITemplatedEmailSender
 {
     private readonly IEmailSender _emailSender;
     private readonly IRazorPartialToStringRenderer _stringRenderer;
@@ -27,7 +27,7 @@ public class TemplatedEmailSender: ITemplatedEmailSender
         _logger = logger;
         _telemetryClient = telemetryClient;
     }
-    
+
     public async Task<bool> SendTemplatedEmail(string emailTemplate, string telemetryEventName, string subject, User toUser, object? model)
     {
         if (string.IsNullOrWhiteSpace(emailTemplate))
@@ -54,11 +54,11 @@ public class TemplatedEmailSender: ITemplatedEmailSender
                 { "UserId", toUser.Id.ToString() },
                 { "Email", toUser.Email! }
             });
-            _logger.LogInformation("{EventName} email was successfully sent to {Email}", telemetryEventName, toUser.Email);
+            LogEmailWasSuccessfullySent(telemetryEventName, toUser.Email!);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to send {EventName} email to {Email}", telemetryEventName, toUser.Email);
+            LogFailedToSendEmail(ex, telemetryEventName, toUser.Email!);
             return false;
         }
 

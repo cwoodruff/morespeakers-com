@@ -9,7 +9,7 @@ using MoreSpeakers.Domain.Models.AdminUsers;
 
 namespace MoreSpeakers.Data;
 
-public class ExpertiseDataStore : IExpertiseDataStore
+public partial class ExpertiseDataStore : IExpertiseDataStore
 {
     private readonly MoreSpeakersDbContext _context;
     private readonly IMapper _mapper;
@@ -56,7 +56,7 @@ public class ExpertiseDataStore : IExpertiseDataStore
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to delete the expertise. Name: '{Name}'", expertise.Name);
+            LogFailedToDeleteExpertise(ex, expertise.Name);
             return false;
         }
     }
@@ -74,11 +74,11 @@ public class ExpertiseDataStore : IExpertiseDataStore
                 return _mapper.Map<Expertise>(dbExpertise);
             }
 
-            _logger.LogError("Failed to save the expertise. Name: '{Name}'", expertise.Name);
+            LogFailedToSaveExpertise(expertise.Name);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to save the expertise. Name: '{Name}'", expertise.Name);
+            LogFailedToSaveTheExpertiseNameName(ex, expertise.Name);
         }
 
         throw new ApplicationException("Failed to save the expertise");
@@ -88,7 +88,7 @@ public class ExpertiseDataStore : IExpertiseDataStore
     {
         var expertises = await _context.Expertise
             .Include(e => e.ExpertiseCategory)
-            .OrderBy(e => e.ExpertiseCategory.Name)
+            .OrderBy(e => e.ExpertiseCategory != null ? e.ExpertiseCategory.Name : string.Empty)
             .ThenBy(e => e.Name)
             .ToListAsync();
         return _mapper.Map<List<Expertise>>(expertises);
@@ -131,12 +131,12 @@ public class ExpertiseDataStore : IExpertiseDataStore
                 return expertise.Id;
             }
 
-            _logger.LogError("Failed to create the expertise. Name: '{Name}'", name);
+            LogFailedToCreateExpertise(name);
             return 0;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to create the expertise. Name: '{Name}'", name);
+            LogFailedToCreateExpertise(ex, name);
         }
 
         return 0;
@@ -162,7 +162,7 @@ public class ExpertiseDataStore : IExpertiseDataStore
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to soft delete expertise id {Id}", id);
+            LogFailedToSoftDeleteExpertise(ex, id);
             return false;
         }
     }
@@ -229,11 +229,11 @@ public class ExpertiseDataStore : IExpertiseDataStore
                 return _mapper.Map<ExpertiseCategory>(dbEntity);
             }
 
-            _logger.LogError("Failed to save the expertise category. Name: '{Name}'", category.Name);
+            LogFailedToSaveExpertiseCategory(category.Name);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to save the expertise category. Name: '{Name}'", category.Name);
+            LogFailedToSaveExpertiseCategory(ex, category.Name);
         }
 
         throw new ApplicationException("Failed to save the expertise category");
@@ -251,7 +251,7 @@ public class ExpertiseDataStore : IExpertiseDataStore
         var hasExpertises = entity.Expertises.Count != 0;
         if (hasExpertises)
         {
-            _logger.LogWarning("Attempted to delete category with id {Id} that still has expertises", id);
+            LogAttemptedToDeleteCategoryWithExpertises(id);
             return false;
         }
 
@@ -262,7 +262,7 @@ public class ExpertiseDataStore : IExpertiseDataStore
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to delete the expertise category. Name: '{Name}'", entity.Name);
+            LogFailedToDeleteExpertiseCategory(ex, entity.Name);
             return false;
         }
     }
@@ -303,7 +303,7 @@ public class ExpertiseDataStore : IExpertiseDataStore
     {
         var expertises = await _context.Expertise
             .Include(e => e.ExpertiseCategory)
-            .Where(e => e.ExpertiseCategory.SectorId == sectorFilter && e.IsActive)
+            .Where(e => e.ExpertiseCategory != null && e.ExpertiseCategory.SectorId == sectorFilter && e.IsActive)
             .OrderBy(e => e.Name)
             .ToListAsync();
         return _mapper.Map<List<Expertise>>(expertises);

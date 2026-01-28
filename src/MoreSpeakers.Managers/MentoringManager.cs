@@ -8,7 +8,7 @@ using MoreSpeakers.Domain.Models;
 
 namespace MoreSpeakers.Managers;
 
-public class MentoringManager: IMentoringManager
+public partial class MentoringManager: IMentoringManager
 {
     private readonly IMentoringDataStore _dataStore;
     private readonly ILogger<MentoringManager> _logger;
@@ -67,7 +67,7 @@ public class MentoringManager: IMentoringManager
         }
         else
         {
-            _logger.LogError("Failed to create mentorship request for mentor '{MentorId}'", mentorship.MentorId);
+            LogFailedToCreateMentorMentorshipRequest(mentorship.MentorId);
         }
         return result;
     }
@@ -90,9 +90,7 @@ public class MentoringManager: IMentoringManager
         }
         else
         {
-            _logger.LogError(
-                "Failed to create mentorship request with details for mentee '{MenteeId}' and mentor '{MentorId}'",
-                menteeId, mentorId);
+            LogFailedToCreateMentorshipRequestWithMenteeDetails(menteeId, mentorId);
         }
         return result;
     }
@@ -116,7 +114,7 @@ public class MentoringManager: IMentoringManager
         }
         else
         {
-            _logger.LogError("Failed to respond to mentorship request '{MentorshipId}' for user '{User}'", mentorshipId, userId);
+            LogFailedToRespondToMentorshipRequest(mentorshipId, userId);
         }
         return result;
     }
@@ -155,7 +153,7 @@ public class MentoringManager: IMentoringManager
         }
         else
         {
-            _logger.LogError("Failed to cancel mentorship request '{MentorshipId}' for user '{User}'", mentorshipId, userId);
+            LogFailedToCancelMentorshipRequest(mentorshipId, userId);
         }
         
         return result;
@@ -174,7 +172,7 @@ public class MentoringManager: IMentoringManager
         }
         else
         {
-            _logger.LogError("Failed to complete mentorship request '{MentorshipId}' for user '{User}'", mentorshipId, userId);
+            LogFailedToCompleteMentorshipRequest(mentorshipId, userId);
         }
         return result;
     }

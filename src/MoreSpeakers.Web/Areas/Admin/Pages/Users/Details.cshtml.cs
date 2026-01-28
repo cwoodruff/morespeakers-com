@@ -8,7 +8,7 @@ using MoreSpeakers.Web.Services;
 namespace MoreSpeakers.Web.Areas.Admin.Pages.Users;
 
 [Authorize(Roles = Domain.Constants.UserRoles.Administrator)]
-public class DetailsModel : PageModel
+public partial class DetailsModel : PageModel
 {
     private readonly IUserManager _userManager;
     private readonly ITemplatedEmailSender _emailSender;
@@ -52,7 +52,7 @@ public class DetailsModel : PageModel
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to retrieve roles for user {UserId}", id);
+            LogFailedToRetrieveRolesForUser(ex, id);
             Roles = [];
             AllRoles = [];
         }
@@ -104,13 +104,10 @@ public class DetailsModel : PageModel
             : "Failed to update lockout setting.";
 
         // HTMX partial refresh path
-        if (!Request.Headers.TryGetValue("HX-Request", out var hx) ||
-            !string.Equals(hx, "true", StringComparison.OrdinalIgnoreCase))
-        {
-            return RedirectToPage(new { id });
-        }
-
-        return await GetDetailsResult(id);
+        return !Request.Headers.TryGetValue("HX-Request", out var hx) ||
+               !string.Equals(hx, "true", StringComparison.OrdinalIgnoreCase)
+            ? RedirectToPage(new { id })
+            : await GetDetailsResult(id);
     }
 
     public async Task<IActionResult> OnPostUpdateRolesAsync(Guid id)

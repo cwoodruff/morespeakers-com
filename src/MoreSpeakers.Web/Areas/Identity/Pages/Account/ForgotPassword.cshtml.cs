@@ -9,7 +9,7 @@ using MoreSpeakers.Web.Services;
 namespace MoreSpeakers.Web.Areas.Identity.Pages.Account;
 
 [AllowAnonymous]
-public class ForgotPasswordModel : PageModel
+public partial class ForgotPasswordModel : PageModel
 {
     private readonly IUserManager _userManager;
     private readonly ITemplatedEmailSender _emailSender;
@@ -63,7 +63,7 @@ public class ForgotPasswordModel : PageModel
 
             if (!ok)
             {
-                _logger.LogError("Failed to send password reset email to {Email}", Input.Email);
+                LogFailedToSendPasswordResetEmail(Input.Email);
             }
 
             return RedirectToPage("./ForgotPasswordConfirmation");

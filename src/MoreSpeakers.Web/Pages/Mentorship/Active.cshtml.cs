@@ -8,7 +8,7 @@ using MoreSpeakers.Domain.Models;
 namespace MoreSpeakers.Web.Pages.Mentorship;
 
 [Authorize]
-public class ActiveModel : PageModel
+public partial class ActiveModel : PageModel
 {
     private readonly IUserManager _userManager;
     private readonly IMentoringManager _mentoringManager;
@@ -46,7 +46,7 @@ public class ActiveModel : PageModel
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to load active mentorships for user '{User}'", currentUser?.Id);
+            LogFailedToLoadMentorships(ex, currentUser?.Id);
             return BadRequest();       
         }
     }
@@ -74,7 +74,7 @@ public class ActiveModel : PageModel
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to complete mentorship request for user '{User}'", currentUser?.Id);
+            LogFailedToCompleteMentorshipRequest(ex, currentUser?.Id);
             return BadRequest();       
         }       
     }
@@ -100,7 +100,7 @@ public class ActiveModel : PageModel
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to cancel mentorship request for user '{User}'", currentUser?.Id);
+            LogFailedToCancelMentorshipRequest(ex, currentUser?.Id);
             return BadRequest();       
         }       
     }

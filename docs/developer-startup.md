@@ -6,7 +6,7 @@ This document contains everything you need to get started developing on this pro
 
 The following software is required to get started:
 
-- Visual Studio, or Visual Studio Code, or JetBrains Rider
+- Visual Studio, Visual Studio Code, or JetBrains Rider
 - Docker Desktop
 - [Azure Storage Explorer](https://azure.microsoft.com/en-us/products/storage/storage-explorer/)
 - Git
@@ -35,18 +35,18 @@ dotnet tool install -g Microsoft.Web.LibraryManager.Cli
 After installing Library Manager, or if you already have it, open up a terminal/command prompt and navigate to the project directory.
 
 ```bash
-cd /src/MoreSpeakers.Web
+cd src/MoreSpeakers.Web
 libman restore
 ```
 
-This will install the required JavaScript libraries. It can take a few minutes to complete depending on your internet connection speed.
+This will install the required JavaScript libraries. It can take a few minutes to complete, depending on your internet connection speed.
 
 Now you can open the project in your favorite IDE.
 
 ## Updating Application Settings
 
 Most of the application settings are with the project and will be available to you when you clone the repository.
-However, there are a few settings that are not in the repository and need to be added.
+However, a few settings are not in the repository and need to be added.
 
 You can reach out to a member of the project team to get these settings.
 The settings below are required for the project to run and just sample values. 
@@ -55,7 +55,9 @@ The settings below are required for the project to run and just sample values.
 
 #### User Secrets
 
-Open up the user secrets for this project.  Add the following secrets:
+Open up the user secrets for this project (by right-clicking MoreSpeakers.Web
+in Solution Explorer and clicking _Manage User Secrets_.
+Add the following secrets:
 
 ```json
 {
@@ -127,7 +129,7 @@ This is expected because the queues were not created initially.
 Open up the Azure Storage Explorer. 
 
 * In the *Emulator & Attached* tree, expand *Storage Accounts* nodes.
-* Look for the storage account names that starts with `devstoreaccount`.
+* Look for the storage account names that start with `devstoreaccount`.
 * Expand it
 * Expand the *Queues* node.
 * Create the following queues:

@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace MoreSpeakers.Web.Areas.Admin.Pages.Catalog.Expertises.Sectors;
 
-public class EditModel(ISectorManager manager, ILogger<EditModel> logger) : PageModel
+public partial class EditModel(ISectorManager manager, ILogger<EditModel> logger) : PageModel
 {
     private readonly ISectorManager _manager = manager;
     private readonly ILogger<EditModel> _logger = logger;
@@ -69,7 +69,7 @@ public class EditModel(ISectorManager manager, ILogger<EditModel> logger) : Page
         sector.IsActive = Input.IsActive;
 
         await _manager.SaveAsync(sector);
-        _logger.LogInformation("[Admin:Sectors] Updated sector {Id} {Name}", sector.Id, sector.Name);
+        LogAdminSectorsUpdatedSectorIdName(sector.Id, sector.Name);
         return RedirectToPage("Index");
     }
 }

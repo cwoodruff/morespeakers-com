@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace MoreSpeakers.Web.Areas.Identity.Pages.Account;
 
-public class LoginModel : PageModel
+public partial class LoginModel : PageModel
 {
     private readonly ILogger<LoginModel> _logger;
     private readonly SignInManager<Data.Models.User> _signInManager;
@@ -78,7 +78,7 @@ public class LoginModel : PageModel
             var result = await _signInManager.PasswordSignInAsync(Input!.Email, Input.Password, Input.RememberMe, false);
             if (result.Succeeded)
             {
-                _logger.LogInformation("User logged in");
+                LogUserLoggedIn();
 
                 // Check if user must change password
                 // var user = await _userManager.FindByEmailAsync(Input.Email);
@@ -98,7 +98,7 @@ public class LoginModel : PageModel
 
             if (result.IsLockedOut)
             {
-                _logger.LogWarning("User account locked out");
+                LogUserAccountLockedOut();
                 return RedirectToPage("./Lockout");
             }
 

@@ -7,7 +7,7 @@ using MoreSpeakers.Domain.Models.AdminUsers;
 
 namespace MoreSpeakers.Web.Areas.Admin.Pages.Catalog.Expertises.Categories;
 
-public class IndexModel(IExpertiseManager expertiseManager, ILogger<IndexModel> logger) : PageModel
+public partial class IndexModel(IExpertiseManager expertiseManager, ILogger<IndexModel> logger) : PageModel
 {
     private readonly IExpertiseManager _expertiseManager = expertiseManager;
     private readonly ILogger<IndexModel> _logger = logger;
@@ -41,7 +41,7 @@ public class IndexModel(IExpertiseManager expertiseManager, ILogger<IndexModel> 
 
         category.IsActive = false;
         await _expertiseManager.SaveCategoryAsync(category);
-        _logger.LogInformation("[Admin:Categories] Deactivated category {Id} {Name}", category.Id, category.Name);
+        LogAdminCategoriesDeactivatedCategoryIdName(category.Id, category.Name);
         return RedirectToPage(new { q = Q, status = Status });
     }
 
@@ -60,7 +60,7 @@ public class IndexModel(IExpertiseManager expertiseManager, ILogger<IndexModel> 
 
         category.IsActive = true;
         await _expertiseManager.SaveCategoryAsync(category);
-        _logger.LogInformation("[Admin:Categories] Activated category {Id} {Name}", category.Id, category.Name);
+        LogAdminCategoriesActivatedCategoryIdName(category.Id, category.Name);
         return RedirectToPage(new { q = Q, status = Status });
     }
 }

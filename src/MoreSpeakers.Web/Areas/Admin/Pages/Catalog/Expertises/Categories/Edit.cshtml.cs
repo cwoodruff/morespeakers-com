@@ -8,7 +8,7 @@ using MoreSpeakers.Domain.Models;
 
 namespace MoreSpeakers.Web.Areas.Admin.Pages.Catalog.Expertises.Categories;
 
-public class EditModel(IExpertiseManager expertiseManager, ISectorManager sectorManager, ILogger<EditModel> logger) : PageModel
+public partial class EditModel(IExpertiseManager expertiseManager, ISectorManager sectorManager, ILogger<EditModel> logger) : PageModel
 {
     private readonly IExpertiseManager _expertiseManager = expertiseManager;
     private readonly ISectorManager _sectorManager = sectorManager;
@@ -77,7 +77,7 @@ public class EditModel(IExpertiseManager expertiseManager, ISectorManager sector
         category.IsActive = Input.IsActive;
 
         await _expertiseManager.SaveCategoryAsync(category);
-        _logger.LogInformation("[Admin:Categories] Updated category {Id} {Name}", category.Id, category.Name);
+        LogAdminCategoriesUpdated(category.Id, category.Name);
         return RedirectToPage("Index");
     }
 }
