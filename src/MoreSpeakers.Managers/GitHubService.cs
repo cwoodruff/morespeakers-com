@@ -8,7 +8,7 @@ using MoreSpeakers.Domain.Models.DTOs;
 
 namespace MoreSpeakers.Managers;
 
-public class GitHubService : IGitHubService
+public partial class GitHubService : IGitHubService
 {
     private readonly HttpClient _httpClient;
     private readonly IMemoryCache _cache;
@@ -54,8 +54,7 @@ public class GitHubService : IGitHubService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting GitHub contributors from {RepoOwner}/{RepoName}",
-                _settings.GitHub.RepoOwner, _settings.GitHub.RepoName);
+            LogErrorGettingGithubContributors(ex, _settings.GitHub.RepoOwner, _settings.GitHub.RepoName);
         }
 
         return [];

@@ -8,7 +8,7 @@ using MoreSpeakers.Domain.Models;
 
 namespace MoreSpeakers.Data;
 
-public class SocialMediaSiteDataStore: ISocialMediaSiteDataStore
+public partial class SocialMediaSiteDataStore: ISocialMediaSiteDataStore
 {
     private readonly MoreSpeakersDbContext _context;
     private readonly IMapper _mapper;
@@ -34,13 +34,11 @@ public class SocialMediaSiteDataStore: ISocialMediaSiteDataStore
                 return _mapper.Map<SocialMediaSite>(dbSocialMediaSite);
             }
 
-            _logger.LogError("Failed to save the social media site. Id: '{Id}', Name: '{Name}'",
-                socialMediaSite.Id, socialMediaSite.Name);
+            LogFailedToSaveSocialMediaSite(socialMediaSite.Id, socialMediaSite.Name);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex,"Failed to save the social media site. Id: '{Id}', Name: '{Name}'",
-                socialMediaSite.Id, socialMediaSite.Name);
+            LogFailedToSaveSocialMediaSite(ex, socialMediaSite.Id, socialMediaSite.Name);
         }
         throw new ApplicationException("Failed to save the social media site.");
     }
@@ -81,11 +79,11 @@ public class SocialMediaSiteDataStore: ISocialMediaSiteDataStore
             {
                 return true;
             }
-            _logger.LogError("Failed to delete social media site with id: '{Id}'", primaryKey);
+            LogFailedToDeleteSocialMediaSite(primaryKey);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to delete social media site with id: '{Id}'", primaryKey);
+            LogFailedToDeleteSocialMediaSite(ex, primaryKey);
         }
         return false;
     }

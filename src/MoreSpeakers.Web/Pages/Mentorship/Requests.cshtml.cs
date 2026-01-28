@@ -10,7 +10,7 @@ using MoreSpeakers.Web.Services;
 namespace MoreSpeakers.Web.Pages.Mentorship;
 
 [Authorize]
-public class RequestsModel : PageModel
+public partial class RequestsModel : PageModel
 {
     private readonly IUserManager _userManager;
     private readonly IMentoringManager _mentoringManager;
@@ -22,14 +22,14 @@ public class RequestsModel : PageModel
         IMentoringManager mentoringManager,
         IUserManager userManager,
         ITemplatedEmailSender  templatedEmailSender,
-        IRazorPartialToStringRenderer partialRenderer,       
-        ILogger<RequestsModel> logger       
+        IRazorPartialToStringRenderer partialRenderer,
+        ILogger<RequestsModel> logger
         )
     {
-        _mentoringManager = mentoringManager;       
+        _mentoringManager = mentoringManager;
         _userManager = userManager;
-        _templatedEmailSender = templatedEmailSender;          
-        _partialRenderer = partialRenderer;      
+        _templatedEmailSender = templatedEmailSender;
+        _partialRenderer = partialRenderer;
         _logger = logger;
     }
 
@@ -51,7 +51,7 @@ public class RequestsModel : PageModel
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error loading mentorship requests for user '{User}'", User.Identity?.Name);       
+            LogErrorLoadingMentorshipRequests(ex, User.Identity?.Name);
         }
 
         return Page();
@@ -80,7 +80,7 @@ public class RequestsModel : PageModel
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error loading mentorship request for user '{User}'", currentUser?.Id);
+            LogErrorLoadingMentorshipRequest(ex, currentUser?.Id);
             return NotFound();
         }
     }
@@ -104,13 +104,13 @@ public class RequestsModel : PageModel
             // Send emails to both mentee and mentor
             if (mentorship == null)
             {
-                _logger.LogError("Could not find mentorship with ID {MentorshipId}", mentorshipId);
+                LogCouldNotFindMentorship(mentorshipId);
                 return BadRequest();
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error accepting mentorship request for user '{User}'", currentUser?.Id);
+            LogErrorAcceptingMentorshipRequest(ex, currentUser?.Id);
             return BadRequest();
         }
 
@@ -120,7 +120,7 @@ public class RequestsModel : PageModel
             );
         if (!emailSent)
         {
-            _logger.LogError("Failed to send mentorship accepted email to mentee");
+            LogFailedToSendMentorshipAcceptedEmailToMentee();
             // TODO: Create a visual indicator that the email was not sent
         }
 
@@ -130,7 +130,7 @@ public class RequestsModel : PageModel
             );
         if (!emailSent)
         {
-            _logger.LogError("Failed to send mentorship accepted email to mentor");
+            LogFailedToSendMentorshipAcceptedEmailToMentor();
             // TODO: Create a visual indicator that the email was not sent
         }
 
@@ -156,7 +156,7 @@ public class RequestsModel : PageModel
             // Send emails to both mentee and mentor
             if (mentorship == null)
             {
-                _logger.LogError("Could not find mentorship with ID {MentorshipId}", mentorshipId);
+                LogCouldNotFindMentorship(mentorshipId);
                 return BadRequest();
             }
 
@@ -166,7 +166,7 @@ public class RequestsModel : PageModel
                 );
             if (!emailSent)
             {
-                _logger.LogError("Failed to send mentorship declined email to mentee");
+                LogFailedToSendMentorshipDeclinedEmailToMentee();
                 // TODO: Create a visual indicator that the email was not sent
             }
 
@@ -176,7 +176,7 @@ public class RequestsModel : PageModel
                 );
             if (!emailSent)
             {
-                _logger.LogError("Failed to send mentorship declined email to mentor");
+                LogFailedToSendMentorshipDeclinedEmailToMentor();
                 // TODO: Create a visual indicator that the email was not sent
             }
 
@@ -186,14 +186,14 @@ public class RequestsModel : PageModel
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error declining mentorship request for user '{User}'", currentUser?.Id);
+            LogErrorDecliningMentorshipRequestForUser(ex, currentUser?.Id);
             return BadRequest();
         }
     }
 
     public async Task<IActionResult> OnGetNotificationCountAsync()
     {
-        
+
         User? user = null;
 
         try
@@ -202,7 +202,7 @@ public class RequestsModel : PageModel
             if (currentUser == null) return Content(string.Empty);
 
             var (outbound, inbound) = await _mentoringManager.GetNumberOfMentorshipsPending(currentUser.Id);
-            
+
             var html = string.Empty;
 
             // Incoming requests: Require user attention (Red badge)
@@ -210,7 +210,7 @@ public class RequestsModel : PageModel
             {
                 html += $"<span class='badge bg-danger ms-1' title='{inbound} Incoming Request(s)'><i class='bi bi-inbox-fill me-1'></i>{inbound}</span>";
             }
-            
+
             // Outgoing requests: Awaiting external response (Gray badge)
             if (outbound > 0)
             {
@@ -221,7 +221,7 @@ public class RequestsModel : PageModel
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error loading notification count for user '{User}'", user?.Id);       
+            LogErrorLoadingNotificationCountForUser(ex, user?.Id);
         }
 
         return Content(string.Empty);
@@ -245,19 +245,19 @@ public class RequestsModel : PageModel
             {
                 return Partial("_IncomingRequests_NoRequestsFound.cshtml", null);
             }
-            
+
             // Check if this is an HTMX request for just the speakers container
             if (Request.Headers.ContainsKey("HX-Request"))
             {
                 return await SwapInboundAsync();
             }
-            
+
             // Load the inbound notifications to update the header count
             return Partial("_IncomingRequests", IncomingRequests);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error polling for the incoming request for user '{User}'", currentUser?.Id);
+            LogErrorPollingForTheIncomingRequest(ex, currentUser?.Id);
             return BadRequest();
         }
     }
@@ -297,17 +297,17 @@ public class RequestsModel : PageModel
 
                 return Content(outboundHeaderContainerHtml + outboundContainerHtml, "text/html");
             }
-            
+
             return Partial("_OutgoingRequests", OutgoingRequests);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error polling for the outbound request for user '{User}'", currentUser?.Id);
+            LogErrorPollingForTheOutboundRequest(ex, currentUser?.Id);
             return BadRequest();
         }
     }
 
-    
+
     private async Task<IActionResult> SwapInboundAsync()
     {
         var inboundHeaderContainerHtml =
@@ -342,10 +342,10 @@ public class RequestsModel : PageModel
             mentorship = await _mentoringManager.GetMentorshipWithRelationships(mentorshipId);
             if (mentorship == null)
             {
-                _logger.LogError("Could not find mentorship with ID {MentorshipId}", mentorshipId);
+                LogCouldNotFindMentorship(mentorshipId);
                 return BadRequest();
             }
-            
+
             // Ensure the current user is the mentee who created the request
             var wasCanceled = await _mentoringManager.CancelMentorshipRequestAsync(mentorshipId, currentUser.Id);
             if (!wasCanceled)
@@ -357,7 +357,7 @@ public class RequestsModel : PageModel
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error cancelling mentorship request for user '{User}'", currentUser?.Id);
+            LogErrorCancellingMentorshipRequest(ex, currentUser?.Id);
             return BadRequest();
         }
 
@@ -367,7 +367,7 @@ public class RequestsModel : PageModel
             "Your mentorship request was cancelled", mentorship.Mentee, mentorship);
         if (!emailSent)
         {
-            _logger.LogError("Failed to send mentorship cancelled email to mentee");
+            LogFailedToSendMentorshipCancelledEmailToMentee();
             // TODO: Create a visual indicator that the email was not sent
         }
 
@@ -376,23 +376,23 @@ public class RequestsModel : PageModel
             "A mentorship request was cancelled", mentorship.Mentor, mentorship);
         if (!emailSent)
         {
-            _logger.LogError("Failed to send mentorship cancelled email to mentor");
+            LogFailedToSendMentorshipCancelledEmailToMentor();
             // TODO: Create a visual indicator that the email was not sent
         }
 
-        // Update the header count and swap the container        
+        // Update the header count and swap the container
         var outboundHeaderContainerHtml =
             await _partialRenderer.RenderPartialToStringAsync(
                 "~/Pages/Mentorship/_RequestsNotificationBadge.cshtml",
                 new RequestNotificationBadgeViewModel()
                 {
                     Count = OutgoingRequests.Count,
-                    NotificationDirection = RequestNotificationDirection.Outbound   
+                    NotificationDirection = RequestNotificationDirection.Outbound
                 });
         var outboundContainerHtml =
             await _partialRenderer.RenderPartialToStringAsync("~/Pages/Mentorship/_OutgoingRequests.cshtml",
                 OutgoingRequests);
-        
-        return Content(outboundHeaderContainerHtml + outboundContainerHtml, "text/html");       
+
+        return Content(outboundHeaderContainerHtml + outboundContainerHtml, "text/html");
     }
 }

@@ -10,7 +10,7 @@ namespace MoreSpeakers.Managers;
 /// <summary>
 /// Sends emails
 /// </summary>
-public class EmailSender: IEmailSender, Microsoft.AspNetCore.Identity.UI.Services.IEmailSender
+public partial class EmailSender: IEmailSender, Microsoft.AspNetCore.Identity.UI.Services.IEmailSender
 {
     private readonly QueueServiceClient _queueServiceClient;
     private readonly ISettings _settings;
@@ -37,7 +37,7 @@ public class EmailSender: IEmailSender, Microsoft.AspNetCore.Identity.UI.Service
     /// <param name="body">The body of the email</param>
     public async Task QueueEmail(MailAddress toAddress, string subject, string body)
     {
-        _logger.LogDebug("Queueing email to {ToAddress} with subject {Subject}", toAddress, subject);
+        LogQueueingEmail(toAddress, subject);
         var fromAddress = new MailAddress(_settings.Email.FromAddress, _settings.Email.FromName);
         var replyToAddress = new MailAddress(_settings.Email.ReplyToAddress, _settings.Email.ReplyToName);
         await QueueEmail(toAddress, subject, body, fromAddress, replyToAddress);
@@ -54,7 +54,7 @@ public class EmailSender: IEmailSender, Microsoft.AspNetCore.Identity.UI.Service
     public async Task QueueEmail(MailAddress toAddress,
         string subject, string body, MailAddress fromAddress , MailAddress replyToAddress) 
     {
-        _logger.LogDebug("Adding email to Queue. ToAddress: {ToAddress}, Subject: {Subject}", toAddress, subject);
+        LogAddingEmailToQueue(toAddress, subject);
         
         var emailMessage = new Email
         {
@@ -74,7 +74,7 @@ public class EmailSender: IEmailSender, Microsoft.AspNetCore.Identity.UI.Service
 
     public async Task SendEmailAsync(string email, string subject, string htmlMessage)
     {
-        _logger.LogDebug("Sending email to {ToAddress} with subject {Subject}", email, subject);
+        LogSendingEmail(email, subject);
         await QueueEmail(new MailAddress(email), subject, htmlMessage);
     }
 }

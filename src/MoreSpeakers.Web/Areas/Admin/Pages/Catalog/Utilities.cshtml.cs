@@ -5,7 +5,7 @@ using MoreSpeakers.Domain.Interfaces;
 
 namespace MoreSpeakers.Web.Areas.Admin.Pages.Catalog;
 
-public class UtilitiesModel(
+public partial class UtilitiesModel(
     IUserManager userManager,
     IOpenGraphSpeakerProfileImageGenerator openGraphSpeakerProfileImageGenerator,
     ILogger<UtilitiesModel> logger)
@@ -38,7 +38,7 @@ public class UtilitiesModel(
 
         }
 
-        logger.LogInformation("Regenerated {Count} speaker profile images", count);
+        LogRegeneratedCountSpeakerProfileImages(logger, count);
         RegeneratedSpeakerProfileImageCount = count;
 
         return Partial("~/Areas/Admin/Pages/Catalog/_Utilities_RegenerateStatus.cshtml", count);

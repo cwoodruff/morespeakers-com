@@ -6,7 +6,7 @@ using MoreSpeakers.Domain.Models.AdminUsers;
 
 namespace MoreSpeakers.Web.Areas.Admin.Pages.Catalog.Expertises.Sectors;
 
-public class IndexModel(ISectorManager manager, ILogger<IndexModel> logger) : PageModel
+public partial class IndexModel(ISectorManager manager, ILogger<IndexModel> logger) : PageModel
 {
     private readonly ISectorManager _manager = manager;
     private readonly ILogger<IndexModel> _logger = logger;
@@ -40,7 +40,7 @@ public class IndexModel(ISectorManager manager, ILogger<IndexModel> logger) : Pa
 
         sector.IsActive = false;
         await _manager.SaveAsync(sector);
-        _logger.LogInformation("[Admin:Sectors] Deactivated sector {Id} {Name}", sector.Id, sector.Name);
+        LogAdminSectorsDeactivated(sector.Id, sector.Name);
         return RedirectToPage(new { q = Q, status = Status });
     }
 
@@ -59,7 +59,7 @@ public class IndexModel(ISectorManager manager, ILogger<IndexModel> logger) : Pa
 
         sector.IsActive = true;
         await _manager.SaveAsync(sector);
-        _logger.LogInformation("[Admin:Sectors] Activated sector {Id} {Name}", sector.Id, sector.Name);
+        LogAdminSectorsActivated(sector.Id, sector.Name);
         return RedirectToPage(new { q = Q, status = Status });
     }
 }

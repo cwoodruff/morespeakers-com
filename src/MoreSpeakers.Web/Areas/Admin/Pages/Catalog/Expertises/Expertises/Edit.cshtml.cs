@@ -8,7 +8,7 @@ using MoreSpeakers.Web.Models.ViewModels;
 
 namespace MoreSpeakers.Web.Areas.Admin.Pages.Catalog.Expertises.Expertises;
 
-public class EditModel(IExpertiseManager expertiseManager, ISectorManager sectorManager, ILogger<EditModel> logger) : PageModel
+public partial class EditModel(IExpertiseManager expertiseManager, ISectorManager sectorManager, ILogger<EditModel> logger) : PageModel
 {
     private readonly IExpertiseManager _expertiseManager = expertiseManager;
     private readonly ISectorManager _sectorManager = sectorManager;
@@ -39,7 +39,7 @@ public class EditModel(IExpertiseManager expertiseManager, ISectorManager sector
 
     [BindProperty(SupportsGet = true)]
     public int SectorId { get; set; }
-    
+
     public List<Sector> Sectors { get; set; } = [];
     public List<ExpertiseCategory> ExpertiseCategories { get; set; } = [];
 
@@ -83,7 +83,7 @@ public class EditModel(IExpertiseManager expertiseManager, ISectorManager sector
         expertise.IsActive = Input.IsActive;
 
         await _expertiseManager.SaveAsync(expertise);
-        _logger.LogInformation("[Admin:Expertises] Updated expertise {Id} {Name}", expertise.Id, expertise.Name);
+        LogAdminExpertisesUpdated(expertise.Id, expertise.Name);
         return RedirectToPage("../Expertises/Index");
     }
 

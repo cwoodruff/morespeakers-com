@@ -8,7 +8,7 @@ using MoreSpeakers.Domain.Models.AdminUsers;
 namespace MoreSpeakers.Web.Areas.Admin.Pages.Users;
 
 [Authorize(Roles = Domain.Constants.UserRoles.Administrator)]
-public class IndexModel(IUserManager userManager, ILogger<IndexModel> logger) : PageModel
+public partial class IndexModel(IUserManager userManager, ILogger<IndexModel> logger) : PageModel
 {
     private readonly IUserManager _userManager = userManager;
     private readonly ILogger<IndexModel> _logger = logger;
@@ -56,15 +56,11 @@ public class IndexModel(IUserManager userManager, ILogger<IndexModel> logger) : 
         Roles = await _userManager.GetAllRoleNamesAsync();
         Result = await _userManager.AdminSearchUsersAsync(filter, sort, page, pageSize);
 
-        _logger.LogInformation("[AdminUsers] q={Q}, lockout={Lockout}, emailConfirmed={EmailConfirmed}, role={Role}, sort={Sort}, dir={Dir}, page={Page}, pageSize={PageSize}, total={Total}",
-            filter.Query, Query.Lockout, Query.EmailConfirmed, filter.RoleName, Query.Sort, Query.Dir, Result.Page, Result.PageSize, Result.TotalCount);
+        LogAdminQuery(filter.Query, Query.Lockout, Query.EmailConfirmed, filter.RoleName, Query?.Sort, Query?.Dir, Result.Page, Result.PageSize, Result.TotalCount);
 
-        if (Request.Headers.TryGetValue("HX-Request", out var hx) && string.Equals(hx, "true", StringComparison.OrdinalIgnoreCase))
-        {
-            return Partial("_UserList", this);
-        }
-
-        return Page();
+        return Request.Headers.TryGetValue("HX-Request", out var hx) && string.Equals(hx, "true", StringComparison.OrdinalIgnoreCase)
+            ? Partial("_UserList", this)
+            : Page();
     }
 
     private static readonly Dictionary<string, TriState> TriStateMap = new(StringComparer.OrdinalIgnoreCase)

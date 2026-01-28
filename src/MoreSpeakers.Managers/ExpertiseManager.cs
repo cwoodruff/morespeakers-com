@@ -6,7 +6,7 @@ using MoreSpeakers.Domain.Models.AdminUsers;
 
 namespace MoreSpeakers.Managers;
 
-public class ExpertiseManager: IExpertiseManager
+public partial class ExpertiseManager: IExpertiseManager
 {
     private readonly IExpertiseDataStore _dataStore;
     private readonly ILogger<ExpertiseManager> _logger;
@@ -50,19 +50,19 @@ public class ExpertiseManager: IExpertiseManager
     public async Task<int> CreateExpertiseAsync(string name, string? description = null, int expertiseCategoryId = 1)
     {
         var expertise = new Expertise { Name = name, Description = description, ExpertiseCategoryId = expertiseCategoryId };
-        
+
         try
         {
             var savedExpertise = await _dataStore.SaveAsync(expertise);
-            return savedExpertise.Id;  
+            return savedExpertise.Id;
         }
         catch(Exception ex)
         {
-            _logger.LogError(ex, "Failed to create expertise '{Name}'", name);
+            LogFailedToCreateExpertiseName(ex, name);
             return 0;
         }
     }
-    
+
     public async Task<IEnumerable<Expertise>> GetPopularExpertiseAsync(int count = 10)
     {
         return await _dataStore.GetPopularExpertiseAsync(count);
@@ -72,7 +72,7 @@ public class ExpertiseManager: IExpertiseManager
     {
         return await _dataStore.DoesExpertiseWithNameExistsAsync(expertiseName);
     }
-    
+
     public async Task<IEnumerable<Expertise>> FuzzySearchForExistingExpertise(string name, int count = 3)
     {
         return await _dataStore.FuzzySearchForExistingExpertise(name, count);
@@ -101,17 +101,17 @@ public class ExpertiseManager: IExpertiseManager
             var result = await _dataStore.SoftDeleteAsync(id);
             if (result)
             {
-                _logger.LogInformation("Soft-deleted expertise with id {Id}", id);
+                LogSoftDeletedExpertiseWithIdId(id);
             }
             else
             {
-                _logger.LogWarning("Soft delete returned false for expertise id {Id}", id);
+                LogSoftDeleteReturnedFalseForExpertiseIdId(id);
             }
             return result;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to soft delete expertise id {Id}", id);
+            LogFailedToSoftDeleteExpertiseIdId(ex, id);
             return false;
         }
     }
@@ -141,7 +141,7 @@ public class ExpertiseManager: IExpertiseManager
     {
         return await _dataStore.GetAllCategoriesAsync(active, searchTerm);
     }
-    
+
     public async Task<List<ExpertiseCategory>> GetAllActiveCategoriesForSector(int sectorId) =>
         await _dataStore.GetAllActiveCategoriesForSector(sectorId);
 
