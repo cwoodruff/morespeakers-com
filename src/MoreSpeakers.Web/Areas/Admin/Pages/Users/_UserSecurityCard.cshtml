@@ -29,6 +29,17 @@
       <dt class="col-sm-4">Lockout</dt><dd class="col-sm-8">@(Model.User.LockoutEnabled ? "Enabled" : "Disabled")</dd>
       <dt class="col-sm-4">Lockout End</dt><dd class="col-sm-8">@(Model.User.LockoutEnd?.ToString("u") ?? "None")</dd>
       <dt class="col-sm-4">Last sign-in</dt><dd class="col-sm-8">@(Model.LastSignInUtc?.ToString("u") ?? "Unknown")</dd>
+      <dt class="col-sm-4">Status</dt>
+      <dd class="col-sm-8">
+        @if (Model.User.IsDeleted)
+        {
+          <span class="badge bg-danger">Soft-Deleted (since @Model.User.DeletedAt?.ToString("u"))</span>
+        }
+        else
+        {
+          <span class="badge bg-success">Active</span>
+        }
+      </dd>
     </dl>
 
     <hr />
@@ -113,6 +124,57 @@
             Set Temp Password
           </button>
         </form>
+      </div>
+
+      <div class="col-12">
+        <hr />
+        <h6>Account Lifecycle</h6>
+        @if (!Model.User.IsDeleted)
+        {
+          <form class="d-inline"
+                method="post"
+                asp-page-handler="SoftDelete"
+                asp-route-id="@Model.User.Id"
+                hx-post="?handler=SoftDelete"
+                hx-target="#user-security-card"
+                hx-select="#user-security-card"
+                hx-swap="outerHTML"
+                hx-disabled-elt="button"
+                hx-indicator="#user-security-card .htmx-indicator"
+                hx-confirm="Soft-delete this user? They will be hidden from public flows but data is retained.">
+            <button type="submit" class="btn btn-outline-danger">
+              Soft Delete
+            </button>
+          </form>
+        }
+        else
+        {
+          <form class="d-inline"
+                method="post"
+                asp-page-handler="Restore"
+                asp-route-id="@Model.User.Id"
+                hx-post="?handler=Restore"
+                hx-target="#user-security-card"
+                hx-select="#user-security-card"
+                hx-swap="outerHTML"
+                hx-disabled-elt="button"
+                hx-indicator="#user-security-card .htmx-indicator"
+                hx-confirm="Restore this user account?">
+            <button type="submit" class="btn btn-outline-success">
+              Restore Account
+            </button>
+          </form>
+
+          <form class="d-inline ms-2"
+                method="post"
+                asp-page-handler="Delete"
+                asp-route-id="@Model.User.Id"
+                hx-confirm="PERMANENTLY delete this user? This action cannot be undone. Ensure GDPR export is complete if required.">
+            <button type="submit" class="btn btn-danger">
+              HARD DELETE
+            </button>
+          </form>
+        }
       </div>
     </div>
   </div>

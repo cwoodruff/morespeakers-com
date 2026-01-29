@@ -18,6 +18,7 @@ public class IndexModel(IUserManager userManager, ILogger<IndexModel> logger) : 
         [FromQuery(Name = "q")] public string? Q { get; set; }
         [FromQuery(Name = "lockout")] public string? Lockout { get; set; } = "any";
         [FromQuery(Name = "emailConfirmed")] public string? EmailConfirmed { get; set; } = "any";
+        [FromQuery(Name = "deleted")] public string? Deleted { get; set; } = "false";
         [FromQuery(Name = "role")] public string? Role { get; set; }
         [FromQuery(Name = "sort")] public string? Sort { get; set; } = "email";
         [FromQuery(Name = "dir")] public string? Dir { get; set; } = "asc";
@@ -42,6 +43,7 @@ public class IndexModel(IUserManager userManager, ILogger<IndexModel> logger) : 
             Query = string.IsNullOrWhiteSpace(Query.Q) ? null : Query.Q!.Trim(),
             EmailConfirmed = ParseTriState(Query.EmailConfirmed),
             LockedOut = ParseTriState(Query.Lockout),
+            IsDeleted = ParseTriState(Query.Deleted),
             RoleName = string.IsNullOrWhiteSpace(Query.Role) ? null : Query.Role!.Trim()
         };
 
@@ -73,6 +75,8 @@ public class IndexModel(IUserManager userManager, ILogger<IndexModel> logger) : 
         ["false"] = TriState.False,
         ["locked"] = TriState.True,      // alias
         ["notlocked"] = TriState.False,  // alias
+        ["deleted"] = TriState.True,     // alias
+        ["notdeleted"] = TriState.False, // alias
     };
 
     private static TriState ParseTriState(string? value)
