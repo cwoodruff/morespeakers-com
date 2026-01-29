@@ -17,7 +17,7 @@ using UserExpertise = MoreSpeakers.Domain.Models.UserExpertise;
 
 namespace MoreSpeakers.Data;
 
-public class UserDataStore : IUserDataStore
+public partial class UserDataStore : IUserDataStore
 {
     private readonly MoreSpeakersDbContext _context;
     private readonly UserManager<Data.Models.User> _userManager;
@@ -56,7 +56,7 @@ public class UserDataStore : IUserDataStore
             var identityUser = await _userManager.FindByIdAsync(user.Id.ToString());
             if (identityUser == null)
             {
-                _logger.LogError("Could not find user with id: {UserId} in the Identity database", user.Id);
+                LogCouldNotFindUserWithIdUseridInTheIdentityDatabase(user.Id);
                 throw new InvalidOperationException(
                     $"Could not find user with id: {user.Id} in the Identity database.");
             }
@@ -64,13 +64,13 @@ public class UserDataStore : IUserDataStore
             var result = await _userManager.ChangePasswordAsync(identityUser, currentPassword, newPassword);
             if (!result.Succeeded)
             {
-                _logger.LogError("Failed to change password for user with id: {UserId}", user.Id);
+                LogFailedToChangePasswordForUserWithIdUserid(user.Id);
             }
             return result;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to change password for user with id: {UserId}", user.Id);
+            LogFailedToChangePasswordForUserWithIdUserid(ex, user.Id);
             return IdentityResult.Failed();
         }
     }
@@ -84,13 +84,13 @@ public class UserDataStore : IUserDataStore
             var result = await _userManager.CreateAsync(identityUser, password);
             if (!result.Succeeded)
             {
-                _logger.LogError("Failed to create user with id: {UserId}", user.Id);
+                LogFailedToCreateUserWithIdUserid(user.Id);
             }
             return result;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to create user with id: {UserId}", user.Id);
+            LogFailedToCreateUserWithIdUserid(ex, user.Id);
             return IdentityResult.Failed();
         }
     }
@@ -288,7 +288,7 @@ public class UserDataStore : IUserDataStore
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to add roles to user {UserId}", userId);
+            LogFailedToAddRolesToUserUserid(userId);
             return IdentityResult.Failed(new IdentityError { Description = ex.Message });
         }
     }
@@ -304,7 +304,7 @@ public class UserDataStore : IUserDataStore
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to remove roles from user {UserId}", userId);
+            LogFailedToRemoveRolesFromUserUserid(userId);
             return IdentityResult.Failed(new IdentityError { Description = ex.Message });
         }
     }
@@ -406,24 +406,24 @@ public class UserDataStore : IUserDataStore
             var identityUser = await _userManager.FindByIdAsync(userId.ToString());
             if (identityUser == null)
             {
-                _logger.LogWarning("[AdminLockout] EnableLockout failed: user {UserId} not found", userId);
+                LogAdminlockoutEnablelockoutFailedUserUseridNotFound(userId);
                 return false;
             }
 
             var result = await _userManager.SetLockoutEnabledAsync(identityUser, enabled);
             if (!result.Succeeded)
             {
-                _logger.LogWarning("[AdminLockout] SetLockoutEnabledAsync failed for {UserId}: {Errors}", userId, string.Join(",", result.Errors.Select(e => e.Code)));
+                LogAdminlockoutSetlockoutenabledasyncFailedForUseridErrors(userId, string.Join(",", result.Errors.Select(e => e.Code)));
             }
             else
             {
-                _logger.LogInformation("[AdminLockout] LockoutEnabled set to {Enabled} for user {UserId}", enabled, userId);
+                LogAdminlockoutLockoutenabledSetToEnabledForUserUserid(enabled, userId);
             }
             return result.Succeeded;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "[AdminLockout] EnableLockoutAsync exception for user {UserId}", userId);
+            LogAdminlockoutEnablelockoutasyncExceptionForUserUserid(ex, userId);
             return false;
         }
     }
@@ -435,7 +435,7 @@ public class UserDataStore : IUserDataStore
             var identityUser = await _userManager.FindByIdAsync(userId.ToString());
             if (identityUser == null)
             {
-                _logger.LogWarning("[AdminLockout] SetLockoutEnd failed: user {UserId} not found", userId);
+                LogAdminlockoutSetlockoutendFailedUserUseridNotFound(userId);
                 return false;
             }
 
@@ -443,24 +443,24 @@ public class UserDataStore : IUserDataStore
             DateTimeOffset? normalized = lockoutEndUtc?.ToUniversalTime();
             if (normalized.HasValue && normalized.Value <= DateTimeOffset.UtcNow)
             {
-                _logger.LogWarning("[AdminLockout] Rejected SetLockoutEnd with past/now value for {UserId}: {LockoutEnd}", userId, lockoutEndUtc);
+                LogAdminlockoutRejectedSetlockoutendWithPastNowValueForUseridLockoutend(userId, lockoutEndUtc);
                 return false;
             }
 
             var result = await _userManager.SetLockoutEndDateAsync(identityUser, normalized);
             if (!result.Succeeded)
             {
-                _logger.LogWarning("[AdminLockout] SetLockoutEndDateAsync failed for {UserId}: {Errors}", userId, string.Join(",", result.Errors.Select(e => e.Code)));
+                LogAdminlockoutSetlockoutenddateasyncFailedForUseridErrors(userId, string.Join(",", result.Errors.Select(e => e.Code)));
             }
             else
             {
-                _logger.LogInformation("[AdminLockout] LockoutEnd set to {LockoutEnd} for user {UserId}", normalized, userId);
+                LogAdminlockoutLockoutendSetToLockoutendForUserUserid(normalized, userId);
             }
             return result.Succeeded;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "[AdminLockout] SetLockoutEndAsync exception for user {UserId}", userId);
+            LogAdminlockoutSetlockoutendasyncExceptionForUserUserid(ex, userId);
             return false;
         }
     }
@@ -472,30 +472,30 @@ public class UserDataStore : IUserDataStore
             var identityUser = await _userManager.FindByIdAsync(userId.ToString());
             if (identityUser == null)
             {
-                _logger.LogWarning("[AdminLockout] Unlock failed: user {UserId} not found", userId);
+                LogAdminlockoutUnlockFailedUserUseridNotFound(userId);
                 return false;
             }
 
             var endResult = await _userManager.SetLockoutEndDateAsync(identityUser, null);
             if (!endResult.Succeeded)
             {
-                _logger.LogWarning("[AdminLockout] Clearing LockoutEnd failed for {UserId}: {Errors}", userId, string.Join(",", endResult.Errors.Select(e => e.Code)));
+                LogAdminlockoutClearingLockoutendFailedForUseridErrors(userId, string.Join(",", endResult.Errors.Select(e => e.Code)));
                 return false;
             }
 
             var resetResult = await _userManager.ResetAccessFailedCountAsync(identityUser);
             if (!resetResult.Succeeded)
             {
-                _logger.LogWarning("[AdminLockout] ResetAccessFailedCount failed for {UserId}: {Errors}", userId, string.Join(",", resetResult.Errors.Select(e => e.Code)));
+                LogAdminlockoutResetaccessfailedcountFailedForUseridErrors(userId, string.Join(",", resetResult.Errors.Select(e => e.Code)));
                 return false;
             }
 
-            _logger.LogInformation("[AdminLockout] User {UserId} unlocked", userId);
+            LogAdminlockoutUserUseridUnlocked(userId);
             return true;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "[AdminLockout] UnlockAsync exception for user {UserId}", userId);
+            LogAdminlockoutUnlockasyncExceptionForUserUserid(ex, userId);
             return false;
         }
     }
@@ -515,7 +515,7 @@ public class UserDataStore : IUserDataStore
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "[AdminLockout] GetUserCountInRoleAsync failed for role {Role}", roleName);
+            LogAdminlockoutGetusercountinroleasyncFailedForRoleRole(ex, roleName);
             return 0;
         }
     }
@@ -581,7 +581,7 @@ public class UserDataStore : IUserDataStore
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to remove passkey for user {UserId}", userId);
+            LogFailedToRemovePasskeyForUserUserid(ex, userId);
             return false;
         }
     }
@@ -636,7 +636,7 @@ public class UserDataStore : IUserDataStore
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to add the new user");
+            LogFailedToAddTheNewUser(ex);
         }
         throw new ApplicationException("Failed to add the new user");
     }
@@ -742,7 +742,7 @@ public class UserDataStore : IUserDataStore
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to update the user '{Id}'", user.Id);
+            LogFailedToUpdateTheUserId(ex, user.Id);
         }
         throw new ApplicationException($"Failed to update the user '{user.Id}'");
     }
@@ -788,11 +788,11 @@ public class UserDataStore : IUserDataStore
             {
                 return true;
             }
-            _logger.LogError("Failed to delete the user. Id: '{Id}'", primaryKey);
+            LogFailedToDeleteTheUserIdId(primaryKey);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to delete the user. Id: '{Id}'", primaryKey);
+            LogFailedToDeleteTheUserIdId(ex, primaryKey);
         }
         return false;
     }
@@ -933,16 +933,13 @@ public class UserDataStore : IUserDataStore
 
             if (!result)
             {
-                _logger.LogError(
-                    "Failed to add social media link for user for id: {UserId}. SocialMediaSiteId: {SocialMediaSiteId}, SocialId: {SocialId}",
-                    userId, userSocialMediaSite.SocialMediaSiteId, userSocialMediaSite.SocialId);
+                LogFailedToAddSocialMediaLinkForUserForIdUseridSocialmediasiteidSocialmediasiteid(userId, userSocialMediaSite.SocialMediaSiteId, userSocialMediaSite.SocialId);
             }
             return result;
         }
         catch(Exception ex)
         {
-            _logger.LogError(ex, "Failed to add social media link for user for id: {UserId}. SocialMediaSiteId: {SocialMediaSiteId}, SocialId: {SocialId}",
-                userId, userSocialMediaSite.SocialMediaSiteId, userSocialMediaSite.SocialId);
+            LogFailedToAddSocialMediaLinkForUserForIdUseridSocialmediasiteidSocialmediasiteid(ex, userId, userSocialMediaSite.SocialMediaSiteId, userSocialMediaSite.SocialId);
             return false;
         }
     }
@@ -961,13 +958,13 @@ public class UserDataStore : IUserDataStore
             var result = await _context.SaveChangesAsync() != 0;
             if (!result)
             {
-                _logger.LogError("Failed to remove social media link with id: {UserSocialMediaSiteId}", userSocialMediaSiteId);
+                LogFailedToRemoveSocialMediaLinkWithIdUsersocialmediasiteid(userSocialMediaSiteId);
             }
             return result;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to remove social media link with id: {UserSocialMediaSiteId}", userSocialMediaSiteId);
+            LogFailedToRemoveSocialMediaLinkWithIdUsersocialmediasiteid(ex, userSocialMediaSiteId);
             return false;
         }
     }
@@ -995,13 +992,13 @@ public class UserDataStore : IUserDataStore
             var result = await _context.SaveChangesAsync() != 0;
             if (!result)
             {
-                _logger.LogError("Failed to add expertise to user with id: {UserId}. ExpertiseId: {ExpertiseId}", userId, expertiseId);
+                LogFailedToAddExpertiseToUserWithIdUseridExpertiseidExpertiseid(userId, expertiseId);
             }
             return result;
         }
         catch( Exception ex)
         {
-            _logger.LogError(ex, "Failed to add expertise to user with id: {UserId}. ExpertiseId: {ExpertiseId}", userId, expertiseId);
+            LogFailedToAddExpertiseToUserWithIdUseridExpertiseidExpertiseid(ex, userId, expertiseId);
             return false;
         }
     }
@@ -1019,7 +1016,7 @@ public class UserDataStore : IUserDataStore
                 var result = await _context.SaveChangesAsync() != 0;
                 if (!result)
                 {
-                    _logger.LogError("Failed to remove expertise from user with id: {UserId}. ExpertiseId: {ExpertiseId}", userId, expertiseId);
+                    LogFailedToRemoveExpertiseFromUserWithIdUseridExpertiseidExpertiseid(userId, expertiseId);
                 }
                 return result;
             }
@@ -1028,7 +1025,7 @@ public class UserDataStore : IUserDataStore
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to remove expertise from user with id: {UserId}. ExpertiseId: {ExpertiseId}", userId, expertiseId);
+            LogFailedToRemoveExpertiseFromUserWithIdUseridExpertiseidExpertiseid(ex, userId, expertiseId);
             return false;
         }
     }

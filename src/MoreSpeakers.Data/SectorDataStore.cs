@@ -11,7 +11,7 @@ using MoreSpeakers.Domain.Models.AdminUsers;
 
 namespace MoreSpeakers.Data;
 
-public class SectorDataStore : ISectorDataStore
+public partial class SectorDataStore : ISectorDataStore
 {
     private readonly MoreSpeakersDbContext _context;
     private readonly IMapper _mapper;
@@ -80,11 +80,11 @@ public class SectorDataStore : ISectorDataStore
             if (result)
                 return _mapper.Map<Sector>(dbEntity);
 
-            _logger.LogError("Failed to save the sector. Name: '{Name}'", sector.Name);
+            LogFailedToSaveSector(sector.Name);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to save the sector. Name: '{Name}'", sector.Name);
+            LogFailedToSaveSector(ex, sector.Name);
         }
 
         throw new ApplicationException("Failed to save the sector");
@@ -112,7 +112,7 @@ public class SectorDataStore : ISectorDataStore
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to delete the sector. Name: '{Name}'", entity.Name);
+            LogFailedToDeleteSector(ex, entity.Name);
             return false;
         }
     }

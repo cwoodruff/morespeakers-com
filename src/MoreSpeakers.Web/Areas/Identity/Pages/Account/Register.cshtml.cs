@@ -13,7 +13,7 @@ using MoreSpeakers.Web.Services;
 
 namespace MoreSpeakers.Web.Areas.Identity.Pages.Account;
 
-public class RegisterModel : PageModel
+public partial class RegisterModel : PageModel
 {
     private readonly IExpertiseManager _expertiseManager;
     private readonly IUserManager _userManager;
@@ -306,7 +306,7 @@ public class RegisterModel : PageModel
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error submitting new expertise");
+            LogErrorSubmittingNewExpertise(ex);
             AvailableExpertises = await _expertiseManager.GetAllExpertisesAsync();
             this.NewExpertiseResponse = new NewExpertiseCreatedResponse
             {
@@ -504,7 +504,7 @@ public class RegisterModel : PageModel
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to save new user account");
+            LogFailedToSaveNewUserAccount(ex);
             await LoadFormLookupListsAsync();
             // Reset to the first step on major failure
             CurrentStep = RegistrationProgressions.SpeakerProfileNeeded;
@@ -527,13 +527,13 @@ public class RegisterModel : PageModel
             return Partial("_RegistrationContainer", this);
         }
 
-        _logger.LogInformation("User created a new account with password");
+        LogUserCreatedNewAccount();
 
         // Load the user from the identity store
         user = await _userManager.FindByEmailAsync(Input.Email);
         if (user == null)
         {
-            _logger.LogError("Failed to find user after saving registration. Email: '{Email}'", Input.Email);
+            LogFailedToFindUser(Input.Email);
             await LoadFormLookupListsAsync();
             // Reset to the first step on major failure
             CurrentStep = RegistrationProgressions.SpeakerProfileNeeded;
@@ -571,7 +571,7 @@ public class RegisterModel : PageModel
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to save the user's expertise's and social media sites. Email: '{Email}'", Input.Email);
+            LogFailedToSaveExpertiseSocialMediaSites(ex, Input.Email);
             await LoadFormLookupListsAsync();
             // Reset to the first step on major failure
             CurrentStep = RegistrationProgressions.SpeakerProfileNeeded;
@@ -586,7 +586,7 @@ public class RegisterModel : PageModel
             "Welcome to MoreSpeakers.com - Your Speaking Journey Begins!", user, user);
         if (!emailSent)
         {
-            _logger.LogError("Failed to send the welcome email");
+            LogFailedToSendTheWelcomeEmail();
             // TODO: Create a visual indicator that the email was not sent
         }
 
@@ -599,7 +599,7 @@ public class RegisterModel : PageModel
             Request.Scheme);
         if (string.IsNullOrWhiteSpace(confirmationLink))
         {
-            _logger.LogWarning("Failed to generate confirmation link for user {UserId}", user.Id);
+            LogFailedToGenerateConfirmationLink(user.Id);
         }
         else
         {
@@ -609,7 +609,7 @@ public class RegisterModel : PageModel
                 "Welcome to MoreSpeakers.com - Let's confirm your email!", user, confirmationModel);
             if (!emailSent)
             {
-                _logger.LogError("Failed to send email confirmation email to user {UserId}", user.Id);
+                LogFailedToSendConfirmationEmail(user.Id);
             }
         }
 
@@ -656,7 +656,7 @@ public class RegisterModel : PageModel
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to add a social media row");
+            LogFailedToAddASocialMediaRow(ex);
         }
         return Content("");
     }

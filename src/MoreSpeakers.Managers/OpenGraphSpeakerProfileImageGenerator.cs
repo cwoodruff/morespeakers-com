@@ -12,7 +12,7 @@ using SixLabors.ImageSharp.PixelFormats;
 
 namespace MoreSpeakers.Managers;
 
-public class OpenGraphSpeakerProfileImageGenerator(
+public partial class OpenGraphSpeakerProfileImageGenerator(
     HttpClient httpClient,
     QueueServiceClient queueServiceClient,
     ILogger<OpenGraphSpeakerProfileImageGenerator> logger)
@@ -38,7 +38,7 @@ public class OpenGraphSpeakerProfileImageGenerator(
         var message = new CreateOpenGraphProfileImage { UserId = id, ProfileImageUrl = headshotUrl, SpeakerName = speakerName };
         var queue = new Queue(queueServiceClient, Domain.Constants.Queues.CreateOpenGraphProfileImage);
         await queue.AddMessageWithBase64EncodingAsync(message);
-        logger.LogInformation("Queued OpenGraph profile image creation for speaker {Id}", id);
+        LogQueuedOpengraphProfileImageCreationForSpeakerId(logger, id);
     }
 
 

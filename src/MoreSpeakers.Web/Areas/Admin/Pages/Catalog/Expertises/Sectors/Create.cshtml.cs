@@ -6,7 +6,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace MoreSpeakers.Web.Areas.Admin.Pages.Catalog.Expertises.Sectors;
 
-public class CreateModel(ISectorManager manager, ILogger<CreateModel> logger) : PageModel
+public partial class CreateModel(ISectorManager manager, ILogger<CreateModel> logger) : PageModel
 {
     private readonly ISectorManager _manager = manager;
     private readonly ILogger<CreateModel> _logger = logger;
@@ -53,7 +53,7 @@ public class CreateModel(ISectorManager manager, ILogger<CreateModel> logger) : 
         };
 
         var saved = await _manager.SaveAsync(sector);
-        _logger.LogInformation("[Admin:Sectors] Created sector {Id} {Name}", saved.Id, saved.Name);
+        LogAdminSectorsCreated(saved.Id, saved.Name);
         return RedirectToPage("Index");
     }
 }
