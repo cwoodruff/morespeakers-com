@@ -140,10 +140,8 @@ else if (User.Identity?.IsAuthenticated == true)
                     <strong>@Model.UserProfile.FirstName</strong> is an experienced speaker who can provide mentorship and guidance for your speaking journey.
                 </p>
                 <button class="btn btn-primary"
-                        hx-post="/Mentorship/Requests"
-                        hx-vals='{"mentorId": "@Model.UserProfile.Id"}'
-                        hx-confirm="Request mentorship from @Model.UserProfile.FullName?"
-                        hx-target="#mentorship-result"
+                        hx-get="/Speakers/Index?handler=RequestModal&mentorId=@Model.UserProfile.Id&type=@Domain.Models.MentorshipType.NewToExperienced"
+                        hx-target="#modal-container"
                         hx-swap="innerHTML">
                     <i class="bi bi-person-plus me-2"></i>Request Mentorship
                 </button>
