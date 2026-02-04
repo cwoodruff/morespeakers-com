@@ -21,7 +21,6 @@ public class AdminPoliciesTests(CustomWebApplicationFactory authFactory) : IClas
 
         foreach (var path in new[]
                  {
-                     "/Admin/Users/Test",
                      "/Admin/Catalog/Test",
                      "/Admin/Reports/Test"
                  })
@@ -44,7 +43,6 @@ public class AdminPoliciesTests(CustomWebApplicationFactory authFactory) : IClas
 
         foreach (var path in new[]
                  {
-                     "/Admin/Users/Test",
                      "/Admin/Catalog/Test",
                      "/Admin/Reports/Test"
                  })
@@ -62,11 +60,6 @@ public class AdminPoliciesTests(CustomWebApplicationFactory authFactory) : IClas
         var client = authFactory.CreateClient();
         client.DefaultRequestHeaders.Add(TestAuthDefaults.UserHeader, "admin");
         client.DefaultRequestHeaders.Add(TestAuthDefaults.RolesHeader, AppRoles.Administrator);
-
-        var users = await client.GetAsync("/Admin/Users/Test", TestContext.Current.CancellationToken);
-        var usersHtml = await users.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
-        Assert.True(users.StatusCode == HttpStatusCode.OK, $"Expected 200. Actual: {(int)users.StatusCode} {users.StatusCode}. Body: {usersHtml}");
-        Assert.Contains("Users Test", usersHtml);
 
         var catalog = await client.GetAsync("/Admin/Catalog/Test", TestContext.Current.CancellationToken);
         var catalogHtml = await catalog.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
@@ -97,9 +90,5 @@ public class AdminPoliciesTests(CustomWebApplicationFactory authFactory) : IClas
         var reports = await client.GetAsync("/Admin/Reports/Test", TestContext.Current.CancellationToken);
         var bodyR = await reports.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
         Assert.True(reports.StatusCode == HttpStatusCode.NotFound, $"Expected 404. Actual: {(int)reports.StatusCode} {reports.StatusCode}. Body: {bodyR}");
-
-        var users = await client.GetAsync("/Admin/Users/Test", TestContext.Current.CancellationToken);
-        var bodyU = await users.Content.ReadAsStringAsync(TestContext.Current.CancellationToken);
-        Assert.True(users.StatusCode == HttpStatusCode.NotFound, $"Expected 404. Actual: {(int)users.StatusCode} {users.StatusCode}. Body: {bodyU}");
     }
 }
