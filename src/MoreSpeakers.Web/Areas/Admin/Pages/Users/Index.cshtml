@@ -26,7 +26,6 @@
 
 <div class="d-flex align-items-center mb-3">
     <h2 class="mb-0">Users</h2>
-    <span class="text-muted ms-3">@Model.Result.TotalCount total</span>
   </div>
 
 <form method="get" class="mb-3">
@@ -82,10 +81,11 @@
         }
       </select>
     </div>
-    <div class="col-12 col-md-12 d-flex gap-2">
+    <div class="col-12 col-md-12 d-flex gap-2 align-items-center">
       <button type="submit" class="btn btn-primary"><i class="bi bi-funnel me-1"></i>Apply</button>
+      <span class="text-muted"></span>
       <a asp-area="Admin" asp-page="/Users/Index" class="btn btn-outline-secondary"
-         hx-get hx-target="#user-list-container" hx-push-url="true"><i class="bi bi-arrow-counterclockwise me-1"></i>Reset</a>
+         hx-boost="true" hx-target="#user-list-container" hx-swap="outerHTML" hx-push-url="true"><i class="bi bi-arrow-counterclockwise me-1"></i>Reset</a>
       <div class="htmx-indicator spinner-border spinner-border-sm text-primary ms-auto mb-1" role="status">
         <span class="visually-hidden">Loading...</span>
       </div>
@@ -93,70 +93,4 @@
   </div>
 </form>
 
-<div class="table-responsive">
-  <table class="table table-striped align-middle">
-    <thead>
-      <tr>
-        <th>
-          <a asp-page="/Users/Index" asp-route-q="@q.Q" asp-route-lockout="@q.Lockout" asp-route-emailConfirmed="@q.EmailConfirmed" asp-route-role="@q.Role" asp-route-pageSize="@q.PageSize" asp-route-sort="email" asp-route-dir="@SortDirFor("email")">Email</a>
-          @Html.Raw(CaretFor("email"))
-        </th>
-        <th>
-          <a asp-page="/Users/Index" asp-route-q="@q.Q" asp-route-lockout="@q.Lockout" asp-route-emailConfirmed="@q.EmailConfirmed" asp-route-role="@q.Role" asp-route-pageSize="@q.PageSize" asp-route-sort="username" asp-route-dir="@SortDirFor("username")">Username</a>
-          @Html.Raw(CaretFor("username"))
-        </th>
-        <th class="text-center">
-          <a asp-page="/Users/Index" asp-route-q="@q.Q" asp-route-lockout="@q.Lockout" asp-route-emailConfirmed="@q.EmailConfirmed" asp-route-role="@q.Role" asp-route-pageSize="@q.PageSize" asp-route-sort="emailconfirmed" asp-route-dir="@SortDirFor("emailconfirmed")">Email Confirmed</a>
-          @Html.Raw(CaretFor("emailconfirmed"))
-        </th>
-        <th class="text-center">
-          <a asp-page="/Users/Index" asp-route-q="@q.Q" asp-route-lockout="@q.Lockout" asp-route-emailConfirmed="@q.EmailConfirmed" asp-route-deleted="@q.Deleted" asp-route-role="@q.Role" asp-route-pageSize="@q.PageSize" asp-route-sort="lockout" asp-route-dir="@SortDirFor("lockout")">Lockout</a>
-          @Html.Raw(CaretFor("lockout"))
-        </th>
-        <th class="text-center">
-          Deleted
-        </th>
-        <th>
-          <a asp-page="/Users/Index" asp-route-q="@q.Q" asp-route-lockout="@q.Lockout" asp-route-emailConfirmed="@q.EmailConfirmed" asp-route-deleted="@q.Deleted" asp-route-role="@q.Role" asp-route-pageSize="@q.PageSize" asp-route-sort="role" asp-route-dir="@SortDirFor("role")">Role</a>
-          @Html.Raw(CaretFor("role"))
-        </th>
-        <th>
-          <a asp-page="/Users/Index" asp-route-q="@q.Q" asp-route-lockout="@q.Lockout" asp-route-emailConfirmed="@q.EmailConfirmed" asp-route-role="@q.Role" asp-route-pageSize="@q.PageSize" asp-route-sort="created" asp-route-dir="@SortDirFor("created")">Created</a>
-          @Html.Raw(CaretFor("created"))
-        </th>
-      </tr>
-    </thead>
-    <tbody>
-    @if (!Model.Result.Items.Any())
-    {
-      <tr>
-        <td colspan="6" class="text-muted">No users found.</td>
-      </tr>
-    }
-    else
-    {
-      foreach (var user in Model.Result.Items)
-      {
-        <tr>
-          <td>
-            <a asp-area="Admin" asp-page="/Users/Details" asp-route-id="@user.Id">@user.Email</a>
-          </td>
-          <td>@user.UserName</td>
-          <td class="text-center">
-            @if (user.EmailConfirmed) { <i class="bi bi-check-circle text-success" aria-label="Email confirmed"></i> }
-            else { <i class="bi bi-x-circle text-secondary" aria-label="Email not confirmed"></i> }
-          </td>
-          <td class="text-center">
-            @if (user.IsLockedOut) { <i class="bi bi-lock text-danger" aria-label="Locked out"></i> } else { <i class="bi bi-unlock text-secondary" aria-label="Not locked out"></i> }
-          </td>
-          <td class="text-center">
-            @if (user.IsDeleted) { <i class="bi bi-trash text-danger" aria-label="Deleted"></i> } else { <i class="bi bi-check-circle text-success" aria-label="Active"></i> }
-          </td>
-          <td>@user.Role</td>
-          <td>@(user.CreatedUtc?.ToString("yyyy-MM-dd"))</td>
-        </tr>
-      }
-    }
-    </tbody>
-  </table>
-</div>
+@await Html.PartialAsync("_UserList", Model)

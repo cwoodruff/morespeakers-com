@@ -19,6 +19,8 @@ public sealed class UserListRow
 {
     public Guid Id { get; init; }
     public string Email { get; init; } = string.Empty;
+    public string FirstName { get; init; } = string.Empty;
+    public string LastName { get; init; } = string.Empty;
     public string UserName { get; init; } = string.Empty;
     public bool EmailConfirmed { get; init; }
     public bool IsLockedOut { get; init; }
