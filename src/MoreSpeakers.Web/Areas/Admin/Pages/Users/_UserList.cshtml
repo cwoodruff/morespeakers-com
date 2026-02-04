@@ -20,40 +20,47 @@
     }
 }
 
-<div class="table-responsive">
+<div id="user-list-container" class="table-responsive">
   <table class="table table-striped align-middle">
     <thead>
       <tr>
         <th>
-          <a hx-get hx-target="#user-list-container" hx-push-url="true"
-             asp-page="/Users/Index" asp-route-q="@q.Q" asp-route-lockout="@q.Lockout" asp-route-emailConfirmed="@q.EmailConfirmed" asp-route-role="@q.Role" asp-route-pageSize="@q.PageSize" asp-route-sort="email" asp-route-dir="@SortDirFor("email")">Email</a>
+          <a hx-boost="true" hx-target="#user-list-container" hx-swap="outerHTML" hx-push-url="true"
+             asp-page="/Users/Index" asp-route-q="@q.Q" asp-route-lockout="@q.Lockout" asp-route-emailConfirmed="@q.EmailConfirmed" asp-route-role="@q.Role" asp-route-deleted="@q.Deleted" asp-route-pageSize="@q.PageSize" asp-route-sort="email" asp-route-dir="@SortDirFor("email")">Email</a>
           @Html.Raw(CaretFor("email"))
         </th>
         <th>
-          <a hx-get hx-target="#user-list-container" hx-push-url="true"
-             asp-page="/Users/Index" asp-route-q="@q.Q" asp-route-lockout="@q.Lockout" asp-route-emailConfirmed="@q.EmailConfirmed" asp-route-role="@q.Role" asp-route-pageSize="@q.PageSize" asp-route-sort="username" asp-route-dir="@SortDirFor("username")">Username</a>
-          @Html.Raw(CaretFor("username"))
+          First name
+        </th>
+        <th>
+          Last name
         </th>
         <th class="text-center">
-          <a hx-get hx-target="#user-list-container" hx-push-url="true"
-             asp-page="/Users/Index" asp-route-q="@q.Q" asp-route-lockout="@q.Lockout" asp-route-emailConfirmed="@q.EmailConfirmed" asp-route-role="@q.Role" asp-route-pageSize="@q.PageSize" asp-route-sort="emailconfirmed" asp-route-dir="@SortDirFor("emailconfirmed")">Email Confirmed</a>
+          <a hx-boost="true" hx-target="#user-list-container" hx-swap="outerHTML" hx-push-url="true"
+             asp-page="/Users/Index" asp-route-q="@q.Q" asp-route-lockout="@q.Lockout" asp-route-emailConfirmed="@q.EmailConfirmed" asp-route-role="@q.Role" asp-route-deleted="@q.Deleted" asp-route-pageSize="@q.PageSize" asp-route-sort="emailconfirmed" asp-route-dir="@SortDirFor("emailconfirmed")">Email Confirmed</a>
           @Html.Raw(CaretFor("emailconfirmed"))
         </th>
         <th class="text-center">
-          <a hx-get hx-target="#user-list-container" hx-push-url="true"
-             asp-page="/Users/Index" asp-route-q="@q.Q" asp-route-lockout="@q.Lockout" asp-route-emailConfirmed="@q.EmailConfirmed" asp-route-role="@q.Role" asp-route-pageSize="@q.PageSize" asp-route-sort="lockout" asp-route-dir="@SortDirFor("lockout")">Lockout</a>
+          <a hx-boost="true" hx-target="#user-list-container" hx-swap="outerHTML" hx-push-url="true"
+             asp-page="/Users/Index" asp-route-q="@q.Q" asp-route-lockout="@q.Lockout" asp-route-emailConfirmed="@q.EmailConfirmed" asp-route-role="@q.Role" asp-route-deleted="@q.Deleted" asp-route-pageSize="@q.PageSize" asp-route-sort="lockout" asp-route-dir="@SortDirFor("lockout")">Lockout</a>
           @Html.Raw(CaretFor("lockout"))
         </th>
+        <th class="text-center">
+          <a hx-boost="true" hx-target="#user-list-container" hx-swap="outerHTML" hx-push-url="true"
+             asp-page="/Users/Index" asp-route-q="@q.Q" asp-route-lockout="@q.Lockout" asp-route-emailConfirmed="@q.EmailConfirmed" asp-route-deleted="@q.Deleted" asp-route-role="@q.Role" asp-route-pageSize="@q.PageSize" asp-route-sort="deleted" asp-route-dir="@SortDirFor("deleted")">Deleted</a>
+          @Html.Raw(CaretFor("deleted"))
+        </th>
         <th>
-          <a hx-get hx-target="#user-list-container" hx-push-url="true"
-             asp-page="/Users/Index" asp-route-q="@q.Q" asp-route-lockout="@q.Lockout" asp-route-emailConfirmed="@q.EmailConfirmed" asp-route-role="@q.Role" asp-route-pageSize="@q.PageSize" asp-route-sort="role" asp-route-dir="@SortDirFor("role")">Role</a>
+          <a hx-boost="true" hx-target="#user-list-container" hx-swap="outerHTML" hx-push-url="true"
+             asp-page="/Users/Index" asp-route-q="@q.Q" asp-route-lockout="@q.Lockout" asp-route-emailConfirmed="@q.EmailConfirmed" asp-route-deleted="@q.Deleted" asp-route-role="@q.Role" asp-route-pageSize="@q.PageSize" asp-route-sort="role" asp-route-dir="@SortDirFor("role")">Role</a>
           @Html.Raw(CaretFor("role"))
         </th>
         <th>
-          <a hx-get hx-target="#user-list-container" hx-push-url="true"
-             asp-page="/Users/Index" asp-route-q="@q.Q" asp-route-lockout="@q.Lockout" asp-route-emailConfirmed="@q.EmailConfirmed" asp-route-role="@q.Role" asp-route-pageSize="@q.PageSize" asp-route-sort="created" asp-route-dir="@SortDirFor("created")">Created</a>
+          <a hx-boost="true" hx-target="#user-list-container" hx-swap="outerHTML" hx-push-url="true"
+             asp-page="/Users/Index" asp-route-q="@q.Q" asp-route-lockout="@q.Lockout" asp-route-emailConfirmed="@q.EmailConfirmed" asp-route-deleted="@q.Deleted" asp-route-role="@q.Role" asp-route-pageSize="@q.PageSize" asp-route-sort="created" asp-route-dir="@SortDirFor("created")">Created</a>
           @Html.Raw(CaretFor("created"))
         </th>
+        <th class="text-end">Actions</th>
       </tr>
     </thead>
     <tbody>
@@ -71,7 +78,8 @@
           <td>
             <a asp-area="Admin" asp-page="/Users/Details" asp-route-id="@user.Id">@user.Email</a>
           </td>
-          <td>@user.UserName</td>
+          <td>@user.FirstName</td>
+          <td>@user.LastName</td>
           <td class="text-center">
             @if (user.EmailConfirmed) { <i class="bi bi-check-circle text-success" aria-label="Email confirmed"></i> }
             else { <i class="bi bi-x-circle text-secondary" aria-label="Email not confirmed"></i> }
@@ -79,33 +87,47 @@
           <td class="text-center">
             @if (user.IsLockedOut) { <i class="bi bi-lock text-danger" aria-label="Locked out"></i> } else { <i class="bi bi-unlock text-secondary" aria-label="Not locked out"></i> }
           </td>
+          <td class="text-center">
+            @if (user.IsDeleted) { <i class="bi bi-check-circle text-danger" aria-label="Deleted"></i> }
+          </td>
           <td>@user.Role</td>
           <td>@(user.CreatedUtc?.ToString("yyyy-MM-dd"))</td>
+          <td class="text-end">
+            @if (!user.IsDeleted)
+            {
+              <form method="post" asp-page-handler="SoftDelete" asp-route-id="@user.Id" class="d-inline"
+                    hx-post="?handler=SoftDelete&amp;id=@user.Id" hx-target="#user-list-container" hx-swap="outerHTML" hx-confirm="Soft delete this user?">
+                <button type="submit" class="btn btn-sm btn-outline-danger">
+                  <i class="bi bi-trash me-1"></i>Soft Delete
+                </button>
+                @Html.AntiForgeryToken()
+              </form>
+            }
+          </td>
         </tr>
       }
     }
     </tbody>
   </table>
-</div>
 
-<nav aria-label="Users pagination">
+  <nav aria-label="Users pagination">
   <ul class="pagination justify-content-end">
     <li class="page-item @(Model.Result.Page <= 1 ? "disabled" : null)">
-      <a class="page-link" hx-get hx-target="#user-list-container" hx-push-url="true"
-         asp-page="/Users/Index" asp-route-q="@q.Q" asp-route-lockout="@q.Lockout" asp-route-emailConfirmed="@q.EmailConfirmed" asp-route-role="@q.Role" asp-route-sort="@q.Sort" asp-route-dir="@q.Dir" asp-route-pageSize="@q.PageSize" asp-route-page="@(Model.Result.Page - 1)" aria-label="Previous">
+      <a class="page-link" hx-boost="true" hx-target="#user-list-container" hx-swap="outerHTML" hx-push-url="true"
+         asp-page="/Users/Index" asp-route-q="@q.Q" asp-route-lockout="@q.Lockout" asp-route-emailConfirmed="@q.EmailConfirmed" asp-route-role="@q.Role" asp-route-deleted="@q.Deleted" asp-route-sort="@q.Sort" asp-route-dir="@q.Dir" asp-route-pageSize="@q.PageSize" asp-route-page="@(Model.Result.Page - 1)" aria-label="Previous">
         <span aria-hidden="true">&laquo;</span>
       </a>
     </li>
     @for (var p = 1; p <= totalPages; p++)
     {
       <li class="page-item @(p == Model.Result.Page ? "active" : null)">
-        <a class="page-link" hx-get hx-target="#user-list-container" hx-push-url="true"
-           asp-page="/Users/Index" asp-route-q="@q.Q" asp-route-lockout="@q.Lockout" asp-route-emailConfirmed="@q.EmailConfirmed" asp-route-role="@q.Role" asp-route-sort="@q.Sort" asp-route-dir="@q.Dir" asp-route-pageSize="@q.PageSize" asp-route-page="@p">@p</a>
+        <a class="page-link" hx-boost="true" hx-target="#user-list-container" hx-swap="outerHTML" hx-push-url="true"
+           asp-page="/Users/Index" asp-route-q="@q.Q" asp-route-lockout="@q.Lockout" asp-route-emailConfirmed="@q.EmailConfirmed" asp-route-role="@q.Role" asp-route-deleted="@q.Deleted" asp-route-sort="@q.Sort" asp-route-dir="@q.Dir" asp-route-pageSize="@q.PageSize" asp-route-page="@p">@p</a>
       </li>
     }
     <li class="page-item @(Model.Result.Page >= totalPages ? "disabled" : null)">
-      <a class="page-link" hx-get hx-target="#user-list-container" hx-push-url="true"
-         asp-page="/Users/Index" asp-route-q="@q.Q" asp-route-lockout="@q.Lockout" asp-route-emailConfirmed="@q.EmailConfirmed" asp-route-role="@q.Role" asp-route-sort="@q.Sort" asp-route-dir="@q.Dir" asp-route-pageSize="@q.PageSize" asp-route-page="@(Model.Result.Page + 1)" aria-label="Next">
+      <a class="page-link" hx-boost="true" hx-target="#user-list-container" hx-swap="outerHTML" hx-push-url="true"
+         asp-page="/Users/Index" asp-route-q="@q.Q" asp-route-lockout="@q.Lockout" asp-route-emailConfirmed="@q.EmailConfirmed" asp-route-role="@q.Role" asp-route-deleted="@q.Deleted" asp-route-sort="@q.Sort" asp-route-dir="@q.Dir" asp-route-pageSize="@q.PageSize" asp-route-page="@(Model.Result.Page + 1)" aria-label="Next">
         <span aria-hidden="true">&raquo;</span>
       </a>
     </li>
@@ -114,4 +136,5 @@
   {
     <div class="text-muted small text-end">Page @Model.Result.Page of @totalPages</div>
   }
-</nav>
+  </nav>
+</div>

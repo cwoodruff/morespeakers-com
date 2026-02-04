@@ -24,5 +24,7 @@ public enum UserAdminSortBy
     [Description("Create  Date")]
     CreatedUtc = 5,
     [Description("Last signed In")]
-    LastSignInUtc = 6
+    LastSignInUtc = 6,
+    [Description("Deleted")]
+    Deleted = 7
 }

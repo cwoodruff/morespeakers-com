@@ -15,7 +15,7 @@
 
 <div id="user-security-card" class="card">
   <div class="card-header d-flex justify-content-between align-items-center">
-    <span>Security</span>
+    <span>Actions</span>
   </div>
   <div class="card-body">
     <div class="htmx-indicator mb-2" aria-hidden="true">
@@ -42,8 +42,7 @@
       </dd>
     </dl>
 
-    <hr />
-    <div class="row g-2">
+    <div class="row g-2 mt-3">
       <div class="col-12">
         <form class="d-inline"
               method="post"
@@ -90,9 +89,11 @@
         </form>
       </div>
 
-      <div class="col-12">
-        <hr />
-        <h6>Password Management</h6>
+      <div class="col-12 d-flex align-items-center justify-content-between">
+        <div class="me-2">
+          <strong>Password</strong>
+        </div>
+        <div>
         <form class="d-inline"
               method="post"
               asp-page-handler="TriggerPasswordReset"
@@ -108,7 +109,6 @@
             Send Reset Email
           </button>
         </form>
-
         <form class="d-inline ms-2"
               method="post"
               asp-page-handler="SetTemporaryPassword"
@@ -124,11 +124,14 @@
             Set Temp Password
           </button>
         </form>
+        </div>
       </div>
 
-      <div class="col-12">
-        <hr />
-        <h6>Account Lifecycle</h6>
+      <div class="col-12 d-flex align-items-center justify-content-between">
+        <div class="me-2">
+          <strong>Account Lifecycle</strong>
+        </div>
+        <div>
         @if (!Model.User.IsDeleted)
         {
           <form class="d-inline"
@@ -175,6 +178,7 @@
             </button>
           </form>
         }
+        </div>
       </div>
     </div>
   </div>

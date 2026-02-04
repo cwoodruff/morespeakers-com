@@ -91,6 +91,7 @@ public partial class IndexModel(IUserManager userManager, ILogger<IndexModel> lo
         ["role"] = UserAdminSortBy.Role,
         ["created"] = UserAdminSortBy.CreatedUtc,
         ["lastsignin"] = UserAdminSortBy.LastSignInUtc,
+        ["deleted"] = UserAdminSortBy.Deleted,
     };
 
     private static UserAdminSortBy ParseSortBy(string? value)
@@ -98,5 +99,40 @@ public partial class IndexModel(IUserManager userManager, ILogger<IndexModel> lo
         return string.IsNullOrWhiteSpace(value)
             ? UserAdminSortBy.Email
             : SortByMap.TryGetValue(value.Trim(), out var by) ? by : UserAdminSortBy.Email;
+    }
+
+    public async Task<IActionResult> OnPostSoftDeleteAsync(Guid id)
+    {
+        var ok = await _userManager.SoftDeleteAsync(id);
+        if (!ok)
+        {
+            Response.StatusCode = 400;
+        }
+
+        // Re-execute the list query to refresh the table
+        var page = Math.Max(1, Query.Page);
+        var pageSize = Math.Clamp(Query.PageSize, 1, 100);
+
+        var filter = new UserAdminFilter
+        {
+            Query = string.IsNullOrWhiteSpace(Query.Q) ? null : Query.Q!.Trim(),
+            EmailConfirmed = ParseTriState(Query.EmailConfirmed),
+            LockedOut = ParseTriState(Query.Lockout),
+            IsDeleted = ParseTriState(Query.Deleted),
+            RoleName = string.IsNullOrWhiteSpace(Query.Role) ? null : Query.Role!.Trim()
+        };
+
+        var sort = new UserAdminSort
+        {
+            By = ParseSortBy(Query.Sort),
+            Direction = string.Equals(Query.Dir, "desc", StringComparison.OrdinalIgnoreCase)
+                ? SortDirection.Desc
+                : SortDirection.Asc
+        };
+
+        Roles = await _userManager.GetAllRoleNamesAsync();
+        Result = await _userManager.AdminSearchUsersAsync(filter, sort, page, pageSize);
+
+        return Partial("_UserList", this);
     }
 }

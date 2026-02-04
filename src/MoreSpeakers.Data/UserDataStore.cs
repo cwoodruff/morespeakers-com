@@ -159,7 +159,7 @@ public partial class UserDataStore : IUserDataStore
         {
             TriState.True => users.Where(u => u.IsDeleted),
             TriState.False => users.Where(u => !u.IsDeleted),
-            _ => users.Where(u => !u.IsDeleted) // Default to hiding deleted users
+            _ => users
         };
 
         // Role filter via join
@@ -189,6 +189,8 @@ public partial class UserDataStore : IUserDataStore
                             Id = u.Id,
                             Email = u.Email,
                             UserName = u.UserName,
+                            FirstName = u.FirstName,
+                            LastName = u.LastName,
                             EmailConfirmed = u.EmailConfirmed,
                             IsLockedOut = u.LockoutEnabled && u.LockoutEnd != null && u.LockoutEnd > now,
                             IsDeleted = u.IsDeleted,
@@ -224,6 +226,9 @@ public partial class UserDataStore : IUserDataStore
             UserAdminSortBy.LastSignInUtc => sort.Direction == SortDirection.Asc
                                 ? projected.OrderBy(x => x.LastSignInUtc).ThenBy(x => x.Email).ThenBy(x => x.Id)
                                 : projected.OrderByDescending(x => x.LastSignInUtc).ThenBy(x => x.Email).ThenBy(x => x.Id),
+            UserAdminSortBy.Deleted => sort.Direction == SortDirection.Asc
+                                ? projected.OrderBy(x => x.IsDeleted).ThenBy(x => x.Email).ThenBy(x => x.Id)
+                                : projected.OrderByDescending(x => x.IsDeleted).ThenBy(x => x.Email).ThenBy(x => x.Id),
             _ => sort.Direction == SortDirection.Asc
                                 ? projected.OrderBy(x => x.Email).ThenBy(x => x.Id)
                                 : projected.OrderByDescending(x => x.Email).ThenBy(x => x.Id),
@@ -235,6 +240,8 @@ public partial class UserDataStore : IUserDataStore
             {
                 Id = x.Id,
                 Email = x.Email!,
+                FirstName = x.FirstName ?? string.Empty,
+                LastName = x.LastName ?? string.Empty,
                 UserName = x.UserName!,
                 EmailConfirmed = x.EmailConfirmed,
                 IsLockedOut = x.IsLockedOut,
@@ -314,6 +321,8 @@ public partial class UserDataStore : IUserDataStore
         public Guid Id { get; set; }
         public string? Email { get; set; }
         public string? UserName { get; set; }
+        public string? FirstName { get; set; }
+        public string? LastName { get; set; }
         public bool EmailConfirmed { get; set; }
         public bool IsLockedOut { get; set; }
         public bool IsDeleted { get; set; }
