@@ -533,6 +533,7 @@ public sealed class OpenGraphSpeakerProfileImageGeneratorTests : IDisposable
         var handler = new FakeQueueHandler();
         var queueServiceClient = CreateQueueServiceClient(handler);
         var logger = new Mock<ILogger<OpenGraphSpeakerProfileImageGenerator>>();
+        logger.Setup(mock => mock.IsEnabled(LogLevel.Information)).Returns(true);
         var generator = new OpenGraphSpeakerProfileImageGenerator(new HttpClient(), queueServiceClient, logger.Object);
         var id = Guid.NewGuid();
 

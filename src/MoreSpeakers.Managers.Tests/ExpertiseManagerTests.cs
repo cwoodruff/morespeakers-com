@@ -1,7 +1,9 @@
 using FluentAssertions;
 
 using Microsoft.Extensions.Logging;
+
 using Moq;
+
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models;
 using MoreSpeakers.Domain.Models.AdminUsers;
@@ -11,7 +13,13 @@ namespace MoreSpeakers.Managers.Tests;
 public class ExpertiseManagerTests
 {
     private readonly Mock<IExpertiseDataStore> _dataStoreMock = new();
-    private readonly Mock<ILogger<ExpertiseManager>> _loggerMock = new();
+    private readonly Mock<ILogger<ExpertiseManager>> _loggerMock;
+
+    public ExpertiseManagerTests()
+    {
+        _loggerMock = new Mock<ILogger<ExpertiseManager>>();
+        _loggerMock.Setup(mock => mock.IsEnabled(LogLevel.Error)).Returns(true);
+    }
 
     private ExpertiseManager CreateSut() => new(_dataStoreMock.Object, _loggerMock.Object);
 

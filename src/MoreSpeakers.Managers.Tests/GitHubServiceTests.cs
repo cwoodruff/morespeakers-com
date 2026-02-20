@@ -136,6 +136,7 @@ public class GitHubServiceTests
         var cache = new MemoryCache(new MemoryCacheOptions());
         var httpClient = new HttpClient(new ThrowingHttpMessageHandler());
         var logger = new Mock<ILogger<GitHubService>>();
+        logger.Setup(mock => mock.IsEnabled(LogLevel.Error)).Returns(true);
         var sut = new GitHubService(httpClient, cache, CreateSettings(), logger.Object);
 
         var result = await sut.GetContributorsAsync();
