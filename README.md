@@ -29,30 +29,31 @@ MoreSpeakers.com is a mentorship platform designed to help aspiring speakers in 
 
 ## Technology Stack
 
-- **Backend**: ASP.NET Core 9.0 with Razor Pages
+- **Backend**: .NET 10 / ASP.NET Core with Razor Pages
 - **Frontend**: HTML5, CSS3, HTMX, Hyperscript (minimal JavaScript), Bootstrap 5
-- **ORM**: Entity Framework Core 9.0
-- **Database**: Microsoft SQL Server (Local for development, Azure SQL for production)
-- **Development Environment**: .NET Aspire for orchestration
+- **Data Access**: Entity Framework Core 10 (runtime ORM only — **no EF migrations**)
+- **Database Schema**: Raw SQL scripts in `scripts/database/`, loaded by .NET Aspire at startup
+- **Database**: Microsoft SQL Server (containerized via Docker for development, Azure SQL for production)
+- **Development Environment**: .NET Aspire for orchestration (AppHost manages SQL Server, Azure Storage emulator)
 - **Hosting**: Azure App Service
 - **Database Hosting**: Azure SQL Database
 - **Email Notifications**: Azure Functions with SendGrid
 - **Version Control**: Git and GitHub
 - **CI/CD**: GitHub Actions
 - **Containerization**: Docker (for local development with .NET Aspire)
-- **Testing**: xUnit, Moq
+- **Testing**: xUnit, FluentAssertions, Moq, Bogus
 - **Logging**: Serilog
+- **Object Mapping**: AutoMapper (Data ↔ Domain model mapping)
 - **Documentation**: Markdown files in the docs/ directory
 - **Code Quality**: SonarCloud
 - **Monitoring**: Azure Application Insights
-- **Security**: ASP.NET Core Identity, Azure Key Vault
+- **Security**: ASP.NET Core Identity (with passkey support), Azure Key Vault
 - **Caching**: In-memory caching with ASP.NET Core MemoryCache
-- **Search**: Azure Cognitive Search (planned for future releases)
 
 ## Quick Start
 
 ### Prerequisites
-- .NET 9.0 SDK
+- .NET 10.0 SDK
 - Visual Studio 2022, JetBrains Rider, or VS Code
 - Docker Desktop (for .NET Aspire)
 - Azure Storage Explorer
@@ -65,36 +66,36 @@ Read about set up and developer solution installation in [Developer Startup](doc
 
 ```
 MoreSpeakers/
-| src/                                # Source code
-│   ├── MoreSpeakers.AppHost/         # .NET Aspire orchestration
-│   ├── MoreSpeakers.ServiceDefaults/ # .NET Aspire service defaults
-│   ├── MoreSpeakers.Domain/          # Domain models and abstractions
-│   ├── MoreSpeakers.Functions/       # Azure Functions (e.g., email notifications)
-│   ├── MoreSpeakers.Managers/        # Application services/managers/business logic
-│   ├── MoreSpeakers.Tests/           # Automated tests
-│   └── MoreSpeakers.Web/             # Main web application
-│       ├── Areas/                    # Feature areas (e.g., Identity)
-│       ├── Data/                     # EF Core DbContext and Migrations
-│       ├── Models/                   # View models and data models
-│       ├── Pages/                    # Razor Pages
-│       ├── Services/                 # App-level services used by the web app
-│       ├── wwwroot/                  # Static files (CSS, JS, images, libs)
-│       └── Properties/               # Launch settings and config
-├── docs/                             # Documentation
-├── scripts/database/                 # Database deployment scripts
-└── .github/                          # CI/CD and workflows
+├── src/                                  # Source code
+│   ├── MoreSpeakers.AppHost/             # .NET Aspire orchestration (entry point for dev)
+│   ├── MoreSpeakers.ServiceDefaults/     # .NET Aspire shared service configuration
+│   ├── MoreSpeakers.Domain/              # Domain models, interfaces, and validation
+│   ├── MoreSpeakers.Data/                # EF Core DbContext, DataStores, AutoMapper profiles
+│   ├── MoreSpeakers.Managers/            # Business logic / application services
+│   ├── MoreSpeakers.Functions/           # Azure Functions (email, OpenGraph image generation)
+│   ├── MoreSpeakers.Web/                 # Main Razor Pages web application
+│   │   ├── Areas/                        # Feature areas (Identity, Admin)
+│   │   ├── Authorization/                # Policies and role constants
+│   │   ├── Endpoints/                    # Minimal API endpoints (e.g., Expertise API)
+│   │   ├── Models/                       # View models
+│   │   ├── Pages/                        # Razor Pages
+│   │   ├── Services/                     # App-level services (file upload, email, OpenGraph)
+│   │   ├── TagHelpers/                   # Custom Razor tag helpers
+│   │   └── wwwroot/                      # Static files (CSS, JS, images, libs)
+│   ├── MoreSpeakers.Data.Tests/          # Data layer unit tests
+│   ├── MoreSpeakers.Domain.Tests/        # Domain model unit tests
+│   ├── MoreSpeakers.Managers.Tests/      # Manager/business logic unit tests
+│   └── MoreSpeakers.Web.Tests/           # Web layer unit tests
+├── docs/                                 # Documentation
+├── scripts/database/                     # Raw SQL scripts (schema, views, functions, seed data)
+└── .github/                              # CI/CD workflows
 ```
 
-### Database Migrations
-Create a new migration:
-```bash
-dotnet ef migrations add MigrationName
-```
+### Database Changes
 
-Apply migrations:
-```bash
-dotnet ef database update
-```
+This project does **not** use EF Core migrations. Schema changes are managed via raw SQL scripts in `scripts/database/`. The .NET Aspire AppHost loads and executes these scripts when the SQL Server container starts.
+
+To make a schema change, add or modify the appropriate SQL script (e.g., `create-tables.sql`, `seed-data.sql`).
 
 ### Running Tests
 ```bash
