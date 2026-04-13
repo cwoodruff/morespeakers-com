@@ -20,6 +20,27 @@
 - 2026-07-16: Completed project structure audit and README reconciliation.
 - 2025-07-18: Completed full codebase quality review (security, code quality, testability, exception handling). Key findings: XSS via Html.Raw in profile edit partials, innerHTML XSS in JS files, 35+ generic catch(Exception) blocks, zero DataStore test coverage, Console.WriteLine in production code. CSRF finding was false positive (Razor Pages auto-validate). SQL script passwords are dev-only (Aspire container).
 
+## Tomorrow Handoff (Session Checkpoint)
+
+**Status:** Codebase quality review completed and merged into squad decisions. Five actionable issues triaged by severity.
+
+**Decision Inbox Merged (2026-04-13T19:12:05Z):**
+- ripley-codebase-quality-review.md → decisions.md
+- ripley-project-structure-audit.md → decisions.md  
+- ripley-tomorrow-handoff.md → decisions.md (inbox deleted)
+
+**Key Blockers for Prioritization:**
+1. **XSS (Critical):** Html.Raw in profile partials + innerHTML in JS files — security fix for immediate squad action
+2. **Exception Handling (High):** 35+ catch(Exception) blocks; team must adopt unified Result<T> or rethrow-with-context pattern
+3. **Test Coverage (High):** DataStore layer has zero tests — blocks testability improvements
+4. **Code Cleanliness (Medium):** Console.WriteLine in OpenGraphSpeakerProfileImageGenerator
+
+**Next Session Focus:**
+- Squad consensus on exception handling pattern (api-agent + team decision)
+- Prioritize XSS fixes (api-agent to begin with profile form partials)
+- DataStore test harness design (test-agent prep)
+- README is now current (no follow-up needed)
+
 ### Architecture (verified)
 - **Dependency graph:** Web → {Managers, Data, Domain, ServiceDefaults} | Managers → Domain | Data → Domain | AppHost → {Web, Functions}
 - **Data layer pattern:** EF Core is used as a runtime ORM with AutoMapper for Data↔Domain model mapping. Schema is managed via raw SQL scripts loaded by Aspire, NOT EF migrations.
