@@ -9,6 +9,7 @@ How to decide who handles what.
 | Architecture, slicing, and code review | Ripley | Design choices, trade-offs, reviewer gates, cross-project coordination |
 | Razor Pages and HTMX UX | Bishop | Page handlers, partials, HTMX flows, server-rendered interaction |
 | Backend and Azure Functions | Dallas | Managers, data flow, APIs, integrations, Functions endpoints |
+| Data architecture and schema design | Hicks | SQL scripts, DataStore design, EF mappings, data integrity, query architecture |
 | Testing and quality review | Vasquez | xUnit coverage, FluentAssertions, Moq, Bogus, regression cases |
 | CI/CD and Azure deployment | Parker | GitHub Actions, Azure publishing, environment wiring, release hardening |
 | Scope & priorities | Ripley | What to build next, sequencing, risks, decisions |
@@ -23,6 +24,7 @@ How to decide who handles what.
 | `squad:ripley` | Triage architecture-heavy issues and reviewer escalations | Ripley |
 | `squad:bishop` | Pick up UI, Razor Pages, and HTMX work | Bishop |
 | `squad:dallas` | Pick up backend, Functions, and integration work | Dallas |
+| `squad:hicks` | Pick up schema, DataStore, query, and persistence-architecture work | Hicks |
 | `squad:vasquez` | Pick up test and verification work | Vasquez |
 | `squad:parker` | Pick up pipeline, infrastructure, and deployment work | Parker |
 

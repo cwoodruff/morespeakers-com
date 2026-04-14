@@ -15,6 +15,7 @@
 | Ripley | Lead | `.squad/agents/ripley/charter.md` | ✅ Active |
 | Bishop | Frontend Dev | `.squad/agents/bishop/charter.md` | ✅ Active |
 | Dallas | Backend Dev | `.squad/agents/dallas/charter.md` | ✅ Active |
+| Hicks | Data Architect | `.squad/agents/hicks/charter.md` | ✅ Active |
 | Vasquez | Tester | `.squad/agents/vasquez/charter.md` | ✅ Active |
 | Parker | DevOps | `.squad/agents/parker/charter.md` | ✅ Active |
 | Scribe | Session Logger | `.squad/agents/scribe/charter.md` | 📋 Silent |

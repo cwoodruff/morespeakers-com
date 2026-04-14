@@ -26,6 +26,14 @@
       "legacy_named": false,
       "status": "active"
     },
+    "hicks": {
+      "persistent_name": "Hicks",
+      "universe": "Alien",
+      "role": "Data Architect",
+      "created_at": "2026-04-14T18:56:36Z",
+      "legacy_named": false,
+      "status": "active"
+    },
     "vasquez": {
       "persistent_name": "Vasquez",
       "universe": "Alien",
