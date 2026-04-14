@@ -19,6 +19,8 @@
 - Joseph wants the squad oriented around server-rendered UX, backend logic, testing, and Azure deployment.
 - 2026-07-16: Completed project structure audit and README reconciliation.
 - 2025-07-18: Completed full codebase quality review (security, code quality, testability, exception handling). Key findings: XSS via Html.Raw in profile edit partials, innerHTML XSS in JS files, 35+ generic catch(Exception) blocks, zero DataStore test coverage, Console.WriteLine in production code. CSRF finding was false positive (Razor Pages auto-validate). SQL script passwords are dev-only (Aspire container).
+- 2025-07-18: **Exception handling decision proposed: Result<T> over rethrow-with-context.** Deep audit confirmed 69 catch blocks (all bare `catch(Exception)`), three conflicting failure patterns: swallow-and-return-sentinel (dominant), catch-log-throw-ApplicationException (DataStore SaveAsync), catch-everything-at-Web-layer. `IdentityResult` already proves the Result pattern works in this codebase. Recommended incremental rollout starting with Expertise vertical slice. Decision written to inbox for team consensus.
+- 2026-04-14: Exception handling decision merged to squad ledger. **Result<T> recommended for all expected failures.** Awaiting team consensus to begin Phase 1 (Foundation).
 
 ## Tomorrow Handoff (Session Checkpoint)
 
