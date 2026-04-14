@@ -69,6 +69,26 @@ Zero test coverage on Data layer. Requires test harness design after exception p
 
 Updated README.md to reflect .NET 10, EF Core 10 (runtime ORM), actual project structure, and no EF migrations constraint.
 
+### Squad Routing: Result<T> Backlog (#385–#394)
+
+**Status:** Applied (2026-04-15) | **Owner:** Ripley
+
+**Decision:** Assign 10 backlog issues to squad members per expertise and architecture ownership:
+
+| Group | Issue | Squad | Rationale |
+|-------|-------|-------|-----------|
+| Phase 1 | #385 | Dallas | Foundation: Domain Result<T> types. |
+| Phase 2 | #386 | Dallas | Expertise PoC (full vertical). |
+| Phase 2 | #391 | Bishop | XSS: Html.Raw Razor (independent). |
+| Phase 2 | #392 | Bishop | XSS: innerHTML JS (independent). |
+| Phase 2 | #393 | Dallas | Console.WriteLine cleanup (independent). |
+| Phase 3 | #387, #388, #389 | Dallas | User, Mentoring, Sector+SocialMediaSite verticals (parallel after PoC). |
+| Phase 3 | #394 | Vasquez | Test harness (incremental, grows with each vertical). |
+| Phase 4 | #390 | Dallas | Cross-cutting cleanup (after verticals). |
+
+**Labels:** `squad:dallas`, `squad:bishop`, `squad:vasquez` applied to all issues.  
+**Result:** Squad members unblocked to begin work.
+
 ## Governance
 
 - All meaningful changes require team consensus
