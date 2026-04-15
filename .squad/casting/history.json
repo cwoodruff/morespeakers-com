@@ -1,0 +1,48 @@
+{
+  "universe_usage_history": [
+    {
+      "assignment_id": "2026-04-13-initial-squad",
+      "universe": "Alien",
+      "created_at": "2026-04-13T18:32:55Z",
+      "agent_count": 5
+    }
+  ],
+  "assignment_cast_snapshots": {
+    "2026-04-13-initial-squad": {
+      "created_at": "2026-04-13T18:32:55Z",
+      "project": "morespeakers-com",
+      "owner": "Joseph Guadagno",
+      "universe": "Alien",
+      "members": [
+        {
+          "name": "Ripley",
+          "role": "Lead"
+        },
+        {
+          "name": "Bishop",
+          "role": "Frontend Dev"
+        },
+        {
+          "name": "Dallas",
+          "role": "Backend Dev"
+        },
+        {
+          "name": "Vasquez",
+          "role": "Tester"
+        },
+        {
+          "name": "Parker",
+          "role": "DevOps"
+        },
+        {
+          "name": "Scribe",
+          "role": "Session Logger"
+        },
+        {
+          "name": "Ralph",
+          "role": "Work Monitor"
+        }
+      ]
+    }
+  }
+}
