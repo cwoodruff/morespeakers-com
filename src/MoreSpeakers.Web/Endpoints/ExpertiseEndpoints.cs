@@ -31,14 +31,24 @@ public static class ExpertiseEndpoints
     
     private static async Task<IResult> SearchExpertiseCategories([FromQuery(Name = "q")] string searchTerm, IExpertiseManager expertiseManager)
     {
-        var expertiseCategories = await expertiseManager.GetAllCategoriesAsync(searchTerm: searchTerm);
-        return Results.Json(expertiseCategories, GetSerializeOptions);
+        var expertiseCategoriesResult = await expertiseManager.GetAllCategoriesAsync(searchTerm: searchTerm);
+        return expertiseCategoriesResult.IsSuccess
+            ? Results.Json(expertiseCategoriesResult.Value, GetSerializeOptions)
+            : Results.Problem(
+                title: "Unable to search expertise categories.",
+                detail: expertiseCategoriesResult.Error.Message,
+                statusCode: StatusCodes.Status500InternalServerError);
     }
     
     private static async Task<IResult> SearchExpertises([FromQuery(Name = "q")] string searchTerm, IExpertiseManager expertiseManager)
     {
-        var expertises = await expertiseManager.GetAllExpertisesAsync(searchTerm: searchTerm);
-        return Results.Json(expertises, GetSerializeOptions);
+        var expertisesResult = await expertiseManager.GetAllExpertisesAsync(searchTerm: searchTerm);
+        return expertisesResult.IsSuccess
+            ? Results.Json(expertisesResult.Value, GetSerializeOptions)
+            : Results.Problem(
+                title: "Unable to search expertises.",
+                detail: expertisesResult.Error.Message,
+                statusCode: StatusCodes.Status500InternalServerError);
     }
 
     private static JsonSerializerOptions GetSerializeOptions =>

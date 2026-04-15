@@ -3,9 +3,9 @@ using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
-using MoreSpeakers.Domain.Models;
+using MoreSpeakers.Domain;
 using MoreSpeakers.Domain.Interfaces;
-using MoreSpeakers.Domain.Models.AdminUsers;
+using MoreSpeakers.Domain.Models;
 
 namespace MoreSpeakers.Data;
 
@@ -22,79 +22,88 @@ public partial class ExpertiseDataStore : IExpertiseDataStore
         _logger = logger;
     }
 
-    public async Task<Expertise?> GetAsync(int primaryKey)
+    public async Task<Result<Expertise>> GetAsync(int primaryKey)
     {
         var expertise = await _context.Expertise.AsNoTracking().FirstOrDefaultAsync(e => e.Id == primaryKey);
-        return _mapper.Map<Expertise?>(expertise);
-    }
-
-    public async Task<bool> DeleteAsync(Expertise entity)
-    {
-        return await DeleteAsync(entity.Id);
-    }
-
-    public async Task<bool> DeleteAsync(int primaryKey)
-    {
-        var expertise = await _context.Expertise.Include(e => e.UserExpertise)
-            .FirstOrDefaultAsync(e => e.Id == primaryKey);
-
         if (expertise is null)
         {
-            return true;
+            return Failure<Expertise>("expertise.not-found", $"Expertise {primaryKey} was not found.");
         }
 
-        foreach (var userExpertise in expertise.UserExpertise)
-        {
-            _context.UserExpertise.Remove(userExpertise);
-        }
-
-        _context.Expertise.Remove(expertise);
-
-        try
-        {
-            return await _context.SaveChangesAsync() != 0;
-        }
-        catch (Exception ex)
-        {
-            LogFailedToDeleteExpertise(ex, expertise.Name);
-            return false;
-        }
+        return Result.Success(_mapper.Map<Expertise>(expertise));
     }
 
-    public async Task<Expertise> SaveAsync(Expertise expertise)
-    {
-        var dbExpertise = _mapper.Map<Models.Expertise>(expertise);
-        _context.Entry(dbExpertise).State = dbExpertise.Id == 0 ? EntityState.Added : EntityState.Modified;
+    public Task<Result> DeleteAsync(Expertise entity) => DeleteAsync(entity.Id);
 
+    public async Task<Result> DeleteAsync(int primaryKey)
+    {
         try
         {
-            var result = await _context.SaveChangesAsync() != 0;
-            if (result)
+            var expertise = await _context.Expertise
+                .Include(e => e.UserExpertise)
+                .FirstOrDefaultAsync(e => e.Id == primaryKey);
+
+            if (expertise is null)
             {
-                return _mapper.Map<Expertise>(dbExpertise);
+                return Failure("expertise.delete.not-found", $"Expertise {primaryKey} was not found.");
             }
 
-            LogFailedToSaveExpertise(expertise.Name);
-        }
-        catch (Exception ex)
-        {
-            LogFailedToSaveTheExpertiseNameName(ex, expertise.Name);
-        }
+            foreach (var userExpertise in expertise.UserExpertise)
+            {
+                _context.UserExpertise.Remove(userExpertise);
+            }
 
-        throw new ApplicationException("Failed to save the expertise");
+            _context.Expertise.Remove(expertise);
+            if (await _context.SaveChangesAsync() == 0)
+            {
+                return Failure("expertise.delete.failed", $"Failed to delete expertise '{expertise.Name}'.");
+            }
+
+            return Result.Success();
+        }
+        catch (DbUpdateException ex)
+        {
+            LogFailedToDeleteExpertise(ex, primaryKey.ToString());
+            return Failure("expertise.delete.failed", $"Failed to delete expertise {primaryKey}.", ex);
+        }
     }
 
-    public async Task<List<Expertise>> GetAllAsync()
+    public async Task<Result<Expertise>> SaveAsync(Expertise expertise)
+    {
+        try
+        {
+            var dbExpertise = _mapper.Map<Models.Expertise>(expertise);
+            _context.Entry(dbExpertise).State = dbExpertise.Id == 0 ? EntityState.Added : EntityState.Modified;
+
+            if (await _context.SaveChangesAsync() == 0)
+            {
+                LogFailedToSaveExpertise(expertise.Name);
+                return Failure<Expertise>("expertise.save.failed", $"Failed to save expertise '{expertise.Name}'.");
+            }
+
+            return Result.Success(_mapper.Map<Expertise>(dbExpertise));
+        }
+        catch (DbUpdateException ex)
+        {
+            LogFailedToSaveTheExpertiseNameName(ex, expertise.Name);
+            return Failure<Expertise>("expertise.save.failed", $"Failed to save expertise '{expertise.Name}'.", ex);
+        }
+    }
+
+    public async Task<Result<List<Expertise>>> GetAllAsync()
     {
         var expertises = await _context.Expertise
             .Include(e => e.ExpertiseCategory)
             .OrderBy(e => e.ExpertiseCategory != null ? e.ExpertiseCategory.Name : string.Empty)
             .ThenBy(e => e.Name)
             .ToListAsync();
-        return _mapper.Map<List<Expertise>>(expertises);
+
+        return Result.Success(_mapper.Map<List<Expertise>>(expertises));
     }
 
-    public async Task<List<Expertise>> GetAllExpertisesAsync(TriState active = TriState.True, string? searchTerm = "")
+    public async Task<Result<List<Expertise>>> GetAllExpertisesAsync(
+        MoreSpeakers.Domain.Models.AdminUsers.TriState active = MoreSpeakers.Domain.Models.AdminUsers.TriState.True,
+        string? searchTerm = "")
     {
         var query = _context.Expertise
             .Include(e => e.ExpertiseCategory)
@@ -107,67 +116,63 @@ public partial class ExpertiseDataStore : IExpertiseDataStore
 
         query = active switch
         {
-            TriState.True => query.Where(e => e.IsActive),
-            TriState.False => query.Where(e => !e.IsActive),
-            _ => query
-        };
+        MoreSpeakers.Domain.Models.AdminUsers.TriState.True => query.Where(e => e.IsActive),
+        MoreSpeakers.Domain.Models.AdminUsers.TriState.False => query.Where(e => !e.IsActive),
+        _ => query
+    };
 
         var entities = await query.OrderBy(e => e.Name).AsNoTracking().ToListAsync();
-        return _mapper.Map<List<Expertise>>(entities);
-        
+        return Result.Success(_mapper.Map<List<Expertise>>(entities));
     }
 
-    public async Task<int> CreateExpertiseAsync(string name, string? description = null, int expertiseCategoryId = 0)
+    public async Task<Result<int>> CreateExpertiseAsync(string name, string? description = null, int expertiseCategoryId = 0)
     {
-        var expertise =
-            new Data.Models.Expertise { Name = name, Description = description, CreatedDate = DateTime.UtcNow, ExpertiseCategoryId = expertiseCategoryId, IsActive = true };
-        _context.Expertise.Add(expertise);
+        var expertise = new Expertise
+        {
+            Name = name,
+            Description = description,
+            CreatedDate = DateTime.UtcNow,
+            ExpertiseCategoryId = expertiseCategoryId,
+            IsActive = true
+        };
 
+        var saveResult = await SaveAsync(expertise);
+        return saveResult.IsSuccess
+            ? Result.Success(saveResult.Value.Id)
+            : Result.Failure<int>(saveResult.Error);
+    }
+
+    public async Task<Result> SoftDeleteAsync(int id)
+    {
         try
         {
-            var result = await _context.SaveChangesAsync() != 0;
-            if (result)
+            var entity = await _context.Expertise.FirstOrDefaultAsync(e => e.Id == id);
+            if (entity is null)
             {
-                return expertise.Id;
+                return Failure("expertise.soft-delete.not-found", $"Expertise {id} was not found.");
             }
 
-            LogFailedToCreateExpertise(name);
-            return 0;
-        }
-        catch (Exception ex)
-        {
-            LogFailedToCreateExpertise(ex, name);
-        }
+            if (!entity.IsActive)
+            {
+                return Failure("expertise.soft-delete.inactive", $"Expertise {id} is already inactive.");
+            }
 
-        return 0;
-    }
+            entity.IsActive = false;
+            if (await _context.SaveChangesAsync() == 0)
+            {
+                return Failure("expertise.soft-delete.failed", $"Failed to deactivate expertise {id}.");
+            }
 
-    public async Task<bool> SoftDeleteAsync(int id)
-    {
-        var entity = await _context.Expertise.FirstOrDefaultAsync(e => e.Id == id);
-        if (entity is null)
-        {
-            return true;
+            return Result.Success();
         }
-
-        if (!entity.IsActive)
-        {
-            return true;
-        }
-
-        entity.IsActive = false;
-        try
-        {
-            return await _context.SaveChangesAsync() != 0;
-        }
-        catch (Exception ex)
+        catch (DbUpdateException ex)
         {
             LogFailedToSoftDeleteExpertise(ex, id);
-            return false;
+            return Failure("expertise.soft-delete.failed", $"Failed to deactivate expertise {id}.", ex);
         }
     }
 
-    public async Task<IEnumerable<Expertise>> GetPopularExpertiseAsync(int count = 10)
+    public async Task<Result<IEnumerable<Expertise>>> GetPopularExpertiseAsync(int count = 10)
     {
         var expertises = await _context.Expertise
             .Include(e => e.UserExpertise)
@@ -175,103 +180,117 @@ public partial class ExpertiseDataStore : IExpertiseDataStore
             .Take(count)
             .ToListAsync();
 
-        return _mapper.Map<IEnumerable<Expertise>>(expertises);
+        return Result.Success<IEnumerable<Expertise>>(_mapper.Map<List<Expertise>>(expertises));
     }
 
-    public async Task<bool> DoesExpertiseWithNameExistsAsync(string name)
+    public async Task<Result<bool>> DoesExpertiseWithNameExistsAsync(string name)
     {
-        var experiences = await _context.Expertise.FirstOrDefaultAsync(e =>
-            e.Name.Trim().Equals(name.Trim().ToLower()));
-        return experiences != null;
+        var normalizedName = name.Trim().ToLowerInvariant();
+        var exists = await _context.Expertise.AnyAsync(e => e.Name.ToLower().Trim() == normalizedName);
+        return Result.Success(exists);
     }
 
-    public async Task<IEnumerable<Expertise>> FuzzySearchForExistingExpertise(string name, int count = 3)
+    public async Task<Result<IEnumerable<Expertise>>> FuzzySearchForExistingExpertise(string name, int count = 3)
     {
         var trimmedName = $"%{name.Trim()}%";
         var expertises = await _context.Expertise
-            .Where(e => 
+            .Where(e =>
                 EF.Functions.Like(e.Name, trimmedName.ToLower()) ||
-                EF.Functions.Like(e.Description, trimmedName.ToLower()))
+                EF.Functions.Like(e.Description!, trimmedName.ToLower()))
             .Take(count)
             .ToListAsync();
-        
-        return _mapper.Map<List<Expertise>>(expertises);   
+
+        return Result.Success<IEnumerable<Expertise>>(_mapper.Map<List<Expertise>>(expertises));
     }
 
-    public async Task<List<Expertise>> GetByCategoryIdAsync(int categoryId)
+    public async Task<Result<List<Expertise>>> GetByCategoryIdAsync(int categoryId)
     {
         var expertises = await _context.Expertise
             .Where(e => e.ExpertiseCategoryId == categoryId)
             .OrderBy(e => e.Name)
             .ToListAsync();
-        return _mapper.Map<List<Expertise>>(expertises);
+
+        return Result.Success(_mapper.Map<List<Expertise>>(expertises));
     }
 
-    // Category operations
-    public async Task<ExpertiseCategory?> GetCategoryAsync(int id)
+    public async Task<Result<ExpertiseCategory>> GetCategoryAsync(int id)
     {
         var entity = await _context.ExpertiseCategory
             .Include(c => c.Sector)
-            .AsNoTracking().FirstOrDefaultAsync(c => c.Id == id);
-        return _mapper.Map<ExpertiseCategory?>(entity);
-    }
-
-    public async Task<ExpertiseCategory> SaveCategoryAsync(ExpertiseCategory category)
-    {
-        var dbEntity = _mapper.Map<Models.ExpertiseCategory>(category);
-        _context.Entry(dbEntity).State = dbEntity.Id == 0 ? EntityState.Added : EntityState.Modified;
-
-        try
-        {
-            var result = await _context.SaveChangesAsync() != 0;
-            if (result)
-            {
-                return _mapper.Map<ExpertiseCategory>(dbEntity);
-            }
-
-            LogFailedToSaveExpertiseCategory(category.Name);
-        }
-        catch (Exception ex)
-        {
-            LogFailedToSaveExpertiseCategory(ex, category.Name);
-        }
-
-        throw new ApplicationException("Failed to save the expertise category");
-    }
-
-    public async Task<bool> DeleteCategoryAsync(int id)
-    {
-        var entity = await _context.ExpertiseCategory.Include(c => c.Expertises)
+            .AsNoTracking()
             .FirstOrDefaultAsync(c => c.Id == id);
+
         if (entity is null)
         {
-            return true;
+            return Failure<ExpertiseCategory>("expertise-category.not-found", $"Expertise category {id} was not found.");
         }
 
-        var hasExpertises = entity.Expertises.Count != 0;
-        if (hasExpertises)
-        {
-            LogAttemptedToDeleteCategoryWithExpertises(id);
-            return false;
-        }
+        return Result.Success(_mapper.Map<ExpertiseCategory>(entity));
+    }
 
-        _context.ExpertiseCategory.Remove(entity);
+    public async Task<Result<ExpertiseCategory>> SaveCategoryAsync(ExpertiseCategory category)
+    {
         try
         {
-            return await _context.SaveChangesAsync() != 0;
+            var dbEntity = _mapper.Map<Models.ExpertiseCategory>(category);
+            _context.Entry(dbEntity).State = dbEntity.Id == 0 ? EntityState.Added : EntityState.Modified;
+
+            if (await _context.SaveChangesAsync() == 0)
+            {
+                LogFailedToSaveExpertiseCategory(category.Name);
+                return Failure<ExpertiseCategory>("expertise-category.save.failed", $"Failed to save expertise category '{category.Name}'.");
+            }
+
+            return Result.Success(_mapper.Map<ExpertiseCategory>(dbEntity));
         }
-        catch (Exception ex)
+        catch (DbUpdateException ex)
         {
-            LogFailedToDeleteExpertiseCategory(ex, entity.Name);
-            return false;
+            LogFailedToSaveExpertiseCategory(ex, category.Name);
+            return Failure<ExpertiseCategory>("expertise-category.save.failed", $"Failed to save expertise category '{category.Name}'.", ex);
         }
     }
 
-    public async Task<List<ExpertiseCategory>> GetAllCategoriesAsync(TriState active = TriState.True, string? searchTerm = "")
+    public async Task<Result> DeleteCategoryAsync(int id)
+    {
+        try
+        {
+            var entity = await _context.ExpertiseCategory
+                .Include(c => c.Expertises)
+                .FirstOrDefaultAsync(c => c.Id == id);
+
+            if (entity is null)
+            {
+                return Failure("expertise-category.delete.not-found", $"Expertise category {id} was not found.");
+            }
+
+            if (entity.Expertises.Count != 0)
+            {
+                LogAttemptedToDeleteCategoryWithExpertises(id);
+                return Failure("expertise-category.delete.has-expertises", $"Expertise category {id} cannot be deleted while expertises exist.");
+            }
+
+            _context.ExpertiseCategory.Remove(entity);
+            if (await _context.SaveChangesAsync() == 0)
+            {
+                return Failure("expertise-category.delete.failed", $"Failed to delete expertise category '{entity.Name}'.");
+            }
+
+            return Result.Success();
+        }
+        catch (DbUpdateException ex)
+        {
+            LogFailedToDeleteExpertiseCategory(ex, id.ToString());
+            return Failure("expertise-category.delete.failed", $"Failed to delete expertise category {id}.", ex);
+        }
+    }
+
+    public async Task<Result<List<ExpertiseCategory>>> GetAllCategoriesAsync(
+        MoreSpeakers.Domain.Models.AdminUsers.TriState active = MoreSpeakers.Domain.Models.AdminUsers.TriState.True,
+        string? searchTerm = "")
     {
         var query = _context.ExpertiseCategory
             .Include(c => c.Expertises)
-            .Include(c=> c.Sector)
+            .Include(c => c.Sector)
             .AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(searchTerm))
@@ -281,31 +300,40 @@ public partial class ExpertiseDataStore : IExpertiseDataStore
 
         query = active switch
         {
-            TriState.True => query.Where(c => c.IsActive),
-            TriState.False => query.Where(c => !c.IsActive),
-            _ => query
-        };
+        MoreSpeakers.Domain.Models.AdminUsers.TriState.True => query.Where(c => c.IsActive),
+        MoreSpeakers.Domain.Models.AdminUsers.TriState.False => query.Where(c => !c.IsActive),
+        _ => query
+    };
 
         var entities = await query.OrderBy(c => c.Name).AsNoTracking().ToListAsync();
-        return _mapper.Map<List<ExpertiseCategory>>(entities);
+        return Result.Success(_mapper.Map<List<ExpertiseCategory>>(entities));
     }
 
-    public async Task<List<ExpertiseCategory>> GetAllActiveCategoriesForSector(int sectorId)
+    public async Task<Result<List<ExpertiseCategory>>> GetAllActiveCategoriesForSector(int sectorId)
     {
         var categories = await _context.ExpertiseCategory
             .Where(c => c.SectorId == sectorId && c.IsActive)
             .OrderBy(c => c.Name)
             .ToListAsync();
-        return _mapper.Map<List<ExpertiseCategory>>(categories);
+
+        return Result.Success(_mapper.Map<List<ExpertiseCategory>>(categories));
     }
 
-    public async Task<List<Expertise>> GetBySectorIdAsync(int sectorFilter)
+    public async Task<Result<List<Expertise>>> GetBySectorIdAsync(int sectorFilter)
     {
         var expertises = await _context.Expertise
             .Include(e => e.ExpertiseCategory)
             .Where(e => e.ExpertiseCategory != null && e.ExpertiseCategory.SectorId == sectorFilter && e.IsActive)
             .OrderBy(e => e.Name)
             .ToListAsync();
-        return _mapper.Map<List<Expertise>>(expertises);
+
+        return Result.Success(_mapper.Map<List<Expertise>>(expertises));
     }
+
+    private static Result Failure(string code, string message, Exception? exception = null) =>
+        Result.Failure(new Error(code, message, exception));
+
+    private static Result<T> Failure<T>(string code, string message, Exception? exception = null) =>
+        Result.Failure<T>(new Error(code, message, exception));
 }
+

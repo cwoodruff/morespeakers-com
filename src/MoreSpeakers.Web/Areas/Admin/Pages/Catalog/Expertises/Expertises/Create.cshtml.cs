@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using MoreSpeakers.Domain.Interfaces;
@@ -57,17 +58,30 @@ public partial class CreateModel(IExpertiseManager expertiseManager, ISectorMana
             IsActive = Input.IsActive
         };
 
-        var saved = await _expertiseManager.SaveAsync(expertise);
-        LogAdminExpertisesCreatedExpertiseIdName(saved.Id, saved.Name);
+        var savedResult = await _expertiseManager.SaveAsync(expertise);
+        if (savedResult.IsFailure)
+        {
+            ModelState.AddModelError(string.Empty, savedResult.Error.Message);
+            Sectors = await _sectorManager.GetAllSectorsAsync();
+            return Page();
+        }
+
+        LogAdminExpertisesCreatedExpertiseIdName(savedResult.Value.Id, savedResult.Value.Name);
         return RedirectToPage("Index");
     }
 
     public async Task<IActionResult> OnGetCategoriesBySector(int sectorId)
     {
-        var categories = await _expertiseManager.GetAllActiveCategoriesForSector(sectorId);
+        var categoriesResult = await _expertiseManager.GetAllActiveCategoriesForSector(sectorId);
+        if (categoriesResult.IsFailure)
+        {
+            Response.StatusCode = StatusCodes.Status400BadRequest;
+            return Content($"<div class=\"text-danger small\">{categoriesResult.Error.Message}</div>", "text/html");
+        }
+
         var viewModel = new ExpertiseCategoryDropDownViewModel
         {
-            ExpertiseCategories = [.. categories.OrderBy(c => c.Name)]
+            ExpertiseCategories = [.. categoriesResult.Value.OrderBy(c => c.Name)]
         };
 
         return Partial("_ExpertiseCategorySelectItem", viewModel);

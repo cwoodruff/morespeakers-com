@@ -20,14 +20,31 @@ public class DetailsModel(IExpertiseManager expertiseManager, ISectorManager sec
 
     public async Task<IActionResult> OnGetAsync()
     {
-        Category = await _expertiseManager.GetCategoryAsync(Id);
-        if (Category is null)
+        var categoryResult = await _expertiseManager.GetCategoryAsync(Id);
+        if (categoryResult.IsFailure)
         {
+            SetErrorMessage(categoryResult.Error.Message);
             return RedirectToPage("Index");
         }
 
+        Category = categoryResult.Value;
         Sector = await _sectorManager.GetAsync(Category.SectorId);
-        Expertises = await _expertiseManager.GetByCategoryIdAsync(Category.Id);
+        var expertisesResult = await _expertiseManager.GetByCategoryIdAsync(Category.Id);
+        if (expertisesResult.IsFailure)
+        {
+            SetErrorMessage(expertisesResult.Error.Message);
+            return RedirectToPage("Index");
+        }
+
+        Expertises = expertisesResult.Value;
         return Page();
+    }
+
+    private void SetErrorMessage(string message)
+    {
+        if (TempData is not null)
+        {
+            TempData["ErrorMessage"] = message;
+        }
     }
 }

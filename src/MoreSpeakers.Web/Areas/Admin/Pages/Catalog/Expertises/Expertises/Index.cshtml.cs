@@ -22,13 +22,27 @@ public partial class IndexModel(IExpertiseManager expertiseManager, ILogger<Inde
     public async Task OnGet(string? q)
     {
         Q = q;
-        var expertises = await _expertiseManager.GetAllExpertisesAsync(Status, Q);
-        Items = expertises;
+        var expertisesResult = await _expertiseManager.GetAllExpertisesAsync(Status, Q);
+        if (expertisesResult.IsFailure)
+        {
+            SetErrorMessage(expertisesResult.Error.Message);
+            Items = [];
+            return;
+        }
+
+        Items = expertisesResult.Value;
     }
 
     public async Task<IActionResult> OnPostDeactivateAsync(int id)
     {
-        var expertise = (await _expertiseManager.GetAsync(id))!;
+        var expertiseResult = await _expertiseManager.GetAsync(id);
+        if (expertiseResult.IsFailure)
+        {
+            SetErrorMessage(expertiseResult.Error.Message);
+            return RedirectToPage(new { q = Q, status = Status });
+        }
+
+        var expertise = expertiseResult.Value;
 
         if (!expertise.IsActive)
         {
@@ -36,14 +50,27 @@ public partial class IndexModel(IExpertiseManager expertiseManager, ILogger<Inde
         }
 
         expertise.IsActive = false;
-        await _expertiseManager.SaveAsync(expertise);
+        var saveResult = await _expertiseManager.SaveAsync(expertise);
+        if (saveResult.IsFailure)
+        {
+            SetErrorMessage(saveResult.Error.Message);
+            return RedirectToPage(new { q = Q, status = Status });
+        }
+
         LogAdminExpertisesDeactivatedExpertiseIdName(expertise.Id, expertise.Name);
         return RedirectToPage(new { q = Q, status = Status });
     }
 
     public async Task<IActionResult> OnPostActivateAsync(int id)
     {
-        var expertise = (await _expertiseManager.GetAsync(id))!;
+        var expertiseResult = await _expertiseManager.GetAsync(id);
+        if (expertiseResult.IsFailure)
+        {
+            SetErrorMessage(expertiseResult.Error.Message);
+            return RedirectToPage(new { q = Q, status = Status });
+        }
+
+        var expertise = expertiseResult.Value;
 
         if (expertise.IsActive)
         {
@@ -51,8 +78,22 @@ public partial class IndexModel(IExpertiseManager expertiseManager, ILogger<Inde
         }
 
         expertise.IsActive = true;
-        await _expertiseManager.SaveAsync(expertise);
+        var saveResult = await _expertiseManager.SaveAsync(expertise);
+        if (saveResult.IsFailure)
+        {
+            SetErrorMessage(saveResult.Error.Message);
+            return RedirectToPage(new { q = Q, status = Status });
+        }
+
         LogAdminExpertisesActivatedCategoryIdName(expertise.Id, expertise.Name);
         return RedirectToPage(new { q = Q, status = Status });
+    }
+
+    private void SetErrorMessage(string message)
+    {
+        if (TempData is not null)
+        {
+            TempData["ErrorMessage"] = message;
+        }
     }
 }

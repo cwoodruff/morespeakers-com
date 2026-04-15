@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
+using MoreSpeakers.Domain;
 using MoreSpeakers.Domain.Models;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
@@ -65,7 +66,12 @@ public partial class RegisterModel : PageModel
         ValidationMessage = string.Empty;
         SuccessMessage = string.Empty;
 
-        await LoadFormLookupListsAsync();
+        var loadResult = await LoadFormLookupListsAsync();
+        if (loadResult.IsFailure)
+        {
+            HasValidationErrors = true;
+            ValidationMessage = loadResult.Error.Message;
+        }
     }
 
     public async Task<IActionResult> OnPostAsync()
@@ -83,7 +89,15 @@ public partial class RegisterModel : PageModel
         }
 
         // Reload necessary data for the view
-        await LoadFormLookupListsAsync();
+        var loadResult = await LoadFormLookupListsAsync();
+        if (loadResult.IsFailure)
+        {
+            HasValidationErrors = true;
+            ValidationMessage = loadResult.Error.Message;
+            CurrentStep = step;
+            SuccessMessage = string.Empty;
+            return Partial("_RegistrationContainer", this);
+        }
 
         // Validate current step
         var stepValid = ValidateStep(step);
@@ -160,7 +174,14 @@ public partial class RegisterModel : PageModel
     public async Task<IActionResult> OnPostPreviousStepAsync(int step)
     {
         // Reload necessary data for the view
-        await LoadFormLookupListsAsync();
+        var loadResult = await LoadFormLookupListsAsync();
+        if (loadResult.IsFailure)
+        {
+            HasValidationErrors = true;
+            ValidationMessage = loadResult.Error.Message;
+            SuccessMessage = string.Empty;
+            return Partial("_RegistrationContainer", this);
+        }
 
         // Return previous step without validation
         var prevStep = step - 1;
@@ -216,29 +237,30 @@ public partial class RegisterModel : PageModel
         var trimmedName = expertiseName.Trim();
 
         // Search to see if the name exists
-        var existingExpertise = await _expertiseManager.DoesExpertiseWithNameExistsAsync(trimmedName);
-        if (existingExpertise)
+        var existingExpertiseResult = await _expertiseManager.DoesExpertiseWithNameExistsAsync(trimmedName);
+        if (existingExpertiseResult.IsFailure)
         {
-            return new JsonResult(new NewExpertiseResponse
-            {
-                IsValid = false,
-                Message = $"Expertise '{expertiseName}' already exists."
-            });
+            return InvalidNewExpertise(existingExpertiseResult.Error.Message);
+        }
+
+        if (existingExpertiseResult.Value)
+        {
+            return InvalidNewExpertise($"Expertise '{expertiseName}' already exists.");
         }
 
         // Check for similar expertise (fuzzy matching for suggestions)
-        var similarExpertise = await _expertiseManager.FuzzySearchForExistingExpertise(trimmedName, 5);
+        var similarExpertiseResult = await _expertiseManager.FuzzySearchForExistingExpertise(trimmedName, 5);
+        if (similarExpertiseResult.IsFailure)
+        {
+            return InvalidNewExpertise(similarExpertiseResult.Error.Message);
+        }
 
-        List<Expertise> expertises = [.. similarExpertise];
+        List<Expertise> expertises = [.. similarExpertiseResult.Value];
         if (expertises.Count != 0)
         {
 
             var suggestions = string.Join(", ", expertises.Select(s => s.Name));
-            return new JsonResult(new NewExpertiseResponse
-            {
-                IsValid = false,
-                Message = $"Similar expertise found: {suggestions}. Consider selecting from existing options.",
-            });
+            return InvalidNewExpertise($"Similar expertise found: {suggestions}. Consider selecting from existing options.");
         }
 
         return new JsonResult(new NewExpertiseResponse
@@ -249,82 +271,114 @@ public partial class RegisterModel : PageModel
 
     public async Task<IActionResult> OnPostSubmitNewExpertiseAsync()
     {
-        ExpertiseCategories = await _expertiseManager.GetAllCategoriesAsync();
-        Sectors = await _sectorManager.GetAllSectorsAsync();
+        var lookupResult = await LoadNewExpertiseLookupsAsync();
+        if (lookupResult.IsFailure)
+        {
+            return RenderNewExpertiseStepFailure(lookupResult.Error.Message);
+        }
+
         if (string.IsNullOrWhiteSpace(Input!.NewExpertise))
         {
-            this.NewExpertiseResponse = new NewExpertiseCreatedResponse()
-            {
-                SavingExpertiseFailed = true, SaveExpertiseMessage = "No expertise name was provided.",
-                ExpertiseCategories =  ExpertiseCategories,
-                Sectors = Sectors
-            };
-            return Partial("_RegisterStep3", this);
+            return RenderNewExpertiseStepFailure("No expertise name was provided.");
         }
 
         var expertiseName = Input.NewExpertise;
         var trimmedName = expertiseName.Trim();
         var expertiseCategoryId = Input.NewExpertiseCategoryId;
 
-        try
+        var existingExpertiseResult = await _expertiseManager.DoesExpertiseWithNameExistsAsync(trimmedName);
+        if (existingExpertiseResult.IsFailure)
         {
-            // Search to see if the name exists
-            var existingExpertise = await _expertiseManager.DoesExpertiseWithNameExistsAsync(trimmedName);
-            if (existingExpertise)
-            {
-                this.NewExpertiseResponse = new NewExpertiseCreatedResponse()
-                {
-                    SavingExpertiseFailed = true, SaveExpertiseMessage =  $"Expertise '{expertiseName}' already exists.",
-                    ExpertiseCategories = ExpertiseCategories,
-                    Sectors = Sectors
-                };
-                return Partial("_RegisterStep3", this);
-            }
-
-            // Attempt to save the expertise
-            var expertiseId = await _expertiseManager.CreateExpertiseAsync(name:trimmedName, expertiseCategoryId:expertiseCategoryId);
-
-            if (expertiseId == 0)
-            {
-                this.NewExpertiseResponse = new NewExpertiseCreatedResponse
-                {
-                    SavingExpertiseFailed = true, SaveExpertiseMessage =  $"Failed to create the expertise '{expertiseName}'.",
-                    ExpertiseCategories = ExpertiseCategories,
-                    Sectors = Sectors
-                };
-                return Partial("_RegisterStep3", this);
-            }
-            AvailableExpertises = await _expertiseManager.GetAllExpertisesAsync();
-            Input.SelectedExpertiseIds = [.. Input.SelectedExpertiseIds, expertiseId];
-            this.NewExpertiseResponse = new NewExpertiseCreatedResponse
-            {
-                SavingExpertiseFailed = false, SaveExpertiseMessage =  string.Empty,
-                ExpertiseCategories = ExpertiseCategories,
-                Sectors = Sectors
-            };
-            return Partial("_RegisterStep3", this);
+            return RenderNewExpertiseStepFailure(existingExpertiseResult.Error.Message);
         }
-        catch (Exception ex)
+
+        if (existingExpertiseResult.Value)
         {
-            LogErrorSubmittingNewExpertise(ex);
-            AvailableExpertises = await _expertiseManager.GetAllExpertisesAsync();
-            this.NewExpertiseResponse = new NewExpertiseCreatedResponse
-            {
-                SavingExpertiseFailed = true, SaveExpertiseMessage =  $"Failed to create the expertise '{expertiseName}'.",
-                ExpertiseCategories = ExpertiseCategories,
-                Sectors = Sectors
-            };
-            return Partial("_RegisterStep3", this);
+            return RenderNewExpertiseStepFailure($"Expertise '{expertiseName}' already exists.");
         }
+
+        var createResult = await _expertiseManager.CreateExpertiseAsync(name: trimmedName, expertiseCategoryId: expertiseCategoryId);
+        if (createResult.IsFailure)
+        {
+            return RenderNewExpertiseStepFailure(createResult.Error.Message);
+        }
+
+        var expertisesResult = await _expertiseManager.GetAllExpertisesAsync();
+        if (expertisesResult.IsFailure)
+        {
+            return RenderNewExpertiseStepFailure(expertisesResult.Error.Message);
+        }
+
+        AvailableExpertises = expertisesResult.Value;
+        Input.SelectedExpertiseIds = [.. Input.SelectedExpertiseIds, createResult.Value];
+        NewExpertiseResponse = new NewExpertiseCreatedResponse
+        {
+            SavingExpertiseFailed = false,
+            SaveExpertiseMessage = string.Empty,
+            ExpertiseCategories = ExpertiseCategories,
+            Sectors = Sectors
+        };
+        return Partial("_RegisterStep3", this);
     }
 
-    private async Task LoadFormLookupListsAsync()
+    private async Task<Result> LoadFormLookupListsAsync()
     {
-        AvailableExpertises = await _expertiseManager.GetAllExpertisesAsync();
-        ExpertiseCategories = await _expertiseManager.GetAllCategoriesAsync();
+        var expertisesResult = await _expertiseManager.GetAllExpertisesAsync();
+        if (expertisesResult.IsFailure)
+        {
+            AvailableExpertises = [];
+            ExpertiseCategories = [];
+            return Result.Failure(expertisesResult.Error);
+        }
+
+        var categoriesResult = await _expertiseManager.GetAllCategoriesAsync();
+        if (categoriesResult.IsFailure)
+        {
+            AvailableExpertises = expertisesResult.Value;
+            ExpertiseCategories = [];
+            return Result.Failure(categoriesResult.Error);
+        }
+
+        AvailableExpertises = expertisesResult.Value;
+        ExpertiseCategories = categoriesResult.Value;
         Sectors = await _sectorManager.GetAllSectorsAsync();
         SpeakerTypes = await _userManager.GetSpeakerTypesAsync();
         SocialMediaSites = await _socialMediaSiteManager.GetAllAsync();
+        return Result.Success();
+    }
+
+    private async Task<Result> LoadNewExpertiseLookupsAsync()
+    {
+        var categoriesResult = await _expertiseManager.GetAllCategoriesAsync();
+        if (categoriesResult.IsFailure)
+        {
+            ExpertiseCategories = [];
+            return Result.Failure(categoriesResult.Error);
+        }
+
+        ExpertiseCategories = categoriesResult.Value;
+        Sectors = await _sectorManager.GetAllSectorsAsync();
+        return Result.Success();
+    }
+
+    private JsonResult InvalidNewExpertise(string message) =>
+        new(new NewExpertiseResponse
+        {
+            IsValid = false,
+            Message = message
+        });
+
+    private IActionResult RenderNewExpertiseStepFailure(string message)
+    {
+        NewExpertiseResponse = new NewExpertiseCreatedResponse
+        {
+            SavingExpertiseFailed = true,
+            SaveExpertiseMessage = message,
+            ExpertiseCategories = ExpertiseCategories,
+            Sectors = Sectors
+        };
+
+        return Partial("_RegisterStep3", this);
     }
 
     private bool ValidateStep(int step)

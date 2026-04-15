@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
@@ -46,13 +47,27 @@ public partial class EditModel(IExpertiseManager expertiseManager, ISectorManage
 
     public async Task<IActionResult> OnGetAsync()
     {
-        var expertise = (await _expertiseManager.GetAsync(Id))!;
+        var expertiseResult = await _expertiseManager.GetAsync(Id);
+        if (expertiseResult.IsFailure)
+        {
+            SetErrorMessage(expertiseResult.Error.Message);
+            return RedirectToPage("../Expertises/Index");
+        }
 
         Sectors = await _sectorManager.GetAllSectorsAsync();
-        ExpertiseCategories = await _expertiseManager.GetAllCategoriesAsync();
-        var expertiseCategory = await _expertiseManager.GetCategoryAsync(expertise.ExpertiseCategoryId);
-        if (expertiseCategory is null)
+        var categoriesResult = await _expertiseManager.GetAllCategoriesAsync();
+        if (categoriesResult.IsFailure)
         {
+            SetErrorMessage(categoriesResult.Error.Message);
+            return RedirectToPage("../Expertises/Index");
+        }
+
+        ExpertiseCategories = categoriesResult.Value;
+        var expertise = expertiseResult.Value;
+        var expertiseCategoryResult = await _expertiseManager.GetCategoryAsync(expertise.ExpertiseCategoryId);
+        if (expertiseCategoryResult.IsFailure)
+        {
+            SetErrorMessage(expertiseCategoryResult.Error.Message);
             return RedirectToPage("../Expertises/Index");
         }
 
@@ -64,7 +79,7 @@ public partial class EditModel(IExpertiseManager expertiseManager, ISectorManage
             ExpertiseCategoryId = expertise.ExpertiseCategoryId,
             IsActive = expertise.IsActive
         };
-        SectorId = expertiseCategory.SectorId;
+        SectorId = expertiseCategoryResult.Value.SectorId;
         return Page();
     }
 
@@ -75,14 +90,30 @@ public partial class EditModel(IExpertiseManager expertiseManager, ISectorManage
             return Page();
         }
 
-        var expertise = (await _expertiseManager.GetAsync(Id))!;
+        var expertiseResult = await _expertiseManager.GetAsync(Id);
+        if (expertiseResult.IsFailure)
+        {
+            SetErrorMessage(expertiseResult.Error.Message);
+            return RedirectToPage("../Expertises/Index");
+        }
+
+        var expertise = expertiseResult.Value;
 
         expertise.Name = Input.Name.Trim();
         expertise.Description = string.IsNullOrWhiteSpace(Input.Description) ? null : Input.Description!.Trim();
         expertise.ExpertiseCategoryId = Input.ExpertiseCategoryId;
         expertise.IsActive = Input.IsActive;
 
-        await _expertiseManager.SaveAsync(expertise);
+        var saveResult = await _expertiseManager.SaveAsync(expertise);
+        if (saveResult.IsFailure)
+        {
+            ModelState.AddModelError(string.Empty, saveResult.Error.Message);
+            Sectors = await _sectorManager.GetAllSectorsAsync();
+            var categoriesResult = await _expertiseManager.GetAllCategoriesAsync();
+            ExpertiseCategories = categoriesResult.IsSuccess ? categoriesResult.Value : [];
+            return Page();
+        }
+
         LogAdminExpertisesUpdated(expertise.Id, expertise.Name);
         return RedirectToPage("../Expertises/Index");
     }
@@ -90,13 +121,26 @@ public partial class EditModel(IExpertiseManager expertiseManager, ISectorManage
     public async Task<IActionResult> OnGetExpertiseCategoriesAsync()
     {
         var sectorId = SectorId;
-        var categories = await _expertiseManager.GetAllActiveCategoriesForSector(sectorId);
+        var categoriesResult = await _expertiseManager.GetAllActiveCategoriesForSector(sectorId);
+        if (categoriesResult.IsFailure)
+        {
+            Response.StatusCode = StatusCodes.Status400BadRequest;
+            return Content($"<div class=\"text-danger small\">{categoriesResult.Error.Message}</div>", "text/html");
+        }
 
         var expertiseCategorySelectItem = new ExpertiseCategoryDropDownViewModel
         {
-            ExpertiseCategories = categories, SelectedCategoryId = Input.ExpertiseCategoryId
+            ExpertiseCategories = categoriesResult.Value, SelectedCategoryId = Input.ExpertiseCategoryId
         };
         return Partial("_ExpertiseCategorySelectItem", expertiseCategorySelectItem);
 
+    }
+
+    private void SetErrorMessage(string message)
+    {
+        if (TempData is not null)
+        {
+            TempData["ErrorMessage"] = message;
+        }
     }
 }

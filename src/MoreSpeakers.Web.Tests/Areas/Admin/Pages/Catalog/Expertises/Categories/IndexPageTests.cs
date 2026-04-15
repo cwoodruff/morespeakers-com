@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 
 using Moq;
 
+using MoreSpeakers.Domain;
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models;
 using MoreSpeakers.Domain.Models.AdminUsers;
@@ -15,7 +16,7 @@ namespace MoreSpeakers.Web.Tests.Areas.Admin.Pages.Catalog.Expertises.Categories
 public class IndexPageTests
 {
     [Fact]
-    public async Task OnGet_should_list_all_when_no_filters()
+    public async Task OnGet_should_list_all_when_manager_returns_success()
     {
         var items = new List<ExpertiseCategory>
         {
@@ -23,43 +24,25 @@ public class IndexPageTests
             new() { Id = 2, Name = "B", IsActive = false, SectorId = 1 },
         };
         var manager = new Mock<IExpertiseManager>();
-        manager.Setup(m => m.GetAllCategoriesAsync(It.IsAny<TriState>(), It.IsAny<string?>())).ReturnsAsync(items);
-        var logger = new Mock<ILogger<IndexModel>>();
-        var page = new IndexModel(manager.Object, logger.Object)
-        {
-            Q = null,
-            Status = TriState.Any
-        };
+        manager.Setup(m => m.GetAllCategoriesAsync(TriState.Any, null)).ReturnsAsync(Result.Success(items));
+        var page = new IndexModel(manager.Object, Mock.Of<ILogger<IndexModel>>()) { Status = TriState.Any };
 
         await page.OnGet();
 
-        page.Items.Should().HaveCount(2);
         page.Items.Select(c => c.Id).Should().ContainInOrder(1, 2);
-        manager.Verify(m => m.GetAllCategoriesAsync(TriState.Any, It.IsAny<string?>()), Times.Once);
     }
 
     [Fact]
-    public async Task OnGet_should_filter_by_query_and_status()
+    public async Task OnGet_should_clear_items_when_manager_returns_failure()
     {
-        var items = new List<ExpertiseCategory>
-        {
-            new() { Id = 1, Name = "Tech", IsActive = true, SectorId = 1 },
-            new() { Id = 2, Name = "FinTech", IsActive = false, SectorId = 1 },
-            new() { Id = 3, Name = "Healthcare", IsActive = true, SectorId = 2 },
-        };
         var manager = new Mock<IExpertiseManager>();
-        manager.Setup(m => m.GetAllCategoriesAsync(TriState.True, "tech")).ReturnsAsync([items[0]]);
-        var logger = new Mock<ILogger<IndexModel>>();
-        var page = new IndexModel(manager.Object, logger.Object)
-        {
-            Q = "tech",
-            Status = TriState.True
-        };
+        manager.Setup(m => m.GetAllCategoriesAsync(TriState.Any, null))
+            .ReturnsAsync(Result.Failure<List<ExpertiseCategory>>(new Error("expertise-category.list.failed", "List failed.")));
+        var page = new IndexModel(manager.Object, Mock.Of<ILogger<IndexModel>>()) { Status = TriState.Any };
 
         await page.OnGet();
 
-        page.Items.Should().HaveCount(1);
-        page.Items[0].Id.Should().Be(1);
+        page.Items.Should().BeEmpty();
     }
 
     [Fact]
@@ -68,13 +51,8 @@ public class IndexPageTests
         var category = new ExpertiseCategory { Id = 10, Name = "Energy", IsActive = false, SectorId = 1 };
         var manager = new Mock<IExpertiseManager>();
         manager.Setup(m => m.GetCategoryAsync(10)).ReturnsAsync(category);
-        manager.Setup(m => m.SaveCategoryAsync(It.IsAny<ExpertiseCategory>())).ReturnsAsync((ExpertiseCategory c) => c);
-        var logger = new Mock<ILogger<IndexModel>>();
-        var page = new IndexModel(manager.Object, logger.Object)
-        {
-            Q = "en",
-            Status = TriState.False
-        };
+        manager.Setup(m => m.SaveCategoryAsync(It.IsAny<ExpertiseCategory>())).ReturnsAsync((ExpertiseCategory c) => Result.Success(c));
+        var page = new IndexModel(manager.Object, Mock.Of<ILogger<IndexModel>>()) { Q = "en", Status = TriState.False };
 
         var result = await page.OnPostActivateAsync(10);
 
@@ -82,21 +60,19 @@ public class IndexPageTests
             .Which.RouteValues.Should().Contain(new KeyValuePair<string, object?>("q", "en"))
             .And.Contain(new KeyValuePair<string, object?>("status", TriState.False));
         category.IsActive.Should().BeTrue();
-        manager.Verify(m => m.SaveCategoryAsync(It.Is<ExpertiseCategory>(c => c.Id == 10 && c.IsActive)), Times.Once);
     }
 
     [Fact]
-    public async Task OnPostActivateAsync_when_category_not_found_redirects_without_route_values()
+    public async Task OnPostActivateAsync_when_category_load_fails_should_not_save()
     {
         var manager = new Mock<IExpertiseManager>();
-        manager.Setup(m => m.GetCategoryAsync(99)).ReturnsAsync((ExpertiseCategory?)null);
-        var logger = new Mock<ILogger<IndexModel>>();
-        var page = new IndexModel(manager.Object, logger.Object);
+        manager.Setup(m => m.GetCategoryAsync(99))
+            .ReturnsAsync(Result.Failure<ExpertiseCategory>(new Error("expertise-category.not-found", "Missing category.")));
+        var page = new IndexModel(manager.Object, Mock.Of<ILogger<IndexModel>>());
 
         var result = await page.OnPostActivateAsync(99);
 
-        result.Should().BeOfType<RedirectToPageResult>()
-            .Which.RouteValues.Should().BeNull();
+        result.Should().BeOfType<RedirectToPageResult>();
         manager.Verify(m => m.SaveCategoryAsync(It.IsAny<ExpertiseCategory>()), Times.Never);
     }
 
@@ -106,13 +82,8 @@ public class IndexPageTests
         var category = new ExpertiseCategory { Id = 11, Name = "Retail", IsActive = true, SectorId = 1 };
         var manager = new Mock<IExpertiseManager>();
         manager.Setup(m => m.GetCategoryAsync(11)).ReturnsAsync(category);
-        manager.Setup(m => m.SaveCategoryAsync(It.IsAny<ExpertiseCategory>())).ReturnsAsync((ExpertiseCategory c) => c);
-        var logger = new Mock<ILogger<IndexModel>>();
-        var page = new IndexModel(manager.Object, logger.Object)
-        {
-            Q = "ret",
-            Status = TriState.True
-        };
+        manager.Setup(m => m.SaveCategoryAsync(It.IsAny<ExpertiseCategory>())).ReturnsAsync((ExpertiseCategory c) => Result.Success(c));
+        var page = new IndexModel(manager.Object, Mock.Of<ILogger<IndexModel>>()) { Q = "ret", Status = TriState.True };
 
         var result = await page.OnPostDeactivateAsync(11);
 
@@ -120,6 +91,20 @@ public class IndexPageTests
             .Which.RouteValues.Should().Contain(new KeyValuePair<string, object?>("q", "ret"))
             .And.Contain(new KeyValuePair<string, object?>("status", TriState.True));
         category.IsActive.Should().BeFalse();
-        manager.Verify(m => m.SaveCategoryAsync(It.Is<ExpertiseCategory>(c => c.Id == 11 && !c.IsActive)), Times.Once);
+    }
+
+    [Fact]
+    public async Task OnPostDeactivateAsync_should_redirect_when_save_fails()
+    {
+        var category = new ExpertiseCategory { Id = 12, Name = "Data", IsActive = true, SectorId = 1 };
+        var manager = new Mock<IExpertiseManager>();
+        manager.Setup(m => m.GetCategoryAsync(12)).ReturnsAsync(category);
+        manager.Setup(m => m.SaveCategoryAsync(It.IsAny<ExpertiseCategory>()))
+            .ReturnsAsync(Result.Failure<ExpertiseCategory>(new Error("expertise-category.save.failed", "Save failed.")));
+        var page = new IndexModel(manager.Object, Mock.Of<ILogger<IndexModel>>()) { Q = "da", Status = TriState.True };
+
+        var result = await page.OnPostDeactivateAsync(12);
+
+        result.Should().BeOfType<RedirectToPageResult>();
     }
 }

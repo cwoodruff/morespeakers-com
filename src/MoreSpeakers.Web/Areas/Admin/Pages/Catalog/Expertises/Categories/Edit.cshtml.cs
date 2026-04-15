@@ -39,19 +39,20 @@ public partial class EditModel(IExpertiseManager expertiseManager, ISectorManage
 
     public async Task<IActionResult> OnGetAsync()
     {
-        var category = await _expertiseManager.GetCategoryAsync(Id);
-        if (category is null)
+        var categoryResult = await _expertiseManager.GetCategoryAsync(Id);
+        if (categoryResult.IsFailure)
         {
+            SetErrorMessage(categoryResult.Error.Message);
             return RedirectToPage("Index");
         }
 
         Sectors = await _sectorManager.GetAllSectorsAsync();
         Input = new InputModel
         {
-            Name = category.Name,
-            Description = category.Description,
-            SectorId = category.SectorId,
-            IsActive = category.IsActive
+            Name = categoryResult.Value.Name,
+            Description = categoryResult.Value.Description,
+            SectorId = categoryResult.Value.SectorId,
+            IsActive = categoryResult.Value.IsActive
         };
         return Page();
     }
@@ -65,19 +66,35 @@ public partial class EditModel(IExpertiseManager expertiseManager, ISectorManage
             return Page();
         }
 
-        var category = await _expertiseManager.GetCategoryAsync(Id);
-        if (category is null)
+        var categoryResult = await _expertiseManager.GetCategoryAsync(Id);
+        if (categoryResult.IsFailure)
         {
+            SetErrorMessage(categoryResult.Error.Message);
             return RedirectToPage("Index");
         }
 
+        var category = categoryResult.Value;
         category.Name = Input.Name.Trim();
         category.Description = string.IsNullOrWhiteSpace(Input.Description) ? null : Input.Description!.Trim();
         category.SectorId = Input.SectorId;
         category.IsActive = Input.IsActive;
 
-        await _expertiseManager.SaveCategoryAsync(category);
+        var savedResult = await _expertiseManager.SaveCategoryAsync(category);
+        if (savedResult.IsFailure)
+        {
+            ModelState.AddModelError(string.Empty, savedResult.Error.Message);
+            return Page();
+        }
+
         LogAdminCategoriesUpdated(category.Id, category.Name);
         return RedirectToPage("Index");
+    }
+
+    private void SetErrorMessage(string message)
+    {
+        if (TempData is not null)
+        {
+            TempData["ErrorMessage"] = message;
+        }
     }
 }
