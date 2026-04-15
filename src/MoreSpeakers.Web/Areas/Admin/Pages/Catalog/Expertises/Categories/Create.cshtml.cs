@@ -56,8 +56,14 @@ public partial class CreateModel(IExpertiseManager expertiseManager, ISectorMana
             IsActive = Input.IsActive
         };
 
-        var saved = await _expertiseManager.SaveCategoryAsync(category);
-        LogAdminCategoriesCreated(saved.Id, saved.Name);
+        var savedResult = await _expertiseManager.SaveCategoryAsync(category);
+        if (savedResult.IsFailure)
+        {
+            ModelState.AddModelError(string.Empty, savedResult.Error.Message);
+            return Page();
+        }
+
+        LogAdminCategoriesCreated(savedResult.Value.Id, savedResult.Value.Name);
         return RedirectToPage("Index");
     }
 }

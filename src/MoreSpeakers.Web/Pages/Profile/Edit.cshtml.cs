@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
+using MoreSpeakers.Domain;
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models;
 using MoreSpeakers.Web.Models;
@@ -55,8 +56,13 @@ public class EditModel(
         }
 
         ProfileUser = user;
-        AvailableExpertises = await expertiseManager.GetAllExpertisesAsync();
-        ExpertiseCategories = await expertiseManager.GetAllCategoriesAsync();
+        var expertiseLookupResult = await LoadExpertiseLookupsAsync();
+        if (expertiseLookupResult.IsFailure)
+        {
+            HasValidationErrors = true;
+            ValidationMessage = expertiseLookupResult.Error.Message;
+        }
+
         Sectors = await sectorManager.GetAllSectorsAsync();
         SocialMediaSites = await socialMediaSiteManager.GetAllAsync();
         UserPasskeys = await userManager.GetUserPasskeysAsync(user.Id);
@@ -107,8 +113,14 @@ public class EditModel(
             }
 
             ProfileUser = userProfile;
-            AvailableExpertises = await expertiseManager.GetAllExpertisesAsync();
-            ExpertiseCategories = await expertiseManager.GetAllCategoriesAsync();
+            var expertiseLookupResult = await LoadExpertiseLookupsAsync();
+            if (expertiseLookupResult.IsFailure)
+            {
+                HasValidationErrors = true;
+                ValidationMessage = expertiseLookupResult.Error.Message;
+                return Partial("_ProfileEditForm", this);
+            }
+
             Sectors = await sectorManager.GetAllSectorsAsync();
             SocialMediaSites = await socialMediaSiteManager.GetAllAsync();
             UserPasskeys = await userManager.GetUserPasskeysAsync(userProfile.Id);
@@ -218,8 +230,13 @@ public class EditModel(
         }
 
         ProfileUser = user;
-        AvailableExpertises = await expertiseManager.GetAllExpertisesAsync();
-        ExpertiseCategories = await expertiseManager.GetAllCategoriesAsync();
+        var expertiseLookupResult = await LoadExpertiseLookupsAsync();
+        if (expertiseLookupResult.IsFailure)
+        {
+            HasValidationErrors = true;
+            ValidationMessage = expertiseLookupResult.Error.Message;
+        }
+
         Sectors = await sectorManager.GetAllSectorsAsync();
         SocialMediaSites = await socialMediaSiteManager.GetAllAsync();
         UserPasskeys = await userManager.GetUserPasskeysAsync(user.Id);
@@ -419,29 +436,30 @@ public class EditModel(
         var trimmedName = expertiseName.Trim();
 
         // Search to see if the name exists
-        var existingExpertise = await expertiseManager.DoesExpertiseWithNameExistsAsync(trimmedName);
-        if (existingExpertise)
+        var existingExpertiseResult = await expertiseManager.DoesExpertiseWithNameExistsAsync(trimmedName);
+        if (existingExpertiseResult.IsFailure)
         {
-            return new JsonResult(new NewExpertiseResponse
-            {
-                IsValid = false,
-                Message = $"Expertise '{expertiseName}' already exists."
-            });
+            return InvalidNewExpertise(existingExpertiseResult.Error.Message);
+        }
+
+        if (existingExpertiseResult.Value)
+        {
+            return InvalidNewExpertise($"Expertise '{expertiseName}' already exists.");
         }
 
         // Check for similar expertise (fuzzy matching for suggestions)
-        var similarExpertise = await expertiseManager.FuzzySearchForExistingExpertise(trimmedName, 5);
+        var similarExpertiseResult = await expertiseManager.FuzzySearchForExistingExpertise(trimmedName, 5);
+        if (similarExpertiseResult.IsFailure)
+        {
+            return InvalidNewExpertise(similarExpertiseResult.Error.Message);
+        }
 
-        List<Expertise> expertises = [.. similarExpertise];
+        List<Expertise> expertises = [.. similarExpertiseResult.Value];
         if (expertises.Count != 0)
         {
 
             var suggestions = string.Join(", ", expertises.Select(s => s.Name));
-            return new JsonResult(new NewExpertiseResponse
-            {
-                IsValid = false,
-                Message = $"Similar expertise found: {suggestions}. Consider selecting from existing options.",
-            });
+            return InvalidNewExpertise($"Similar expertise found: {suggestions}. Consider selecting from existing options.");
         }
 
         return new JsonResult(new NewExpertiseResponse
@@ -453,8 +471,11 @@ public class EditModel(
     public async Task<IActionResult> OnPostSubmitNewExpertiseAsync()
     {
         var profileUser = await UpdateModelFromUserAsync(User);
-        ExpertiseCategories = await expertiseManager.GetAllCategoriesAsync();
-        Sectors = await sectorManager.GetAllSectorsAsync();
+        var lookupResult = await LoadNewExpertiseLookupsAsync();
+        if (lookupResult.IsFailure)
+        {
+            return RenderNewExpertiseFailure(lookupResult.Error.Message);
+        }
 
         if (profileUser is not null)
         {
@@ -462,71 +483,104 @@ public class EditModel(
         }
         if (string.IsNullOrWhiteSpace(Input.NewExpertise))
         {
-            this.NewExpertiseResponse = new NewExpertiseCreatedResponse()
-            {
-                SavingExpertiseFailed = true, SaveExpertiseMessage = "No expertise name was provided.",
-                ExpertiseCategories = ExpertiseCategories,
-                Sectors = Sectors
-            };
-            return Partial("_ProfileEditForm", this);
+            return RenderNewExpertiseFailure("No expertise name was provided.");
         }
 
         var expertiseName = Input.NewExpertise;
         var trimmedName = expertiseName.Trim();
         var expertiseCategoryId = Input.NewExpertiseCategoryId;
 
-        try
+        var existingExpertiseResult = await expertiseManager.DoesExpertiseWithNameExistsAsync(trimmedName);
+        if (existingExpertiseResult.IsFailure)
         {
-            // Search to see if the name exists
-            var existingExpertise = await expertiseManager.DoesExpertiseWithNameExistsAsync(trimmedName);
-            if (existingExpertise)
-            {
-                this.NewExpertiseResponse = new NewExpertiseCreatedResponse()
-                {
-                    SavingExpertiseFailed = true, SaveExpertiseMessage =  $"Expertise '{expertiseName}' already exists.",
-                    ExpertiseCategories = ExpertiseCategories,
-                    Sectors = Sectors
-                };
-                return Partial("_ProfileEditForm", this);
-            }
-
-            // Attempt to save the expertise
-            var expertiseId =
-                await expertiseManager.CreateExpertiseAsync(name: trimmedName, expertiseCategoryId: expertiseCategoryId);
-
-            if (expertiseId == 0)
-            {
-                this.NewExpertiseResponse = new NewExpertiseCreatedResponse
-                {
-                    SavingExpertiseFailed = true, SaveExpertiseMessage =  $"Failed to create the expertise '{expertiseName}'.",
-                    ExpertiseCategories = ExpertiseCategories,
-                    Sectors = Sectors
-                };
-                return Partial("_ProfileEditForm", this);
-            }
-            AvailableExpertises = await expertiseManager.GetAllExpertisesAsync();
-            SocialMediaSites = await socialMediaSiteManager.GetAllAsync();
-            Input.SelectedExpertiseIds = [.. Input.SelectedExpertiseIds.Concat([expertiseId])];
-
-            this.NewExpertiseResponse = new NewExpertiseCreatedResponse
-            {
-                SavingExpertiseFailed = false, SaveExpertiseMessage =  string.Empty,
-                ExpertiseCategories = ExpertiseCategories,
-                Sectors = Sectors
-            };
-            return Partial("_ProfileEditForm", this);
+            return RenderNewExpertiseFailure(existingExpertiseResult.Error.Message);
         }
-        catch (Exception ex)
+
+        if (existingExpertiseResult.Value)
         {
-            logger.LogError(ex, "Error submitting new expertise");
-            AvailableExpertises = await expertiseManager.GetAllExpertisesAsync();
-            this.NewExpertiseResponse = new NewExpertiseCreatedResponse
-            {
-                SavingExpertiseFailed = true, SaveExpertiseMessage =  $"Failed to create the expertise '{expertiseName}'.",
-                ExpertiseCategories = ExpertiseCategories,
-                Sectors = Sectors
-            };
-            return Partial("_ProfileEditForm", this);
+            return RenderNewExpertiseFailure($"Expertise '{expertiseName}' already exists.");
         }
+
+        var createResult = await expertiseManager.CreateExpertiseAsync(name: trimmedName, expertiseCategoryId: expertiseCategoryId);
+        if (createResult.IsFailure)
+        {
+            return RenderNewExpertiseFailure(createResult.Error.Message);
+        }
+
+        var expertisesResult = await expertiseManager.GetAllExpertisesAsync();
+        if (expertisesResult.IsFailure)
+        {
+            return RenderNewExpertiseFailure(expertisesResult.Error.Message);
+        }
+
+        AvailableExpertises = expertisesResult.Value;
+        SocialMediaSites = await socialMediaSiteManager.GetAllAsync();
+        Input.SelectedExpertiseIds = [.. Input.SelectedExpertiseIds.Concat([createResult.Value])];
+
+        NewExpertiseResponse = new NewExpertiseCreatedResponse
+        {
+            SavingExpertiseFailed = false,
+            SaveExpertiseMessage = string.Empty,
+            ExpertiseCategories = ExpertiseCategories,
+            Sectors = Sectors
+        };
+        return Partial("_ProfileEditForm", this);
+    }
+
+    private async Task<Result> LoadExpertiseLookupsAsync()
+    {
+        var expertisesResult = await expertiseManager.GetAllExpertisesAsync();
+        if (expertisesResult.IsFailure)
+        {
+            AvailableExpertises = [];
+            ExpertiseCategories = [];
+            return Result.Failure(expertisesResult.Error);
+        }
+
+        var categoriesResult = await expertiseManager.GetAllCategoriesAsync();
+        if (categoriesResult.IsFailure)
+        {
+            AvailableExpertises = expertisesResult.Value;
+            ExpertiseCategories = [];
+            return Result.Failure(categoriesResult.Error);
+        }
+
+        AvailableExpertises = expertisesResult.Value;
+        ExpertiseCategories = categoriesResult.Value;
+        return Result.Success();
+    }
+
+    private async Task<Result> LoadNewExpertiseLookupsAsync()
+    {
+        var categoriesResult = await expertiseManager.GetAllCategoriesAsync();
+        if (categoriesResult.IsFailure)
+        {
+            ExpertiseCategories = [];
+            return Result.Failure(categoriesResult.Error);
+        }
+
+        ExpertiseCategories = categoriesResult.Value;
+        Sectors = await sectorManager.GetAllSectorsAsync();
+        return Result.Success();
+    }
+
+    private JsonResult InvalidNewExpertise(string message) =>
+        new(new NewExpertiseResponse
+        {
+            IsValid = false,
+            Message = message
+        });
+
+    private IActionResult RenderNewExpertiseFailure(string message)
+    {
+        NewExpertiseResponse = new NewExpertiseCreatedResponse
+        {
+            SavingExpertiseFailed = true,
+            SaveExpertiseMessage = message,
+            ExpertiseCategories = ExpertiseCategories,
+            Sectors = Sectors
+        };
+
+        return Partial("_ProfileEditForm", this);
     }
 }

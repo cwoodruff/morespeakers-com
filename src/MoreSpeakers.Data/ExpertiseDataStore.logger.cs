@@ -7,7 +7,10 @@ public partial class ExpertiseDataStore
     [LoggerMessage(LogLevel.Error, "Failed to delete the expertise. Name: '{Name}'")]
     partial void LogFailedToDeleteExpertise(Exception exception, string name);
 
-    [LoggerMessage(LogLevel.Error, "Failed to save the expertise. Name: '{Name}'")]
+    [LoggerMessage(LogLevel.Warning, "Delete returned no changes for the expertise. Name: '{Name}'")]
+    partial void LogFailedToDeleteExpertise(string name);
+
+    [LoggerMessage(LogLevel.Warning, "Save returned no changes for the expertise. Name: '{Name}'")]
     partial void LogFailedToSaveExpertise(string name);
 
     [LoggerMessage(LogLevel.Error, "Failed to save the expertise. Name: '{Name}'")]
@@ -22,7 +25,10 @@ public partial class ExpertiseDataStore
     [LoggerMessage(LogLevel.Error, "Failed to soft delete expertise id {Id}")]
     partial void LogFailedToSoftDeleteExpertise(Exception exception, int id);
 
-    [LoggerMessage(LogLevel.Error, "Failed to save the expertise category. Name: '{Name}'")]
+    [LoggerMessage(LogLevel.Warning, "Soft delete returned no changes for expertise id {Id}")]
+    partial void LogFailedToSoftDeleteExpertise(int id);
+
+    [LoggerMessage(LogLevel.Warning, "Save returned no changes for the expertise category. Name: '{Name}'")]
     partial void LogFailedToSaveExpertiseCategory(string name);
 
     [LoggerMessage(LogLevel.Error, "Failed to save the expertise category. Name: '{Name}'")]
@@ -30,6 +36,9 @@ public partial class ExpertiseDataStore
 
     [LoggerMessage(LogLevel.Warning, "Attempted to delete category with id {Id} that still has expertises")]
     partial void LogAttemptedToDeleteCategoryWithExpertises(int id);
+
+    [LoggerMessage(LogLevel.Warning, "Delete returned no changes for the expertise category. Name: '{Name}'")]
+    partial void LogFailedToDeleteExpertiseCategory(string name);
 
     [LoggerMessage(LogLevel.Error, "Failed to delete the expertise category. Name: '{Name}'")]
     partial void LogFailedToDeleteExpertiseCategory(Exception ex, string name);

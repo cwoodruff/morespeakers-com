@@ -1,6 +1,8 @@
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
+using MoreSpeakers.Domain;
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models;
 using MoreSpeakers.Web.Models;
@@ -37,6 +39,7 @@ public partial class IndexModel : PageModel
     public IEnumerable<Expertise> AllExpertise { get; set; } = [];
     public IEnumerable<Sector> Sectors { get; set; } = [];
     public IEnumerable<ExpertiseCategory> Categories { get; set; } = [];
+    public string? FilterErrorMessage { get; set; }
 
     [BindProperty(SupportsGet = true)] public string? SearchTerm { get; set; }
 
@@ -68,17 +71,44 @@ public partial class IndexModel : PageModel
 
             if (SectorFilter.HasValue)
             {
-                Categories = await _expertiseManager.GetAllActiveCategoriesForSector(SectorFilter.Value);
+                var categoriesResult = await _expertiseManager.GetAllActiveCategoriesForSector(SectorFilter.Value);
+                if (categoriesResult.IsFailure)
+                {
+                    FilterErrorMessage = categoriesResult.Error.Message;
+                    Categories = [];
+                }
+                else
+                {
+                    Categories = categoriesResult.Value;
+                }
             }
 
             if (CategoryFilter.HasValue)
             {
-                AllExpertise = await _expertiseManager.GetByCategoryIdAsync(CategoryFilter.Value);
+                var expertiseResult = await _expertiseManager.GetByCategoryIdAsync(CategoryFilter.Value);
+                if (expertiseResult.IsFailure)
+                {
+                    FilterErrorMessage = expertiseResult.Error.Message;
+                    AllExpertise = [];
+                }
+                else
+                {
+                    AllExpertise = expertiseResult.Value;
+                }
             }
             else
             {
                 // Load all active expertise for filter dropdown by default or if no category is selected
-                AllExpertise = await _expertiseManager.GetAllExpertisesAsync();
+                var expertiseResult = await _expertiseManager.GetAllExpertisesAsync();
+                if (expertiseResult.IsFailure)
+                {
+                    FilterErrorMessage = expertiseResult.Error.Message;
+                    AllExpertise = [];
+                }
+                else
+                {
+                    AllExpertise = expertiseResult.Value;
+                }
             }
 
             // Search for the speakers
@@ -136,32 +166,58 @@ public partial class IndexModel : PageModel
 
         if (sectorFilter > 0)
         {
-            categories = await _expertiseManager.GetAllActiveCategoriesForSector(sectorFilter);
-            expertises = await _expertiseManager.GetBySectorIdAsync(sectorFilter);
+            var categoriesResult = await _expertiseManager.GetAllActiveCategoriesForSector(sectorFilter);
+            if (categoriesResult.IsFailure)
+            {
+                return RenderCategoryLookupFailure(categoriesResult.Error.Message);
+            }
+
+            var expertisesResult = await _expertiseManager.GetBySectorIdAsync(sectorFilter);
+            if (expertisesResult.IsFailure)
+            {
+                return RenderCategoryLookupFailure(expertisesResult.Error.Message);
+            }
+
+            categories = categoriesResult.Value;
+            expertises = expertisesResult.Value;
         }
         else
         {
-            categories = await _expertiseManager.GetAllCategoriesAsync();
-            expertises = await _expertiseManager.GetAllExpertisesAsync();
+            var categoriesResult = await _expertiseManager.GetAllCategoriesAsync();
+            if (categoriesResult.IsFailure)
+            {
+                return RenderCategoryLookupFailure(categoriesResult.Error.Message);
+            }
+
+            var expertisesResult = await _expertiseManager.GetAllExpertisesAsync();
+            if (expertisesResult.IsFailure)
+            {
+                return RenderCategoryLookupFailure(expertisesResult.Error.Message);
+            }
+
+            categories = categoriesResult.Value;
+            expertises = expertisesResult.Value;
         }
 
         var categoryOptionsHtml = await _partialRenderer.RenderPartialToStringAsync("~/Pages/Speakers/_CategoryOptions.cshtml", categories);
         var expertiseCheckboxesHtml = await _partialRenderer.RenderPartialToStringAsync("~/Pages/Speakers/_ExpertiseCheckboxes.cshtml", expertises);
 
         // Wrap expertise checkboxes with OOB swap
-        var expertiseOobHtml = $"<div id=\"expertise-list-container bg-body\" hx-swap-oob=\"true\">{expertiseCheckboxesHtml}</div>";
+        var expertiseOobHtml = $"<div id=\"expertise-list-container\" class=\"border rounded p-2 bg-body\" hx-swap-oob=\"true\">{expertiseCheckboxesHtml}</div>";
 
         return Content(categoryOptionsHtml + expertiseOobHtml, "text/html");
     }
 
     public async Task<IActionResult> OnGetExpertisesAsync(int categoryFilter, int sectorFilter)
     {
-        return Partial("_ExpertiseCheckboxes",
-            categoryFilter > 0
-                ? await _expertiseManager.GetByCategoryIdAsync(categoryFilter)
-                : sectorFilter > 0
-                    ? await _expertiseManager.GetBySectorIdAsync(sectorFilter)
-                    : await _expertiseManager.GetAllExpertisesAsync());
+        var expertisesResult = await GetExpertisesForFilterAsync(categoryFilter, sectorFilter);
+        if (expertisesResult.IsFailure)
+        {
+            Response.StatusCode = StatusCodes.Status400BadRequest;
+            return Content($"<div class=\"alert alert-danger mb-0\">{expertisesResult.Error.Message}</div>", "text/html");
+        }
+
+        return Partial("_ExpertiseCheckboxes", expertisesResult.Value);
     }
 
     public async Task<IActionResult> OnGetRequestModalAsync(Guid mentorId, MentorshipType type)
@@ -260,6 +316,22 @@ public partial class IndexModel : PageModel
 
         return Partial("_RequestSuccess", mentorship);
 
+    }
+
+    private Task<Result<List<Expertise>>> GetExpertisesForFilterAsync(int categoryFilter, int sectorFilter) =>
+        categoryFilter > 0
+            ? _expertiseManager.GetByCategoryIdAsync(categoryFilter)
+            : sectorFilter > 0
+                ? _expertiseManager.GetBySectorIdAsync(sectorFilter)
+                : _expertiseManager.GetAllExpertisesAsync();
+
+    private IActionResult RenderCategoryLookupFailure(string message)
+    {
+        Response.StatusCode = StatusCodes.Status400BadRequest;
+        var categoryOptionsHtml = "<option value=\"\">All Categories</option>";
+        var expertiseOobHtml =
+            $"<div id=\"expertise-list-container\" class=\"border rounded p-2 bg-body\" hx-swap-oob=\"true\"><div class=\"alert alert-danger mb-0\">{message}</div></div>";
+        return Content(categoryOptionsHtml + expertiseOobHtml, "text/html");
     }
 
 }

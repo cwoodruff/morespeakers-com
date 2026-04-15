@@ -44,7 +44,15 @@ public partial class IndexModel : PageModel
             FeaturedSpeakers = await _userManager.GetFeaturedSpeakersAsync(3);
 
             // Get popular expertise areas
-            PopularExpertise = await _expertiseManager.GetPopularExpertiseAsync(8);
+            var popularExpertiseResult = await _expertiseManager.GetPopularExpertiseAsync(8);
+            if (popularExpertiseResult.IsFailure)
+            {
+                _logger.LogWarning("Unable to load popular expertise for the home page: {Message}", popularExpertiseResult.Error.Message);
+                PopularExpertise = [];
+                return;
+            }
+
+            PopularExpertise = popularExpertiseResult.Value;
         }
         catch (Exception ex)
         {

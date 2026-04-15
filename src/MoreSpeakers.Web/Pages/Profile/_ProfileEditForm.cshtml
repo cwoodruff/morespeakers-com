@@ -187,11 +187,9 @@
             <span asp-validation-for="Input.SelectedExpertiseIds" class="text-danger small"></span>
         </div>
         @{
-            var newExpertiseResponse = new NewExpertiseCreatedResponse
-            {
-                ExpertiseCategories = Model.ExpertiseCategories,
-                Sectors = Model.Sectors
-            };
+            var newExpertiseResponse = Model.NewExpertiseResponse;
+            newExpertiseResponse.ExpertiseCategories = Model.ExpertiseCategories;
+            newExpertiseResponse.Sectors = Model.Sectors;
             @await Html.PartialAsync("_NewExpertise", newExpertiseResponse)
         }
     </div>

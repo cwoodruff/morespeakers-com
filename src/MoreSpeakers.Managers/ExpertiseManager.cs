@@ -1,12 +1,12 @@
 using Microsoft.Extensions.Logging;
 
+using MoreSpeakers.Domain;
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models;
-using MoreSpeakers.Domain.Models.AdminUsers;
 
 namespace MoreSpeakers.Managers;
 
-public partial class ExpertiseManager: IExpertiseManager
+public partial class ExpertiseManager : IExpertiseManager
 {
     private readonly IExpertiseDataStore _dataStore;
     private readonly ILogger<ExpertiseManager> _logger;
@@ -17,134 +17,136 @@ public partial class ExpertiseManager: IExpertiseManager
         _logger = logger;
     }
 
-    public async Task<Expertise?> GetAsync(int primaryKey)
-    {
-        return await _dataStore.GetAsync(primaryKey);
-    }
+    public Task<Result<Expertise>> GetAsync(int primaryKey) => _dataStore.GetAsync(primaryKey);
 
-    public async Task<bool> DeleteAsync(int primaryKey)
-    {
-        return await _dataStore.DeleteAsync(primaryKey);
-    }
+    public Task<Result> DeleteAsync(int primaryKey) => _dataStore.DeleteAsync(primaryKey);
 
-    public async Task<Expertise> SaveAsync(Expertise entity)
+    public Task<Result> DeleteAsync(Expertise entity) => _dataStore.DeleteAsync(entity);
+
+    public Task<Result<List<Expertise>>> GetAllAsync() => _dataStore.GetAllAsync();
+
+    public async Task<Result<Expertise>> SaveAsync(Expertise entity)
     {
+        if (string.IsNullOrWhiteSpace(entity.Name))
+        {
+            return Result.Failure<Expertise>(CreateExpertiseNameRequiredError());
+        }
+
+        entity.Name = entity.Name.Trim();
+        entity.Description = NormalizeOptionalText(entity.Description);
+
         return await _dataStore.SaveAsync(entity);
     }
 
-    /// <summary>
-    /// Gets all expertises, including inactive ones.
-    /// </summary>
-    /// <returns>A List of <see cref="Expertise" /></returns>
-    /// <remarks>If you want to filter the list of expertise, use <see cref="GetAllExpertisesAsync" /> instead.</remarks>
-    public async Task<List<Expertise>> GetAllAsync()
+    public async Task<Result<int>> CreateExpertiseAsync(string name, string? description = null, int expertiseCategoryId = 0)
     {
-        return await _dataStore.GetAllAsync();
-    }
-
-    public async Task<bool> DeleteAsync(Expertise entity)
-    {
-        return await _dataStore.DeleteAsync(entity);
-    }
-
-    public async Task<int> CreateExpertiseAsync(string name, string? description = null, int expertiseCategoryId = 1)
-    {
-        var expertise = new Expertise { Name = name, Description = description, ExpertiseCategoryId = expertiseCategoryId };
-
-        try
+        if (string.IsNullOrWhiteSpace(name))
         {
-            var savedExpertise = await _dataStore.SaveAsync(expertise);
-            return savedExpertise.Id;
+            return Result.Failure<int>(CreateExpertiseNameRequiredError());
         }
-        catch(Exception ex)
+
+        var saveResult = await _dataStore.SaveAsync(new Expertise
         {
-            LogFailedToCreateExpertiseName(ex, name);
-            return 0;
-        }
+            Name = name.Trim(),
+            Description = NormalizeOptionalText(description),
+            ExpertiseCategoryId = expertiseCategoryId
+        });
+
+        return saveResult.IsFailure
+            ? Result.Failure<int>(saveResult.Error)
+            : Result.Success(saveResult.Value.Id);
     }
 
-    public async Task<IEnumerable<Expertise>> GetPopularExpertiseAsync(int count = 10)
-    {
-        return await _dataStore.GetPopularExpertiseAsync(count);
-    }
+    public Task<Result<IEnumerable<Expertise>>> GetPopularExpertiseAsync(int count = 10) =>
+        _dataStore.GetPopularExpertiseAsync(count);
 
-    public async Task<bool> DoesExpertiseWithNameExistsAsync(string expertiseName)
-    {
-        return await _dataStore.DoesExpertiseWithNameExistsAsync(expertiseName);
-    }
+    public Task<Result<IEnumerable<Expertise>>> FuzzySearchForExistingExpertise(string name, int count = 3) =>
+        _dataStore.FuzzySearchForExistingExpertise(name, count);
 
-    public async Task<IEnumerable<Expertise>> FuzzySearchForExistingExpertise(string name, int count = 3)
-    {
-        return await _dataStore.FuzzySearchForExistingExpertise(name, count);
-    }
+    public Task<Result<List<Expertise>>> GetByCategoryIdAsync(int categoryId) =>
+        _dataStore.GetByCategoryIdAsync(categoryId);
 
-    public async Task<List<Expertise>> GetByCategoryIdAsync(int categoryId)
+    public async Task<Result<bool>> DoesExpertiseWithNameExistsAsync(string expertiseName)
     {
-        return await _dataStore.GetByCategoryIdAsync(categoryId);
-    }
-
-    /// <summary>
-    /// Gets all expertises, optionally including inactive ones, or both.
-    /// </summary>
-    /// <param name="active">A <see cref="TriState" /> value indicating whether to include active sectors, inactive sectors, or both.</param>
-    /// <param name="searchTerm">A search term to filter sectors by name.</param>
-    /// <returns>A List of <see cref="Expertise" /></returns>
-    /// <remarks>If you want to get the list of all expertises regardless of IsActive flag, you can use <see cref="GetAllAsync" /> instead.</remarks>
-    public async Task<List<Expertise>>
-        GetAllExpertisesAsync(TriState active = TriState.True, string? searchTerm = "") =>
-        await _dataStore.GetAllExpertisesAsync(active, searchTerm);
-
-    public async Task<bool> SoftDeleteAsync(int id)
-    {
-        try
+        if (string.IsNullOrWhiteSpace(expertiseName))
         {
-            var result = await _dataStore.SoftDeleteAsync(id);
-            if (result)
-            {
-                LogSoftDeletedExpertiseWithIdId(id);
-            }
-            else
-            {
-                LogSoftDeleteReturnedFalseForExpertiseIdId(id);
-            }
-            return result;
+            return Result.Failure<bool>(CreateExpertiseNameRequiredError());
         }
-        catch (Exception ex)
+
+        return await _dataStore.DoesExpertiseWithNameExistsAsync(expertiseName.Trim());
+    }
+
+    public Task<Result<List<Expertise>>> GetAllExpertisesAsync(
+        MoreSpeakers.Domain.Models.AdminUsers.TriState active = MoreSpeakers.Domain.Models.AdminUsers.TriState.True,
+        string? searchTerm = "") =>
+        _dataStore.GetAllExpertisesAsync(active, searchTerm);
+
+    public async Task<Result> SoftDeleteAsync(int id)
+    {
+        if (id <= 0)
         {
-            LogFailedToSoftDeleteExpertiseIdId(ex, id);
-            return false;
+            return Result.Failure(CreateExpertiseIdInvalidError(id));
         }
+
+        var result = await _dataStore.SoftDeleteAsync(id);
+        if (result.IsSuccess)
+        {
+            LogSoftDeletedExpertiseWithIdId(id);
+        }
+        else
+        {
+            LogSoftDeleteFailedForExpertiseIdId(id, result.Error.Code);
+        }
+
+        return result;
     }
 
-    public async Task<ExpertiseCategory?> GetCategoryAsync(int id)
-    {
-        return await _dataStore.GetCategoryAsync(id);
-    }
+    public Task<Result<ExpertiseCategory>> GetCategoryAsync(int id) => _dataStore.GetCategoryAsync(id);
 
-    public async Task<ExpertiseCategory> SaveCategoryAsync(ExpertiseCategory category)
+    public async Task<Result<ExpertiseCategory>> SaveCategoryAsync(ExpertiseCategory category)
     {
+        if (string.IsNullOrWhiteSpace(category.Name))
+        {
+            return Result.Failure<ExpertiseCategory>(CreateCategoryNameRequiredError());
+        }
+
+        if (category.SectorId <= 0)
+        {
+            return Result.Failure<ExpertiseCategory>(CreateCategorySectorRequiredError());
+        }
+
+        category.Name = category.Name.Trim();
+        category.Description = NormalizeOptionalText(category.Description);
+
         return await _dataStore.SaveCategoryAsync(category);
     }
 
-    public async Task<bool> DeleteCategoryAsync(int id)
-    {
-        return await _dataStore.DeleteCategoryAsync(id);
-    }
+    public Task<Result> DeleteCategoryAsync(int id) => _dataStore.DeleteCategoryAsync(id);
 
-    /// <summary>
-    /// Gets all expertise categories, optionally including inactive ones, or both.
-    /// </summary>
-    /// <param name="active">A <see cref="TriState" /> value indicating whether to include active sectors, inactive sectors, or both.</param>
-    /// <param name="searchTerm">A search term to filter sectors by name.</param>
-    /// <returns>A List of <see cref="Expertise" /></returns>
-    public async Task<List<ExpertiseCategory>> GetAllCategoriesAsync(TriState active = TriState.True, string? searchTerm = "")
-    {
-        return await _dataStore.GetAllCategoriesAsync(active, searchTerm);
-    }
+    public Task<Result<List<ExpertiseCategory>>> GetAllCategoriesAsync(
+        MoreSpeakers.Domain.Models.AdminUsers.TriState active = MoreSpeakers.Domain.Models.AdminUsers.TriState.True,
+        string? searchTerm = "") =>
+        _dataStore.GetAllCategoriesAsync(active, searchTerm);
 
-    public async Task<List<ExpertiseCategory>> GetAllActiveCategoriesForSector(int sectorId) =>
-        await _dataStore.GetAllActiveCategoriesForSector(sectorId);
+    public Task<Result<List<ExpertiseCategory>>> GetAllActiveCategoriesForSector(int sectorId) =>
+        _dataStore.GetAllActiveCategoriesForSector(sectorId);
 
-    public async Task<List<Expertise>> GetBySectorIdAsync(int sectorFilter) =>
-        await _dataStore.GetBySectorIdAsync(sectorFilter);
+    public Task<Result<List<Expertise>>> GetBySectorIdAsync(int sectorFilter) =>
+        _dataStore.GetBySectorIdAsync(sectorFilter);
+
+    private static string? NormalizeOptionalText(string? value) =>
+        string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+
+    private static Error CreateExpertiseNameRequiredError() =>
+        new("expertise.validation.name-required", "Expertise name is required.");
+
+    private static Error CreateExpertiseIdInvalidError(int id) =>
+        new("expertise.validation.invalid-id", $"Expertise id '{id}' is invalid.");
+
+    private static Error CreateCategoryNameRequiredError() =>
+        new("expertise-category.validation.name-required", "Expertise category name is required.");
+
+    private static Error CreateCategorySectorRequiredError() =>
+        new("expertise-category.validation.sector-required", "Expertise category sector is required.");
 }
+
