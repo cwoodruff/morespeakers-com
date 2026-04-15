@@ -77,7 +77,7 @@ public class ExpertiseDataStoreResultTests
     }
 
     [Fact]
-    public async Task SaveAsync_and_CreateExpertiseAsync_should_return_success_and_failure_results()
+    public async Task SaveAsync_and_CreateExpertiseAsync_should_return_success_results_and_throw_for_disposed_context()
     {
         var store = CreateStore(out var context);
         AddSector(context, 1, "Tech");
@@ -94,13 +94,8 @@ public class ExpertiseDataStoreResultTests
 
         context.Dispose();
 
-        var saveFailure = await store.SaveAsync(new MoreSpeakers.Domain.Models.Expertise { Name = "Broken", ExpertiseCategoryId = 10, IsActive = true });
-        var createFailure = await store.CreateExpertiseAsync("Broken", null, 10);
-
-        Assert.True(saveFailure.IsFailure);
-        Assert.Equal("expertise.save.failed", saveFailure.Error.Code);
-        Assert.True(createFailure.IsFailure);
-        Assert.Equal("expertise.save.failed", createFailure.Error.Code);
+        await Assert.ThrowsAsync<ObjectDisposedException>(() => store.SaveAsync(new MoreSpeakers.Domain.Models.Expertise { Name = "Broken", ExpertiseCategoryId = 10, IsActive = true }));
+        await Assert.ThrowsAsync<ObjectDisposedException>(() => store.CreateExpertiseAsync("Broken", null, 10));
     }
 
     [Fact]
@@ -149,7 +144,7 @@ public class ExpertiseDataStoreResultTests
     }
 
     [Fact]
-    public async Task DoesExpertiseWithNameExistsAsync_should_return_success_results_and_failure_when_context_is_disposed()
+    public async Task DoesExpertiseWithNameExistsAsync_should_return_success_results_and_throw_when_context_is_disposed()
     {
         var store = CreateStore(out var context);
         AddSector(context, 1, "Tech");
@@ -166,10 +161,7 @@ public class ExpertiseDataStoreResultTests
         Assert.False(missing.Value);
 
         context.Dispose();
-        var failure = await store.DoesExpertiseWithNameExistsAsync("Cloud");
-
-        Assert.True(failure.IsFailure);
-        Assert.Equal("expertise.exists.failed", failure.Error.Code);
+        await Assert.ThrowsAsync<ObjectDisposedException>(() => store.DoesExpertiseWithNameExistsAsync("Cloud"));
     }
 
     [Fact]
@@ -219,19 +211,19 @@ public class ExpertiseDataStoreResultTests
     }
 
     [Fact]
-    public async Task Expertise_query_operations_should_return_failure_results_when_context_is_disposed()
+    public async Task Expertise_query_operations_should_throw_when_context_is_disposed()
     {
         var store = CreateStore(out var context);
         context.Dispose();
 
-        Assert.Equal("expertise.list.failed", (await store.GetAllAsync()).Error.Code);
-        Assert.Equal("expertise.filtered-list.failed", (await store.GetAllExpertisesAsync()).Error.Code);
-        Assert.Equal("expertise.popular.failed", (await store.GetPopularExpertiseAsync()).Error.Code);
-        Assert.Equal("expertise.search.failed", (await store.FuzzySearchForExistingExpertise("cloud")).Error.Code);
-        Assert.Equal("expertise.by-category.failed", (await store.GetByCategoryIdAsync(10)).Error.Code);
-        Assert.Equal("expertise.by-sector.failed", (await store.GetBySectorIdAsync(1)).Error.Code);
-        Assert.Equal("expertise-category.list.failed", (await store.GetAllCategoriesAsync()).Error.Code);
-        Assert.Equal("expertise-category.by-sector.failed", (await store.GetAllActiveCategoriesForSector(1)).Error.Code);
+        await Assert.ThrowsAsync<ObjectDisposedException>(() => store.GetAllAsync());
+        await Assert.ThrowsAsync<ObjectDisposedException>(() => store.GetAllExpertisesAsync());
+        await Assert.ThrowsAsync<ObjectDisposedException>(() => store.GetPopularExpertiseAsync());
+        await Assert.ThrowsAsync<ObjectDisposedException>(() => store.FuzzySearchForExistingExpertise("cloud"));
+        await Assert.ThrowsAsync<ObjectDisposedException>(() => store.GetByCategoryIdAsync(10));
+        await Assert.ThrowsAsync<ObjectDisposedException>(() => store.GetBySectorIdAsync(1));
+        await Assert.ThrowsAsync<ObjectDisposedException>(() => store.GetAllCategoriesAsync());
+        await Assert.ThrowsAsync<ObjectDisposedException>(() => store.GetAllActiveCategoriesForSector(1));
     }
 
     [Fact]
@@ -279,10 +271,8 @@ public class ExpertiseDataStoreResultTests
         Assert.Equal("expertise-category.delete.not-found", missingDelete.Error.Code);
 
         context.Dispose();
-        var saveFailure = await store.SaveCategoryAsync(new MoreSpeakers.Domain.Models.ExpertiseCategory { Name = "Broken", SectorId = 1, IsActive = true });
 
-        Assert.True(saveFailure.IsFailure);
-        Assert.Equal("expertise-category.save.failed", saveFailure.Error.Code);
+        await Assert.ThrowsAsync<ObjectDisposedException>(() => store.SaveCategoryAsync(new MoreSpeakers.Domain.Models.ExpertiseCategory { Name = "Broken", SectorId = 1, IsActive = true }));
     }
 }
 
