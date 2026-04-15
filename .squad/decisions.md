@@ -89,6 +89,20 @@ Updated README.md to reflect .NET 10, EF Core 10 (runtime ORM), actual project s
 **Labels:** `squad:dallas`, `squad:bishop`, `squad:vasquez` applied to all issues.  
 **Result:** Squad members unblocked to begin work.
 
+## Work Directives (2026-04-15)
+
+### User Directive: Continue Exception Standardization
+
+**Status:** Active | **Owner:** Squad  
+**What:** Continue standardizing exception handling as an active team decision.  
+**Why:** User request — aligns with Result<T> adoption across backlog (#385–#394).
+
+### User Directive: Git Branch Naming
+
+**Status:** Active | **Owner:** Squad  
+**What:** For issue work, use git branches named as `issue-number-brief-description`.  
+**Why:** User request — improves traceability and branch hygiene.
+
 ## Governance
 
 - All meaningful changes require team consensus
