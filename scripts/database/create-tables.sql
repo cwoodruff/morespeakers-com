@@ -77,9 +77,18 @@ create table AspNetUsers
     IsActive                bit              default 1            not null,
     IsAvailableForMentoring bit              default 1            not null,
     MaxMentees              int              default 2            not null,
-    MentorshipFocus         nvarchar(1000)
+    MentorshipFocus         nvarchar(1000),
+    IsDeleted               bit              default 0            not null,
+    DeletedAt               datetimeoffset,
+    MustChangePassword      bit              default 0            not null
 )
 go
+
+create index IX_AspNetUsers_IsDeleted
+    on AspNetUsers (IsDeleted)
+go
+
+
 
 create table AspNetUserClaims
 (
