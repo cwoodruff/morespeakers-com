@@ -89,6 +89,32 @@ Updated README.md to reflect .NET 10, EF Core 10 (runtime ORM), actual project s
 **Labels:** `squad:dallas`, `squad:bishop`, `squad:vasquez` applied to all issues.  
 **Result:** Squad members unblocked to begin work.
 
+## Issue #386 Expertise Result<T> PoC Learnings (2026-04-15)
+
+### Backend: Expertise Result Contracts
+
+**Status:** Applied | **Owner:** Dallas
+
+Expertise vertical slice now treats missing expertise/category records as explicit `Result` failures instead of `null`/`true` sentinels.
+- ExpertiseDataStore catches only `DbUpdateException` for expected persistence failures; broader exceptions surface naturally
+- ExpertiseManager adds boundary validation/input normalization only (required names, required category sector, invalid soft-delete); otherwise forwards DataStore `Result`
+
+### Frontend: Expertise Result Web Patterns
+
+**Status:** Applied | **Owner:** Bishop
+
+Established consistent Result failure surfacing across web flows:
+- Admin Expertise pages use inline `ModelState` errors for same-page create/edit, `TempData["ErrorMessage"]` for redirects; existing toast UX remains consistent
+- HTMX new-expertise partials in Register/Profile render `Model.NewExpertiseResponse` instead of creating fresh response (preserves server-rendered error feedback)
+- Fixed partial re-render bug: validation errors now persist across re-renders
+- Speakers filters and homepage popular-expertise loading updated for Result surface
+
+### Data Layer: Test Discovery Fix
+
+**Status:** Applied | **Owner:** Vasquez
+
+MoreSpeakers.Data.Tests had zero executable tests until xUnit runner was added. Decision: Added `xunit.runner.visualstudio` dependency so `dotnet test` discovers Data tests consistently with web test project. Impact: Future data-layer work can rely on executable data tests.
+
 ## Work Directives (2026-04-15)
 
 ### User Directive: Continue Exception Standardization

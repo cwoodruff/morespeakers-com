@@ -15,6 +15,9 @@ Use this skill when implementing or extending the approved Result-based exceptio
 - Use `readonly struct` for `Result` and `Result<T>` to stay additive and allocation-conscious on the hot path.
 - Keep failure access explicit: success results throw if callers read `Error`, and failure results throw if callers read `Value`.
 - Cover the public API surface in `src\MoreSpeakers.Domain.Tests\ResultTests.cs`, including success, failure, implicit conversion, and equality.
+- When converting an existing vertical slice, let the slice interface own explicit `Result` signatures instead of inheriting generic `IDataStore` contracts that force sentinel returns.
+- In DataStores, catch only expected persistence exceptions such as `DbUpdateException`; return typed `Error` codes for not-found/no-op outcomes and let unexpected exceptions propagate.
+- In Managers, forward DataStore `Result` values unchanged unless adding boundary validation or input normalization that belongs above persistence.
 
 ## Examples
 - `var ok = Result.Success();`
