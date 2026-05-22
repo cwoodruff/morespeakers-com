@@ -77,7 +77,7 @@ public partial class OpenGraphSpeakerProfileImageGenerator(
         }
         catch (Exception e)
         {
-            Console.WriteLine(e);
+            LogFailedToGetImageStreamFromUrl(logger, url, e);
             throw;
         }
     }
