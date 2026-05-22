@@ -298,7 +298,10 @@ public sealed class OpenGraphSpeakerProfileImageGeneratorTests : IDisposable
     [Fact]
     public async Task GenerateSpeakerProfileFromUrlsAsync_WithFontFile_Success()
     {
-        var fontFile = Directory.GetFiles(Environment.GetFolderPath(Environment.SpecialFolder.Fonts), "*.ttf").FirstOrDefault();
+        var fontsFolder = Environment.GetFolderPath(Environment.SpecialFolder.Fonts);
+        if (string.IsNullOrWhiteSpace(fontsFolder)) return;
+        
+        var fontFile = Directory.GetFiles(fontsFolder, "*.ttf").FirstOrDefault();
         if (string.IsNullOrWhiteSpace(fontFile)) return;
 
         byte[] imageBytes;
@@ -344,7 +347,8 @@ public sealed class OpenGraphSpeakerProfileImageGeneratorTests : IDisposable
     {
         using var speakerImg = new Image<Rgba32>(100, 100);
         using var logoImg = new Image<Rgba32>(100, 100);
-        var result = _generator.GenerateSpeakerProfile(speakerImg, logoImg, "John Doe", ["Arial"]);
+        var availableFontName = SystemFonts.Families.First().Name;
+        var result = _generator.GenerateSpeakerProfile(speakerImg, logoImg, "John Doe", [availableFontName]);
         Assert.NotNull(result);
     }
 
@@ -352,7 +356,10 @@ public sealed class OpenGraphSpeakerProfileImageGeneratorTests : IDisposable
     [Fact]
     public void GenerateSpeakerProfile_WithFontFile_Success()
     {
-        var fontFile = Directory.GetFiles(Environment.GetFolderPath(Environment.SpecialFolder.Fonts), "*.ttf").FirstOrDefault();
+        var fontsFolder = Environment.GetFolderPath(Environment.SpecialFolder.Fonts);
+        if (string.IsNullOrWhiteSpace(fontsFolder)) return;
+        
+        var fontFile = Directory.GetFiles(fontsFolder, "*.ttf").FirstOrDefault();
         if (string.IsNullOrWhiteSpace(fontFile)) return;
 
         using var speakerImg = new Image<Rgba32>(100, 100);
