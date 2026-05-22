@@ -28,3 +28,10 @@
   - Fix: Added `checks: write` to job permissions block (alongside existing `contents: read` and `pull-requests: write`)
   - This is a GitHub Actions runner permission requirement, not a token or action availability issue
   - Test reporter now has the necessary permissions to create check runs on pull requests
+- 2026-05-22: Resolved merge conflicts for PR #403 (branch issue-383-ci-pr-tests vs main):
+  - Conflict in `.github/workflows/ci-pr.yml` due to both branches adding the file independently
+  - main branch version lacked the critical `checks: write` permission
+  - Resolution: Preserved Parker's complete workflow including `checks: write` (required for test-reporter)
+  - Also brought in XSS fixes from main: Html.Raw removals in Profile/_ProfileEditForm and _PasswordChangeForm
+  - Merge strategy: Keep Parker's CI workflow intact while adopting main's security improvements
+  - Result: PR #403 no longer has conflicts and maintains all necessary permissions for test reporting
