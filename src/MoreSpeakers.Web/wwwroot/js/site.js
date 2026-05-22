@@ -123,7 +123,7 @@ function initializeHtmxEnhancements() {
             const buttons = form.querySelectorAll('button[type="submit"]');
             buttons.forEach(btn => {
                 btn.disabled = true;
-                btn.innerHTML = '<span class="loading me-2"></span>' + btn.innerHTML;
+                btn.innerHTML = '<span class="loading me-2"></span>' + btn.innerHTML; // Safe: static string prepended to server-rendered button markup
             });
         }
     });

@@ -15,16 +15,16 @@ function initializeRegistrationForm() {
 
         if (button.id === 'nextBtn') {
             button.disabled = true;
-            button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Validating...';
+            button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Validating...'; // Safe: static string, no user data
         } else if (button.id === 'submitBtn') {
             button.disabled = true;
-            button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Creating Account...';
+            button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Creating Account...'; // Safe: static string, no user data
         } else if (button.id === 'prevBtn') {
             button.disabled = true;
-            button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Loading...';
+            button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Loading...'; // Safe: static string, no user data
         } else if (button.id === 'submitExpertise') {
             button.disabled = true;
-            button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Creating Expertise Area...';
+            button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Creating Expertise Area...'; // Safe: static string, no user data
         }
     });
 
@@ -36,7 +36,7 @@ function initializeRegistrationForm() {
             if (button.id !== 'submitExpertise') {
                 button.disabled = false;
             }
-            button.innerHTML = originalContent;
+            button.innerHTML = originalContent; // Safe: restores original server-rendered button markup
             button.removeAttribute('data-original-content');
         }
         initializeHeadshotProcessing();
@@ -69,13 +69,23 @@ function handleEmailValidation() {
             const emailInput = event.detail.elt;
 
             if (response.isValid) {
-                messageDiv.innerHTML = response.message ? '<i class="bi bi-check-circle me-1"></i>' + response.message : '';
+                messageDiv.textContent = '';
+                if (response.message) {
+                    const icon = document.createElement('i');
+                    icon.className = 'bi bi-check-circle me-1';
+                    messageDiv.appendChild(icon);
+                    messageDiv.appendChild(document.createTextNode(response.message));
+                }
                 messageDiv.classList.remove('text-danger');
                 messageDiv.classList.add('text-success');
                 emailInput.classList.remove('is-invalid');
                 emailInput.classList.add('is-valid');
             } else {
-                messageDiv.innerHTML = '<i class="bi bi-exclamation-triangle me-1"></i>' + response.message;
+                const icon = document.createElement('i');
+                icon.className = 'bi bi-exclamation-triangle me-1';
+                messageDiv.textContent = '';
+                messageDiv.appendChild(icon);
+                messageDiv.appendChild(document.createTextNode(response.message));
                 messageDiv.classList.add('text-danger');
                 messageDiv.classList.remove('text-success');
                 emailInput.classList.remove('is-valid');
@@ -108,10 +118,20 @@ function updatePageHeader() {
     
     const pageHeader = document.getElementById('pageHeader');
     if (pageHeader) {
+        pageHeader.textContent = '';
+        const h1 = document.createElement('h1');
+        const p = document.createElement('p');
+        p.className = 'text-muted';
         if (stepNumber === 5) {
-            pageHeader.innerHTML = '<h1 class="h3 fw-bold text-success">Welcome to MoreSpeakers.com!</h1><p class="text-muted">Your registration has been completed successfully</p>';
+            h1.className = 'h3 fw-bold text-success';
+            h1.textContent = 'Welcome to MoreSpeakers.com!';
+            p.textContent = 'Your registration has been completed successfully';
         } else {
-            pageHeader.innerHTML = '<h1 class="h3 fw-bold text-primary">Create Your Speaker Profile</h1><p class="text-muted">Tell us about yourself and join the community</p>';
+            h1.className = 'h3 fw-bold text-primary';
+            h1.textContent = 'Create Your Speaker Profile';
+            p.textContent = 'Tell us about yourself and join the community';
         }
+        pageHeader.appendChild(h1);
+        pageHeader.appendChild(p);
     }
 }

@@ -217,7 +217,11 @@ const Passkeys = {
         } catch (err) {
             const alert = document.getElementById('passkeyLoginAlert');
             if (alert) {
-                alert.innerHTML = `<i class="bi bi-exclamation-triangle me-2"></i>${err.message}`;
+                const icon = document.createElement('i');
+                icon.className = 'bi bi-exclamation-triangle me-2';
+                alert.textContent = '';
+                alert.appendChild(icon);
+                alert.appendChild(document.createTextNode(err.message));
                 alert.className = 'alert alert-danger fade show mb-3';
                 alert.classList.remove('d-none');
             } else {

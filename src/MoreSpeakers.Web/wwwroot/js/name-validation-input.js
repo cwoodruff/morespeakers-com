@@ -17,7 +17,7 @@ function handleNameValidation() {
             const id = idElement ? parseInt(idElement.value) : null;
                         
             if (jsonData.$values.length === 0) {
-                messageDiv.innerHTML = '';
+                messageDiv.textContent = ''; // Safe: clearing content, no user data
                 messageDiv.classList.remove('text-danger');
                 messageDiv.classList.add('text-success');
                 nameValidationInput.classList.remove('is-invalid');
@@ -25,14 +25,18 @@ function handleNameValidation() {
             } else {
                 const item = jsonData.$values.find(item => item.id === id);
                 if (item) {
-                    messageDiv.innerHTML = '';
+                    messageDiv.textContent = ''; // Safe: clearing content, no user data
                     messageDiv.classList.remove('text-danger');
                     messageDiv.classList.add('text-success');
                     nameValidationInput.classList.remove('is-invalid');
                     nameValidationInput.classList.add('is-valid');
                 } else {
                     const names = formatSectorNames(jsonData.$values);
-                    messageDiv.innerHTML = '<i class="bi bi-exclamation-triangle me-1"></i>There are some names that match this... ' + names + '.';
+                    const icon = document.createElement('i');
+                    icon.className = 'bi bi-exclamation-triangle me-1';
+                    messageDiv.textContent = '';
+                    messageDiv.appendChild(icon);
+                    messageDiv.appendChild(document.createTextNode('There are some names that match this... ' + names + '.'));
                     messageDiv.classList.add('text-danger');
                     messageDiv.classList.remove('text-success');
                     nameValidationInput.classList.remove('is-valid');
