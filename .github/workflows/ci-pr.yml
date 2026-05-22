@@ -1,0 +1,53 @@
+name: CI - Pull Request Tests
+
+on:
+  pull_request:
+    branches:
+      - main
+
+env:
+  DOTNET_VERSION: 10.0.x
+  CONFIGURATION: Release
+
+jobs:
+  test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore dependencies
+        run: dotnet restore src/MoreSpeakers.sln
+
+      - name: Build solution
+        run: >
+          dotnet build src/MoreSpeakers.sln
+          --configuration ${{ env.CONFIGURATION }}
+          --no-restore
+
+      - name: Run unit tests
+        run: >
+          dotnet test src/MoreSpeakers.sln
+          --configuration ${{ env.CONFIGURATION }}
+          --no-build
+          --verbosity normal
+          --logger "trx;LogFileName=test-results.trx"
+
+      - name: Publish test results
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: Test Results
+          path: '**/test-results.trx'
+          reporter: dotnet-trx
+          fail-on-error: true
