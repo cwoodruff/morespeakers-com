@@ -243,10 +243,14 @@ void ConfigureLogging(IConfigurationRoot configurationRoot, IServiceCollection s
         .CreateLogger();
     services.AddLogging(loggingBuilder =>
     {
-        loggingBuilder.AddApplicationInsights(configureTelemetryConfiguration: (config) =>
-                config.ConnectionString =
-                    configurationRoot["APPLICATIONINSIGHTS_CONNECTION_STRING"],
-            configureApplicationInsightsLoggerOptions: (_) => { });loggingBuilder.AddApplicationInsights();
+        var appInsightsConnectionString = configurationRoot["APPLICATIONINSIGHTS_CONNECTION_STRING"];
+        if (!string.IsNullOrWhiteSpace(appInsightsConnectionString) && 
+            !appInsightsConnectionString.StartsWith("Set in ", StringComparison.OrdinalIgnoreCase))
+        {
+            loggingBuilder.AddApplicationInsights(configureTelemetryConfiguration: (config) =>
+                    config.ConnectionString = appInsightsConnectionString,
+                configureApplicationInsightsLoggerOptions: (_) => { });
+        }
         loggingBuilder.AddSerilog(logger);
     });
 }
