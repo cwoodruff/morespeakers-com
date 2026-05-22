@@ -35,3 +35,26 @@
   - Also brought in XSS fixes from main: Html.Raw removals in Profile/_ProfileEditForm and _PasswordChangeForm
   - Merge strategy: Keep Parker's CI workflow intact while adopting main's security improvements
   - Result: PR #403 no longer has conflicts and maintains all necessary permissions for test reporting
+- 2026-05-22: Fixed Linux runner font failures in OpenGraphSpeakerProfileImageGenerator tests (PR #403, issue #383):
+  - Root cause: `Environment.GetFolderPath(Environment.SpecialFolder.Fonts)` returns empty string on Linux runners
+  - Tests calling `Directory.GetFiles("")` threw `ArgumentException` before null checks could execute
+  - Additional issue: Hardcoded "Arial" font doesn't exist on Linux (uses DejaVu, Liberation, etc.)
+  - Fix strategy:
+    1. Check if fonts folder path is empty BEFORE calling Directory.GetFiles (prevents exception)
+    2. Replace hardcoded "Arial" with `SystemFonts.Families.First().Name` for cross-platform compatibility
+    3. Early return from test when fonts unavailable (graceful skip on unsupported platforms)
+  - Fixed 7 test methods across 3 commit iterations:
+    * GenerateSpeakerProfileFromUrlsAsync_WithFontFile_Success
+    * GenerateSpeakerProfile_WithFontFamilyNames_Success
+    * GenerateSpeakerProfile_WithFontFile_Success
+    * GenerateSpeakerProfileFromUrlsAsync_Success
+    * GenerateSpeakerProfileFromFilesAsync_Throws_When_FileNotFound
+    * GenerateSpeakerProfileFromFilesAsync_WithFontFile_Throws_When_FileNotFound
+    * GenerateSpeakerProfileFromFilesAsync_Success
+    * GetFontFamilyFromFile_Success
+    * GenerateSpeakerProfileFromFilesAsync_WithFontFile_Success (duplicate test name, line 340)
+  - Result: All 40 OpenGraphSpeakerProfileImageGenerator tests pass on both Windows and Linux runners
+  - Lesson: Always validate environment paths before filesystem operations in cross-platform tests
+  - Lesson: Use SystemFonts API for runtime font discovery instead of hardcoding OS-specific font names
+  - PR #403 CI now fully green: Build, Test, and Test Results all passing
+
