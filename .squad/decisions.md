@@ -11,16 +11,21 @@
 
 ### Security: XSS via Html.Raw and JavaScript innerHTML
 
-**Status:** Proposed | **Severity:** Critical | **Owner:** api-agent
+**Status:** Applied (2026-05-22) | **Severity:** Critical | **Owner:** Bishop
 
-Three Razor partials render validation messages unsafely:
-- `Pages/Profile/_ProfileEditForm.cshtml` (lines 7, 13)
-- `Pages/Profile/_PasswordChangeForm.cshtml` (line 6)
+**Html.Raw Fix (PR #400):**
+- `Pages/Profile/_ProfileEditForm.cshtml` (lines 7, 13) — replaced Html.Raw with safe @Model expressions
+- `Pages/Profile/_PasswordChangeForm.cshtml` (line 6) — replaced Html.Raw with safe @Model expression
+- Decision: Never use Html.Raw for user-facing messages. Razor's default encoding is sufficient.
 
-Multiple JS files use `innerHTML` with server responses:
-- `register.js`, `expertise.js`, `name-validation-input.js`, `passkeys.js`
-
-**Fix:** Replace Html.Raw with safe Razor encoding. Use textContent or DOM creation in JS.
+**innerHTML Fix (PR #401):**
+- `expertise.js` — createElement+textContent for jsonData.message
+- `register.js` — createElement+textContent for response.message + updatePageHeader refactor
+- `name-validation-input.js` — createElement+textContent for server name matches
+- `passkeys.js` — createElement+textContent for err.message
+- `file-upload.js` — Explicit DOM creation; file.name via textContent
+- Static innerHTML in `register.js`, `site.js`, `name-validation-input.js` annotated: `// Safe: static string, no user data`
+- Decision: All server-controlled data in JS must use textContent or createElement, never innerHTML interpolation.
 
 ### Exception Handling: Adopt Result<T> Pattern (2025-07-18)
 
@@ -128,6 +133,12 @@ MoreSpeakers.Data.Tests had zero executable tests until xUnit runner was added. 
 **Status:** Active | **Owner:** Squad  
 **What:** For issue work, use git branches named as `issue-number-brief-description`.  
 **Why:** User request — improves traceability and branch hygiene.
+
+### User Directive: PR Review Context Preservation
+
+**Status:** Active | **Owner:** Squad  
+**What:** Put PR review findings in PR comments so review context is not lost.  
+**Why:** User request (2026-04-15T19:36:39Z via Copilot) — captured for team memory.
 
 ## Governance
 

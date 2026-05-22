@@ -13,6 +13,7 @@
 
 - 2026-04-13: Team initialized with the Alien cast.
 - 2026-04-13: Completed codebase quality review (security, code quality, testability, exception handling). Findings awaiting squad consensus.
+- 2026-05-22: **Security milestone complete (2026-05-22T17:43:10Z).** Bishop shipped PR #400 (Html.Raw XSS fixes in Razor profile partials) and PR #401 (innerHTML XSS fixes in 6 JS files). Decisions codified: Never use Html.Raw for user messages; all server data in JS must use createElement+textContent. Learnings: icon markup is safe when hardcoded; err.message and file.name are untrusted; static innerHTML should be annotated, not refactored. Orchestration logs archived. Both issues independent with no blockers encountered. Next phase: CI foundation (#383, #384, #393).
 
 ## Learnings
 
