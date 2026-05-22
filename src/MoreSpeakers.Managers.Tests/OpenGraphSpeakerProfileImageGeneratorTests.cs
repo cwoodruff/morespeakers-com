@@ -337,7 +337,10 @@ public sealed class OpenGraphSpeakerProfileImageGeneratorTests : IDisposable
         // On Windows, they are in C:\Windows\Fonts.
         // But for portability, maybe we just skip or use a dummy if we can't.
         // Let's try to find any .ttf file in the system fonts.
-        var fontFile = Directory.GetFiles(Environment.GetFolderPath(Environment.SpecialFolder.Fonts), "*.ttf").FirstOrDefault();
+        var fontsFolder = Environment.GetFolderPath(Environment.SpecialFolder.Fonts);
+        if (string.IsNullOrWhiteSpace(fontsFolder)) return; // Skip if fonts folder doesn't exist
+        
+        var fontFile = Directory.GetFiles(fontsFolder, "*.ttf").FirstOrDefault();
         if (string.IsNullOrWhiteSpace(fontFile)) return; // Skip if no fonts found
 
         var result = await _generator.GenerateSpeakerProfileFromFilesAsync(_tempImageFile, _tempLogoFile, "John Doe", fontFile);
