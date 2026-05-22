@@ -72,16 +72,39 @@ function handleFileSelection(input, file) {
     if (file.type.startsWith('image/')) {
         const reader = new FileReader();
         reader.onload = function(e) {
-            container.innerHTML = `
-                <div class="file-preview">
-                    <img src="${e.target.result}" alt="Preview" class="preview-image mb-2">
-                    <p class="mb-2"><strong>${file.name}</strong></p>
-                    <p class="text-muted small">${formatFileSize(file.size)}</p>
-                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="clearFileUpload(this)">
-                        <i class="bi bi-trash"></i> Remove
-                    </button>
-                </div>
-            `;
+            container.textContent = '';
+            const preview = document.createElement('div');
+            preview.className = 'file-preview';
+
+            const img = document.createElement('img');
+            img.src = e.target.result; // Safe: base64 data URL from FileReader, not server data
+            img.alt = 'Preview';
+            img.className = 'preview-image mb-2';
+
+            const nameP = document.createElement('p');
+            nameP.className = 'mb-2';
+            const strong = document.createElement('strong');
+            strong.textContent = file.name;
+            nameP.appendChild(strong);
+
+            const sizeP = document.createElement('p');
+            sizeP.className = 'text-muted small';
+            sizeP.textContent = formatFileSize(file.size);
+
+            const removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.className = 'btn btn-sm btn-outline-secondary';
+            removeBtn.setAttribute('onclick', 'clearFileUpload(this)');
+            const trashIcon = document.createElement('i');
+            trashIcon.className = 'bi bi-trash';
+            removeBtn.appendChild(trashIcon);
+            removeBtn.appendChild(document.createTextNode(' Remove'));
+
+            preview.appendChild(img);
+            preview.appendChild(nameP);
+            preview.appendChild(sizeP);
+            preview.appendChild(removeBtn);
+            container.appendChild(preview);
         };
         reader.readAsDataURL(file);
     }
@@ -93,11 +116,18 @@ function clearFileUpload(button) {
     const input = container.querySelector('input[type="file"]');
 
     input.value = '';
-    container.innerHTML = `
-        <i class="bi bi-cloud-upload display-4 text-muted mb-2"></i>
-        <p class="mb-2">Click to upload or drag and drop</p>
-        <p class="small text-muted">PNG, JPG, GIF up to 5MB</p>
-    `;
+    container.textContent = ''; // Safe: static string, no user data
+    const uploadIcon = document.createElement('i');
+    uploadIcon.className = 'bi bi-cloud-upload display-4 text-muted mb-2';
+    const clickP = document.createElement('p');
+    clickP.className = 'mb-2';
+    clickP.textContent = 'Click to upload or drag and drop';
+    const hintP = document.createElement('p');
+    hintP.className = 'small text-muted';
+    hintP.textContent = 'PNG, JPG, GIF up to 5MB';
+    container.appendChild(uploadIcon);
+    container.appendChild(clickP);
+    container.appendChild(hintP);
 
     // Re-add the input
     const newInput = input.cloneNode(true);
