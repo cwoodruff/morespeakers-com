@@ -16,3 +16,10 @@
 ## Learnings
 
 - Production is published via GitHub Actions to Azure.
+- 2026-05-22: Created PR #403 to add CI workflow for pull request testing (issue #383):
+  - Solution uses .NET 10.0.x SDK (net10.0 target framework)
+  - Four test projects exist: Data.Tests, Domain.Tests, Managers.Tests, Web.Tests
+  - Workflow pattern: checkout → setup .NET → restore → build (Release, --no-restore) → test (--no-build)
+  - Used dorny/test-reporter@v1 for publishing TRX test results with PR visibility
+  - Existing workflows use DOTNET_CORE_VERSION: 10.0.x env var for consistency
+  - Aspire AppHost deliberately excluded from test runs (avoid orchestration overhead in CI)

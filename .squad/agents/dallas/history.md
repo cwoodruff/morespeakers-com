@@ -17,6 +17,8 @@
 
 ## Learnings
 
+- 2026-05-22: Reviewed PRs #400 (Html.Raw XSS) and #401 (innerHTML XSS). Both are correct and safe to merge. Key finding: `_UserList.cshtml` has 6 `@Html.Raw(CaretFor(...))` calls — these are safe (CaretFor returns only hardcoded icon markup, never user data) and are out of scope for PR #400. In PR #401, one residual `innerHTML` in register.js (`button.innerHTML = originalContent`) remains; it is server-rendered Razor content and accepted risk. Decision: `@Html.Raw()` is acceptable only for server-controlled static HTML markup (e.g., icon helpers); never for any value derived from user input.
+
 - This project includes both an ASP.NET Razor Pages application and an Azure Functions project.
 - 2026-04-15: Phase 1 Result foundation lives in `src\MoreSpeakers.Domain\Models\Error.cs` and `src\MoreSpeakers.Domain\Models\Result.cs`, with coverage in `src\MoreSpeakers.Domain.Tests\ResultTests.cs`.
 - 2026-04-15: The Result pattern here keeps creation on static `Result` factory methods to mirror `IdentityResult`, while `Result<T>` adds implicit value conversion and explicit failure accessors.
