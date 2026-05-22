@@ -23,3 +23,8 @@
   - Used dorny/test-reporter@v1 for publishing TRX test results with PR visibility
   - Existing workflows use DOTNET_CORE_VERSION: 10.0.x env var for consistency
   - Aspire AppHost deliberately excluded from test runs (avoid orchestration overhead in CI)
+- 2026-05-22: Fixed dorny/test-reporter failure in CI workflow (PR #403, branch issue-383-ci-pr-tests):
+  - Root cause: dorny/test-reporter@v1 requires `checks: write` permission to publish test results to PRs
+  - Fix: Added `checks: write` to job permissions block (alongside existing `contents: read` and `pull-requests: write`)
+  - This is a GitHub Actions runner permission requirement, not a token or action availability issue
+  - Test reporter now has the necessary permissions to create check runs on pull requests
