@@ -162,8 +162,10 @@ public sealed class OpenGraphSpeakerProfileImageGeneratorTests : IDisposable
         _mockHttp.When("http://speaker.com/i.png").Respond("image/png", new MemoryStream(imageBytes));
         _mockHttp.When("http://logo.com/i.png").Respond("image/png", new MemoryStream(imageBytes));
 
+        var availableFontName = SystemFonts.Families.First().Name;
+
         // Act
-        var result = await _generator.GenerateSpeakerProfileFromUrlsAsync("http://speaker.com/i.png", "http://logo.com/i.png", "John Doe", ["Arial"]);
+        var result = await _generator.GenerateSpeakerProfileFromUrlsAsync("http://speaker.com/i.png", "http://logo.com/i.png", "John Doe", [availableFontName]);
 
         // Assert
         Assert.NotNull(result);
@@ -236,17 +238,24 @@ public sealed class OpenGraphSpeakerProfileImageGeneratorTests : IDisposable
     [Fact]
     public async Task GenerateSpeakerProfileFromFilesAsync_Throws_When_FileNotFound()
     {
-        await Assert.ThrowsAsync<FileNotFoundException>(() =>
-            _generator.GenerateSpeakerProfileFromFilesAsync("nonexistent.png", _tempLogoFile, "Name", ["Arial"]));
+        var availableFontName = SystemFonts.Families.First().Name;
 
         await Assert.ThrowsAsync<FileNotFoundException>(() =>
-            _generator.GenerateSpeakerProfileFromFilesAsync(_tempImageFile, "nonexistent.png", "Name", ["Arial"]));
+            _generator.GenerateSpeakerProfileFromFilesAsync("nonexistent.png", _tempLogoFile, "Name", [availableFontName]));
+
+        await Assert.ThrowsAsync<FileNotFoundException>(() =>
+            _generator.GenerateSpeakerProfileFromFilesAsync(_tempImageFile, "nonexistent.png", "Name", [availableFontName]));
     }
 
     [Fact]
     public async Task GenerateSpeakerProfileFromFilesAsync_WithFontFile_Throws_When_FileNotFound()
     {
-        var fontFile = Directory.GetFiles(Environment.GetFolderPath(Environment.SpecialFolder.Fonts), "*.ttf").First();
+        var fontsFolder = Environment.GetFolderPath(Environment.SpecialFolder.Fonts);
+        if (string.IsNullOrWhiteSpace(fontsFolder)) return;
+        
+        var fontFile = Directory.GetFiles(fontsFolder, "*.ttf").FirstOrDefault();
+        if (string.IsNullOrWhiteSpace(fontFile)) return;
+
         await Assert.ThrowsAsync<FileNotFoundException>(() =>
             _generator.GenerateSpeakerProfileFromFilesAsync("nonexistent.png", _tempLogoFile, "Name", fontFile));
         await Assert.ThrowsAsync<FileNotFoundException>(() =>
@@ -266,7 +275,8 @@ public sealed class OpenGraphSpeakerProfileImageGeneratorTests : IDisposable
     [Fact]
     public async Task GenerateSpeakerProfileFromFilesAsync_Success()
     {
-        var result = await _generator.GenerateSpeakerProfileFromFilesAsync(_tempImageFile, _tempLogoFile, "John Doe", ["Arial"]);
+        var availableFontName = SystemFonts.Families.First().Name;
+        var result = await _generator.GenerateSpeakerProfileFromFilesAsync(_tempImageFile, _tempLogoFile, "John Doe", [availableFontName]);
         Assert.NotNull(result);
         Assert.Equal(1200, result.Width);
     }
@@ -298,7 +308,10 @@ public sealed class OpenGraphSpeakerProfileImageGeneratorTests : IDisposable
     [Fact]
     public async Task GenerateSpeakerProfileFromUrlsAsync_WithFontFile_Success()
     {
-        var fontFile = Directory.GetFiles(Environment.GetFolderPath(Environment.SpecialFolder.Fonts), "*.ttf").FirstOrDefault();
+        var fontsFolder = Environment.GetFolderPath(Environment.SpecialFolder.Fonts);
+        if (string.IsNullOrWhiteSpace(fontsFolder)) return;
+        
+        var fontFile = Directory.GetFiles(fontsFolder, "*.ttf").FirstOrDefault();
         if (string.IsNullOrWhiteSpace(fontFile)) return;
 
         byte[] imageBytes;
@@ -324,7 +337,10 @@ public sealed class OpenGraphSpeakerProfileImageGeneratorTests : IDisposable
         // On Windows, they are in C:\Windows\Fonts.
         // But for portability, maybe we just skip or use a dummy if we can't.
         // Let's try to find any .ttf file in the system fonts.
-        var fontFile = Directory.GetFiles(Environment.GetFolderPath(Environment.SpecialFolder.Fonts), "*.ttf").FirstOrDefault();
+        var fontsFolder = Environment.GetFolderPath(Environment.SpecialFolder.Fonts);
+        if (string.IsNullOrWhiteSpace(fontsFolder)) return; // Skip if fonts folder doesn't exist
+        
+        var fontFile = Directory.GetFiles(fontsFolder, "*.ttf").FirstOrDefault();
         if (string.IsNullOrWhiteSpace(fontFile)) return; // Skip if no fonts found
 
         var result = await _generator.GenerateSpeakerProfileFromFilesAsync(_tempImageFile, _tempLogoFile, "John Doe", fontFile);
@@ -344,7 +360,8 @@ public sealed class OpenGraphSpeakerProfileImageGeneratorTests : IDisposable
     {
         using var speakerImg = new Image<Rgba32>(100, 100);
         using var logoImg = new Image<Rgba32>(100, 100);
-        var result = _generator.GenerateSpeakerProfile(speakerImg, logoImg, "John Doe", ["Arial"]);
+        var availableFontName = SystemFonts.Families.First().Name;
+        var result = _generator.GenerateSpeakerProfile(speakerImg, logoImg, "John Doe", [availableFontName]);
         Assert.NotNull(result);
     }
 
@@ -352,7 +369,10 @@ public sealed class OpenGraphSpeakerProfileImageGeneratorTests : IDisposable
     [Fact]
     public void GenerateSpeakerProfile_WithFontFile_Success()
     {
-        var fontFile = Directory.GetFiles(Environment.GetFolderPath(Environment.SpecialFolder.Fonts), "*.ttf").FirstOrDefault();
+        var fontsFolder = Environment.GetFolderPath(Environment.SpecialFolder.Fonts);
+        if (string.IsNullOrWhiteSpace(fontsFolder)) return;
+        
+        var fontFile = Directory.GetFiles(fontsFolder, "*.ttf").FirstOrDefault();
         if (string.IsNullOrWhiteSpace(fontFile)) return;
 
         using var speakerImg = new Image<Rgba32>(100, 100);
@@ -376,7 +396,10 @@ public sealed class OpenGraphSpeakerProfileImageGeneratorTests : IDisposable
     [Fact]
     public void GetFontFamilyFromFile_Success()
     {
-        var fontFile = Directory.GetFiles(Environment.GetFolderPath(Environment.SpecialFolder.Fonts), "*.ttf").FirstOrDefault();
+        var fontsFolder = Environment.GetFolderPath(Environment.SpecialFolder.Fonts);
+        if (string.IsNullOrWhiteSpace(fontsFolder)) return;
+        
+        var fontFile = Directory.GetFiles(fontsFolder, "*.ttf").FirstOrDefault();
         if (string.IsNullOrWhiteSpace(fontFile)) return;
 
         var font = _generator.GetFontFamilyFromFile(fontFile);
