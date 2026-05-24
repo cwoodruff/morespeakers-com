@@ -3,8 +3,6 @@ using Microsoft.ApplicationInsights;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 
-using JosephGuadagno.AzureHelpers.Storage;
-
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models.Messages;
 
@@ -69,11 +67,11 @@ public class ProcessOpenGraphSpeakerProfileImageGenerationMessage
             var blobName = $"{createOpenGraphProfileImage.UserId}.png";
             var blobContainer = _blobServiceClient.GetBlobContainerClient(Domain.Constants.Blobs.OpenGroupProfileImage);
             await blobContainer.CreateIfNotExistsAsync();
-            var blobs = new Blobs(blobContainer);
+            var blobClient = blobContainer.GetBlobClient(blobName);
             var speakerImageStream = new MemoryStream();
             await speakerImage.SaveAsPngAsync(speakerImageStream);
             speakerImageStream.Position = 0;
-            await blobs.UploadAndOverwriteIfExistsAsync(blobName, speakerImageStream);
+            await blobClient.UploadAsync(speakerImageStream, overwrite: true);
 
             // If we made it here, we're done
             _telemetryClient.TrackEvent(Domain.Constants.TelemetryEvents.OpenGraph.OpenGraphProfileImageCreated,
