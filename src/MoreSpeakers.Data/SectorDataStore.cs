@@ -83,6 +83,12 @@ public partial class SectorDataStore : ISectorDataStore
         try
         {
             var dbEntity = _mapper.Map<Models.Sector>(sector);
+            if (dbEntity.Id != 0)
+            {
+                var tracked = _context.Sectors.Local.FirstOrDefault(e => e.Id == dbEntity.Id);
+                if (tracked != null)
+                    _context.Entry(tracked).State = EntityState.Detached;
+            }
             _context.Entry(dbEntity).State = dbEntity.Id == 0 ? EntityState.Added : EntityState.Modified;
 
             if (await _context.SaveChangesAsync() == 0)

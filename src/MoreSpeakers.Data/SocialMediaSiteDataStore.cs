@@ -27,6 +27,12 @@ public partial class SocialMediaSiteDataStore: ISocialMediaSiteDataStore
         try
         {
             var dbSocialMediaSite = _mapper.Map<Models.SocialMediaSite>(socialMediaSite);
+            if (socialMediaSite.Id != 0)
+            {
+                var tracked = _context.SocialMediaSite.Local.FirstOrDefault(e => e.Id == socialMediaSite.Id);
+                if (tracked != null)
+                    _context.Entry(tracked).State = EntityState.Detached;
+            }
             _context.Entry(dbSocialMediaSite).State = socialMediaSite.Id == 0 ? EntityState.Added : EntityState.Modified;
 
             if (await _context.SaveChangesAsync() == 0)

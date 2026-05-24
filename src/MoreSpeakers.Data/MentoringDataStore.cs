@@ -38,7 +38,16 @@ public partial class MentoringDataStore : IMentoringDataStore
     public async Task<Result<Mentorship>> SaveAsync(Mentorship mentorship)
     {
         var dbMentorship = _mapper.Map<Models.Mentorship>(mentorship);
-        _context.Entry(dbMentorship).State = dbMentorship.Id == Guid.Empty ? EntityState.Added : EntityState.Modified;
+
+        if (dbMentorship.Id != Guid.Empty)
+        {
+            var tracked = _context.Mentorship.Local.FirstOrDefault(e => e.Id == dbMentorship.Id);
+            if (tracked != null)
+                _context.Entry(tracked).State = EntityState.Detached;
+        }
+
+        var exists = dbMentorship.Id != Guid.Empty && await _context.Mentorship.AnyAsync(e => e.Id == dbMentorship.Id);
+        _context.Entry(dbMentorship).State = exists ? EntityState.Modified : EntityState.Added;
 
         try
         {
