@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using Moq;
+using MoreSpeakers.Domain;
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models;
 using MoreSpeakers.Domain.Models.AdminUsers;
@@ -141,7 +142,7 @@ public class UserManagerTests
 
         var result = await sut.ConfirmEmailAsync(user, "tkn");
 
-        result.Should().BeTrue();
+        result.IsSuccess.Should().BeTrue();
         _dataStoreMock.Verify(d => d.ConfirmEmailAsync(user, "tkn"), Times.Once);
     }
 
@@ -155,7 +156,7 @@ public class UserManagerTests
 
         var result = await sut.ConfirmEmailAsync(user, "tkn");
 
-        result.Should().BeFalse();
+        result.IsFailure.Should().BeTrue();
         _dataStoreMock.Verify(d => d.ConfirmEmailAsync(user, "tkn"), Times.Once);
     }
 
@@ -165,12 +166,13 @@ public class UserManagerTests
     {
         var id = Guid.NewGuid();
         var expected = new User { Id = id };
-        _dataStoreMock.Setup(d => d.GetAsync(id)).ReturnsAsync(expected);
+        _dataStoreMock.Setup(d => d.GetAsync(id)).ReturnsAsync(Result.Success(expected));
         var sut = CreateSut();
 
         var result = await sut.GetAsync(id);
 
-        result.Should().BeSameAs(expected);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeSameAs(expected);
         _dataStoreMock.Verify(d => d.GetAsync(id), Times.Once);
     }
 
@@ -178,12 +180,12 @@ public class UserManagerTests
     public async Task Delete_by_id_should_delegate()
     {
         var id = Guid.NewGuid();
-        _dataStoreMock.Setup(d => d.DeleteAsync(id)).ReturnsAsync(true);
+        _dataStoreMock.Setup(d => d.DeleteAsync(id)).ReturnsAsync(Result.Success());
         var sut = CreateSut();
 
         var result = await sut.DeleteAsync(id);
 
-        result.Should().BeTrue();
+        result.IsSuccess.Should().BeTrue();
         _dataStoreMock.Verify(d => d.DeleteAsync(id), Times.Once);
     }
 
@@ -191,12 +193,13 @@ public class UserManagerTests
     public async Task SaveAsync_should_delegate_and_queue_opengraph_when_headshot_exists()
     {
         var entity = new User { Id = Guid.NewGuid(), HeadshotUrl = "http://headshot", FirstName = "Test", LastName = "User"};
-        _dataStoreMock.Setup(d => d.SaveAsync(entity)).ReturnsAsync(entity);
+        _dataStoreMock.Setup(d => d.SaveAsync(entity)).ReturnsAsync(Result.Success(entity));
         var sut = CreateSut();
 
         var result = await sut.SaveAsync(entity);
 
-        result.Should().BeSameAs(entity);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeSameAs(entity);
         _dataStoreMock.Verify(d => d.SaveAsync(entity), Times.Once);
         _openGraphGeneratorMock.Verify(o => o.QueueSpeakerOpenGraphProfileImageCreation(entity.Id, entity.HeadshotUrl, entity.FullName), Times.Once);
     }
@@ -205,12 +208,13 @@ public class UserManagerTests
     public async Task GetAllAsync_should_delegate()
     {
         var expected = new List<User> { new() { Id = Guid.NewGuid() } };
-        _dataStoreMock.Setup(d => d.GetAllAsync()).ReturnsAsync(expected);
+        _dataStoreMock.Setup(d => d.GetAllAsync()).ReturnsAsync(Result.Success(expected));
         var sut = CreateSut();
 
         var result = await sut.GetAllAsync();
 
-        result.Should().BeSameAs(expected);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeSameAs(expected);
         _dataStoreMock.Verify(d => d.GetAllAsync(), Times.Once);
     }
 
@@ -218,12 +222,12 @@ public class UserManagerTests
     public async Task Delete_by_entity_should_delegate()
     {
         var entity = new User { Id = Guid.NewGuid() };
-        _dataStoreMock.Setup(d => d.DeleteAsync(entity)).ReturnsAsync(true);
+        _dataStoreMock.Setup(d => d.DeleteAsync(entity)).ReturnsAsync(Result.Success());
         var sut = CreateSut();
 
         var result = await sut.DeleteAsync(entity);
 
-        result.Should().BeTrue();
+        result.IsSuccess.Should().BeTrue();
         _dataStoreMock.Verify(d => d.DeleteAsync(entity), Times.Once);
     }
 
@@ -231,12 +235,13 @@ public class UserManagerTests
     public async Task GetNewSpeakersAsync_should_delegate()
     {
         var expected = new List<User> { new() { Id = Guid.NewGuid() } };
-        _dataStoreMock.Setup(d => d.GetNewSpeakersAsync()).ReturnsAsync(expected);
+        _dataStoreMock.Setup(d => d.GetNewSpeakersAsync()).ReturnsAsync(Result.Success<IEnumerable<User>>(expected));
         var sut = CreateSut();
 
         var result = await sut.GetNewSpeakersAsync();
 
-        result.Should().BeSameAs(expected);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeSameAs(expected);
         _dataStoreMock.Verify(d => d.GetNewSpeakersAsync(), Times.Once);
     }
 
@@ -244,12 +249,13 @@ public class UserManagerTests
     public async Task GetExperiencedSpeakersAsync_should_delegate()
     {
         var expected = new List<User> { new() { Id = Guid.NewGuid() } };
-        _dataStoreMock.Setup(d => d.GetExperiencedSpeakersAsync()).ReturnsAsync(expected);
+        _dataStoreMock.Setup(d => d.GetExperiencedSpeakersAsync()).ReturnsAsync(Result.Success<IEnumerable<User>>(expected));
         var sut = CreateSut();
 
         var result = await sut.GetExperiencedSpeakersAsync();
 
-        result.Should().BeSameAs(expected);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeSameAs(expected);
         _dataStoreMock.Verify(d => d.GetExperiencedSpeakersAsync(), Times.Once);
     }
 
@@ -258,12 +264,13 @@ public class UserManagerTests
     {
         var expected = new SpeakerSearchResult { Speakers = [], RowCount = 0, PageSize = 10, TotalPages = 1, CurrentPage = 1 };
         var expertiseIds = new List<int> { 2 };
-        _dataStoreMock.Setup(d => d.SearchSpeakersAsync("term", 1, expertiseIds, SpeakerSearchOrderBy.Name, 3, 10)).ReturnsAsync(expected);
+        _dataStoreMock.Setup(d => d.SearchSpeakersAsync("term", 1, expertiseIds, SpeakerSearchOrderBy.Name, 3, 10)).ReturnsAsync(Result.Success(expected));
         var sut = CreateSut();
 
         var result = await sut.SearchSpeakersAsync("term", 1, expertiseIds, SpeakerSearchOrderBy.Name, 3, 10);
 
-        result.Should().BeSameAs(expected);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeSameAs(expected);
         _dataStoreMock.Verify(d => d.SearchSpeakersAsync("term", 1, expertiseIds, SpeakerSearchOrderBy.Name, 3, 10), Times.Once);
     }
 
@@ -271,12 +278,13 @@ public class UserManagerTests
     public async Task GetSpeakersByExpertiseAsync_should_delegate()
     {
         var expected = new List<User> { new() { Id = Guid.NewGuid() } };
-        _dataStoreMock.Setup(d => d.GetSpeakersByExpertiseAsync(5)).ReturnsAsync(expected);
+        _dataStoreMock.Setup(d => d.GetSpeakersByExpertiseAsync(5)).ReturnsAsync(Result.Success<IEnumerable<User>>(expected));
         var sut = CreateSut();
 
         var result = await sut.GetSpeakersByExpertiseAsync(5);
 
-        result.Should().BeSameAs(expected);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeSameAs(expected);
         _dataStoreMock.Verify(d => d.GetSpeakersByExpertiseAsync(5), Times.Once);
     }
 
@@ -292,24 +300,24 @@ public class UserManagerTests
             User = new User { Id = userId },
             SocialMediaSite = new SocialMediaSite { Id = 2, Name = "X", Icon = "x", UrlFormat = "https://x.com/{0}" }
         };
-        _dataStoreMock.Setup(d => d.AddUserSocialMediaSiteAsync(userId, link)).ReturnsAsync(true);
+        _dataStoreMock.Setup(d => d.AddUserSocialMediaSiteAsync(userId, link)).ReturnsAsync(Result.Success());
         var sut = CreateSut();
 
         var result = await sut.AddUserSocialMediaSiteAsync(userId, link);
 
-        result.Should().BeTrue();
+        result.IsSuccess.Should().BeTrue();
         _dataStoreMock.Verify(d => d.AddUserSocialMediaSiteAsync(userId, link), Times.Once);
     }
 
     [Fact]
     public async Task RemoveUserSocialMediaSiteAsync_should_delegate()
     {
-        _dataStoreMock.Setup(d => d.RemoveUserSocialMediaSiteAsync(123)).ReturnsAsync(true);
+        _dataStoreMock.Setup(d => d.RemoveUserSocialMediaSiteAsync(123)).ReturnsAsync(Result.Success());
         var sut = CreateSut();
 
         var result = await sut.RemoveUserSocialMediaSiteAsync(123);
 
-        result.Should().BeTrue();
+        result.IsSuccess.Should().BeTrue();
         _dataStoreMock.Verify(d => d.RemoveUserSocialMediaSiteAsync(123), Times.Once);
     }
 
@@ -317,12 +325,12 @@ public class UserManagerTests
     public async Task AddExpertiseToUserAsync_should_delegate()
     {
         var userId = Guid.NewGuid();
-        _dataStoreMock.Setup(d => d.AddExpertiseToUserAsync(userId, 8)).ReturnsAsync(true);
+        _dataStoreMock.Setup(d => d.AddExpertiseToUserAsync(userId, 8)).ReturnsAsync(Result.Success());
         var sut = CreateSut();
 
         var result = await sut.AddExpertiseToUserAsync(userId, 8);
 
-        result.Should().BeTrue();
+        result.IsSuccess.Should().BeTrue();
         _dataStoreMock.Verify(d => d.AddExpertiseToUserAsync(userId, 8), Times.Once);
     }
 
@@ -330,12 +338,12 @@ public class UserManagerTests
     public async Task RemoveExpertiseFromUserAsync_should_delegate()
     {
         var userId = Guid.NewGuid();
-        _dataStoreMock.Setup(d => d.RemoveExpertiseFromUserAsync(userId, 8)).ReturnsAsync(true);
+        _dataStoreMock.Setup(d => d.RemoveExpertiseFromUserAsync(userId, 8)).ReturnsAsync(Result.Success());
         var sut = CreateSut();
 
         var result = await sut.RemoveExpertiseFromUserAsync(userId, 8);
 
-        result.Should().BeTrue();
+        result.IsSuccess.Should().BeTrue();
         _dataStoreMock.Verify(d => d.RemoveExpertiseFromUserAsync(userId, 8), Times.Once);
     }
 
@@ -344,12 +352,13 @@ public class UserManagerTests
     {
         var id = Guid.NewGuid();
         var expected = new List<UserExpertise> { new() { UserId = id, ExpertiseId = 3 } };
-        _dataStoreMock.Setup(d => d.GetUserExpertisesForUserAsync(id)).ReturnsAsync(expected);
+        _dataStoreMock.Setup(d => d.GetUserExpertisesForUserAsync(id)).ReturnsAsync(Result.Success((IEnumerable<UserExpertise>)expected));
         var sut = CreateSut();
 
         var result = await sut.GetUserExpertisesForUserAsync(id);
 
-        result.Should().BeSameAs(expected);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeSameAs(expected);
         _dataStoreMock.Verify(d => d.GetUserExpertisesForUserAsync(id), Times.Once);
     }
 
@@ -369,23 +378,25 @@ public class UserManagerTests
                 SocialMediaSite = new SocialMediaSite { Id = 1, Name = "X", Icon = "x", UrlFormat = "https://x.com/{0}" }
             }
         };
-        _dataStoreMock.Setup(d => d.GetUserSocialMediaSitesAsync(id)).ReturnsAsync(expected);
+        _dataStoreMock.Setup(d => d.GetUserSocialMediaSitesAsync(id)).ReturnsAsync(Result.Success((IEnumerable<UserSocialMediaSite>)expected));
         var sut = CreateSut();
 
         var result = await sut.GetUserSocialMediaSitesAsync(id);
 
-        result.Should().BeSameAs(expected);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeSameAs(expected);
         _dataStoreMock.Verify(d => d.GetUserSocialMediaSitesAsync(id), Times.Once);
     }
 
     [Fact]
-    public async Task GetUserSocialMediaSitesAsync_should_throw_when_userId_empty()
+    public async Task GetUserSocialMediaSitesAsync_should_return_failure_when_userId_empty()
     {
         var sut = CreateSut();
 
-        var act = async () => await sut.GetUserSocialMediaSitesAsync(Guid.Empty);
+        var result = await sut.GetUserSocialMediaSitesAsync(Guid.Empty);
 
-        await act.Should().ThrowAsync<ArgumentException>().WithMessage("Invalid user id");
+        result.IsFailure.Should().BeTrue();
+        result.Error.Code.Should().Be("user.validation.user-id-invalid");
         _dataStoreMock.Verify(d => d.GetUserSocialMediaSitesAsync(It.IsAny<Guid>()), Times.Never);
     }
 
@@ -393,12 +404,13 @@ public class UserManagerTests
     public async Task GetStatisticsForApplicationAsync_should_delegate()
     {
         var expected = (newSpeakers: 2, experiencedSpeakers: 5, activeMentorships: 1);
-        _dataStoreMock.Setup(d => d.GetStatisticsForApplicationAsync()).ReturnsAsync(expected);
+        _dataStoreMock.Setup(d => d.GetStatisticsForApplicationAsync()).ReturnsAsync(Result.Success(expected));
         var sut = CreateSut();
 
         var result = await sut.GetStatisticsForApplicationAsync();
 
-        result.Should().Be(expected);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().Be(expected);
         _dataStoreMock.Verify(d => d.GetStatisticsForApplicationAsync(), Times.Once);
     }
 
@@ -406,12 +418,13 @@ public class UserManagerTests
     public async Task GetFeaturedSpeakersAsync_should_delegate()
     {
         var expected = new List<User> { new() { Id = Guid.NewGuid() } };
-        _dataStoreMock.Setup(d => d.GetFeaturedSpeakersAsync(3)).ReturnsAsync(expected);
+        _dataStoreMock.Setup(d => d.GetFeaturedSpeakersAsync(3)).ReturnsAsync(Result.Success((IEnumerable<User>)expected));
         var sut = CreateSut();
 
         var result = await sut.GetFeaturedSpeakersAsync(3);
 
-        result.Should().BeSameAs(expected);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeSameAs(expected);
         _dataStoreMock.Verify(d => d.GetFeaturedSpeakersAsync(3), Times.Once);
     }
 
@@ -446,12 +459,13 @@ public class UserManagerTests
     public async Task GetSpeakerTypesAsync_should_delegate()
     {
         var expected = new List<SpeakerType> { new() { Id = 1, Name = "New" } };
-        _dataStoreMock.Setup(d => d.GetSpeakerTypesAsync()).ReturnsAsync(expected);
+        _dataStoreMock.Setup(d => d.GetSpeakerTypesAsync()).ReturnsAsync(Result.Success((IEnumerable<SpeakerType>)expected));
         var sut = CreateSut();
 
         var result = await sut.GetSpeakerTypesAsync();
 
-        result.Should().BeSameAs(expected);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeSameAs(expected);
         _dataStoreMock.Verify(d => d.GetSpeakerTypesAsync(), Times.Once);
     }
 
@@ -459,12 +473,12 @@ public class UserManagerTests
     public async Task SoftDeleteAsync_should_delegate()
     {
         var id = Guid.NewGuid();
-        _dataStoreMock.Setup(d => d.SoftDeleteAsync(id)).ReturnsAsync(true);
+        _dataStoreMock.Setup(d => d.SoftDeleteAsync(id)).ReturnsAsync(Result.Success());
         var sut = CreateSut();
 
         var result = await sut.SoftDeleteAsync(id);
 
-        result.Should().BeTrue();
+        result.IsSuccess.Should().BeTrue();
         _dataStoreMock.Verify(d => d.SoftDeleteAsync(id), Times.Once);
     }
 
@@ -472,12 +486,12 @@ public class UserManagerTests
     public async Task RestoreAsync_should_delegate()
     {
         var id = Guid.NewGuid();
-        _dataStoreMock.Setup(d => d.RestoreAsync(id)).ReturnsAsync(true);
+        _dataStoreMock.Setup(d => d.RestoreAsync(id)).ReturnsAsync(Result.Success());
         var sut = CreateSut();
 
         var result = await sut.RestoreAsync(id);
 
-        result.Should().BeTrue();
+        result.IsSuccess.Should().BeTrue();
         _dataStoreMock.Verify(d => d.RestoreAsync(id), Times.Once);
     }
 }
