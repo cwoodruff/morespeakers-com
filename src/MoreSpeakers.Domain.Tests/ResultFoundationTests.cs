@@ -66,10 +66,12 @@ public class ResultFoundationTests
 
         GetRequiredProperty(resultType, "IsSuccess").PropertyType.Should().Be(typeof(bool));
         GetRequiredProperty(resultType, "IsFailure").PropertyType.Should().Be(typeof(bool));
+        GetRequiredProperty(resultType, "ErrorMessage").PropertyType.Should().Be(typeof(string));
         GetRequiredProperty(resultType, "Error").PropertyType.Should().Be(errorType);
 
         GetRequiredProperty(genericResultType.MakeGenericType(typeof(string)), "IsSuccess").PropertyType.Should().Be(typeof(bool));
         GetRequiredProperty(genericResultType.MakeGenericType(typeof(string)), "IsFailure").PropertyType.Should().Be(typeof(bool));
+        GetRequiredProperty(genericResultType.MakeGenericType(typeof(string)), "ErrorMessage").PropertyType.Should().Be(typeof(string));
         GetRequiredProperty(genericResultType.MakeGenericType(typeof(string)), "Error").PropertyType.Should().Be(errorType);
         GetRequiredProperty(genericResultType.MakeGenericType(typeof(string)), "Value").PropertyType.Should().Be(typeof(string));
 
@@ -90,6 +92,7 @@ public class ResultFoundationTests
 
         GetPropertyValue<bool>(result, "IsSuccess").Should().BeTrue();
         GetPropertyValue<bool>(result, "IsFailure").Should().BeFalse();
+        GetPropertyValue<string?>(result, "ErrorMessage").Should().BeNull();
     }
 
     [Fact]
@@ -100,6 +103,7 @@ public class ResultFoundationTests
 
         GetPropertyValue<bool>(result, "IsSuccess").Should().BeFalse();
         GetPropertyValue<bool>(result, "IsFailure").Should().BeTrue();
+        GetPropertyValue<string?>(result, "ErrorMessage").Should().Be("Nope.");
         GetPropertyValue<object>(result, "Error").Should().Be(error);
     }
 
@@ -110,6 +114,7 @@ public class ResultFoundationTests
 
         GetPropertyValue<bool>(result, "IsSuccess").Should().BeTrue();
         GetPropertyValue<bool>(result, "IsFailure").Should().BeFalse();
+        GetPropertyValue<string?>(result, "ErrorMessage").Should().BeNull();
         GetPropertyValue<string>(result, "Value").Should().Be("ok");
     }
 
@@ -121,6 +126,7 @@ public class ResultFoundationTests
 
         GetPropertyValue<bool>(result, "IsSuccess").Should().BeFalse();
         GetPropertyValue<bool>(result, "IsFailure").Should().BeTrue();
+        GetPropertyValue<string?>(result, "ErrorMessage").Should().Be("Still nope.");
         GetPropertyValue<object>(result, "Error").Should().Be(error);
     }
 

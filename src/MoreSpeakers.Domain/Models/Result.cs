@@ -36,6 +36,11 @@ public readonly struct Result : IEquatable<Result>
     public bool IsFailure => !IsSuccess;
 
     /// <summary>
+    /// Gets the error message that describes the failure, or <see langword="null"/> when the result is successful.
+    /// </summary>
+    public string? ErrorMessage => _error?.Message;
+
+    /// <summary>
     /// Gets the error that describes the failure.
     /// </summary>
     /// <exception cref="InvalidOperationException">Thrown when the result is successful.</exception>
@@ -159,6 +164,11 @@ public readonly struct Result<T> : IEquatable<Result<T>>
     public T Value => IsSuccess
         ? _value!
         : throw new InvalidOperationException("A failed result does not contain a value.");
+
+    /// <summary>
+    /// Gets the error message that describes the failure, or <see langword="null"/> when the result is successful.
+    /// </summary>
+    public string? ErrorMessage => _error?.Message;
 
     /// <summary>
     /// Gets the error that describes the failure.

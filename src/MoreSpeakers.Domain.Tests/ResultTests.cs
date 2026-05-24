@@ -23,6 +23,7 @@ public class ResultTests
 
         Assert.True(result.IsSuccess);
         Assert.False(result.IsFailure);
+        Assert.Null(result.ErrorMessage);
         Assert.Throws<InvalidOperationException>(() => _ = result.Error);
     }
 
@@ -35,6 +36,7 @@ public class ResultTests
 
         Assert.False(result.IsSuccess);
         Assert.True(result.IsFailure);
+        Assert.Equal(error.Message, result.ErrorMessage);
         Assert.Equal(error, result.Error);
     }
 
@@ -45,6 +47,7 @@ public class ResultTests
 
         Assert.True(result.IsSuccess);
         Assert.False(result.IsFailure);
+        Assert.Null(result.ErrorMessage);
         Assert.Equal("speaker", result.Value);
         Assert.Throws<InvalidOperationException>(() => _ = result.Error);
     }
@@ -58,6 +61,7 @@ public class ResultTests
 
         Assert.False(result.IsSuccess);
         Assert.True(result.IsFailure);
+        Assert.Equal(error.Message, result.ErrorMessage);
         Assert.Equal(error, result.Error);
         Assert.Throws<InvalidOperationException>(() => _ = result.Value);
     }

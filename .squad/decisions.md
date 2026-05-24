@@ -33,6 +33,12 @@
 
 **Decision:** Use `Result<T>` for expected failures. Reserve exceptions for truly exceptional conditions.
 
+### Foundation API Shape: Result ErrorMessage Surface (2026-05-24)
+
+**Status:** Applied (2026-05-24) | **Owner:** Dallas
+
+**Decision:** Expose `ErrorMessage` on both `Result` and `Result<T>` while keeping the structured `Error` record and static `Result.Success`/`Result.Failure` factories. Success results return `ErrorMessage == null`; failure results surface the message directly.
+
 **Audit findings:** 74 catch blocks (all bare `catch(Exception)`), three conflicting patterns:
 1. Swallow-and-return-sentinel (dominant) — DataStores return `bool`/`null`; caller gets no context
 2. Catch-log-throw-ApplicationException (SaveAsync methods) — discards stack trace, uses generic message
