@@ -2,7 +2,6 @@ using Azure.Storage.Queues;
 using Microsoft.Extensions.Logging;
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models.Messages;
-using JosephGuadagno.AzureHelpers.Storage;
 
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
@@ -36,8 +35,9 @@ public partial class OpenGraphSpeakerProfileImageGenerator(
     public async Task QueueSpeakerOpenGraphProfileImageCreation(Guid id, string headshotUrl, string speakerName)
     {
         var message = new CreateOpenGraphProfileImage { UserId = id, ProfileImageUrl = headshotUrl, SpeakerName = speakerName };
-        var queue = new Queue(queueServiceClient, Domain.Constants.Queues.CreateOpenGraphProfileImage);
-        await queue.AddMessageWithBase64EncodingAsync(message);
+        var queueClient = queueServiceClient.GetQueueClient(Domain.Constants.Queues.CreateOpenGraphProfileImage);
+        await queueClient.CreateIfNotExistsAsync();
+        await queueClient.SendMessageAsync(BinaryData.FromObjectAsJson(message));
         LogQueuedOpengraphProfileImageCreationForSpeakerId(logger, id);
     }
 

@@ -3,7 +3,6 @@ using Microsoft.ApplicationInsights;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using MoreSpeakers.Functions.Interfaces;
-using JosephGuadagno.AzureHelpers.Storage;
 using Queues = MoreSpeakers.Domain.Constants.Queues;
 
 namespace MoreSpeakers.Functions;
@@ -54,10 +53,11 @@ public class ProcessPoisonedSendEmailMessages
             var poisonMessages = await poisonQueueClient.ReceiveMessagesAsync(30);
             if (poisonMessages is not null)
             {
-                var sendEmailQueue = new Queue(_queueServiceClient, Queues.SendEmail);
+                var sendEmailQueueClient = _queueServiceClient.GetQueueClient(Queues.SendEmail);
+                await sendEmailQueueClient.CreateIfNotExistsAsync();
                 foreach (var poisonMessage in poisonMessages.Value)
                 {
-                    await sendEmailQueue.AddMessageAsync(poisonMessage);
+                    await sendEmailQueueClient.SendMessageAsync(poisonMessage.Body);
                     await poisonQueueClient.DeleteMessageAsync(poisonMessage.MessageId, poisonMessage.PopReceipt);
                     messageCount++;
                     _telemetryClient.TrackEvent("PoisonedSendEmailMessageReprocessed", new Dictionary<string, string>
