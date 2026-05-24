@@ -417,25 +417,23 @@ public partial class UserDataStore : IUserDataStore
             if (identityUser == null)
             {
                 LogAdminlockoutEnablelockoutFailedUserUseridNotFound(userId);
-                return Result.Failure("user.enablelockout.notfound", $"User {userId} not found");
+                return Failure("user.not-found", $"User {userId} not found.");
             }
 
             var result = await _userManager.SetLockoutEnabledAsync(identityUser, enabled);
             if (!result.Succeeded)
             {
                 LogAdminlockoutSetlockoutenabledasyncFailedForUseridErrors(userId, string.Join(",", result.Errors.Select(e => e.Code)));
-                return Result.Failure("user.enablelockout.failed", string.Join(", ", result.Errors.Select(e => e.Description)));
+                return Failure("user.lockout.enable-failed", string.Join(",", result.Errors.Select(e => e.Description)));
             }
-            else
-            {
-                LogAdminlockoutLockoutenabledSetToEnabledForUserUserid(enabled, userId);
-            }
+
+            LogAdminlockoutLockoutenabledSetToEnabledForUserUserid(enabled, userId);
             return Result.Success();
         }
-        catch (DbUpdateException ex)
+        catch (Exception ex)
         {
             LogAdminlockoutEnablelockoutasyncExceptionForUserUserid(ex, userId);
-            return Result.Failure("user.enablelockout.failed", ex.Message);
+            return Failure("user.lockout.enable-failed", "An error occurred enabling lockout.", ex);
         }
     }
 
@@ -447,33 +445,30 @@ public partial class UserDataStore : IUserDataStore
             if (identityUser == null)
             {
                 LogAdminlockoutSetlockoutendFailedUserUseridNotFound(userId);
-                return Result.Failure("user.lockout.notfound", $"User {userId} not found");
+                return Failure("user.not-found", $"User {userId} not found.");
             }
 
-            // Normalize to UTC and validate input
             DateTimeOffset? normalized = lockoutEndUtc?.ToUniversalTime();
             if (normalized.HasValue && normalized.Value <= DateTimeOffset.UtcNow)
             {
                 LogAdminlockoutRejectedSetlockoutendWithPastNowValueForUseridLockoutend(userId, lockoutEndUtc);
-                return Result.Failure("user.lockout.invalid", "Lockout end date must be in the future");
+                return Failure("user.lockout.end-in-past", "Lockout end date must be in the future.");
             }
 
             var result = await _userManager.SetLockoutEndDateAsync(identityUser, normalized);
             if (!result.Succeeded)
             {
                 LogAdminlockoutSetlockoutenddateasyncFailedForUseridErrors(userId, string.Join(",", result.Errors.Select(e => e.Code)));
-                return Result.Failure("user.lockout.failed", string.Join(", ", result.Errors.Select(e => e.Description)));
+                return Failure("user.lockout.set-end-failed", string.Join(",", result.Errors.Select(e => e.Description)));
             }
-            else
-            {
-                LogAdminlockoutLockoutendSetToLockoutendForUserUserid(normalized, userId);
-            }
+
+            LogAdminlockoutLockoutendSetToLockoutendForUserUserid(normalized, userId);
             return Result.Success();
         }
-        catch (DbUpdateException ex)
+        catch (Exception ex)
         {
             LogAdminlockoutSetlockoutendasyncExceptionForUserUserid(ex, userId);
-            return Result.Failure("user.lockout.failed", ex.Message);
+            return Failure("user.lockout.set-end-failed", "An error occurred setting lockout end.", ex);
         }
     }
 
@@ -485,30 +480,30 @@ public partial class UserDataStore : IUserDataStore
             if (identityUser == null)
             {
                 LogAdminlockoutUnlockFailedUserUseridNotFound(userId);
-                return Result.Failure("user.unlock.notfound", $"User {userId} not found");
+                return Failure("user.not-found", $"User {userId} not found.");
             }
 
             var endResult = await _userManager.SetLockoutEndDateAsync(identityUser, null);
             if (!endResult.Succeeded)
             {
                 LogAdminlockoutClearingLockoutendFailedForUseridErrors(userId, string.Join(",", endResult.Errors.Select(e => e.Code)));
-                return Result.Failure("user.unlock.failed", string.Join(", ", endResult.Errors.Select(e => e.Description)));
+                return Failure("user.lockout.clear-failed", string.Join(",", endResult.Errors.Select(e => e.Description)));
             }
 
             var resetResult = await _userManager.ResetAccessFailedCountAsync(identityUser);
             if (!resetResult.Succeeded)
             {
                 LogAdminlockoutResetaccessfailedcountFailedForUseridErrors(userId, string.Join(",", resetResult.Errors.Select(e => e.Code)));
-                return Result.Failure("user.unlock.failed", string.Join(", ", resetResult.Errors.Select(e => e.Description)));
+                return Failure("user.lockout.reset-failed", string.Join(",", resetResult.Errors.Select(e => e.Description)));
             }
 
             LogAdminlockoutUserUseridUnlocked(userId);
             return Result.Success();
         }
-        catch (DbUpdateException ex)
+        catch (Exception ex)
         {
             LogAdminlockoutUnlockasyncExceptionForUserUserid(ex, userId);
-            return Result.Failure("user.unlock.failed", ex.Message);
+            return Failure("user.lockout.unlock-failed", "An error occurred unlocking user.", ex);
         }
     }
 
@@ -523,12 +518,13 @@ public partial class UserDataStore : IUserDataStore
                                select ur.UserId)
                 .Distinct()
                 .CountAsync();
-            return Result<int>.Success(count);
+
+            return Result.Success(count);
         }
-        catch (DbUpdateException ex)
+        catch (Exception ex)
         {
             LogAdminlockoutGetusercountinroleasyncFailedForRoleRole(ex, roleName);
-            return Result<int>.Failure("user.count.failed", ex.Message);
+            return Failure<int>("user.role.count-failed", "Failed to get user count for role.", ex);
         }
     }
 
@@ -543,7 +539,7 @@ public partial class UserDataStore : IUserDataStore
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
             if (user == null)
             {
-                return Result.Failure("user.softdelete.notfound", $"User {userId} not found");
+                return Failure("user.not-found", $"User {userId} not found.");
             }
 
             user.IsDeleted = true;
@@ -553,10 +549,10 @@ public partial class UserDataStore : IUserDataStore
             await _context.SaveChangesAsync();
             return Result.Success();
         }
-        catch (DbUpdateException ex)
+        catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to soft delete user {UserId}", userId);
-            return Result.Failure("user.softdelete.failed", ex.Message);
+            return Failure("user.soft-delete.failed", "Failed to soft delete user.", ex);
         }
     }
 
@@ -567,7 +563,7 @@ public partial class UserDataStore : IUserDataStore
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
             if (user == null)
             {
-                return Result.Failure("user.restore.notfound", $"User {userId} not found");
+                return Failure("user.not-found", $"User {userId} not found.");
             }
 
             user.IsDeleted = false;
@@ -577,10 +573,10 @@ public partial class UserDataStore : IUserDataStore
             await _context.SaveChangesAsync();
             return Result.Success();
         }
-        catch (DbUpdateException ex)
+        catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to restore user {UserId}", userId);
-            return Result.Failure("user.restore.failed", ex.Message);
+            return Failure("user.restore.failed", "Failed to restore user.", ex);
         }
     }
 
@@ -593,17 +589,17 @@ public partial class UserDataStore : IUserDataStore
 
             if (passkey == null)
             {
-                return Result.Failure("user.passkey.notfound", $"Passkey not found for user {userId}");
+                return Result.Success();
             }
 
             _context.Set<IdentityUserPasskey<Guid>>().Remove(passkey);
             await _context.SaveChangesAsync();
             return Result.Success();
         }
-        catch (DbUpdateException ex)
+        catch (Exception ex)
         {
             LogFailedToRemovePasskeyForUserUserid(ex, userId);
-            return Result.Failure("user.passkey.remove-failed", ex.Message);
+            return Failure("user.passkey.remove-failed", "Failed to remove passkey.", ex);
         }
     }
 
@@ -613,36 +609,40 @@ public partial class UserDataStore : IUserDataStore
 
     public async Task<Result<User>> GetAsync(Guid primaryKey)
     {
-        var user = await _context.Users
+        try
+        {
+            var user = await _context.Users
                 .Include(u => u.SpeakerType)
                 .Include(u => u.UserExpertise)
                 .ThenInclude(ue => ue.Expertise)
                 .Include(u => u.UserSocialMediaSites)
                 .ThenInclude(sms => sms.SocialMediaSite)
-            .FirstOrDefaultAsync(e => e.Id == primaryKey);
-        if (user is null)
-        {
-            return Result<User>.Failure("user.notfound", $"User {primaryKey} not found");
+                .FirstOrDefaultAsync(e => e.Id == primaryKey);
+
+            if (user == null)
+            {
+                return Failure<User>("user.not-found", $"User {primaryKey} not found.");
+            }
+
+            return Result.Success(_mapper.Map<User>(user));
         }
-        return Result.Success(_mapper.Map<User>(user));
+        catch (Exception ex)
+        {
+            return Failure<User>("user.get.failed", "Failed to retrieve user.", ex);
+        }
     }
 
     public async Task<Result<User>> SaveAsync(User user)
     {
         try
         {
-            var result = user.Id == Guid.Empty ? await AddUser(user) : await UpdateUser(user);
-            return Result.Success(result);
+            var saved = (user.Id == Guid.Empty) ? await AddUser(user) : await UpdateUser(user);
+            return Result.Success(saved);
         }
-        catch (DbUpdateException ex)
+        catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to save user {UserId}", user.Id);
-            return Result<User>.Failure("user.save.failed", ex.Message);
-        }
-        catch (ApplicationException ex)
-        {
-            _logger.LogError(ex, "Failed to save user {UserId}", user.Id);
-            return Result<User>.Failure("user.save.failed", ex.Message);
+            return Failure<User>("user.save.failed", "Failed to save user.", ex);
         }
     }
 
@@ -788,14 +788,22 @@ public partial class UserDataStore : IUserDataStore
 
     public async Task<Result<List<User>>> GetAllAsync()
     {
-        var speakers = await _context.Users
-            .Include(u => u.SpeakerType)
-            .Include(u => u.UserExpertise)
-            .ThenInclude(ue => ue.Expertise)
-            .Include(u => u.UserSocialMediaSites)
-            .ThenInclude(sms => sms.SocialMediaSite)
-            .ToListAsync();
-        return Result.Success(_mapper.Map<List<User>>(speakers));
+        try
+        {
+            var speakers = await _context.Users
+                .Include(u => u.SpeakerType)
+                .Include(u => u.UserExpertise)
+                .ThenInclude(ue => ue.Expertise)
+                .Include(u => u.UserSocialMediaSites)
+                .ThenInclude(sms => sms.SocialMediaSite)
+                .ToListAsync();
+
+            return Result.Success(_mapper.Map<List<User>>(speakers));
+        }
+        catch (Exception ex)
+        {
+            return Failure<List<User>>("user.get-all.failed", "Failed to retrieve users.", ex);
+        }
     }
 
     public async Task<Result> DeleteAsync(User entity)
@@ -805,212 +813,243 @@ public partial class UserDataStore : IUserDataStore
 
     public async Task<Result> DeleteAsync(Guid primaryKey)
     {
-        var speaker = await _context.Users
-            .Include(u => u.UserExpertise)
-            .FirstOrDefaultAsync(e => e.Id == primaryKey);
-
-        if (speaker is null)
-        {
-            return Result.Success();
-        }
-
-        foreach (var userExpertise in speaker.UserExpertise)
-        {
-            _context.UserExpertise.Remove(userExpertise);
-        }
-        _context.Users.Remove(speaker);
-
         try
         {
+            var speaker = await _context.Users
+                .Include(u => u.UserExpertise)
+                .FirstOrDefaultAsync(e => e.Id == primaryKey);
+
+            if (speaker is null)
+            {
+                return Result.Success();
+            }
+
+            foreach (var userExpertise in speaker.UserExpertise)
+            {
+                _context.UserExpertise.Remove(userExpertise);
+            }
+
+            _context.Users.Remove(speaker);
             await _context.SaveChangesAsync();
             return Result.Success();
         }
-        catch (DbUpdateException ex)
+        catch (Exception ex)
         {
             LogFailedToDeleteTheUserIdId(ex, primaryKey);
-            return Result.Failure("user.delete.failed", ex.Message);
+            return Failure("user.delete.failed", "Failed to delete user.", ex);
         }
     }
 
     public async Task<Result<IEnumerable<User>>> GetNewSpeakersAsync()
     {
-        var users = await _context.Users
-            .Include(u => u.SpeakerType)
-            .Include(u => u.UserExpertise)
-            .ThenInclude(ue => ue.Expertise)
-            .Include(u => u.UserSocialMediaSites)
-            .ThenInclude(sms => sms.SocialMediaSite)
-            .Where(u => u.SpeakerType.Id == (int)SpeakerTypeEnum.NewSpeaker)
-            .OrderBy(u => u.FirstName)
-            .ToListAsync();
+        try
+        {
+            var users = await _context.Users
+                .Include(u => u.SpeakerType)
+                .Include(u => u.UserExpertise)
+                .ThenInclude(ue => ue.Expertise)
+                .Include(u => u.UserSocialMediaSites)
+                .ThenInclude(sms => sms.SocialMediaSite)
+                .Where(u => u.SpeakerType.Id == (int)SpeakerTypeEnum.NewSpeaker)
+                .OrderBy(u => u.FirstName)
+                .ToListAsync();
 
-        return Result.Success(_mapper.Map<IEnumerable<User>>(users));
+            return Result.Success<IEnumerable<User>>(_mapper.Map<IEnumerable<User>>(users));
+        }
+        catch (Exception ex)
+        {
+            return Failure<IEnumerable<User>>("user.get-new-speakers.failed", "Failed to retrieve new speakers.", ex);
+        }
     }
 
     public async Task<Result<IEnumerable<User>>> GetExperiencedSpeakersAsync()
     {
-        var users = await _context.Users
-            .Include(u => u.SpeakerType)
-            .Include(u => u.UserExpertise)
-            .ThenInclude(ue => ue.Expertise)
-            .Include(u => u.UserSocialMediaSites)
-            .ThenInclude(sms => sms.SocialMediaSite)
-            .Where(u => u.SpeakerType.Id == (int)SpeakerTypeEnum.ExperiencedSpeaker)
-            .OrderBy(u => u.FirstName)
-            .ToListAsync();
+        try
+        {
+            var users = await _context.Users
+                .Include(u => u.SpeakerType)
+                .Include(u => u.UserExpertise)
+                .ThenInclude(ue => ue.Expertise)
+                .Include(u => u.UserSocialMediaSites)
+                .ThenInclude(sms => sms.SocialMediaSite)
+                .Where(u => u.SpeakerType.Id == (int)SpeakerTypeEnum.ExperiencedSpeaker)
+                .OrderBy(u => u.FirstName)
+                .ToListAsync();
 
-        return Result.Success(_mapper.Map<IEnumerable<User>>(users));
+            return Result.Success<IEnumerable<User>>(_mapper.Map<IEnumerable<User>>(users));
+        }
+        catch (Exception ex)
+        {
+            return Failure<IEnumerable<User>>("user.get-experienced-speakers.failed", "Failed to retrieve experienced speakers.", ex);
+        }
     }
 
     public async Task<Result<SpeakerSearchResult>> SearchSpeakersAsync(string? searchTerm, int? speakerTypeId = null, List<int>? expertiseIds = null, SpeakerSearchOrderBy sortOrder = SpeakerSearchOrderBy.Name, int? page = null, int? pageSize = null)
     {
-
-        var query = _context.Users
-            .Include(u => u.SpeakerType)
-            .Include(u => u.UserExpertise)
-            .ThenInclude(ue => ue.Expertise)
-            .Include(u => u.UserSocialMediaSites)
-            .ThenInclude(sms => sms.SocialMediaSite)
-            .AsQueryable();
-
-        // Search term
-        if (!string.IsNullOrWhiteSpace(searchTerm))
+        try
         {
-            query = query.Where(u =>
-                u.FirstName.Contains(searchTerm) ||
-                u.LastName.Contains(searchTerm) ||
-                u.Bio.Contains(searchTerm) ||
-                u.UserExpertise.Any(ue => ue.Expertise.Name.Contains(searchTerm)));
-        }
+            var query = _context.Users
+                .Include(u => u.SpeakerType)
+                .Include(u => u.UserExpertise)
+                .ThenInclude(ue => ue.Expertise)
+                .Include(u => u.UserSocialMediaSites)
+                .ThenInclude(sms => sms.SocialMediaSite)
+                .AsQueryable();
 
-        // Speaker type
-        if (speakerTypeId.HasValue)
-        {
-            query = query.Where(u => u.SpeakerTypeId == speakerTypeId.Value);
-        }
-
-        // Expertise
-        if (expertiseIds != null && expertiseIds.Count != 0)
-        {
-            foreach (var expertiseId in expertiseIds)
+            if (!string.IsNullOrWhiteSpace(searchTerm))
             {
-                query = query.Where(u => u.UserExpertise.Any(ue => ue.ExpertiseId == expertiseId));
+                query = query.Where(u =>
+                    u.FirstName.Contains(searchTerm) ||
+                    u.LastName.Contains(searchTerm) ||
+                    u.Bio.Contains(searchTerm) ||
+                    u.UserExpertise.Any(ue => ue.Expertise.Name.Contains(searchTerm)));
             }
+
+            if (speakerTypeId.HasValue)
+            {
+                query = query.Where(u => u.SpeakerTypeId == speakerTypeId.Value);
+            }
+
+            if (expertiseIds != null && expertiseIds.Count != 0)
+            {
+                foreach (var expertiseId in expertiseIds)
+                {
+                    query = query.Where(u => u.UserExpertise.Any(ue => ue.ExpertiseId == expertiseId));
+                }
+            }
+
+            query = query.Where(u => !u.IsDeleted);
+
+            query = sortOrder switch
+            {
+                SpeakerSearchOrderBy.Newest => query.OrderByDescending(u => u.CreatedDate),
+                SpeakerSearchOrderBy.Expertise => query
+                    .OrderBy(u => u.UserExpertise.Count)
+                    .ThenBy(u => u.LastName)
+                    .ThenBy(u => u.FirstName),
+                _ => query
+                    .OrderBy(u => u.LastName)
+                    .ThenBy(u => u.FirstName),
+            };
+
+            var users = await query.ToListAsync();
+            var totalCount = users.Count;
+
+            if (page.HasValue && pageSize.HasValue)
+            {
+                users = [.. users.Skip((page.Value - 1) * pageSize.Value).Take(pageSize.Value)];
+            }
+
+            var results = new SpeakerSearchResult
+            {
+                RowCount = totalCount,
+                Speakers = _mapper.Map<IEnumerable<User>>(users),
+                PageSize = pageSize ?? totalCount,
+                CurrentPage = page ?? 1,
+                TotalPages = page.HasValue ? RoundDivide(totalCount, pageSize ?? totalCount) : 1
+            };
+
+            return Result.Success(results);
         }
-
-        // Hide soft-deleted users from public search
-        query = query.Where(u => !u.IsDeleted);
-
-        // Sort Order
-        query = sortOrder switch
+        catch (Exception ex)
         {
-            SpeakerSearchOrderBy.Newest
-                => query.OrderByDescending(u => u.CreatedDate),
-            SpeakerSearchOrderBy.Expertise
-                => query
-                .OrderBy(u => u.UserExpertise.Count)
-                .ThenBy(u => u.LastName)
-                .ThenBy(u => u.FirstName),
-            _ => query
-                .OrderBy(u => u.LastName)
-                .ThenBy(u => u.FirstName),
-        };
-        var users = await query.ToListAsync();
-        var totalCount = users.Count;
-
-        if (page.HasValue && pageSize.HasValue)
-        {
-            users = [.. users.Skip((page.Value - 1) * pageSize.Value).Take(pageSize.Value)];
+            return Failure<SpeakerSearchResult>("user.search.failed", "Failed to search speakers.", ex);
         }
+    }
 
-        if (page.HasValue)
-        {
-
-        }
-        var results = new SpeakerSearchResult
-        {
-            RowCount = totalCount,
-            Speakers = _mapper.Map<IEnumerable<User>>(users),
-            PageSize = pageSize ?? totalCount,
-            CurrentPage = page ?? 1,
-            TotalPages = page.HasValue ? RoundDivide(totalCount , (pageSize ?? totalCount)) : 1
-        };
-
-        return Result.Success(results);
-    }(int numerator, int denominator) {
+    private static int RoundDivide(int numerator, int denominator)
+    {
         return (numerator + (denominator / 2)) / denominator;
     }
 
 
     public async Task<Result<IEnumerable<User>>> GetSpeakersByExpertiseAsync(int expertiseId)
     {
-        var users = await _context.Users
-            .Include(u => u.SpeakerType)
-            .Include(u => u.UserExpertise)
-            .ThenInclude(ue => ue.Expertise)
-            .Where(u => u.UserExpertise.Any(ue => ue.ExpertiseId == expertiseId))
-            .OrderBy(u => u.FirstName)
-            .ToListAsync();
+        try
+        {
+            var users = await _context.Users
+                .Include(u => u.SpeakerType)
+                .Include(u => u.UserExpertise)
+                .ThenInclude(ue => ue.Expertise)
+                .Where(u => u.UserExpertise.Any(ue => ue.ExpertiseId == expertiseId))
+                .OrderBy(u => u.FirstName)
+                .ToListAsync();
 
-        return Result.Success(_mapper.Map<IEnumerable<User>>(users));
+            return Result.Success<IEnumerable<User>>(_mapper.Map<IEnumerable<User>>(users));
+        }
+        catch (Exception ex)
+        {
+            return Failure<IEnumerable<User>>("user.get-by-expertise.failed", "Failed to retrieve speakers by expertise.", ex);
+        }
     }
 
-    public async Task<bool> AddUserSocialMediaSiteAsync(Guid userId, UserSocialMediaSite userSocialMediaSite)
+    public async Task<Result> AddUserSocialMediaSiteAsync(Guid userId, UserSocialMediaSite userSocialMediaSite)
     {
         try
         {
             var dbUserSocialMediaSite = _mapper.Map<UserSocialMediaSites>(userSocialMediaSite);
             _context.UserSocialMediaSite.Add(dbUserSocialMediaSite);
 
-            var result = await _context.SaveChangesAsync() != 0;
-
-            if (!result)
+            var saved = await _context.SaveChangesAsync() != 0;
+            if (!saved)
             {
                 LogFailedToAddSocialMediaLinkForUserForIdUseridSocialmediasiteidSocialmediasiteid(userId, userSocialMediaSite.SocialMediaSiteId, userSocialMediaSite.SocialId);
+                return Failure("user.social-media.add-failed", "Failed to add social media site.");
             }
-            return result;
+
+            return Result.Success();
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             LogFailedToAddSocialMediaLinkForUserForIdUseridSocialmediasiteidSocialmediasiteid(ex, userId, userSocialMediaSite.SocialMediaSiteId, userSocialMediaSite.SocialId);
-            return false;
+            return Failure("user.social-media.add-failed", "Failed to add social media site.", ex);
         }
     }
 
-    public async Task<bool> RemoveUserSocialMediaSiteAsync(int userSocialMediaSiteId)
+    public async Task<Result> RemoveUserSocialMediaSiteAsync(int userSocialMediaSiteId)
     {
         try
         {
             var userSocialMediaSite = await _context.UserSocialMediaSite.FindAsync(userSocialMediaSiteId);
             if (userSocialMediaSite == null)
             {
-                return false;
+                return Result.Success();
             }
 
             _context.UserSocialMediaSite.Remove(userSocialMediaSite);
-            var result = await _context.SaveChangesAsync() != 0;
-            if (!result)
+            var saved = await _context.SaveChangesAsync() != 0;
+            if (!saved)
             {
                 LogFailedToRemoveSocialMediaLinkWithIdUsersocialmediasiteid(userSocialMediaSiteId);
+                return Failure("user.social-media.remove-failed", "Failed to remove social media site.");
             }
-            return result;
+
+            return Result.Success();
         }
         catch (Exception ex)
         {
             LogFailedToRemoveSocialMediaLinkWithIdUsersocialmediasiteid(ex, userSocialMediaSiteId);
-            return false;
+            return Failure("user.social-media.remove-failed", "Failed to remove social media site.", ex);
         }
     }
 
-    public async Task<IEnumerable<UserSocialMediaSite>> GetUserSocialMediaSitesAsync(Guid userId)
+    public async Task<Result<IEnumerable<UserSocialMediaSite>>> GetUserSocialMediaSitesAsync(Guid userId)
     {
-        var userSocialMediaSitesList = await _context.UserSocialMediaSite
-            .Where(sm => sm.UserId == userId)
-            .ToListAsync();
-        return _mapper.Map<List<UserSocialMediaSite>>(userSocialMediaSitesList);
+        try
+        {
+            var userSocialMediaSitesList = await _context.UserSocialMediaSite
+                .Where(sm => sm.UserId == userId)
+                .ToListAsync();
+
+            return Result.Success<IEnumerable<UserSocialMediaSite>>(_mapper.Map<List<UserSocialMediaSite>>(userSocialMediaSitesList));
+        }
+        catch (Exception ex)
+        {
+            return Failure<IEnumerable<UserSocialMediaSite>>("user.social-media.get-failed", "Failed to retrieve user social media sites.", ex);
+        }
     }
 
-    public async Task<bool> AddExpertiseToUserAsync(Guid userId, int expertiseId)
+    public async Task<Result> AddExpertiseToUserAsync(Guid userId, int expertiseId)
     {
         try
         {
@@ -1022,83 +1061,119 @@ public partial class UserDataStore : IUserDataStore
 
             var dbUserExperience = _mapper.Map<Models.UserExpertise>(userExpertise);
             _context.UserExpertise.Add(dbUserExperience);
-            var result = await _context.SaveChangesAsync() != 0;
-            if (!result)
+            var saved = await _context.SaveChangesAsync() != 0;
+            if (!saved)
             {
                 LogFailedToAddExpertiseToUserWithIdUseridExpertiseidExpertiseid(userId, expertiseId);
+                return Failure("user.expertise.add-failed", "Failed to add expertise to user.");
             }
-            return result;
+
+            return Result.Success();
         }
-        catch( Exception ex)
+        catch (Exception ex)
         {
             LogFailedToAddExpertiseToUserWithIdUseridExpertiseidExpertiseid(ex, userId, expertiseId);
-            return false;
+            return Failure("user.expertise.add-failed", "Failed to add expertise to user.", ex);
         }
     }
 
-    public async Task<bool> RemoveExpertiseFromUserAsync(Guid userId, int expertiseId)
+    public async Task<Result> RemoveExpertiseFromUserAsync(Guid userId, int expertiseId)
     {
         try
         {
             var userExpertise = await _context.UserExpertise
                 .FirstOrDefaultAsync(ue => ue.UserId == userId && ue.ExpertiseId == expertiseId);
 
-            if (userExpertise != null)
+            if (userExpertise == null)
             {
-                _context.UserExpertise.Remove(userExpertise);
-                var result = await _context.SaveChangesAsync() != 0;
-                if (!result)
-                {
-                    LogFailedToRemoveExpertiseFromUserWithIdUseridExpertiseidExpertiseid(userId, expertiseId);
-                }
-                return result;
+                return Result.Success();
             }
 
-            return false;
+            _context.UserExpertise.Remove(userExpertise);
+            var saved = await _context.SaveChangesAsync() != 0;
+            if (!saved)
+            {
+                LogFailedToRemoveExpertiseFromUserWithIdUseridExpertiseidExpertiseid(userId, expertiseId);
+                return Failure("user.expertise.remove-failed", "Failed to remove expertise from user.");
+            }
+
+            return Result.Success();
         }
         catch (Exception ex)
         {
             LogFailedToRemoveExpertiseFromUserWithIdUseridExpertiseidExpertiseid(ex, userId, expertiseId);
-            return false;
+            return Failure("user.expertise.remove-failed", "Failed to remove expertise from user.", ex);
         }
     }
 
-    public async Task<IEnumerable<UserExpertise>> GetUserExpertisesForUserAsync(Guid userId)
+    public async Task<Result<IEnumerable<UserExpertise>>> GetUserExpertisesForUserAsync(Guid userId)
     {
-        var userExpertises = await _context.UserExpertise
-            .Include(ue => ue.Expertise)
-            .Where(ue => ue.UserId == userId)
-            .ToListAsync();
-        return _mapper.Map<List<UserExpertise>>(userExpertises);
+        try
+        {
+            var userExpertises = await _context.UserExpertise
+                .Include(ue => ue.Expertise)
+                .Where(ue => ue.UserId == userId)
+                .ToListAsync();
+
+            return Result.Success<IEnumerable<UserExpertise>>(_mapper.Map<List<UserExpertise>>(userExpertises));
+        }
+        catch (Exception ex)
+        {
+            return Failure<IEnumerable<UserExpertise>>("user.expertise.get-failed", "Failed to retrieve user expertises.", ex);
+        }
     }
 
 
-    public async Task<(int newSpeakers, int experiencedSpeakers, int activeMentorships)> GetStatisticsForApplicationAsync()
+    public async Task<Result<(int newSpeakers, int experiencedSpeakers, int activeMentorships)>> GetStatisticsForApplicationAsync()
     {
-        var newSpeakers = await _context.Users.CountAsync(u => u.SpeakerType.Id == (int) SpeakerTypeEnum.NewSpeaker);
+        try
+        {
+            var newSpeakers = await _context.Users.CountAsync(u => u.SpeakerType.Id == (int)SpeakerTypeEnum.NewSpeaker);
+            var experiencedSpeakers = await _context.Users.CountAsync(u => u.SpeakerType.Id == (int)SpeakerTypeEnum.ExperiencedSpeaker);
+            var activeMentorships = await _context.Mentorship.CountAsync(m => m.Status == Models.MentorshipStatus.Active);
 
-        var experiencedSpeakers = await _context.Users.CountAsync(u => u.SpeakerType.Id == (int) SpeakerTypeEnum.ExperiencedSpeaker);
-
-        var activeMentorships = await _context.Mentorship.CountAsync(m => m.Status == Models.MentorshipStatus.Active);
-
-        return (newSpeakers, experiencedSpeakers, activeMentorships);
-
+            return Result.Success((newSpeakers, experiencedSpeakers, activeMentorships));
+        }
+        catch (Exception ex)
+        {
+            return Failure<(int newSpeakers, int experiencedSpeakers, int activeMentorships)>("user.statistics.failed", "Failed to retrieve application statistics.", ex);
+        }
     }
 
-    public async Task<IEnumerable<User>> GetFeaturedSpeakersAsync(int count)
+    public async Task<Result<IEnumerable<User>>> GetFeaturedSpeakersAsync(int count)
     {
-        var speakers = await _context.Users
-            .Where(s => !string.IsNullOrEmpty(s.Bio) && s.UserExpertise.Any() && s.SpeakerType.Id == (int) SpeakerTypeEnum.ExperiencedSpeaker)
-            .OrderBy(u => Guid.NewGuid())
-            .Take(count)
-            .ToListAsync();
+        try
+        {
+            var speakers = await _context.Users
+                .Where(s => !string.IsNullOrEmpty(s.Bio) && s.UserExpertise.Any() && s.SpeakerType.Id == (int)SpeakerTypeEnum.ExperiencedSpeaker)
+                .OrderBy(u => Guid.NewGuid())
+                .Take(count)
+                .ToListAsync();
 
-        return _mapper.Map<List<User>>(speakers);
+            return Result.Success<IEnumerable<User>>(_mapper.Map<List<User>>(speakers));
+        }
+        catch (Exception ex)
+        {
+            return Failure<IEnumerable<User>>("user.featured-speakers.failed", "Failed to retrieve featured speakers.", ex);
+        }
     }
 
-    public async Task<IEnumerable<SpeakerType>> GetSpeakerTypesAsync()
+    public async Task<Result<IEnumerable<SpeakerType>>> GetSpeakerTypesAsync()
     {
-        var speakerTypes = await _context.SpeakerType.ToListAsync();
-        return _mapper.Map<List<SpeakerType>>(speakerTypes);
+        try
+        {
+            var speakerTypes = await _context.SpeakerType.ToListAsync();
+            return Result.Success<IEnumerable<SpeakerType>>(_mapper.Map<List<SpeakerType>>(speakerTypes));
+        }
+        catch (Exception ex)
+        {
+            return Failure<IEnumerable<SpeakerType>>("user.speaker-types.failed", "Failed to retrieve speaker types.", ex);
+        }
     }
+
+    private static Result Failure(string code, string message, Exception? ex = null)
+        => Result.Failure(new Error(code, message, ex));
+
+    private static Result<T> Failure<T>(string code, string message, Exception? ex = null)
+        => Result.Failure<T>(new Error(code, message, ex));
 }
