@@ -116,16 +116,23 @@ public partial class IndexModel : PageModel
             var searchResults = await _userManager.SearchSpeakersAsync(SearchTerm, SpeakerTypeFilter, ExpertiseFilter,
                 SortBy, CurrentPage, PageSize);
 
-            TotalCount = searchResults.RowCount;
-            TotalPages = searchResults.TotalPages;
-            CurrentPage = searchResults.CurrentPage;
-            Speakers = searchResults.Speakers;
+            if (searchResults.IsFailure)
+            {
+                ModelState.AddModelError(string.Empty, searchResults.Error.Message);
+                return Page();
+            }
+
+            var result = searchResults.Value;
+            TotalCount = result.RowCount;
+            TotalPages = result.TotalPages;
+            CurrentPage = result.CurrentPage;
+            Speakers = result.Speakers;
 
             var searchResultsModel = new SearchResultCountViewModel
             {
                 AreFiltersApplied =
                     !string.IsNullOrEmpty(SearchTerm) || (ExpertiseFilter != null && ExpertiseFilter.Count != 0) || SpeakerTypeFilter.HasValue || SectorFilter.HasValue || CategoryFilter.HasValue,
-                TotalResults = searchResults.RowCount
+                TotalResults = result.RowCount
             };
             SearchResultsCount = searchResultsModel;
 

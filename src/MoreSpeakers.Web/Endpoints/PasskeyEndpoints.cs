@@ -113,7 +113,7 @@ public static class PasskeyEndpoints
         // Remove from Identity store and metadata via Manager logic
         var result = await userManager.RemovePasskeyAsync(user.Id, id);
 
-        return !result
+        return result.IsFailure
             ? Results.NotFound()
             : Results.Ok();
     }

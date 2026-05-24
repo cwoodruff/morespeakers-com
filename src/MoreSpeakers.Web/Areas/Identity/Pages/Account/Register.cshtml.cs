@@ -345,7 +345,8 @@ public partial class RegisterModel : PageModel
         var sectorsResult = await _sectorManager.GetAllSectorsAsync();
         Sectors = sectorsResult.IsSuccess ? sectorsResult.Value : [];
 
-        SpeakerTypes = await _userManager.GetSpeakerTypesAsync();
+        var speakerTypesResult = await _userManager.GetSpeakerTypesAsync();
+        SpeakerTypes = speakerTypesResult.IsSuccess ? speakerTypesResult.Value : [];
 
         var socialMediaSitesResult = await _socialMediaSiteManager.GetAllAsync();
         SocialMediaSites = socialMediaSitesResult.IsSuccess ? socialMediaSitesResult.Value : [];
@@ -630,7 +631,12 @@ public partial class RegisterModel : PageModel
 
         try
         {
-            user = await _userManager.SaveAsync(user);
+            var saveResult = await _userManager.SaveAsync(user);
+            if (saveResult.IsFailure)
+            {
+                throw new InvalidOperationException(saveResult.Error.Message);
+            }
+            user = saveResult.Value;
         }
         catch (Exception ex)
         {

@@ -32,17 +32,18 @@ public class IndexModel(IUserManager userManager, IOpenGraphService openGraphSer
         {
             identityUser = await userManager.GetUserAsync(User);
 
-            User? userProfile;
+            User? userProfile = null;
             if (Id.HasValue && Id.Value != Guid.Empty)
             {
-                userProfile = await userManager.GetAsync(Id.Value);    
-                if (userProfile == null)
+                var userProfileResult = await userManager.GetAsync(Id.Value);    
+                if (userProfileResult.IsFailure)
                 {
                     logger.LogError("Error loading profile page. Could not find user. UserId: '{UserId}'", identityUser?.Id);
                     return RedirectToPage("/Profile/LoadingProblem",
                         new { UserId = Id});
                 }
 
+                userProfile = userProfileResult.Value;
                 if (userProfile.Id == identityUser?.Id)
                 {
                     CanEdit = true;
@@ -53,13 +54,15 @@ public class IndexModel(IUserManager userManager, IOpenGraphService openGraphSer
             {
                 if (identityUser is not null)
                 {
-                    userProfile = await userManager.GetAsync(identityUser.Id);    
-                    if (userProfile == null)
+                    var userProfileResult = await userManager.GetAsync(identityUser.Id);    
+                    if (userProfileResult.IsFailure)
                     {
                         logger.LogError("Error loading profile page. Could not find user. UserId: '{UserId}'", identityUser.Id);
                         return RedirectToPage("/Profile/LoadingProblem",
                             new { UserId = identityUser.Id});
                     }
+
+                    userProfile = userProfileResult.Value;
                     UserProfile = userProfile; 
                     if (userProfile.Id == identityUser?.Id)
                     {

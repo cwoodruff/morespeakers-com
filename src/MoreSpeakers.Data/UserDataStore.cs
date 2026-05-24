@@ -409,7 +409,7 @@ public partial class UserDataStore : IUserDataStore
     // Admin Users (Lock/Unlock)
     // ------------------------------------------
 
-    public async Task<bool> EnableLockoutAsync(Guid userId, bool enabled)
+    public async Task<Result> EnableLockoutAsync(Guid userId, bool enabled)
     {
         try
         {
@@ -417,28 +417,29 @@ public partial class UserDataStore : IUserDataStore
             if (identityUser == null)
             {
                 LogAdminlockoutEnablelockoutFailedUserUseridNotFound(userId);
-                return false;
+                return Result.Failure("user.enablelockout.notfound", $"User {userId} not found");
             }
 
             var result = await _userManager.SetLockoutEnabledAsync(identityUser, enabled);
             if (!result.Succeeded)
             {
                 LogAdminlockoutSetlockoutenabledasyncFailedForUseridErrors(userId, string.Join(",", result.Errors.Select(e => e.Code)));
+                return Result.Failure("user.enablelockout.failed", string.Join(", ", result.Errors.Select(e => e.Description)));
             }
             else
             {
                 LogAdminlockoutLockoutenabledSetToEnabledForUserUserid(enabled, userId);
             }
-            return result.Succeeded;
+            return Result.Success();
         }
-        catch (Exception ex)
+        catch (DbUpdateException ex)
         {
             LogAdminlockoutEnablelockoutasyncExceptionForUserUserid(ex, userId);
-            return false;
+            return Result.Failure("user.enablelockout.failed", ex.Message);
         }
     }
 
-    public async Task<bool> SetLockoutEndAsync(Guid userId, DateTimeOffset? lockoutEndUtc)
+    public async Task<Result> SetLockoutEndAsync(Guid userId, DateTimeOffset? lockoutEndUtc)
     {
         try
         {
@@ -446,7 +447,7 @@ public partial class UserDataStore : IUserDataStore
             if (identityUser == null)
             {
                 LogAdminlockoutSetlockoutendFailedUserUseridNotFound(userId);
-                return false;
+                return Result.Failure("user.lockout.notfound", $"User {userId} not found");
             }
 
             // Normalize to UTC and validate input
@@ -454,28 +455,29 @@ public partial class UserDataStore : IUserDataStore
             if (normalized.HasValue && normalized.Value <= DateTimeOffset.UtcNow)
             {
                 LogAdminlockoutRejectedSetlockoutendWithPastNowValueForUseridLockoutend(userId, lockoutEndUtc);
-                return false;
+                return Result.Failure("user.lockout.invalid", "Lockout end date must be in the future");
             }
 
             var result = await _userManager.SetLockoutEndDateAsync(identityUser, normalized);
             if (!result.Succeeded)
             {
                 LogAdminlockoutSetlockoutenddateasyncFailedForUseridErrors(userId, string.Join(",", result.Errors.Select(e => e.Code)));
+                return Result.Failure("user.lockout.failed", string.Join(", ", result.Errors.Select(e => e.Description)));
             }
             else
             {
                 LogAdminlockoutLockoutendSetToLockoutendForUserUserid(normalized, userId);
             }
-            return result.Succeeded;
+            return Result.Success();
         }
-        catch (Exception ex)
+        catch (DbUpdateException ex)
         {
             LogAdminlockoutSetlockoutendasyncExceptionForUserUserid(ex, userId);
-            return false;
+            return Result.Failure("user.lockout.failed", ex.Message);
         }
     }
 
-    public async Task<bool> UnlockAsync(Guid userId)
+    public async Task<Result> UnlockAsync(Guid userId)
     {
         try
         {
@@ -483,34 +485,34 @@ public partial class UserDataStore : IUserDataStore
             if (identityUser == null)
             {
                 LogAdminlockoutUnlockFailedUserUseridNotFound(userId);
-                return false;
+                return Result.Failure("user.unlock.notfound", $"User {userId} not found");
             }
 
             var endResult = await _userManager.SetLockoutEndDateAsync(identityUser, null);
             if (!endResult.Succeeded)
             {
                 LogAdminlockoutClearingLockoutendFailedForUseridErrors(userId, string.Join(",", endResult.Errors.Select(e => e.Code)));
-                return false;
+                return Result.Failure("user.unlock.failed", string.Join(", ", endResult.Errors.Select(e => e.Description)));
             }
 
             var resetResult = await _userManager.ResetAccessFailedCountAsync(identityUser);
             if (!resetResult.Succeeded)
             {
                 LogAdminlockoutResetaccessfailedcountFailedForUseridErrors(userId, string.Join(",", resetResult.Errors.Select(e => e.Code)));
-                return false;
+                return Result.Failure("user.unlock.failed", string.Join(", ", resetResult.Errors.Select(e => e.Description)));
             }
 
             LogAdminlockoutUserUseridUnlocked(userId);
-            return true;
+            return Result.Success();
         }
-        catch (Exception ex)
+        catch (DbUpdateException ex)
         {
             LogAdminlockoutUnlockasyncExceptionForUserUserid(ex, userId);
-            return false;
+            return Result.Failure("user.unlock.failed", ex.Message);
         }
     }
 
-    public async Task<int> GetUserCountInRoleAsync(string roleName)
+    public async Task<Result<int>> GetUserCountInRoleAsync(string roleName)
     {
         try
         {
@@ -521,12 +523,12 @@ public partial class UserDataStore : IUserDataStore
                                select ur.UserId)
                 .Distinct()
                 .CountAsync();
-            return count;
+            return Result<int>.Success(count);
         }
-        catch (Exception ex)
+        catch (DbUpdateException ex)
         {
             LogAdminlockoutGetusercountinroleasyncFailedForRoleRole(ex, roleName);
-            return 0;
+            return Result<int>.Failure("user.count.failed", ex.Message);
         }
     }
 
@@ -534,47 +536,55 @@ public partial class UserDataStore : IUserDataStore
     // Admin Users (Soft/Hard Delete)
     // ------------------------------------------
 
-    public async Task<bool> SoftDeleteAsync(Guid userId)
+    public async Task<Result> SoftDeleteAsync(Guid userId)
     {
         try
         {
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
-            if (user == null) return false;
+            if (user == null)
+            {
+                return Result.Failure("user.softdelete.notfound", $"User {userId} not found");
+            }
 
             user.IsDeleted = true;
             user.DeletedAt = DateTimeOffset.UtcNow;
             user.UpdatedDate = DateTime.UtcNow;
 
-            return await _context.SaveChangesAsync() > 0;
+            await _context.SaveChangesAsync();
+            return Result.Success();
         }
-        catch (Exception ex)
+        catch (DbUpdateException ex)
         {
             _logger.LogError(ex, "Failed to soft delete user {UserId}", userId);
-            return false;
+            return Result.Failure("user.softdelete.failed", ex.Message);
         }
     }
 
-    public async Task<bool> RestoreAsync(Guid userId)
+    public async Task<Result> RestoreAsync(Guid userId)
     {
         try
         {
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
-            if (user == null) return false;
+            if (user == null)
+            {
+                return Result.Failure("user.restore.notfound", $"User {userId} not found");
+            }
 
             user.IsDeleted = false;
             user.DeletedAt = null;
             user.UpdatedDate = DateTime.UtcNow;
 
-            return await _context.SaveChangesAsync() > 0;
+            await _context.SaveChangesAsync();
+            return Result.Success();
         }
-        catch (Exception ex)
+        catch (DbUpdateException ex)
         {
             _logger.LogError(ex, "Failed to restore user {UserId}", userId);
-            return false;
+            return Result.Failure("user.restore.failed", ex.Message);
         }
     }
 
-    public async Task<bool> RemovePasskeyAsync(Guid userId, byte[] credentialId)
+    public async Task<Result> RemovePasskeyAsync(Guid userId, byte[] credentialId)
     {
         try
         {
@@ -583,16 +593,17 @@ public partial class UserDataStore : IUserDataStore
 
             if (passkey == null)
             {
-                return false;
+                return Result.Failure("user.passkey.notfound", $"Passkey not found for user {userId}");
             }
 
             _context.Set<IdentityUserPasskey<Guid>>().Remove(passkey);
-            return await _context.SaveChangesAsync() > 0;
+            await _context.SaveChangesAsync();
+            return Result.Success();
         }
-        catch (Exception ex)
+        catch (DbUpdateException ex)
         {
             LogFailedToRemovePasskeyForUserUserid(ex, userId);
-            return false;
+            return Result.Failure("user.passkey.remove-failed", ex.Message);
         }
     }
 
@@ -600,7 +611,7 @@ public partial class UserDataStore : IUserDataStore
     // Application Methods
     // ------------------------------------------
 
-    public async Task<User?> GetAsync(Guid primaryKey)
+    public async Task<Result<User>> GetAsync(Guid primaryKey)
     {
         var user = await _context.Users
                 .Include(u => u.SpeakerType)
@@ -609,12 +620,30 @@ public partial class UserDataStore : IUserDataStore
                 .Include(u => u.UserSocialMediaSites)
                 .ThenInclude(sms => sms.SocialMediaSite)
             .FirstOrDefaultAsync(e => e.Id == primaryKey);
-        return _mapper.Map<User?>(user);
+        if (user is null)
+        {
+            return Result<User>.Failure("user.notfound", $"User {primaryKey} not found");
+        }
+        return Result.Success(_mapper.Map<User>(user));
     }
 
-    public async Task<User> SaveAsync(User user)
+    public async Task<Result<User>> SaveAsync(User user)
     {
-        return (user.Id == Guid.Empty) ? await AddUser(user) : await UpdateUser(user);
+        try
+        {
+            var result = user.Id == Guid.Empty ? await AddUser(user) : await UpdateUser(user);
+            return Result.Success(result);
+        }
+        catch (DbUpdateException ex)
+        {
+            _logger.LogError(ex, "Failed to save user {UserId}", user.Id);
+            return Result<User>.Failure("user.save.failed", ex.Message);
+        }
+        catch (ApplicationException ex)
+        {
+            _logger.LogError(ex, "Failed to save user {UserId}", user.Id);
+            return Result<User>.Failure("user.save.failed", ex.Message);
+        }
     }
 
     private async Task<User> AddUser(User user)
@@ -757,7 +786,7 @@ public partial class UserDataStore : IUserDataStore
         throw new ApplicationException($"Failed to update the user '{user.Id}'");
     }
 
-    public async Task<List<User>> GetAllAsync()
+    public async Task<Result<List<User>>> GetAllAsync()
     {
         var speakers = await _context.Users
             .Include(u => u.SpeakerType)
@@ -766,15 +795,15 @@ public partial class UserDataStore : IUserDataStore
             .Include(u => u.UserSocialMediaSites)
             .ThenInclude(sms => sms.SocialMediaSite)
             .ToListAsync();
-        return _mapper.Map<List<User>>(speakers);
+        return Result.Success(_mapper.Map<List<User>>(speakers));
     }
 
-    public async Task<bool> DeleteAsync(User entity)
+    public async Task<Result> DeleteAsync(User entity)
     {
         return await DeleteAsync(entity.Id);
     }
 
-    public async Task<bool> DeleteAsync(Guid primaryKey)
+    public async Task<Result> DeleteAsync(Guid primaryKey)
     {
         var speaker = await _context.Users
             .Include(u => u.UserExpertise)
@@ -782,7 +811,7 @@ public partial class UserDataStore : IUserDataStore
 
         if (speaker is null)
         {
-            return true;
+            return Result.Success();
         }
 
         foreach (var userExpertise in speaker.UserExpertise)
@@ -793,21 +822,17 @@ public partial class UserDataStore : IUserDataStore
 
         try
         {
-            var result = await _context.SaveChangesAsync() != 0;
-            if (result)
-            {
-                return true;
-            }
-            LogFailedToDeleteTheUserIdId(primaryKey);
+            await _context.SaveChangesAsync();
+            return Result.Success();
         }
-        catch (Exception ex)
+        catch (DbUpdateException ex)
         {
             LogFailedToDeleteTheUserIdId(ex, primaryKey);
+            return Result.Failure("user.delete.failed", ex.Message);
         }
-        return false;
     }
 
-    public async Task<IEnumerable<User>> GetNewSpeakersAsync()
+    public async Task<Result<IEnumerable<User>>> GetNewSpeakersAsync()
     {
         var users = await _context.Users
             .Include(u => u.SpeakerType)
@@ -819,10 +844,10 @@ public partial class UserDataStore : IUserDataStore
             .OrderBy(u => u.FirstName)
             .ToListAsync();
 
-        return _mapper.Map<IEnumerable<User>>(users);
+        return Result.Success(_mapper.Map<IEnumerable<User>>(users));
     }
 
-    public async Task<IEnumerable<User>> GetExperiencedSpeakersAsync()
+    public async Task<Result<IEnumerable<User>>> GetExperiencedSpeakersAsync()
     {
         var users = await _context.Users
             .Include(u => u.SpeakerType)
@@ -834,10 +859,10 @@ public partial class UserDataStore : IUserDataStore
             .OrderBy(u => u.FirstName)
             .ToListAsync();
 
-        return _mapper.Map<IEnumerable<User>>(users);
+        return Result.Success(_mapper.Map<IEnumerable<User>>(users));
     }
 
-    public async Task<SpeakerSearchResult> SearchSpeakersAsync(string? searchTerm, int? speakerTypeId = null, List<int>? expertiseIds = null, SpeakerSearchOrderBy sortOrder = SpeakerSearchOrderBy.Name, int? page = null, int? pageSize = null)
+    public async Task<Result<SpeakerSearchResult>> SearchSpeakersAsync(string? searchTerm, int? speakerTypeId = null, List<int>? expertiseIds = null, SpeakerSearchOrderBy sortOrder = SpeakerSearchOrderBy.Name, int? page = null, int? pageSize = null)
     {
 
         var query = _context.Users
@@ -911,15 +936,13 @@ public partial class UserDataStore : IUserDataStore
             TotalPages = page.HasValue ? RoundDivide(totalCount , (pageSize ?? totalCount)) : 1
         };
 
-        return results;
-    }
-
-    private static int RoundDivide(int numerator, int denominator) {
+        return Result.Success(results);
+    }(int numerator, int denominator) {
         return (numerator + (denominator / 2)) / denominator;
     }
 
 
-    public async Task<IEnumerable<User>> GetSpeakersByExpertiseAsync(int expertiseId)
+    public async Task<Result<IEnumerable<User>>> GetSpeakersByExpertiseAsync(int expertiseId)
     {
         var users = await _context.Users
             .Include(u => u.SpeakerType)
@@ -929,7 +952,7 @@ public partial class UserDataStore : IUserDataStore
             .OrderBy(u => u.FirstName)
             .ToListAsync();
 
-        return _mapper.Map<IEnumerable<User>>(users);
+        return Result.Success(_mapper.Map<IEnumerable<User>>(users));
     }
 
     public async Task<bool> AddUserSocialMediaSiteAsync(Guid userId, UserSocialMediaSite userSocialMediaSite)

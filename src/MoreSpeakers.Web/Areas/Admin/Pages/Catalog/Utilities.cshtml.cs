@@ -22,10 +22,10 @@ public partial class UtilitiesModel(
 
     public async Task<IActionResult> OnPostRegenerateAsync()
     {
-        var users = await userManager.GetAllAsync();
+        var usersResult = await userManager.GetAllAsync();
         var count = 0;
 
-        foreach (var user in users)
+        foreach (var user in usersResult.IsSuccess ? usersResult.Value : [])
         {
             if (string.IsNullOrEmpty(user.HeadshotUrl))
             {

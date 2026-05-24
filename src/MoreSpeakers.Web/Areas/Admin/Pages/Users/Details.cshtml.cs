@@ -37,8 +37,8 @@ public partial class DetailsModel : PageModel
             return NotFound();
         }
 
-        var user = await _userManager.GetAsync(id);
-        if (user == null)
+        var userResult = await _userManager.GetAsync(id);
+        if (userResult.IsFailure)
         {
             return NotFound();
         }
@@ -46,8 +46,8 @@ public partial class DetailsModel : PageModel
         // Retrieve roles via Manager abstraction
         try
         {
-            Roles = await _userManager.GetRolesForUserAsync(id);
-            AllRoles = await _userManager.GetAllRoleNamesAsync();
+            Roles = (await _userManager.GetRolesForUserAsync(id)).Value;
+            AllRoles = (await _userManager.GetAllRoleNamesAsync()).Value;
             SelectedRoles = [.. Roles];
         }
         catch (Exception ex)
@@ -57,7 +57,7 @@ public partial class DetailsModel : PageModel
             AllRoles = [];
         }
 
-        User = user;
+        User = userResult.Value;
         // Not persisted today; conservative default
         LastSignInUtc = null;
 
@@ -334,13 +334,16 @@ public partial class DetailsModel : PageModel
             }
         }
 
-        var ok = await _userManager.SoftDeleteAsync(id);
-        TempData[ok ? "StatusMessage" : "ErrorMessage"] = ok ? "User has been soft-deleted." : "Failed to soft-delete user.";
+        var softDeleteResult = await _userManager.SoftDeleteAsync(id);
+        TempData[softDeleteResult.IsSuccess ? "StatusMessage" : "ErrorMessage"] = 
+            softDeleteResult.IsSuccess ? "User has been soft-deleted." : "Failed to soft-delete user.";
 
         if (Request.Headers.TryGetValue("HX-Request", out var hx) && string.Equals(hx, "true", StringComparison.OrdinalIgnoreCase))
         {
-            User = (await _userManager.GetAsync(id))!;
-            Roles = await _userManager.GetRolesForUserAsync(id);
+            var userResult = await _userManager.GetAsync(id);
+            User = userResult.IsSuccess ? userResult.Value : null;
+            var rolesResult = await _userManager.GetRolesForUserAsync(id);
+            Roles = rolesResult.IsSuccess ? rolesResult.Value : [];
             return Partial("_UserSecurityCard", this);
         }
 
@@ -351,13 +354,16 @@ public partial class DetailsModel : PageModel
     {
         if (id == Guid.Empty) return NotFound();
 
-        var ok = await _userManager.RestoreAsync(id);
-        TempData[ok ? "StatusMessage" : "ErrorMessage"] = ok ? "User has been restored." : "Failed to restore user.";
+        var restoreResult = await _userManager.RestoreAsync(id);
+        TempData[restoreResult.IsSuccess ? "StatusMessage" : "ErrorMessage"] = 
+            restoreResult.IsSuccess ? "User has been restored." : "Failed to restore user.";
 
         if (Request.Headers.TryGetValue("HX-Request", out var hx) && string.Equals(hx, "true", StringComparison.OrdinalIgnoreCase))
         {
-            User = (await _userManager.GetAsync(id))!;
-            Roles = await _userManager.GetRolesForUserAsync(id);
+            var userResult = await _userManager.GetAsync(id);
+            User = userResult.IsSuccess ? userResult.Value : null;
+            var rolesResult = await _userManager.GetRolesForUserAsync(id);
+            Roles = rolesResult.IsSuccess ? rolesResult.Value : [];
             return Partial("_UserSecurityCard", this);
         }
 
@@ -377,10 +383,12 @@ public partial class DetailsModel : PageModel
         }
 
         // Prevent deleting the last admin
-        var roles = await _userManager.GetRolesForUserAsync(id);
+        var rolesResult = await _userManager.GetRolesForUserAsync(id);
+        var roles = rolesResult.IsSuccess ? rolesResult.Value : [];
         if (roles.Contains("Administrator", StringComparer.OrdinalIgnoreCase))
         {
-            var adminCount = await _userManager.GetUserCountInRoleAsync("Administrator");
+            var adminCountResult = await _userManager.GetUserCountInRoleAsync("Administrator");
+            var adminCount = adminCountResult.IsSuccess ? adminCountResult.Value : 0;
             if (adminCount <= 1)
             {
                 TempData["ErrorMessage"] = "Cannot delete: this is the last administrator account.";
@@ -388,8 +396,8 @@ public partial class DetailsModel : PageModel
             }
         }
 
-        var ok = await _userManager.DeleteAsync(id);
-        if (ok)
+        var deleteResult = await _userManager.DeleteAsync(id);
+        if (deleteResult.IsSuccess)
         {
             TempData["StatusMessage"] = "User has been permanently deleted.";
             return RedirectToPage("Index");
