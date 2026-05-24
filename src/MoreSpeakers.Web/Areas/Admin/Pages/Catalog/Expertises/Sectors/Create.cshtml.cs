@@ -52,7 +52,14 @@ public partial class CreateModel(ISectorManager manager, ILogger<CreateModel> lo
             IsActive = Input.IsActive
         };
 
-        var saved = await _manager.SaveAsync(sector);
+        var result = await _manager.SaveAsync(sector);
+        if (result.IsFailure)
+        {
+            ModelState.AddModelError(string.Empty, result.ErrorMessage ?? "Failed to save sector.");
+            return Page();
+        }
+
+        var saved = result.Value;
         LogAdminSectorsCreated(saved.Id, saved.Name);
         return RedirectToPage("Index");
     }

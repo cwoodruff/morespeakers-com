@@ -341,9 +341,15 @@ public partial class RegisterModel : PageModel
 
         AvailableExpertises = expertisesResult.Value;
         ExpertiseCategories = categoriesResult.Value;
-        Sectors = await _sectorManager.GetAllSectorsAsync();
+
+        var sectorsResult = await _sectorManager.GetAllSectorsAsync();
+        Sectors = sectorsResult.IsSuccess ? sectorsResult.Value : [];
+
         SpeakerTypes = await _userManager.GetSpeakerTypesAsync();
-        SocialMediaSites = await _socialMediaSiteManager.GetAllAsync();
+
+        var socialMediaSitesResult = await _socialMediaSiteManager.GetAllAsync();
+        SocialMediaSites = socialMediaSitesResult.IsSuccess ? socialMediaSitesResult.Value : [];
+
         return Result.Success();
     }
 
@@ -357,7 +363,10 @@ public partial class RegisterModel : PageModel
         }
 
         ExpertiseCategories = categoriesResult.Value;
-        Sectors = await _sectorManager.GetAllSectorsAsync();
+
+        var sectorsResult = await _sectorManager.GetAllSectorsAsync();
+        Sectors = sectorsResult.IsSuccess ? sectorsResult.Value : [];
+
         return Result.Success();
     }
 
@@ -696,7 +705,8 @@ public partial class RegisterModel : PageModel
             }
 
 
-            var socialMediaSites = await _socialMediaSiteManager.GetAllAsync();
+            var socialMediaSitesResult = await _socialMediaSiteManager.GetAllAsync();
+            var socialMediaSites = socialMediaSitesResult.IsSuccess ? socialMediaSitesResult.Value : [];
             var filteredSites = socialMediaSites
                 .Where(s => !alreadySelectedIds.Contains(s.Id))
                 .ToList();

@@ -1,10 +1,9 @@
 // File: MoreSpeakers.Data/SectorDataStore.cs
 
-using System.Diagnostics;
-
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using MoreSpeakers.Domain;
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models;
 using MoreSpeakers.Domain.Models.AdminUsers;
@@ -24,23 +23,33 @@ public partial class SectorDataStore : ISectorDataStore
         _logger = logger;
     }
 
-    public async Task<Sector?> GetAsync(int primaryKey)
+    public async Task<Result<Sector>> GetAsync(int primaryKey)
     {
         var entity = await _context.Sectors.AsNoTracking().FirstOrDefaultAsync(s => s.Id == primaryKey);
-        return _mapper.Map<Sector?>(entity);
+        if (entity is null)
+        {
+            return Failure<Sector>("sector.not-found", $"Sector {primaryKey} was not found.");
+        }
+
+        return Result.Success(_mapper.Map<Sector>(entity));
     }
 
-    public async Task<List<Sector>> GetAllAsync()
+    public async Task<Result<List<Sector>>> GetAllAsync()
         => await GetAllSectorsAsync(active: TriState.True);
 
-    public async Task<Sector?> GetSectorWithRelationshipsAsync(int id)
+    public async Task<Result<Sector>> GetSectorWithRelationshipsAsync(int id)
     {
         var sector = await _context.Sectors.AsNoTracking()
             .Include(s => s.ExpertiseCategories).FirstOrDefaultAsync(s => s.Id == id);
-        return _mapper.Map<Sector?>(sector);
+        if (sector is null)
+        {
+            return Failure<Sector>("sector.not-found", $"Sector {id} was not found.");
+        }
+
+        return Result.Success(_mapper.Map<Sector>(sector));
     }
 
-    public async Task<List<Sector>> GetAllSectorsAsync(TriState active = TriState.True, string? searchTerm = "", bool includeCategories = false )
+    public async Task<Result<List<Sector>>> GetAllSectorsAsync(TriState active = TriState.True, string? searchTerm = "", bool includeCategories = false )
     {
         var query = _context.Sectors.AsNoTracking().AsQueryable();
 
@@ -66,54 +75,70 @@ public partial class SectorDataStore : ISectorDataStore
             .ThenBy(s => s.Name)
             .ToListAsync();
 
-        return _mapper.Map<List<Sector>>(entities);
+        return Result.Success(_mapper.Map<List<Sector>>(entities));
     }
 
-    public async Task<Sector> SaveAsync(Sector sector)
+    public async Task<Result<Sector>> SaveAsync(Sector sector)
     {
-        var dbEntity = _mapper.Map<Models.Sector>(sector);
-        _context.Entry(dbEntity).State = dbEntity.Id == 0 ? EntityState.Added : EntityState.Modified;
-
         try
         {
-            var result = await _context.SaveChangesAsync() != 0;
-            if (result)
-                return _mapper.Map<Sector>(dbEntity);
+            var dbEntity = _mapper.Map<Models.Sector>(sector);
+            _context.Entry(dbEntity).State = dbEntity.Id == 0 ? EntityState.Added : EntityState.Modified;
 
-            LogFailedToSaveSector(sector.Name);
+            if (await _context.SaveChangesAsync() == 0)
+            {
+                LogFailedToSaveSector(sector.Name);
+                return Failure<Sector>("sector.save.failed", $"Failed to save sector '{sector.Name}'.");
+            }
+
+            return Result.Success(_mapper.Map<Sector>(dbEntity));
         }
-        catch (Exception ex)
+        catch (DbUpdateException ex)
         {
             LogFailedToSaveSector(ex, sector.Name);
+            return Failure<Sector>("sector.save.failed", $"Failed to save sector '{sector.Name}'.", ex);
         }
-
-        throw new ApplicationException("Failed to save the sector");
     }
 
-    public Task<bool> DeleteAsync(Sector entity) => DeleteAsync(entity.Id);
+    public Task<Result> DeleteAsync(Sector entity) => DeleteAsync(entity.Id);
 
-    public async Task<bool> DeleteAsync(int primaryKey)
+    public async Task<Result> DeleteAsync(int primaryKey)
     {
-        var entity = await _context.Sectors
-            .Include(s => s.ExpertiseCategories)
-            .FirstOrDefaultAsync(s => s.Id == primaryKey);
-
-        if (entity is null)
-            return true;
-
-        if (entity.ExpertiseCategories.Count != 0)
-            return false;
-
-        _context.Sectors.Remove(entity);
-
         try
         {
-            return await _context.SaveChangesAsync() != 0;
+            var entity = await _context.Sectors
+                .Include(s => s.ExpertiseCategories)
+                .FirstOrDefaultAsync(s => s.Id == primaryKey);
+
+            if (entity is null)
+            {
+                return Failure("sector.delete.not-found", $"Sector {primaryKey} was not found.");
+            }
+
+            if (entity.ExpertiseCategories.Count != 0)
+            {
+                return Failure("sector.delete.has-categories", $"Sector {primaryKey} cannot be deleted while expertise categories exist.");
+            }
+
+            _context.Sectors.Remove(entity);
+
+            if (await _context.SaveChangesAsync() == 0)
+            {
+                return Failure("sector.delete.failed", $"Failed to delete sector '{entity.Name}'.");
+            }
+
+            return Result.Success();
         }
-        catch (Exception ex)
+        catch (DbUpdateException ex)
         {
-            LogFailedToDeleteSector(ex, entity.Name);
-            return false;
+            LogFailedToDeleteSector(ex, primaryKey.ToString());
+            return Failure("sector.delete.failed", $"Failed to delete sector {primaryKey}.", ex);
         }
     }
+
+    private static Result Failure(string code, string message, Exception? exception = null) =>
+        Result.Failure(new Error(code, message, exception));
+
+    private static Result<T> Failure<T>(string code, string message, Exception? exception = null) =>
+        Result.Failure<T>(new Error(code, message, exception));
 }

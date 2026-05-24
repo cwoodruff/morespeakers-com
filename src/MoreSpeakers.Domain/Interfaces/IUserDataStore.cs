@@ -2,12 +2,13 @@ using System.Security.Claims;
 
 using Microsoft.AspNetCore.Identity;
 
+using MoreSpeakers.Domain;
 using MoreSpeakers.Domain.Models;
 using MoreSpeakers.Domain.Models.AdminUsers;
 
 namespace MoreSpeakers.Domain.Interfaces;
 
-public interface IUserDataStore: IDataStorePrimaryKeyGuid<User>
+public interface IUserDataStore
 {
     // ------------------------------------------
     // Wrapper methods for AspNetCore Identity
@@ -24,47 +25,56 @@ public interface IUserDataStore: IDataStorePrimaryKeyGuid<User>
     
     // Passkey support
     Task<IdentityResult> AddOrUpdatePasskeyAsync(User user, UserPasskeyInfo passkey);
-    Task<IEnumerable<UserPasskey>> GetUserPasskeysAsync(Guid userId);
-    Task<bool> RemovePasskeyAsync(Guid userId, byte[] credentialId);
+    Task<Result<IEnumerable<UserPasskey>>> GetUserPasskeysAsync(Guid userId);
+    Task<Result> RemovePasskeyAsync(Guid userId, byte[] credentialId);
+
+    // ------------------------------------------
+    // CRUD Methods (previously inherited from IDataStorePrimaryKeyGuid<User>)
+    // ------------------------------------------
+    Task<Result<User>> GetAsync(Guid primaryKey);
+    Task<Result> DeleteAsync(Guid primaryKey);
+    Task<Result<User>> SaveAsync(User entity);
+    Task<Result<List<User>>> GetAllAsync();
+    Task<Result> DeleteAsync(User entity);
 
     // ------------------------------------------
     // Application Methods
     // ------------------------------------------
     
-    Task<IEnumerable<User>> GetNewSpeakersAsync();
-    Task<IEnumerable<User>> GetExperiencedSpeakersAsync();
-    Task<SpeakerSearchResult> SearchSpeakersAsync(string? searchTerm, int? speakerTypeId = null, List<int>? expertiseIds = null, SpeakerSearchOrderBy sortOrder = SpeakerSearchOrderBy.Name, int? page = null, int? pageSize = null);
-    Task<IEnumerable<User>> GetSpeakersByExpertiseAsync(int expertiseId);
-    Task<bool> AddUserSocialMediaSiteAsync(Guid userId, UserSocialMediaSite userSocialMediaSite);
-    Task<bool> RemoveUserSocialMediaSiteAsync(int userSocialMediaSiteId);
-    Task<IEnumerable<UserSocialMediaSite>> GetUserSocialMediaSitesAsync(Guid userId);
-    Task<bool> AddExpertiseToUserAsync(Guid userId, int expertiseId);
-    Task<bool> RemoveExpertiseFromUserAsync(Guid userId, int expertiseId);
-    Task<IEnumerable<UserExpertise>> GetUserExpertisesForUserAsync(Guid userId);
-    Task<(int newSpeakers, int experiencedSpeakers, int activeMentorships)> GetStatisticsForApplicationAsync();
-    Task<IEnumerable<User>> GetFeaturedSpeakersAsync(int count);
-    Task<IEnumerable<SpeakerType>> GetSpeakerTypesAsync();
+    Task<Result<IEnumerable<User>>> GetNewSpeakersAsync();
+    Task<Result<IEnumerable<User>>> GetExperiencedSpeakersAsync();
+    Task<Result<SpeakerSearchResult>> SearchSpeakersAsync(string? searchTerm, int? speakerTypeId = null, List<int>? expertiseIds = null, SpeakerSearchOrderBy sortOrder = SpeakerSearchOrderBy.Name, int? page = null, int? pageSize = null);
+    Task<Result<IEnumerable<User>>> GetSpeakersByExpertiseAsync(int expertiseId);
+    Task<Result> AddUserSocialMediaSiteAsync(Guid userId, UserSocialMediaSite userSocialMediaSite);
+    Task<Result> RemoveUserSocialMediaSiteAsync(int userSocialMediaSiteId);
+    Task<Result<IEnumerable<UserSocialMediaSite>>> GetUserSocialMediaSitesAsync(Guid userId);
+    Task<Result> AddExpertiseToUserAsync(Guid userId, int expertiseId);
+    Task<Result> RemoveExpertiseFromUserAsync(Guid userId, int expertiseId);
+    Task<Result<IEnumerable<UserExpertise>>> GetUserExpertisesForUserAsync(Guid userId);
+    Task<Result<(int newSpeakers, int experiencedSpeakers, int activeMentorships)>> GetStatisticsForApplicationAsync();
+    Task<Result<IEnumerable<User>>> GetFeaturedSpeakersAsync(int count);
+    Task<Result<IEnumerable<SpeakerType>>> GetSpeakerTypesAsync();
 
     // ------------------------------------------
     // Admin Users (List/Search)
     // ------------------------------------------
-    Task<PagedResult<UserListRow>> AdminSearchUsersAsync(UserAdminFilter filter, UserAdminSort sort, int page, int pageSize);
-    Task<IReadOnlyList<string>> GetAllRoleNamesAsync();
-    Task<IReadOnlyList<string>> GetRolesForUserAsync(Guid userId);
+    Task<Result<PagedResult<UserListRow>>> AdminSearchUsersAsync(UserAdminFilter filter, UserAdminSort sort, int page, int pageSize);
+    Task<Result<IReadOnlyList<string>>> GetAllRoleNamesAsync();
+    Task<Result<IReadOnlyList<string>>> GetRolesForUserAsync(Guid userId);
     Task<IdentityResult> AddToRolesAsync(Guid userId, IEnumerable<string> roles);
     Task<IdentityResult> RemoveFromRolesAsync(Guid userId, IEnumerable<string> roles);
 
     // ------------------------------------------
     // Admin Users (Lock/Unlock)
     // ------------------------------------------
-    Task<bool> EnableLockoutAsync(Guid userId, bool enabled);
-    Task<bool> SetLockoutEndAsync(Guid userId, DateTimeOffset? lockoutEndUtc);
-    Task<bool> UnlockAsync(Guid userId);
-    Task<int> GetUserCountInRoleAsync(string roleName);
+    Task<Result> EnableLockoutAsync(Guid userId, bool enabled);
+    Task<Result> SetLockoutEndAsync(Guid userId, DateTimeOffset? lockoutEndUtc);
+    Task<Result> UnlockAsync(Guid userId);
+    Task<Result<int>> GetUserCountInRoleAsync(string roleName);
 
     // ------------------------------------------
     // Admin Users (Soft/Hard Delete)
     // ------------------------------------------
-    Task<bool> SoftDeleteAsync(Guid userId);
-    Task<bool> RestoreAsync(Guid userId);
+    Task<Result> SoftDeleteAsync(Guid userId);
+    Task<Result> RestoreAsync(Guid userId);
 }

@@ -41,7 +41,16 @@ public partial class ActiveModel : PageModel
 
             CurrentUserId = currentUser.Id;
 
-            ActiveMentorships = await _mentoringManager.GetActiveMentorshipsForUserAsync(CurrentUserId);
+            var activeMentorshipsResult = await _mentoringManager.GetActiveMentorshipsForUserAsync(CurrentUserId);
+            if (activeMentorshipsResult.IsFailure)
+            {
+                _logger.LogWarning("Failed to load active mentorships for user {UserId}: {Error}", CurrentUserId, activeMentorshipsResult.Error.Message);
+                TempData["ErrorMessage"] = activeMentorshipsResult.Error.Message;
+                ActiveMentorships = [];
+                return Page();
+            }
+
+            ActiveMentorships = activeMentorshipsResult.Value;
             return Page();
         }
         catch (Exception ex)
@@ -63,7 +72,15 @@ public partial class ActiveModel : PageModel
                 return Unauthorized();
             }
 
-            await _mentoringManager.CompleteMentorshipRequestAsync(mentorshipId, currentUser.Id);
+            var result = await _mentoringManager.CompleteMentorshipRequestAsync(mentorshipId, currentUser.Id);
+            if (result.IsFailure)
+            {
+                _logger.LogWarning("Failed to complete mentorship {MentorshipId} for user {UserId}: {Error}", mentorshipId, currentUser.Id, result.Error.Message);
+                TempData["ErrorMessage"] = result.Error.Message;
+                return BadRequest();
+            }
+
+            TempData["SuccessMessage"] = "Mentorship completed successfully";
 
             // Let the client know lists/pages can refresh if listening
             Response.Headers["HX-Trigger"] = "{\"mentorship:completed\":{\"id\":\"" + mentorshipId +
@@ -91,7 +108,15 @@ public partial class ActiveModel : PageModel
                 return Unauthorized();
             }
 
-            await _mentoringManager.CancelMentorshipRequestAsync(mentorshipId, currentUser.Id);
+            var result = await _mentoringManager.CancelMentorshipRequestAsync(mentorshipId, currentUser.Id);
+            if (result.IsFailure)
+            {
+                _logger.LogWarning("Failed to cancel mentorship {MentorshipId} for user {UserId}: {Error}", mentorshipId, currentUser.Id, result.Error.Message);
+                TempData["ErrorMessage"] = result.Error.Message;
+                return BadRequest();
+            }
+
+            TempData["SuccessMessage"] = "Mentorship cancelled successfully";
 
             Response.Headers["HX-Trigger"] = "{\"mentorship:cancelled\":{\"id\":\"" + mentorshipId +
                                              "\"},\"mentorship:updated\":true}";

@@ -63,8 +63,12 @@ public class EditModel(
             ValidationMessage = expertiseLookupResult.Error.Message;
         }
 
-        Sectors = await sectorManager.GetAllSectorsAsync();
-        SocialMediaSites = await socialMediaSiteManager.GetAllAsync();
+        var sectorsResult = await sectorManager.GetAllSectorsAsync();
+        Sectors = sectorsResult.IsSuccess ? sectorsResult.Value : [];
+
+        var socialMediaSitesResult = await socialMediaSiteManager.GetAllAsync();
+        SocialMediaSites = socialMediaSitesResult.IsSuccess ? socialMediaSitesResult.Value : [];
+
         UserPasskeys = await userManager.GetUserPasskeysAsync(user.Id);
         ActiveTab = "profile";
         return Page();
@@ -121,8 +125,12 @@ public class EditModel(
                 return Partial("_ProfileEditForm", this);
             }
 
-            Sectors = await sectorManager.GetAllSectorsAsync();
-            SocialMediaSites = await socialMediaSiteManager.GetAllAsync();
+            var sectorsResult = await sectorManager.GetAllSectorsAsync();
+            Sectors = sectorsResult.IsSuccess ? sectorsResult.Value : [];
+
+            var socialMediaSitesResult = await socialMediaSiteManager.GetAllAsync();
+            SocialMediaSites = socialMediaSitesResult.IsSuccess ? socialMediaSitesResult.Value : [];
+
             UserPasskeys = await userManager.GetUserPasskeysAsync(userProfile.Id);
 
             HasValidationErrors = false;
@@ -237,8 +245,12 @@ public class EditModel(
             ValidationMessage = expertiseLookupResult.Error.Message;
         }
 
-        Sectors = await sectorManager.GetAllSectorsAsync();
-        SocialMediaSites = await socialMediaSiteManager.GetAllAsync();
+        var sectorsResult = await sectorManager.GetAllSectorsAsync();
+        Sectors = sectorsResult.IsSuccess ? sectorsResult.Value : [];
+
+        var socialMediaSitesResult = await socialMediaSiteManager.GetAllAsync();
+        SocialMediaSites = socialMediaSitesResult.IsSuccess ? socialMediaSitesResult.Value : [];
+
         UserPasskeys = await userManager.GetUserPasskeysAsync(user.Id);
         ActiveTab = tab;
 
@@ -402,7 +414,8 @@ public class EditModel(
                 }
             }
 
-            var socialMediaSites = await socialMediaSiteManager.GetAllAsync();
+            var socialMediaSitesResult = await socialMediaSiteManager.GetAllAsync();
+            var socialMediaSites = socialMediaSitesResult.IsSuccess ? socialMediaSitesResult.Value : [];
             var filteredSites = socialMediaSites
                 .Where(s => !alreadySelectedIds.Contains(s.Id))
                 .ToList();
@@ -514,7 +527,10 @@ public class EditModel(
         }
 
         AvailableExpertises = expertisesResult.Value;
-        SocialMediaSites = await socialMediaSiteManager.GetAllAsync();
+
+        var socialMediaSitesResult = await socialMediaSiteManager.GetAllAsync();
+        SocialMediaSites = socialMediaSitesResult.IsSuccess ? socialMediaSitesResult.Value : [];
+
         Input.SelectedExpertiseIds = [.. Input.SelectedExpertiseIds.Concat([createResult.Value])];
 
         NewExpertiseResponse = new NewExpertiseCreatedResponse
@@ -560,7 +576,10 @@ public class EditModel(
         }
 
         ExpertiseCategories = categoriesResult.Value;
-        Sectors = await sectorManager.GetAllSectorsAsync();
+
+        var sectorsResult = await sectorManager.GetAllSectorsAsync();
+        Sectors = sectorsResult.IsSuccess ? sectorsResult.Value : [];
+
         return Result.Success();
     }
 

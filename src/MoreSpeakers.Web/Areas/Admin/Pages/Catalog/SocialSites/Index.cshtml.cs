@@ -14,7 +14,13 @@ public class IndexModel(ISocialMediaSiteManager manager) : PageModel
 
     public async Task OnGet()
     {
-        var all = await manager.GetAllAsync();
+        var result = await manager.GetAllAsync();
+        if (result.IsFailure)
+        {
+            return;
+        }
+
+        var all = result.Value;
         if (!string.IsNullOrWhiteSpace(Q))
         {
             var q = Q.Trim();

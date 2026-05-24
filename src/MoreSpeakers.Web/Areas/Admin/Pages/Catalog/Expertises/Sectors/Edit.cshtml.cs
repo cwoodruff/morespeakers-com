@@ -36,10 +36,14 @@ public partial class EditModel(ISectorManager manager, ILogger<EditModel> logger
 
     public async Task<IActionResult> OnGetAsync()
     {
-        var sector = await _manager.GetAsync(Id);
-        if (sector is null)
+        var result = await _manager.GetAsync(Id);
+        if (result.IsFailure)
+        {
+            TempData["ErrorMessage"] = result.ErrorMessage;
             return RedirectToPage("Index");
+        }
 
+        var sector = result.Value;
         Input = new InputModel
         {
             Name = sector.Name,
@@ -56,19 +60,27 @@ public partial class EditModel(ISectorManager manager, ILogger<EditModel> logger
         if (!ModelState.IsValid)
             return Page();
 
-        var sector = await _manager.GetAsync(Id);
-        if (sector is null)
+        var getResult = await _manager.GetAsync(Id);
+        if (getResult.IsFailure)
         {
+            TempData["ErrorMessage"] = getResult.ErrorMessage;
             return RedirectToPage("Index");
         }
 
+        var sector = getResult.Value;
         sector.Name = Input.Name.Trim();
         sector.Slug = string.IsNullOrWhiteSpace(Input.Slug) ? null : Input.Slug!.Trim();
         sector.Description = string.IsNullOrWhiteSpace(Input.Description) ? null : Input.Description!.Trim();
         sector.DisplayOrder = Input.DisplayOrder;
         sector.IsActive = Input.IsActive;
 
-        await _manager.SaveAsync(sector);
+        var saveResult = await _manager.SaveAsync(sector);
+        if (saveResult.IsFailure)
+        {
+            ModelState.AddModelError(string.Empty, saveResult.ErrorMessage ?? "Failed to save sector.");
+            return Page();
+        }
+
         LogAdminSectorsUpdatedSectorIdName(sector.Id, sector.Name);
         return RedirectToPage("Index");
     }

@@ -54,7 +54,9 @@ public partial class EditModel(IExpertiseManager expertiseManager, ISectorManage
             return RedirectToPage("../Expertises/Index");
         }
 
-        Sectors = await _sectorManager.GetAllSectorsAsync();
+        var sectorsResult = await _sectorManager.GetAllSectorsAsync();
+        Sectors = sectorsResult.IsSuccess ? sectorsResult.Value : [];
+
         var categoriesResult = await _expertiseManager.GetAllCategoriesAsync();
         if (categoriesResult.IsFailure)
         {

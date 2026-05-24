@@ -19,12 +19,14 @@ public class EditModel(ISocialMediaSiteManager manager) : PageModel
 
     public async Task<IActionResult> OnGetAsync(int id)
     {
-        var entity = await manager.GetAsync(id);
-        if (entity is null)
+        var result = await manager.GetAsync(id);
+        if (result.IsFailure)
         {
+            TempData["ErrorMessage"] = result.ErrorMessage;
             return RedirectToPage("Index");
         }
 
+        var entity = result.Value;
         Form = new SocialMediaSite
         {
             Id = entity.Id,
@@ -47,7 +49,13 @@ public class EditModel(ISocialMediaSiteManager manager) : PageModel
             return Page();
         }
 
-        await manager.SaveAsync(Form);
+        var saveResult = await manager.SaveAsync(Form);
+        if (saveResult.IsFailure)
+        {
+            ModelState.AddModelError(string.Empty, saveResult.ErrorMessage ?? "Failed to save social media site.");
+            return Page();
+        }
+
         return RedirectToPage("Index");
     }
 

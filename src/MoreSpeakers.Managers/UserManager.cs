@@ -3,6 +3,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
+using MoreSpeakers.Domain;
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models;
 using MoreSpeakers.Domain.Models.AdminUsers;
@@ -62,10 +63,13 @@ public partial class UserManager: IUserManager
         return await _dataStore.GenerateEmailConfirmationTokenAsync(user);
     }
 
-    public async Task<bool> ConfirmEmailAsync(User user, string token)
+    public async Task<Result> ConfirmEmailAsync(User user, string token)
     {
-        var result = await _dataStore.ConfirmEmailAsync(user, token);
-        return result.Succeeded;
+        var identityResult = await _dataStore.ConfirmEmailAsync(user, token);
+        return identityResult.Succeeded
+            ? Result.Success()
+            : Result.Failure(new Error("user.confirm-email.failed",
+                string.Join("; ", identityResult.Errors.Select(e => e.Description))));
     }
 
     public async Task<string> GeneratePasswordResetTokenAsync(User user)
@@ -84,22 +88,25 @@ public partial class UserManager: IUserManager
         return await _dataStore.AddOrUpdatePasskeyAsync(user, passkey);
     }
 
-    public async Task<IEnumerable<UserPasskey>> GetUserPasskeysAsync(Guid userId)
+    public async Task<Result<IEnumerable<UserPasskey>>> GetUserPasskeysAsync(Guid userId)
     {
+        if (userId == Guid.Empty)
+            return Result.Failure<IEnumerable<UserPasskey>>(new Error("user.validation.user-id-invalid", "User ID is required."));
         return await _dataStore.GetUserPasskeysAsync(userId);
     }
 
-    public async Task<bool> RemovePasskeyAsync(Guid userId, string credentialIdBase64)
+    public async Task<Result> RemovePasskeyAsync(Guid userId, string credentialIdBase64)
     {
+        if (string.IsNullOrWhiteSpace(credentialIdBase64))
+            return Result.Failure(new Error("user.validation.credential-id-required", "Credential ID is required."));
         try
         {
             var credentialIdBytes = WebEncoders.Base64UrlDecode(credentialIdBase64);
             return await _dataStore.RemovePasskeyAsync(userId, credentialIdBytes);
         }
-        catch (Exception ex)
+        catch (FormatException)
         {
-            LogFailedToRemovePasskey(ex, userId);
-            return false;
+            return Result.Failure(new Error("user.validation.credential-id-invalid", "Invalid credential ID format."));
         }
     }
 
@@ -107,122 +114,100 @@ public partial class UserManager: IUserManager
     // Application Methods
     // ------------------------------------------
     
-    public async Task<User?> GetAsync(Guid primaryKey)
-    {
-        return await _dataStore.GetAsync(primaryKey);
-    }
+    public Task<Result<User>> GetAsync(Guid primaryKey) => _dataStore.GetAsync(primaryKey);
 
-    public async Task<bool> DeleteAsync(Guid primaryKey)
-    {
-        return await _dataStore.DeleteAsync(primaryKey);
-    }
+    public Task<Result> DeleteAsync(Guid primaryKey) => _dataStore.DeleteAsync(primaryKey);
 
-    public async Task<User> SaveAsync(User entity)
+    public async Task<Result<User>> SaveAsync(User entity)
     {
-        var savedUser = await _dataStore.SaveAsync(entity);
-        if (!string.IsNullOrEmpty(savedUser.HeadshotUrl))
+        var result = await _dataStore.SaveAsync(entity);
+        if (result.IsSuccess && !string.IsNullOrEmpty(result.Value.HeadshotUrl))
         {
-            await _openGraphSpeakerProfileImageGenerator.QueueSpeakerOpenGraphProfileImageCreation(savedUser.Id,
-                savedUser.HeadshotUrl, savedUser.FullName);
+            await _openGraphSpeakerProfileImageGenerator.QueueSpeakerOpenGraphProfileImageCreation(
+                result.Value.Id, result.Value.HeadshotUrl, result.Value.FullName);
         }
-        return savedUser;
+        return result;
     }
 
-    public async Task<List<User>> GetAllAsync()
-    {
-        return await _dataStore.GetAllAsync();
-    }
+    public Task<Result<List<User>>> GetAllAsync() => _dataStore.GetAllAsync();
 
-    public async Task<bool> DeleteAsync(User entity)
-    {
-        return await _dataStore.DeleteAsync(entity);
-    }
+    public Task<Result> DeleteAsync(User entity) => _dataStore.DeleteAsync(entity);
 
-    public async Task<IEnumerable<User>> GetNewSpeakersAsync()
-    {
-        return await _dataStore.GetNewSpeakersAsync();
-    }
+    public Task<Result<IEnumerable<User>>> GetNewSpeakersAsync() => _dataStore.GetNewSpeakersAsync();
 
-    public async Task<IEnumerable<User>> GetExperiencedSpeakersAsync()
-    {
-        return await _dataStore.GetExperiencedSpeakersAsync();
-    }
+    public Task<Result<IEnumerable<User>>> GetExperiencedSpeakersAsync() => _dataStore.GetExperiencedSpeakersAsync();
 
-    public async Task<SpeakerSearchResult> SearchSpeakersAsync(string? searchTerm, int? speakerTypeId = null, List<int>? expertiseIds = null, SpeakerSearchOrderBy sortOrder = SpeakerSearchOrderBy.Name, int? page = null, int? pageSize = null)
-    {
-        return await _dataStore.SearchSpeakersAsync(searchTerm, speakerTypeId, expertiseIds, sortOrder, page, pageSize);
-    }
+    public Task<Result<SpeakerSearchResult>> SearchSpeakersAsync(string? searchTerm, int? speakerTypeId = null, List<int>? expertiseIds = null, SpeakerSearchOrderBy sortOrder = SpeakerSearchOrderBy.Name, int? page = null, int? pageSize = null)
+        => _dataStore.SearchSpeakersAsync(searchTerm, speakerTypeId, expertiseIds, sortOrder, page, pageSize);
 
-    public async Task<IEnumerable<User>> GetSpeakersByExpertiseAsync(int expertiseId)
-    {
-        return await _dataStore.GetSpeakersByExpertiseAsync(expertiseId);
-    }
+    public Task<Result<IEnumerable<User>>> GetSpeakersByExpertiseAsync(int expertiseId)
+        => _dataStore.GetSpeakersByExpertiseAsync(expertiseId);
 
-    public async Task<bool> AddUserSocialMediaSiteAsync(Guid userId, UserSocialMediaSite userSocialMediaSite)
+    public async Task<Result> AddUserSocialMediaSiteAsync(Guid userId, UserSocialMediaSite userSocialMediaSite)
     {
+        if (userId == Guid.Empty)
+            return Result.Failure(new Error("user.validation.user-id-invalid", "User ID is required."));
+        if (userSocialMediaSite == null)
+            return Result.Failure(new Error("user.validation.social-media-site-required", "Social media site is required."));
         return await _dataStore.AddUserSocialMediaSiteAsync(userId, userSocialMediaSite);
     }
 
-    public async Task<bool> RemoveUserSocialMediaSiteAsync(int userSocialMediaSiteId)
+    public async Task<Result> RemoveUserSocialMediaSiteAsync(int userSocialMediaSiteId)
     {
+        if (userSocialMediaSiteId <= 0)
+            return Result.Failure(new Error("user.validation.social-media-site-id-invalid", "Social media site ID is invalid."));
         return await _dataStore.RemoveUserSocialMediaSiteAsync(userSocialMediaSiteId);
     }
 
-    public async Task<IEnumerable<UserSocialMediaSite>> GetUserSocialMediaSitesAsync(Guid userId)
+    public async Task<Result<IEnumerable<UserSocialMediaSite>>> GetUserSocialMediaSitesAsync(Guid userId)
     {
-        return userId == Guid.Empty
-            ? throw new ArgumentException("Invalid user id")
-            : await _dataStore.GetUserSocialMediaSitesAsync(userId);
+        if (userId == Guid.Empty)
+            return Result.Failure<IEnumerable<UserSocialMediaSite>>(new Error("user.validation.user-id-invalid", "User ID is required."));
+        return await _dataStore.GetUserSocialMediaSitesAsync(userId);
     }
     
-    public async Task<bool> AddExpertiseToUserAsync(Guid userId, int expertiseId)
+    public async Task<Result> AddExpertiseToUserAsync(Guid userId, int expertiseId)
     {
-        return await _dataStore.AddExpertiseToUserAsync(userId, expertiseId);  
+        if (userId == Guid.Empty)
+            return Result.Failure(new Error("user.validation.user-id-invalid", "User ID is required."));
+        if (expertiseId <= 0)
+            return Result.Failure(new Error("user.validation.expertise-id-invalid", "Expertise ID is invalid."));
+        return await _dataStore.AddExpertiseToUserAsync(userId, expertiseId);
     }
 
-    public async Task<bool> RemoveExpertiseFromUserAsync(Guid userId, int expertiseId)
+    public async Task<Result> RemoveExpertiseFromUserAsync(Guid userId, int expertiseId)
     {
-        return await _dataStore.RemoveExpertiseFromUserAsync(userId, expertiseId);   
+        if (userId == Guid.Empty)
+            return Result.Failure(new Error("user.validation.user-id-invalid", "User ID is required."));
+        if (expertiseId <= 0)
+            return Result.Failure(new Error("user.validation.expertise-id-invalid", "Expertise ID is invalid."));
+        return await _dataStore.RemoveExpertiseFromUserAsync(userId, expertiseId);
     }
 
-    public async Task<IEnumerable<UserExpertise>> GetUserExpertisesForUserAsync(Guid userId)
-    {
-        return await _dataStore.GetUserExpertisesForUserAsync(userId);
-    }
+    public Task<Result<IEnumerable<UserExpertise>>> GetUserExpertisesForUserAsync(Guid userId)
+        => _dataStore.GetUserExpertisesForUserAsync(userId);
 
-    public async Task<(int newSpeakers, int experiencedSpeakers, int activeMentorships)> GetStatisticsForApplicationAsync()
-    {
-        return await _dataStore.GetStatisticsForApplicationAsync();
-    }
+    public Task<Result<(int newSpeakers, int experiencedSpeakers, int activeMentorships)>> GetStatisticsForApplicationAsync()
+        => _dataStore.GetStatisticsForApplicationAsync();
 
-    public async Task<IEnumerable<User>> GetFeaturedSpeakersAsync(int count)
-    {
-        return await _dataStore.GetFeaturedSpeakersAsync(count);
-    }
+    public Task<Result<IEnumerable<User>>> GetFeaturedSpeakersAsync(int count)
+        => _dataStore.GetFeaturedSpeakersAsync(count);
 
-    public async Task<IEnumerable<SpeakerType>> GetSpeakerTypesAsync()
-    {
-        return await _dataStore.GetSpeakerTypesAsync();
-    }
+    public Task<Result<IEnumerable<SpeakerType>>> GetSpeakerTypesAsync()
+        => _dataStore.GetSpeakerTypesAsync();
 
     // ------------------------------------------
     // Admin Users (List/Search)
     // ------------------------------------------
 
-    public async Task<PagedResult<UserListRow>> AdminSearchUsersAsync(UserAdminFilter filter, UserAdminSort sort, int page, int pageSize)
-    {
-        return await _dataStore.AdminSearchUsersAsync(filter, sort, page, pageSize);
-    }
+    public Task<Result<PagedResult<UserListRow>>> AdminSearchUsersAsync(UserAdminFilter filter, UserAdminSort sort, int page, int pageSize)
+        => _dataStore.AdminSearchUsersAsync(filter, sort, page, pageSize);
 
-    public async Task<IReadOnlyList<string>> GetAllRoleNamesAsync()
-    {
-        return await _dataStore.GetAllRoleNamesAsync();
-    }
+    public Task<Result<IReadOnlyList<string>>> GetAllRoleNamesAsync()
+        => _dataStore.GetAllRoleNamesAsync();
 
-    public async Task<IReadOnlyList<string>> GetRolesForUserAsync(Guid userId)
-    {
-        return await _dataStore.GetRolesForUserAsync(userId);
-    }
+    public Task<Result<IReadOnlyList<string>>> GetRolesForUserAsync(Guid userId)
+        => _dataStore.GetRolesForUserAsync(userId);
 
     public async Task<IdentityResult> AddToRolesAsync(Guid userId, IEnumerable<string> roles)
     {
@@ -237,66 +222,54 @@ public partial class UserManager: IUserManager
     // ------------------------------------------
     // Admin Users (Lock/Unlock)
     // ------------------------------------------
-    public async Task<bool> EnableLockoutAsync(Guid userId, bool enabled)
+    public async Task<Result> EnableLockoutAsync(Guid userId, bool enabled)
     {
         if (userId == Guid.Empty)
-        {
-            LogEnableLockoutCalledWithEmptyUserId();
-            return false;
-        }
+            return Result.Failure(new Error("user.validation.user-id-invalid", "User ID is required."));
         return await _dataStore.EnableLockoutAsync(userId, enabled);
     }
 
-    public async Task<bool> SetLockoutEndAsync(Guid userId, DateTimeOffset? lockoutEndUtc)
+    public async Task<Result> SetLockoutEndAsync(Guid userId, DateTimeOffset? lockoutEndUtc)
     {
         if (userId == Guid.Empty)
-        {
-            LogSetLockoutEndCalledWithEmptyUserId();
-            return false;
-        }
+            return Result.Failure(new Error("user.validation.user-id-invalid", "User ID is required."));
         return await _dataStore.SetLockoutEndAsync(userId, lockoutEndUtc);
     }
 
-    public async Task<bool> UnlockAsync(Guid userId)
+    public async Task<Result> UnlockAsync(Guid userId)
     {
-        if (userId != Guid.Empty)
-        {
-            return await _dataStore.UnlockAsync(userId);
-        }
-
-        LogUnlockCalledWithEmptyUserId();
-        return false;
+        if (userId == Guid.Empty)
+            return Result.Failure(new Error("user.validation.user-id-invalid", "User ID is required."));
+        return await _dataStore.UnlockAsync(userId);
     }
 
-    public async Task<int> GetUserCountInRoleAsync(string roleName)
+    public async Task<Result<int>> GetUserCountInRoleAsync(string roleName)
     {
-        return string.IsNullOrWhiteSpace(roleName)
-            ? 0
-            : await _dataStore.GetUserCountInRoleAsync(roleName.Trim());
+        if (string.IsNullOrWhiteSpace(roleName))
+            return Result.Failure<int>(new Error("user.validation.role-name-required", "Role name is required."));
+        return await _dataStore.GetUserCountInRoleAsync(roleName.Trim());
     }
 
     // ------------------------------------------
     // Admin Users (Soft/Hard Delete)
     // ------------------------------------------
-    public async Task<bool> SoftDeleteAsync(Guid userId)
+    public async Task<Result> SoftDeleteAsync(Guid userId)
     {
-        if (userId == Guid.Empty) return false;
-        var ok = await _dataStore.SoftDeleteAsync(userId);
-        if (ok)
-        {
+        if (userId == Guid.Empty)
+            return Result.Failure(new Error("user.validation.user-id-invalid", "User ID is required."));
+        var result = await _dataStore.SoftDeleteAsync(userId);
+        if (result.IsSuccess)
             _logger.LogInformation("[AdminAudit] User {UserId} was soft-deleted", userId);
-        }
-        return ok;
+        return result;
     }
 
-    public async Task<bool> RestoreAsync(Guid userId)
+    public async Task<Result> RestoreAsync(Guid userId)
     {
-        if (userId == Guid.Empty) return false;
-        var ok = await _dataStore.RestoreAsync(userId);
-        if (ok)
-        {
+        if (userId == Guid.Empty)
+            return Result.Failure(new Error("user.validation.user-id-invalid", "User ID is required."));
+        var result = await _dataStore.RestoreAsync(userId);
+        if (result.IsSuccess)
             _logger.LogInformation("[AdminAudit] User {UserId} was restored", userId);
-        }
-        return ok;
+        return result;
     }
 }

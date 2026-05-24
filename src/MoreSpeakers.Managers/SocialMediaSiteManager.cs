@@ -1,6 +1,7 @@
 using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Logging;
 
+using MoreSpeakers.Domain;
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models;
 
@@ -19,38 +20,25 @@ public class SocialMediaSiteManager: ISocialMediaSiteManager
         _telemetryClient = telemetryClient;
     }
 
-    public async Task<SocialMediaSite?> GetAsync(int primaryKey)
-    {
-        return await _dataStore.GetAsync(primaryKey);
-    }
+    public Task<Result<SocialMediaSite>> GetAsync(int primaryKey) => _dataStore.GetAsync(primaryKey);
 
-    public async Task<bool> DeleteAsync(int primaryKey)
-    {
-        return await _dataStore.DeleteAsync(primaryKey);
-    }
+    public Task<Result> DeleteAsync(int primaryKey) => _dataStore.DeleteAsync(primaryKey);
 
-    public async Task<SocialMediaSite> SaveAsync(SocialMediaSite entity)
+    public async Task<Result<SocialMediaSite>> SaveAsync(SocialMediaSite entity)
     {
+        if (string.IsNullOrWhiteSpace(entity.Name))
+        {
+            return Result.Failure<SocialMediaSite>(new Error("social-media-site.validation.name-required", "Social media site name is required."));
+        }
+
         return await _dataStore.SaveAsync(entity);
     }
 
-    public async Task<List<SocialMediaSite>> GetAllAsync()
-    {
-        return await _dataStore.GetAllAsync();
-    }
+    public Task<Result<List<SocialMediaSite>>> GetAllAsync() => _dataStore.GetAllAsync();
 
-    public async Task<bool> DeleteAsync(SocialMediaSite entity)
-    {
-        return await _dataStore.DeleteAsync(entity);
-    }
+    public Task<Result> DeleteAsync(SocialMediaSite entity) => _dataStore.DeleteAsync(entity);
 
-    public async Task<int> RefCountAsync(int primaryKey)
-    {
-        return await _dataStore.RefCountAsync(primaryKey);
-    }
+    public Task<Result<int>> RefCountAsync(int primaryKey) => _dataStore.RefCountAsync(primaryKey);
 
-    public async Task<bool> InUseAsync(int primaryKey)
-    {
-        return await _dataStore.InUseAsync(primaryKey);
-    }
+    public Task<Result<bool>> InUseAsync(int primaryKey) => _dataStore.InUseAsync(primaryKey);
 }

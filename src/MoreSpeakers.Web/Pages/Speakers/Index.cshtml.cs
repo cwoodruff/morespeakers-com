@@ -67,7 +67,8 @@ public partial class IndexModel : PageModel
         try
         {
             // Load all active sectors for filter dropdown
-            Sectors = await _sectorManager.GetAllAsync();
+            var sectorsResult = await _sectorManager.GetAllAsync();
+            Sectors = sectorsResult.IsSuccess ? sectorsResult.Value : [];
 
             if (SectorFilter.HasValue)
             {

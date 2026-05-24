@@ -39,14 +39,16 @@ public partial class CreateModel(IExpertiseManager expertiseManager, ISectorMana
 
     public async Task OnGetAsync()
     {
-        Sectors = await _sectorManager.GetAllSectorsAsync();
+        var sectorsResult = await _sectorManager.GetAllSectorsAsync();
+        Sectors = sectorsResult.IsSuccess ? sectorsResult.Value : [];
     }
 
     public async Task<IActionResult> OnPostAsync()
     {
         if (!ModelState.IsValid)
         {
-            Sectors = await _sectorManager.GetAllSectorsAsync();
+            var sectorsResult = await _sectorManager.GetAllSectorsAsync();
+            Sectors = sectorsResult.IsSuccess ? sectorsResult.Value : [];
             return Page();
         }
 
@@ -62,7 +64,8 @@ public partial class CreateModel(IExpertiseManager expertiseManager, ISectorMana
         if (savedResult.IsFailure)
         {
             ModelState.AddModelError(string.Empty, savedResult.Error.Message);
-            Sectors = await _sectorManager.GetAllSectorsAsync();
+            var sectorsResult = await _sectorManager.GetAllSectorsAsync();
+            Sectors = sectorsResult.IsSuccess ? sectorsResult.Value : [];
             return Page();
         }
 

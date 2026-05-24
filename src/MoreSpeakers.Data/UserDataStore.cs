@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 using MoreSpeakers.Data.Models;
+using MoreSpeakers.Domain;
 using MoreSpeakers.Domain.Models;
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models.AdminUsers;
@@ -117,7 +118,7 @@ public partial class UserDataStore : IUserDataStore
     // Admin Users (List/Search)
     // ------------------------------------------
 
-    public async Task<PagedResult<UserListRow>> AdminSearchUsersAsync(UserAdminFilter filter, UserAdminSort sort, int page, int pageSize)
+    public async Task<Result<PagedResult<UserListRow>>> AdminSearchUsersAsync(UserAdminFilter filter, UserAdminSort sort, int page, int pageSize)
     {
         if (page < 1) page = _settings.Pagination.StartPage;
         if (pageSize < 1) pageSize = _settings.Pagination.MinimalPageSize;
@@ -252,26 +253,26 @@ public partial class UserDataStore : IUserDataStore
             })
             .ToListAsync();
 
-        return new PagedResult<UserListRow>
+        return Result.Success(new PagedResult<UserListRow>
         {
             Items = pageItems,
             TotalCount = totalCount,
             Page = page,
             PageSize = pageSize
-        };
+        });
     }
 
-    public async Task<IReadOnlyList<string>> GetAllRoleNamesAsync()
+    public async Task<Result<IReadOnlyList<string>>> GetAllRoleNamesAsync()
     {
         var roles = await _context.Roles
             .AsNoTracking()
             .OrderBy(r => r.Name)
             .Select(r => r.Name!)
             .ToListAsync();
-        return roles;
+        return Result.Success<IReadOnlyList<string>>(roles);
     }
 
-    public async Task<IReadOnlyList<string>> GetRolesForUserAsync(Guid userId)
+    public async Task<Result<IReadOnlyList<string>>> GetRolesForUserAsync(Guid userId)
     {
         // Return distinct non-null role names assigned to the user, ordered by name
         var roleNames = await (from ur in _context.UserRoles.AsNoTracking()
@@ -281,7 +282,7 @@ public partial class UserDataStore : IUserDataStore
                                select r.Name!)
             .ToListAsync();
 
-        return roleNames;
+        return Result.Success<IReadOnlyList<string>>(roleNames);
     }
 
     public async Task<IdentityResult> AddToRolesAsync(Guid userId, IEnumerable<string> roles)
@@ -371,7 +372,7 @@ public partial class UserDataStore : IUserDataStore
             : await _userManager.AddOrUpdatePasskeyAsync(identityUser, passkey);
     }
 
-    public async Task<IEnumerable<UserPasskey>> GetUserPasskeysAsync(Guid userId)
+    public async Task<Result<IEnumerable<UserPasskey>>> GetUserPasskeysAsync(Guid userId)
     {
         // Query standard IdentityUserPasskey table directly to list keys for management UI
         // This avoids needing a custom table while still leveraging standard Identity storage
@@ -401,7 +402,7 @@ public partial class UserDataStore : IUserDataStore
             });
         }
 
-        return results;
+        return Result.Success<IEnumerable<UserPasskey>>(results);
     }
 
     // ------------------------------------------
