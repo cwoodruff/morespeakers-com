@@ -60,7 +60,8 @@ public class GitHubServiceTests
 
         var result = await sut.GetContributorsAsync();
 
-        result.Should().BeSameAs(expected);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeSameAs(expected);
     }
 
     [Fact]
@@ -172,8 +173,9 @@ public class GitHubServiceTests
         // Act
         var result = await sut.GetContributorsAsync();
 
-        // Assert – error is swallowed and an empty enumerable is returned
-        result.Should().BeEmpty();
+        // Assert – failure Result is returned and nothing is cached
+        result.IsFailure.Should().BeTrue();
+        result.Error.Code.Should().Be("github.request-failed");
         cache.TryGetValue("github-cache", out _).Should().BeFalse("nothing should be cached on failure");
     }
 
@@ -204,13 +206,15 @@ public class GitHubServiceTests
         var sut = new GitHubService(httpClient, cache, CreateSettings(), logger.Object);
 
         // Act – fetch twice
-        var firstResult = (await sut.GetContributorsAsync()).ToList();
-        var secondResult = (await sut.GetContributorsAsync()).ToList();
+        var firstResult = await sut.GetContributorsAsync();
+        var secondResult = await sut.GetContributorsAsync();
 
         // Assert – only one real HTTP request was made
         callCount.Should().Be(1, "the second call should be served from cache");
-        firstResult.Should().BeEquivalentTo(contributors);
-        secondResult.Should().BeEquivalentTo(contributors);
+        firstResult.IsSuccess.Should().BeTrue();
+        firstResult.Value.ToList().Should().BeEquivalentTo(contributors);
+        secondResult.IsSuccess.Should().BeTrue();
+        secondResult.Value.ToList().Should().BeEquivalentTo(contributors);
     }
 
     [Fact]

@@ -229,6 +229,6 @@ public sealed class TemplatedEmailSenderTests : IDisposable
         var result = await sut.SendTemplatedEmail("template", "eventName", "Subject", _user, null);
 
         // Assert
-        result.Should().BeFalse();
+        result.IsFailure.Should().BeTrue();
     }
 }
