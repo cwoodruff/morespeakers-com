@@ -20,7 +20,7 @@ public class CreatePageTests
     {
         var expertiseManager = new Mock<IExpertiseManager>();
         var sectorManager = new Mock<ISectorManager>();
-        sectorManager.Setup(m => m.GetAllSectorsAsync(It.IsAny<MoreSpeakers.Domain.Models.AdminUsers.TriState>(), It.IsAny<string?>(), false)).ReturnsAsync([]);
+        sectorManager.Setup(m => m.GetAllSectorsAsync(It.IsAny<MoreSpeakers.Domain.Models.AdminUsers.TriState>(), It.IsAny<string?>(), false)).ReturnsAsync(Result.Success<List<Sector>>([]));
         var page = new CreateModel(expertiseManager.Object, sectorManager.Object, Mock.Of<ILogger<CreateModel>>());
         page.ModelState.AddModelError("Input.Name", "Required");
 
@@ -43,7 +43,7 @@ public class CreatePageTests
             });
         var sectorManager = new Mock<ISectorManager>();
         sectorManager.Setup(m => m.GetAllSectorsAsync(It.IsAny<MoreSpeakers.Domain.Models.AdminUsers.TriState>(), It.IsAny<string?>(), false))
-            .ReturnsAsync([new Sector { Id = 1, Name = "Tech" }]);
+            .ReturnsAsync(Result.Success<List<Sector>>([new Sector { Id = 1, Name = "Tech" }]));
         var page = new CreateModel(expertiseManager.Object, sectorManager.Object, Mock.Of<ILogger<CreateModel>>())
         {
             Input = new CreateModel.InputModel
@@ -71,7 +71,7 @@ public class CreatePageTests
             .ReturnsAsync(Result.Failure<ExpertiseCategory>(new Error("expertise-category.save.failed", "Save failed.")));
         var sectorManager = new Mock<ISectorManager>();
         sectorManager.Setup(m => m.GetAllSectorsAsync(It.IsAny<MoreSpeakers.Domain.Models.AdminUsers.TriState>(), It.IsAny<string?>(), false))
-            .ReturnsAsync([new Sector { Id = 1, Name = "Tech" }]);
+            .ReturnsAsync(Result.Success<List<Sector>>([new Sector { Id = 1, Name = "Tech" }]));
         var page = new CreateModel(expertiseManager.Object, sectorManager.Object, Mock.Of<ILogger<CreateModel>>())
         {
             Input = new CreateModel.InputModel { Name = "Data", SectorId = 1 }

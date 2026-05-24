@@ -1,10 +1,13 @@
 using FluentAssertions;
 
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
 
 using Moq;
 
+using MoreSpeakers.Domain;
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models;
 using MoreSpeakers.Web.Areas.Admin.Pages.Catalog.Expertises.Sectors;
@@ -17,11 +20,12 @@ public class DetailsPageTests
     public async Task OnGetAsync_should_redirect_to_Index_when_not_found()
     {
         var manager = new Mock<ISectorManager>();
-        manager.Setup(m => m.GetSectorWithRelationshipsAsync(123)).ReturnsAsync((Sector?)null);
+        manager.Setup(m => m.GetSectorWithRelationshipsAsync(123)).ReturnsAsync(Result.Failure<Sector>(new Error("not-found", "Sector not found.")));
         var page = new DetailsModel(manager.Object)
         {
             Id = 123
         };
+        page.TempData = new TempDataDictionary(new DefaultHttpContext(), Mock.Of<ITempDataProvider>());
 
         var result = await page.OnGetAsync();
 

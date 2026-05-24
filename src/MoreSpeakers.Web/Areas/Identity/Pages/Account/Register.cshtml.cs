@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
@@ -631,12 +631,12 @@ public partial class RegisterModel : PageModel
 
         try
         {
-            var saveResult = await _userManager.SaveAsync(user);
-            if (saveResult.IsFailure)
+            var userSaveResult = await _userManager.SaveAsync(user);
+            if (userSaveResult.IsFailure)
             {
-                throw new InvalidOperationException(saveResult.Error.Message);
+                throw new InvalidOperationException(userSaveResult.Error.Message);
             }
-            user = saveResult.Value;
+            user = userSaveResult.Value;
         }
         catch (Exception ex)
         {

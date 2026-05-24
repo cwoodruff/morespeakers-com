@@ -22,7 +22,7 @@ public class EditPageTests
         expertiseManager.Setup(m => m.GetCategoryAsync(999))
             .ReturnsAsync(Result.Failure<ExpertiseCategory>(new Error("expertise-category.not-found", "Missing category.")));
         var sectorManager = new Mock<ISectorManager>();
-        sectorManager.Setup(m => m.GetAllSectorsAsync(It.IsAny<MoreSpeakers.Domain.Models.AdminUsers.TriState>(), It.IsAny<string?>(), false)).ReturnsAsync([]);
+        sectorManager.Setup(m => m.GetAllSectorsAsync(It.IsAny<MoreSpeakers.Domain.Models.AdminUsers.TriState>(), It.IsAny<string?>(), false)).ReturnsAsync(Result.Success<List<Sector>>([]));
         var page = new EditModel(expertiseManager.Object, sectorManager.Object, Mock.Of<ILogger<EditModel>>()) { Id = 999 };
 
         var result = await page.OnGetAsync();
@@ -37,7 +37,7 @@ public class EditPageTests
         var expertiseManager = new Mock<IExpertiseManager>();
         expertiseManager.Setup(m => m.GetCategoryAsync(5)).ReturnsAsync(category);
         var sectorManager = new Mock<ISectorManager>();
-        sectorManager.Setup(m => m.GetAllSectorsAsync(It.IsAny<MoreSpeakers.Domain.Models.AdminUsers.TriState>(), It.IsAny<string?>(), false)).ReturnsAsync([]);
+        sectorManager.Setup(m => m.GetAllSectorsAsync(It.IsAny<MoreSpeakers.Domain.Models.AdminUsers.TriState>(), It.IsAny<string?>(), false)).ReturnsAsync(Result.Success<List<Sector>>([]));
         var page = new EditModel(expertiseManager.Object, sectorManager.Object, Mock.Of<ILogger<EditModel>>()) { Id = 5 };
 
         var result = await page.OnGetAsync();
@@ -54,7 +54,7 @@ public class EditPageTests
     {
         var expertiseManager = new Mock<IExpertiseManager>();
         var sectorManager = new Mock<ISectorManager>();
-        sectorManager.Setup(m => m.GetAllSectorsAsync(It.IsAny<MoreSpeakers.Domain.Models.AdminUsers.TriState>(), It.IsAny<string?>(), false)).ReturnsAsync([]);
+        sectorManager.Setup(m => m.GetAllSectorsAsync(It.IsAny<MoreSpeakers.Domain.Models.AdminUsers.TriState>(), It.IsAny<string?>(), false)).ReturnsAsync(Result.Success<List<Sector>>([]));
         var page = new EditModel(expertiseManager.Object, sectorManager.Object, Mock.Of<ILogger<EditModel>>()) { Id = 3 };
         page.ModelState.AddModelError("Input.Name", "Required");
 
@@ -71,7 +71,7 @@ public class EditPageTests
         expertiseManager.Setup(m => m.GetCategoryAsync(42))
             .ReturnsAsync(Result.Failure<ExpertiseCategory>(new Error("expertise-category.not-found", "Missing category.")));
         var sectorManager = new Mock<ISectorManager>();
-        sectorManager.Setup(m => m.GetAllSectorsAsync(It.IsAny<MoreSpeakers.Domain.Models.AdminUsers.TriState>(), It.IsAny<string?>(), false)).ReturnsAsync([]);
+        sectorManager.Setup(m => m.GetAllSectorsAsync(It.IsAny<MoreSpeakers.Domain.Models.AdminUsers.TriState>(), It.IsAny<string?>(), false)).ReturnsAsync(Result.Success<List<Sector>>([]));
         var page = new EditModel(expertiseManager.Object, sectorManager.Object, Mock.Of<ILogger<EditModel>>())
         {
             Id = 42,
@@ -93,7 +93,7 @@ public class EditPageTests
         expertiseManager.Setup(m => m.SaveCategoryAsync(It.IsAny<ExpertiseCategory>()))
             .ReturnsAsync(Result.Failure<ExpertiseCategory>(new Error("expertise-category.save.failed", "Save failed.")));
         var sectorManager = new Mock<ISectorManager>();
-        sectorManager.Setup(m => m.GetAllSectorsAsync(It.IsAny<MoreSpeakers.Domain.Models.AdminUsers.TriState>(), It.IsAny<string?>(), false)).ReturnsAsync([]);
+        sectorManager.Setup(m => m.GetAllSectorsAsync(It.IsAny<MoreSpeakers.Domain.Models.AdminUsers.TriState>(), It.IsAny<string?>(), false)).ReturnsAsync(Result.Success<List<Sector>>([]));
         var page = new EditModel(expertiseManager.Object, sectorManager.Object, Mock.Of<ILogger<EditModel>>())
         {
             Id = 8,
@@ -114,7 +114,7 @@ public class EditPageTests
         expertiseManager.Setup(m => m.GetCategoryAsync(8)).ReturnsAsync(existing);
         expertiseManager.Setup(m => m.SaveCategoryAsync(It.IsAny<ExpertiseCategory>())).ReturnsAsync((ExpertiseCategory c) => Result.Success(c));
         var sectorManager = new Mock<ISectorManager>();
-        sectorManager.Setup(m => m.GetAllSectorsAsync(It.IsAny<MoreSpeakers.Domain.Models.AdminUsers.TriState>(), It.IsAny<string?>(), false)).ReturnsAsync([]);
+        sectorManager.Setup(m => m.GetAllSectorsAsync(It.IsAny<MoreSpeakers.Domain.Models.AdminUsers.TriState>(), It.IsAny<string?>(), false)).ReturnsAsync(Result.Success<List<Sector>>([]));
         var page = new EditModel(expertiseManager.Object, sectorManager.Object, Mock.Of<ILogger<EditModel>>())
         {
             Id = 8,

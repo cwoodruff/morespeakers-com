@@ -240,9 +240,10 @@ public partial class IndexModel : PageModel
                 return Unauthorized();
             }
 
-            var targetUser = await _mentoringManager.GetMentorAsync(mentorId);
+            var targetUserResult = await _mentoringManager.GetMentorAsync(mentorId);
 
-            if (targetUser == null) return NotFound();
+            if (targetUserResult.IsFailure) return NotFound();
+            var targetUser = targetUserResult.Value;
 
             // Get expertise areas for the target user
             var expertise = targetUser.UserExpertise
@@ -282,20 +283,21 @@ public partial class IndexModel : PageModel
             }
 
             // Check if can request
-            var canRequest = await _mentoringManager.CanRequestMentorshipAsync(currentUser.Id, targetId);
-            if (!canRequest)
+            var canRequestResult = await _mentoringManager.CanRequestMentorshipAsync(currentUser.Id, targetId);
+            if (!canRequestResult.IsSuccess || !canRequestResult.Value)
             {
                 return Content(
                     "<div class='alert alert-warning'>You already have a pending or active connection with this person.</div>");
             }
 
-            mentorship = await _mentoringManager.RequestMentorshipWithDetailsAsync(
+            var mentorshipResult = await _mentoringManager.RequestMentorshipWithDetailsAsync(
                 currentUser.Id, targetId, type, requestMessage, selectedExpertiseIds, preferredFrequency);
 
-            if (mentorship == null)
+            if (mentorshipResult.IsFailure)
             {
                 return Content("<div class='alert alert-danger'>Failed to send request. Please try again.</div>");
             }
+            mentorship = mentorshipResult.Value;
         }
         catch (Exception ex)
         {

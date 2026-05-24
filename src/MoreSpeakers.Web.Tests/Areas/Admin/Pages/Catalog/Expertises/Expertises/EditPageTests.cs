@@ -24,7 +24,7 @@ public class EditPageTests
         manager.Setup(m => m.GetCategoryAsync(2)).ReturnsAsync(new ExpertiseCategory { Id = 2, Name = "Cat", SectorId = 10 });
         var sectorManager = new Mock<ISectorManager>();
         sectorManager.Setup(m => m.GetAllSectorsAsync(It.IsAny<MoreSpeakers.Domain.Models.AdminUsers.TriState>(), It.IsAny<string?>(), false))
-            .ReturnsAsync([new Sector { Id = 10, Name = "S" }]);
+            .ReturnsAsync(Result.Success<List<Sector>>([new Sector { Id = 10, Name = "S" }]));
         var page = new EditModel(manager.Object, sectorManager.Object, Mock.Of<ILogger<EditModel>>()) { Id = 1 };
 
         var result = await page.OnGetAsync();
@@ -76,7 +76,7 @@ public class EditPageTests
         manager.Setup(m => m.GetAllCategoriesAsync()).ReturnsAsync(Result.Success(new List<ExpertiseCategory> { new() { Id = 2, Name = "Cat" } }));
         var sectorManager = new Mock<ISectorManager>();
         sectorManager.Setup(m => m.GetAllSectorsAsync(It.IsAny<MoreSpeakers.Domain.Models.AdminUsers.TriState>(), It.IsAny<string?>(), false))
-            .ReturnsAsync([new Sector { Id = 10, Name = "S" }]);
+            .ReturnsAsync(Result.Success<List<Sector>>([new Sector { Id = 10, Name = "S" }]));
         var page = new EditModel(manager.Object, sectorManager.Object, Mock.Of<ILogger<EditModel>>())
         {
             Id = 3,

@@ -1,10 +1,13 @@
 using FluentAssertions;
 
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.Extensions.Logging;
 
 using Moq;
 
+using MoreSpeakers.Domain;
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models;
 using MoreSpeakers.Domain.Models.AdminUsers;
@@ -52,7 +55,7 @@ public class IndexPageTests
         };
         var manager = new Mock<ISectorManager>();
         manager.Setup(m => m.GetAllSectorsAsync(TriState.True, "tech", false))
-            .ReturnsAsync([.. items.Where(s => s.IsActive && s.Name.Contains("tech", StringComparison.OrdinalIgnoreCase))]);
+            .ReturnsAsync(Result.Success<List<Sector>>([.. items.Where(s => s.IsActive && s.Name.Contains("tech", StringComparison.OrdinalIgnoreCase))]));
         var logger = new Mock<ILogger<IndexModel>>();
         var page = new IndexModel(manager.Object, logger.Object) { Q = "tech", Status = TriState.True };
 
@@ -70,7 +73,7 @@ public class IndexPageTests
         var page = new IndexModel(manager.Object, logger.Object) { Q = "alpha", Status = TriState.False };
 
         manager.Setup(m => m.GetAllSectorsAsync(TriState.False, "alpha", false))
-            .ReturnsAsync([]);
+            .ReturnsAsync(Result.Success<List<Sector>>([]));
 
         await page.OnGet();
 
@@ -104,9 +107,10 @@ public class IndexPageTests
     public async Task OnPostActivateAsync_when_sector_not_found_redirects_without_route_values()
     {
         var manager = new Mock<ISectorManager>();
-        manager.Setup(m => m.GetAsync(99)).ReturnsAsync((Sector?)null);
+        manager.Setup(m => m.GetAsync(99)).ReturnsAsync(Result.Failure<Sector>(new Error("not-found", "Sector not found.")));
         var logger = new Mock<ILogger<IndexModel>>();
         var page = new IndexModel(manager.Object, logger.Object);
+        page.TempData = new TempDataDictionary(new DefaultHttpContext(), Mock.Of<ITempDataProvider>());
 
         var result = await page.OnPostActivateAsync(99);
 
