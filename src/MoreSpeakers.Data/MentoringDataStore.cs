@@ -483,6 +483,9 @@ public partial class MentoringDataStore : IMentoringDataStore
         return Result.Success(_mapper.Map<Mentorship>(mentorship));
     }
 
-    private static Result<T> Failure<T>(string code, string message) => Result.Failure<T>(new Error(code, message));
-    private static Result Failure(string code, string message) => Result.Failure(new Error(code, message));
+    private static Result<T> Failure<T>(string code, string message, Exception? exception = null) =>
+        Result.Failure<T>(new Error(code, message, exception));
+
+    private static Result Failure(string code, string message, Exception? exception = null) =>
+        Result.Failure(new Error(code, message, exception));
 }
