@@ -30,45 +30,36 @@ public partial class IndexModel : PageModel
 
     public async Task OnGetAsync()
     {
-        try
+        // Get statistics
+        var statsResult = await _userManager.GetStatisticsForApplicationAsync();
+        if (statsResult.IsFailure)
         {
-            // Get statistics
-            var statsResult = await _userManager.GetStatisticsForApplicationAsync();
-            if (statsResult.IsFailure)
-            {
-                _logger.LogWarning("Unable to load statistics for the home page: {Message}", statsResult.Error.Message);
-                NewSpeakersCount = 0;
-                ExperiencedSpeakersCount = 0;
-                ActiveMentorshipsCount = 0;
-            }
-            else
-            {
-                var (newSpeakers, experiencedSpeakers, activeMentorships) = statsResult.Value;
-                NewSpeakersCount = newSpeakers;
-                ExperiencedSpeakersCount = experiencedSpeakers;
-                ActiveMentorshipsCount = activeMentorships;
-            }
-
-            // Get featured speakers (experienced speakers with profiles)
-            var featuredSpeakersResult = await _userManager.GetFeaturedSpeakersAsync(3);
-            FeaturedSpeakers = featuredSpeakersResult.IsSuccess ? featuredSpeakersResult.Value : [];
-
-            // Get popular expertise areas
-            var popularExpertiseResult = await _expertiseManager.GetPopularExpertiseAsync(8);
-            if (popularExpertiseResult.IsFailure)
-            {
-                _logger.LogWarning("Unable to load popular expertise for the home page: {Message}", popularExpertiseResult.Error.Message);
-                PopularExpertise = [];
-                return;
-            }
-
-            PopularExpertise = popularExpertiseResult.Value;
+            _logger.LogWarning("Unable to load statistics for the home page: {Message}", statsResult.Error.Message);
+            NewSpeakersCount = 0;
+            ExperiencedSpeakersCount = 0;
+            ActiveMentorshipsCount = 0;
         }
-        catch (Exception ex)
+        else
         {
-            LogErrorLoadingIndexPage(ex);
-            // TODO: Show toast?
-            throw;
+            var (newSpeakers, experiencedSpeakers, activeMentorships) = statsResult.Value;
+            NewSpeakersCount = newSpeakers;
+            ExperiencedSpeakersCount = experiencedSpeakers;
+            ActiveMentorshipsCount = activeMentorships;
         }
+
+        // Get featured speakers (experienced speakers with profiles)
+        var featuredSpeakersResult = await _userManager.GetFeaturedSpeakersAsync(3);
+        FeaturedSpeakers = featuredSpeakersResult.IsSuccess ? featuredSpeakersResult.Value : [];
+
+        // Get popular expertise areas
+        var popularExpertiseResult = await _expertiseManager.GetPopularExpertiseAsync(8);
+        if (popularExpertiseResult.IsFailure)
+        {
+            _logger.LogWarning("Unable to load popular expertise for the home page: {Message}", popularExpertiseResult.Error.Message);
+            PopularExpertise = [];
+            return;
+        }
+
+        PopularExpertise = popularExpertiseResult.Value;
     }
 }
