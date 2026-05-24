@@ -1,11 +1,14 @@
 using FluentAssertions;
 
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.Extensions.Logging;
 
 using Moq;
 
+using MoreSpeakers.Domain;
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models;
 using MoreSpeakers.Web.Areas.Admin.Pages.Catalog.Expertises.Sectors;
@@ -18,12 +21,13 @@ public class EditPageTests
     public async Task OnGetAsync_should_redirect_to_Index_when_not_found()
     {
         var manager = new Mock<ISectorManager>();
-        manager.Setup(m => m.GetAsync(999)).ReturnsAsync((Sector?)null);
+        manager.Setup(m => m.GetAsync(999)).ReturnsAsync(Result.Failure<Sector>(new Error("not-found", "Sector not found.")));
         var logger = new Mock<ILogger<EditModel>>();
         var page = new EditModel(manager.Object, logger.Object)
         {
             Id = 999
         };
+        page.TempData = new TempDataDictionary(new DefaultHttpContext(), Mock.Of<ITempDataProvider>());
 
         var result = await page.OnGetAsync();
 
@@ -82,13 +86,14 @@ public class EditPageTests
     public async Task OnPostAsync_should_redirect_to_Index_when_sector_not_found()
     {
         var manager = new Mock<ISectorManager>();
-        manager.Setup(m => m.GetAsync(42)).ReturnsAsync((Sector?)null);
+        manager.Setup(m => m.GetAsync(42)).ReturnsAsync(Result.Failure<Sector>(new Error("not-found", "Sector not found.")));
         var logger = new Mock<ILogger<EditModel>>();
         var page = new EditModel(manager.Object, logger.Object)
         {
             Id = 42,
             Input = new EditModel.InputModel { Name = "X" }
         };
+        page.TempData = new TempDataDictionary(new DefaultHttpContext(), Mock.Of<ITempDataProvider>());
 
         var result = await page.OnPostAsync();
 

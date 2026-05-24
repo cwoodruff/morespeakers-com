@@ -55,8 +55,8 @@ public partial class IndexModel(IUserManager userManager, ILogger<IndexModel> lo
                 : SortDirection.Asc
         };
 
-        Roles = await _userManager.GetAllRoleNamesAsync();
-        Result = await _userManager.AdminSearchUsersAsync(filter, sort, page, pageSize);
+        Roles = (await _userManager.GetAllRoleNamesAsync()).Value;
+        Result = (await _userManager.AdminSearchUsersAsync(filter, sort, page, pageSize)).Value;
 
         LogAdminQuery(filter.Query, Query.Lockout, Query.EmailConfirmed, filter.RoleName, Query?.Sort, Query?.Dir, Result.Page, Result.PageSize, Result.TotalCount);
 
@@ -104,7 +104,7 @@ public partial class IndexModel(IUserManager userManager, ILogger<IndexModel> lo
     public async Task<IActionResult> OnPostSoftDeleteAsync(Guid id)
     {
         var ok = await _userManager.SoftDeleteAsync(id);
-        if (!ok)
+        if (ok.IsFailure)
         {
             Response.StatusCode = 400;
         }
@@ -130,8 +130,8 @@ public partial class IndexModel(IUserManager userManager, ILogger<IndexModel> lo
                 : SortDirection.Asc
         };
 
-        Roles = await _userManager.GetAllRoleNamesAsync();
-        Result = await _userManager.AdminSearchUsersAsync(filter, sort, page, pageSize);
+        Roles = (await _userManager.GetAllRoleNamesAsync()).Value;
+        Result = (await _userManager.AdminSearchUsersAsync(filter, sort, page, pageSize)).Value;
 
         return Partial("_UserList", this);
     }

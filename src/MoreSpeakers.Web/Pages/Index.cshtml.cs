@@ -33,15 +33,25 @@ public partial class IndexModel : PageModel
         try
         {
             // Get statistics
-            (int newSpeakers, int experiencedSpeakers, int activeMentorships)
-                = await _userManager.GetStatisticsForApplicationAsync();
-
-            NewSpeakersCount = newSpeakers;
-            ExperiencedSpeakersCount = experiencedSpeakers;
-            ActiveMentorshipsCount = activeMentorships;
+            var statsResult = await _userManager.GetStatisticsForApplicationAsync();
+            if (statsResult.IsFailure)
+            {
+                _logger.LogWarning("Unable to load statistics for the home page: {Message}", statsResult.Error.Message);
+                NewSpeakersCount = 0;
+                ExperiencedSpeakersCount = 0;
+                ActiveMentorshipsCount = 0;
+            }
+            else
+            {
+                var (newSpeakers, experiencedSpeakers, activeMentorships) = statsResult.Value;
+                NewSpeakersCount = newSpeakers;
+                ExperiencedSpeakersCount = experiencedSpeakers;
+                ActiveMentorshipsCount = activeMentorships;
+            }
 
             // Get featured speakers (experienced speakers with profiles)
-            FeaturedSpeakers = await _userManager.GetFeaturedSpeakersAsync(3);
+            var featuredSpeakersResult = await _userManager.GetFeaturedSpeakersAsync(3);
+            FeaturedSpeakers = featuredSpeakersResult.IsSuccess ? featuredSpeakersResult.Value : [];
 
             // Get popular expertise areas
             var popularExpertiseResult = await _expertiseManager.GetPopularExpertiseAsync(8);

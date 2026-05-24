@@ -3,6 +3,7 @@ using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
+using MoreSpeakers.Domain;
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models;
 
@@ -21,80 +22,97 @@ public partial class SocialMediaSiteDataStore: ISocialMediaSiteDataStore
         _logger = logger;
     }
     
-    public async Task<SocialMediaSite> SaveAsync(SocialMediaSite socialMediaSite)
-    { 
-        var dbSocialMediaSite = _mapper.Map<Models.SocialMediaSite>(socialMediaSite);
-        _context.Entry(dbSocialMediaSite).State = socialMediaSite.Id == 0 ? EntityState.Added : EntityState.Modified;
-
+    public async Task<Result<SocialMediaSite>> SaveAsync(SocialMediaSite socialMediaSite)
+    {
         try
         {
-            var result = await _context.SaveChangesAsync() != 0;
-            if (result)
+            var dbSocialMediaSite = _mapper.Map<Models.SocialMediaSite>(socialMediaSite);
+            if (socialMediaSite.Id != 0)
             {
-                return _mapper.Map<SocialMediaSite>(dbSocialMediaSite);
+                var tracked = _context.SocialMediaSite.Local.FirstOrDefault(e => e.Id == socialMediaSite.Id);
+                if (tracked != null)
+                    _context.Entry(tracked).State = EntityState.Detached;
+            }
+            _context.Entry(dbSocialMediaSite).State = socialMediaSite.Id == 0 ? EntityState.Added : EntityState.Modified;
+
+            if (await _context.SaveChangesAsync() == 0)
+            {
+                LogFailedToSaveSocialMediaSite(socialMediaSite.Id, socialMediaSite.Name);
+                return Failure<SocialMediaSite>("social-media-site.save.failed", $"Failed to save social media site '{socialMediaSite.Name}'.");
             }
 
-            LogFailedToSaveSocialMediaSite(socialMediaSite.Id, socialMediaSite.Name);
+            return Result.Success(_mapper.Map<SocialMediaSite>(dbSocialMediaSite));
         }
-        catch (Exception ex)
+        catch (DbUpdateException ex)
         {
             LogFailedToSaveSocialMediaSite(ex, socialMediaSite.Id, socialMediaSite.Name);
+            return Failure<SocialMediaSite>("social-media-site.save.failed", $"Failed to save social media site '{socialMediaSite.Name}'.", ex);
         }
-        throw new ApplicationException("Failed to save the social media site.");
     }
 
-    public async Task<List<SocialMediaSite>> GetAllAsync()
+    public async Task<Result<List<SocialMediaSite>>> GetAllAsync()
     {
         var socialMediaSites = await _context.SocialMediaSite.OrderBy(sms => sms.Name).ToListAsync();
-        return _mapper.Map<List<SocialMediaSite>>(socialMediaSites);
+        return Result.Success(_mapper.Map<List<SocialMediaSite>>(socialMediaSites));
     }
     
-    public async Task<SocialMediaSite?> GetAsync(int primaryKey)
+    public async Task<Result<SocialMediaSite>> GetAsync(int primaryKey)
     {
         var socialMediaSite = await _context.SocialMediaSite.FirstOrDefaultAsync(sms => sms.Id == primaryKey);
-        return _mapper.Map<SocialMediaSite>(socialMediaSite);
-    }
-
-    public async Task<bool> DeleteAsync(SocialMediaSite entity)
-    {
-        return await DeleteAsync(entity.Id);
-    }
-
-    public async Task<bool> DeleteAsync(int primaryKey)
-    {
-        var socialMediaSite = await _context.SocialMediaSite
-            .FirstOrDefaultAsync(sms => sms.Id == primaryKey);
-        
         if (socialMediaSite is null)
         {
-            return true;
+            return Failure<SocialMediaSite>("social-media-site.not-found", $"Social media site {primaryKey} was not found.");
         }
-        
-        _context.SocialMediaSite.Remove(socialMediaSite);
 
+        return Result.Success(_mapper.Map<SocialMediaSite>(socialMediaSite));
+    }
+
+    public Task<Result> DeleteAsync(SocialMediaSite entity) => DeleteAsync(entity.Id);
+
+    public async Task<Result> DeleteAsync(int primaryKey)
+    {
         try
         {
-            var result = await _context.SaveChangesAsync() != 0;
-            if (result)
+            var socialMediaSite = await _context.SocialMediaSite
+                .FirstOrDefaultAsync(sms => sms.Id == primaryKey);
+            
+            if (socialMediaSite is null)
             {
-                return true;
+                return Failure("social-media-site.delete.not-found", $"Social media site {primaryKey} was not found.");
             }
-            LogFailedToDeleteSocialMediaSite(primaryKey);
+            
+            _context.SocialMediaSite.Remove(socialMediaSite);
+
+            if (await _context.SaveChangesAsync() == 0)
+            {
+                LogFailedToDeleteSocialMediaSite(primaryKey);
+                return Failure("social-media-site.delete.failed", $"Failed to delete social media site {primaryKey}.");
+            }
+
+            return Result.Success();
         }
-        catch (Exception ex)
+        catch (DbUpdateException ex)
         {
             LogFailedToDeleteSocialMediaSite(ex, primaryKey);
+            return Failure("social-media-site.delete.failed", $"Failed to delete social media site {primaryKey}.", ex);
         }
-        return false;
     }
 
-    public async Task<int> RefCountAsync(int primaryKey)
+    public async Task<Result<int>> RefCountAsync(int primaryKey)
     {
-        return await _context.UserSocialMediaSite.CountAsync(x => x.SocialMediaSiteId == primaryKey);
+        var count = await _context.UserSocialMediaSite.CountAsync(x => x.SocialMediaSiteId == primaryKey);
+        return Result.Success(count);
     }
 
-    public async Task<bool> InUseAsync(int primaryKey)
+    public async Task<Result<bool>> InUseAsync(int primaryKey)
     {
-        return await _context.UserSocialMediaSite.AnyAsync(x => x.SocialMediaSiteId == primaryKey);
+        var inUse = await _context.UserSocialMediaSite.AnyAsync(x => x.SocialMediaSiteId == primaryKey);
+        return Result.Success(inUse);
     }
+
+    private static Result Failure(string code, string message, Exception? exception = null) =>
+        Result.Failure(new Error(code, message, exception));
+
+    private static Result<T> Failure<T>(string code, string message, Exception? exception = null) =>
+        Result.Failure<T>(new Error(code, message, exception));
 }

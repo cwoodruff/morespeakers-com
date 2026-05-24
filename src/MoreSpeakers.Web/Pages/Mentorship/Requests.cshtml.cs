@@ -46,12 +46,35 @@ public partial class RequestsModel : PageModel
                 return Unauthorized();
             }
 
-            IncomingRequests = await _mentoringManager.GetIncomingMentorshipRequests(currentUser.Id);
-            OutgoingRequests = await _mentoringManager.GetOutgoingMentorshipRequests(currentUser.Id);
+            var incomingResult = await _mentoringManager.GetIncomingMentorshipRequests(currentUser.Id);
+            if (incomingResult.IsFailure)
+            {
+                _logger.LogWarning("Failed to load incoming mentorship requests for user {UserId}: {Error}", currentUser.Id, incomingResult.Error.Message);
+                TempData["ErrorMessage"] = incomingResult.Error.Message;
+                IncomingRequests = [];
+            }
+            else
+            {
+                IncomingRequests = incomingResult.Value;
+            }
+
+            var outgoingResult = await _mentoringManager.GetOutgoingMentorshipRequests(currentUser.Id);
+            if (outgoingResult.IsFailure)
+            {
+                _logger.LogWarning("Failed to load outgoing mentorship requests for user {UserId}: {Error}", currentUser.Id, outgoingResult.Error.Message);
+                TempData["ErrorMessage"] = outgoingResult.Error.Message;
+                OutgoingRequests = [];
+            }
+            else
+            {
+                OutgoingRequests = outgoingResult.Value;
+            }
         }
         catch (Exception ex)
         {
             LogErrorLoadingMentorshipRequests(ex, User.Identity?.Name);
+            IncomingRequests = [];
+            OutgoingRequests = [];
         }
 
         return Page();
@@ -69,7 +92,15 @@ public partial class RequestsModel : PageModel
                 return Unauthorized();
             }
 
-            var mentorship = (await _mentoringManager.GetAsync(mentorshipId))!;
+            var mentorshipResult = await _mentoringManager.GetAsync(mentorshipId);
+            if (mentorshipResult.IsFailure)
+            {
+                _logger.LogWarning("Failed to load mentorship {MentorshipId} for decline modal: {Error}", mentorshipId, mentorshipResult.Error.Message);
+                TempData["ErrorMessage"] = mentorshipResult.Error.Message;
+                return NotFound();
+            }
+
+            var mentorship = mentorshipResult.Value;
             if (mentorship.MentorId != currentUser.Id)
             {
                 return NotFound();
@@ -88,7 +119,7 @@ public partial class RequestsModel : PageModel
     public async Task<IActionResult> OnPostAcceptAsync(Guid mentorshipId)
     {
         User? currentUser = null;
-        Domain.Models.Mentorship? mentorship;
+        Domain.Models.Mentorship mentorship;
 
         try
         {
@@ -98,15 +129,17 @@ public partial class RequestsModel : PageModel
                 return Unauthorized();
             }
 
-            mentorship =
+            var mentorshipResult =
                 await _mentoringManager.RespondToRequestAsync(mentorshipId, currentUser.Id, true, string.Empty);
 
-            // Send emails to both mentee and mentor
-            if (mentorship == null)
+            if (mentorshipResult.IsFailure)
             {
-                LogCouldNotFindMentorship(mentorshipId);
+                _logger.LogWarning("Failed to accept mentorship request {MentorshipId} for user {UserId}: {Error}", mentorshipId, currentUser.Id, mentorshipResult.Error.Message);
+                TempData["ErrorMessage"] = mentorshipResult.Error.Message;
                 return BadRequest();
             }
+
+            mentorship = mentorshipResult.Value;
         }
         catch (Exception ex)
         {
@@ -150,15 +183,17 @@ public partial class RequestsModel : PageModel
             currentUser = await _userManager.GetUserAsync(User);
             if (currentUser == null) { return Unauthorized(); }
 
-            var mentorship =
+            var mentorshipResult =
                 await _mentoringManager.RespondToRequestAsync(mentorshipId, currentUser.Id, false, declineReason);
 
-            // Send emails to both mentee and mentor
-            if (mentorship == null)
+            if (mentorshipResult.IsFailure)
             {
-                LogCouldNotFindMentorship(mentorshipId);
+                _logger.LogWarning("Failed to decline mentorship request {MentorshipId} for user {UserId}: {Error}", mentorshipId, currentUser.Id, mentorshipResult.Error.Message);
+                TempData["ErrorMessage"] = mentorshipResult.Error.Message;
                 return BadRequest();
             }
+
+            var mentorship = mentorshipResult.Value;
 
             var emailSent = await _templatedEmailSender.SendTemplatedEmail("~/EmailTemplates/MentorshipRequestDeclinedFromMentee.cshtml",
                 Domain.Constants.TelemetryEvents.EmailGenerated.MentorshipDeclined,
@@ -193,15 +228,21 @@ public partial class RequestsModel : PageModel
 
     public async Task<IActionResult> OnGetNotificationCountAsync()
     {
-
-        User? user = null;
+        User? currentUser = null;
 
         try
         {
-            var currentUser = await _userManager.GetUserAsync(User);
+            currentUser = await _userManager.GetUserAsync(User);
             if (currentUser == null) return Content(string.Empty);
 
-            var (outbound, inbound) = await _mentoringManager.GetNumberOfMentorshipsPending(currentUser.Id);
+            var pendingResult = await _mentoringManager.GetNumberOfMentorshipsPending(currentUser.Id);
+            if (pendingResult.IsFailure)
+            {
+                _logger.LogWarning("Failed to load mentorship notification count for user {UserId}: {Error}", currentUser.Id, pendingResult.Error.Message);
+                return Content(string.Empty);
+            }
+
+            var (outbound, inbound) = pendingResult.Value;
 
             var html = string.Empty;
 
@@ -221,7 +262,7 @@ public partial class RequestsModel : PageModel
         }
         catch (Exception ex)
         {
-            LogErrorLoadingNotificationCountForUser(ex, user?.Id);
+            LogErrorLoadingNotificationCountForUser(ex, currentUser?.Id);
         }
 
         return Content(string.Empty);
@@ -239,7 +280,16 @@ public partial class RequestsModel : PageModel
                 return Unauthorized();
             }
 
-            IncomingRequests = await _mentoringManager.GetIncomingMentorshipRequests(currentUser.Id);
+            var incomingResult = await _mentoringManager.GetIncomingMentorshipRequests(currentUser.Id);
+            if (incomingResult.IsFailure)
+            {
+                _logger.LogWarning("Failed to poll incoming mentorship requests for user {UserId}: {Error}", currentUser.Id, incomingResult.Error.Message);
+                IncomingRequests = [];
+            }
+            else
+            {
+                IncomingRequests = incomingResult.Value;
+            }
 
             if (IncomingRequests.Count == 0)
             {
@@ -274,7 +324,16 @@ public partial class RequestsModel : PageModel
                 return Unauthorized();
             }
 
-            OutgoingRequests = await _mentoringManager.GetOutgoingMentorshipRequests(currentUser.Id);
+            var outgoingResult = await _mentoringManager.GetOutgoingMentorshipRequests(currentUser.Id);
+            if (outgoingResult.IsFailure)
+            {
+                _logger.LogWarning("Failed to poll outgoing mentorship requests for user {UserId}: {Error}", currentUser.Id, outgoingResult.Error.Message);
+                OutgoingRequests = [];
+            }
+            else
+            {
+                OutgoingRequests = outgoingResult.Value;
+            }
 
             if (OutgoingRequests.Count == 0)
             {
@@ -327,7 +386,7 @@ public partial class RequestsModel : PageModel
     public async Task<IActionResult> OnPostCancelRequestAsync(Guid mentorshipId)
     {
         User? currentUser = null;
-        Domain.Models.Mentorship? mentorship;
+        Domain.Models.Mentorship mentorship;
 
         try
         {
@@ -339,21 +398,35 @@ public partial class RequestsModel : PageModel
 
             // Since we need to send an email to the mentee and mentor, load the mentorship record first since
             //  cancel will delete the record.
-            mentorship = await _mentoringManager.GetMentorshipWithRelationships(mentorshipId);
-            if (mentorship == null)
+            var mentorshipResult = await _mentoringManager.GetMentorshipWithRelationships(mentorshipId);
+            if (mentorshipResult.IsFailure)
             {
-                LogCouldNotFindMentorship(mentorshipId);
+                _logger.LogWarning("Failed to load mentorship {MentorshipId} before cancellation: {Error}", mentorshipId, mentorshipResult.Error.Message);
+                TempData["ErrorMessage"] = mentorshipResult.Error.Message;
                 return BadRequest();
             }
 
-            // Ensure the current user is the mentee who created the request
-            var wasCanceled = await _mentoringManager.CancelMentorshipRequestAsync(mentorshipId, currentUser.Id);
-            if (!wasCanceled)
+            mentorship = mentorshipResult.Value;
+
+            var cancelResult = await _mentoringManager.CancelMentorshipRequestAsync(mentorshipId, currentUser.Id);
+            if (cancelResult.IsFailure)
             {
+                _logger.LogWarning("Failed to cancel mentorship request {MentorshipId} for user {UserId}: {Error}", mentorshipId, currentUser.Id, cancelResult.Error.Message);
+                TempData["ErrorMessage"] = cancelResult.Error.Message;
                 return BadRequest();
             }
-            // Refresh the outgoing requests list
-            OutgoingRequests = await _mentoringManager.GetOutgoingMentorshipRequests(currentUser.Id);
+
+            var outgoingResult = await _mentoringManager.GetOutgoingMentorshipRequests(currentUser.Id);
+            if (outgoingResult.IsFailure)
+            {
+                _logger.LogWarning("Failed to reload outgoing mentorship requests for user {UserId}: {Error}", currentUser.Id, outgoingResult.Error.Message);
+                TempData["ErrorMessage"] = outgoingResult.Error.Message;
+                OutgoingRequests = [];
+            }
+            else
+            {
+                OutgoingRequests = outgoingResult.Value;
+            }
         }
         catch (Exception ex)
         {

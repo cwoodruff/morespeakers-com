@@ -63,9 +63,14 @@ public class EditModel(
             ValidationMessage = expertiseLookupResult.Error.Message;
         }
 
-        Sectors = await sectorManager.GetAllSectorsAsync();
-        SocialMediaSites = await socialMediaSiteManager.GetAllAsync();
-        UserPasskeys = await userManager.GetUserPasskeysAsync(user.Id);
+        var sectorsResult = await sectorManager.GetAllSectorsAsync();
+        Sectors = sectorsResult.IsSuccess ? sectorsResult.Value : [];
+
+        var socialMediaSitesResult = await socialMediaSiteManager.GetAllAsync();
+        SocialMediaSites = socialMediaSitesResult.IsSuccess ? socialMediaSitesResult.Value : [];
+
+        var passkeysResult1 = await userManager.GetUserPasskeysAsync(user.Id);
+        UserPasskeys = passkeysResult1.IsSuccess ? passkeysResult1.Value : [];
         ActiveTab = "profile";
         return Page();
     }
@@ -100,7 +105,9 @@ public class EditModel(
         try
         {
             // Save the profile (user information)
-            userProfile = await userManager.SaveAsync(userProfile);
+            var profileSave1 = await userManager.SaveAsync(userProfile);
+            if (profileSave1.IsFailure) throw new InvalidOperationException(profileSave1.Error.Message);
+            userProfile = profileSave1.Value;
 
             // Now that everything is saved, reload the user profile to get the updated values
             var wasSuccessful = UpdateModelFromUserAsync(userProfile);
@@ -121,9 +128,14 @@ public class EditModel(
                 return Partial("_ProfileEditForm", this);
             }
 
-            Sectors = await sectorManager.GetAllSectorsAsync();
-            SocialMediaSites = await socialMediaSiteManager.GetAllAsync();
-            UserPasskeys = await userManager.GetUserPasskeysAsync(userProfile.Id);
+            var sectorsResult = await sectorManager.GetAllSectorsAsync();
+            Sectors = sectorsResult.IsSuccess ? sectorsResult.Value : [];
+
+            var socialMediaSitesResult = await socialMediaSiteManager.GetAllAsync();
+            SocialMediaSites = socialMediaSitesResult.IsSuccess ? socialMediaSitesResult.Value : [];
+
+            var passkeysResult2 = await userManager.GetUserPasskeysAsync(userProfile.Id);
+            UserPasskeys = passkeysResult2.IsSuccess ? passkeysResult2.Value : [];
 
             HasValidationErrors = false;
             SuccessMessage = "Profile updated successfully!";
@@ -151,8 +163,10 @@ public class EditModel(
             return Partial("_PasswordChangeForm", this);
         }
 
-        SocialMediaSites = await socialMediaSiteManager.GetAllAsync();
-        UserPasskeys = await userManager.GetUserPasskeysAsync(identityUser.Id);
+        var smsResult2 = await socialMediaSiteManager.GetAllAsync();
+        SocialMediaSites = smsResult2.IsSuccess ? smsResult2.Value : [];
+        var passkeysResult3 = await userManager.GetUserPasskeysAsync(identityUser.Id);
+        UserPasskeys = passkeysResult3.IsSuccess ? passkeysResult3.Value : [];
         ActiveTab = "password";
 
         var validationErrors = ValidatePasswordInputModel(PasswordInput);
@@ -237,9 +251,14 @@ public class EditModel(
             ValidationMessage = expertiseLookupResult.Error.Message;
         }
 
-        Sectors = await sectorManager.GetAllSectorsAsync();
-        SocialMediaSites = await socialMediaSiteManager.GetAllAsync();
-        UserPasskeys = await userManager.GetUserPasskeysAsync(user.Id);
+        var sectorsResult = await sectorManager.GetAllSectorsAsync();
+        Sectors = sectorsResult.IsSuccess ? sectorsResult.Value : [];
+
+        var socialMediaSitesResult = await socialMediaSiteManager.GetAllAsync();
+        SocialMediaSites = socialMediaSitesResult.IsSuccess ? socialMediaSitesResult.Value : [];
+
+        var passkeysResult4 = await userManager.GetUserPasskeysAsync(user.Id);
+        UserPasskeys = passkeysResult4.IsSuccess ? passkeysResult4.Value : [];
         ActiveTab = tab;
 
         return tab switch
@@ -267,12 +286,13 @@ public class EditModel(
             }
 
             // Load profile with all the user's data
-            var userProfile = await userManager.GetAsync(identityUser.Id);
-            if (userProfile == null)
+            var userProfileResult1 = await userManager.GetAsync(identityUser.Id);
+            if (userProfileResult1.IsFailure)
             {
                 logger.LogError("Error loading profile page. Could not find user. UserId: '{UserId}'", identityUser.Id);
                 return null;
             }
+            var userProfile = userProfileResult1.Value;
 
             userProfile.FirstName = Input.FirstName!;
             userProfile.LastName = Input.LastName!;
@@ -336,9 +356,10 @@ public class EditModel(
             }
 
             // Load profile with all the user's data
-            var userProfile = await userManager.GetAsync(identityUser.Id);
-            if (userProfile != null)
+            var userProfileResult2 = await userManager.GetAsync(identityUser.Id);
+            if (userProfileResult2.IsSuccess)
             {
+                var userProfile = userProfileResult2.Value;
                 if (UpdateModelFromUserAsync(userProfile))
                 {
                     return userProfile;
@@ -402,7 +423,8 @@ public class EditModel(
                 }
             }
 
-            var socialMediaSites = await socialMediaSiteManager.GetAllAsync();
+            var socialMediaSitesResult = await socialMediaSiteManager.GetAllAsync();
+            var socialMediaSites = socialMediaSitesResult.IsSuccess ? socialMediaSitesResult.Value : [];
             var filteredSites = socialMediaSites
                 .Where(s => !alreadySelectedIds.Contains(s.Id))
                 .ToList();
@@ -514,7 +536,10 @@ public class EditModel(
         }
 
         AvailableExpertises = expertisesResult.Value;
-        SocialMediaSites = await socialMediaSiteManager.GetAllAsync();
+
+        var socialMediaSitesResult = await socialMediaSiteManager.GetAllAsync();
+        SocialMediaSites = socialMediaSitesResult.IsSuccess ? socialMediaSitesResult.Value : [];
+
         Input.SelectedExpertiseIds = [.. Input.SelectedExpertiseIds.Concat([createResult.Value])];
 
         NewExpertiseResponse = new NewExpertiseCreatedResponse
@@ -560,7 +585,10 @@ public class EditModel(
         }
 
         ExpertiseCategories = categoriesResult.Value;
-        Sectors = await sectorManager.GetAllSectorsAsync();
+
+        var sectorsResult = await sectorManager.GetAllSectorsAsync();
+        Sectors = sectorsResult.IsSuccess ? sectorsResult.Value : [];
+
         return Result.Success();
     }
 

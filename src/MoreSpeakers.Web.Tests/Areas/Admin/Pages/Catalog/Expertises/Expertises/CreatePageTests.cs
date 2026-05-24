@@ -42,7 +42,7 @@ public class CreatePageTests
         var expertiseManager = new Mock<IExpertiseManager>();
         var sectorManager = new Mock<ISectorManager>();
         sectorManager.Setup(m => m.GetAllSectorsAsync(It.IsAny<MoreSpeakers.Domain.Models.AdminUsers.TriState>(), It.IsAny<string?>(), false))
-            .ReturnsAsync([new Sector { Id = 1, Name = "Sector 1" }]);
+            .ReturnsAsync(Result.Success<List<Sector>>([new Sector { Id = 1, Name = "Sector 1" }]));
         var page = CreatePageModel(expertiseManager, sectorManager);
 
         await page.OnGetAsync();
@@ -56,7 +56,7 @@ public class CreatePageTests
         var expertiseManager = new Mock<IExpertiseManager>();
         var sectorManager = new Mock<ISectorManager>();
         sectorManager.Setup(m => m.GetAllSectorsAsync(It.IsAny<MoreSpeakers.Domain.Models.AdminUsers.TriState>(), It.IsAny<string?>(), false))
-            .ReturnsAsync([new Sector { Id = 1, Name = "Sector 1" }]);
+            .ReturnsAsync(Result.Success<List<Sector>>([new Sector { Id = 1, Name = "Sector 1" }]));
         var page = CreatePageModel(expertiseManager, sectorManager);
         page.ModelState.AddModelError("Input.Name", "Required");
 
@@ -89,7 +89,7 @@ public class CreatePageTests
             .ReturnsAsync(Result.Failure<Expertise>(new Error("expertise.save.failed", "Save failed.")));
         var sectorManager = new Mock<ISectorManager>();
         sectorManager.Setup(m => m.GetAllSectorsAsync(It.IsAny<MoreSpeakers.Domain.Models.AdminUsers.TriState>(), It.IsAny<string?>(), false))
-            .ReturnsAsync([new Sector { Id = 1, Name = "Sector 1" }]);
+            .ReturnsAsync(Result.Success<List<Sector>>([new Sector { Id = 1, Name = "Sector 1" }]));
         var page = CreatePageModel(expertiseManager, sectorManager);
         page.Input = new CreateModel.InputModel { Name = "NewExp", SectorId = 1, ExpertiseCategoryId = 1 };
 

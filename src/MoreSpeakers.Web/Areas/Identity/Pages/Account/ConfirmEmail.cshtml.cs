@@ -41,6 +41,6 @@ public class ConfirmEmail : PageModel
 
         var decodedToken = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(Token));
         var result = await _userManager.ConfirmEmailAsync(user, decodedToken);
-        WasSuccessful = result;
+        WasSuccessful = result.IsSuccess;
     }
 }

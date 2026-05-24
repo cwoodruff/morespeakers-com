@@ -18,26 +18,36 @@ public class DeleteModel(ISocialMediaSiteManager manager) : PageModel
     public async Task<IActionResult> OnGetAsync(int id)
     {
         Id = id;
-        Site = await manager.GetAsync(id);
-        if (Site is null)
+        var siteResult = await manager.GetAsync(id);
+        if (siteResult.IsFailure)
         {
+            TempData["ErrorMessage"] = siteResult.ErrorMessage;
             return RedirectToPage("Index");
         }
 
-        ReferenceCount = await manager.RefCountAsync(Id);
+        Site = siteResult.Value;
+
+        var refCountResult = await manager.RefCountAsync(Id);
+        ReferenceCount = refCountResult.IsSuccess ? refCountResult.Value : 0;
+
         return Page();
     }
 
     public async Task<IActionResult> OnPostAsync()
     {
         // Guard: prevent delete when referenced
-        var inUse = await manager.InUseAsync(Id);
-        if (inUse)
+        var inUseResult = await manager.InUseAsync(Id);
+        if (inUseResult.IsSuccess && inUseResult.Value)
         {
             return RedirectToPage("Delete", new { id = Id });
         }
 
-        await manager.DeleteAsync(Id);
+        var deleteResult = await manager.DeleteAsync(Id);
+        if (deleteResult.IsFailure)
+        {
+            TempData["ErrorMessage"] = deleteResult.ErrorMessage;
+        }
+
         return RedirectToPage("Index");
     }
 }

@@ -28,7 +28,10 @@ public class DetailsModel(IExpertiseManager expertiseManager, ISectorManager sec
         }
 
         Category = categoryResult.Value;
-        Sector = await _sectorManager.GetAsync(Category.SectorId);
+
+        var sectorResult = await _sectorManager.GetAsync(Category.SectorId);
+        Sector = sectorResult.IsSuccess ? sectorResult.Value : null;
+
         var expertisesResult = await _expertiseManager.GetByCategoryIdAsync(Category.Id);
         if (expertisesResult.IsFailure)
         {

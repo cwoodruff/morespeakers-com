@@ -1,7 +1,10 @@
 using FluentAssertions;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Moq;
+using MoreSpeakers.Domain;
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models;
 using MoreSpeakers.Web.Areas.Admin.Pages.Catalog.SocialSites;
@@ -14,8 +17,9 @@ public class EditPageTests
     public async Task OnGetAsync_should_redirect_to_index_when_not_found()
     {
         var manager = new Mock<ISocialMediaSiteManager>();
-        manager.Setup(m => m.GetAsync(123))!.ReturnsAsync((SocialMediaSite?)null);
+        manager.Setup(m => m.GetAsync(123))!.ReturnsAsync(Result.Failure<SocialMediaSite>(new Error("not-found", "Site not found.")));
         var page = new EditModel(manager.Object);
+        page.TempData = new TempDataDictionary(new DefaultHttpContext(), Mock.Of<ITempDataProvider>());
 
         var result = await page.OnGetAsync(123);
 

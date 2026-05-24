@@ -67,7 +67,8 @@ public partial class IndexModel : PageModel
         try
         {
             // Load all active sectors for filter dropdown
-            Sectors = await _sectorManager.GetAllAsync();
+            var sectorsResult = await _sectorManager.GetAllAsync();
+            Sectors = sectorsResult.IsSuccess ? sectorsResult.Value : [];
 
             if (SectorFilter.HasValue)
             {
@@ -115,16 +116,23 @@ public partial class IndexModel : PageModel
             var searchResults = await _userManager.SearchSpeakersAsync(SearchTerm, SpeakerTypeFilter, ExpertiseFilter,
                 SortBy, CurrentPage, PageSize);
 
-            TotalCount = searchResults.RowCount;
-            TotalPages = searchResults.TotalPages;
-            CurrentPage = searchResults.CurrentPage;
-            Speakers = searchResults.Speakers;
+            if (searchResults.IsFailure)
+            {
+                ModelState.AddModelError(string.Empty, searchResults.Error.Message);
+                return Page();
+            }
+
+            var result = searchResults.Value;
+            TotalCount = result.RowCount;
+            TotalPages = result.TotalPages;
+            CurrentPage = result.CurrentPage;
+            Speakers = result.Speakers;
 
             var searchResultsModel = new SearchResultCountViewModel
             {
                 AreFiltersApplied =
                     !string.IsNullOrEmpty(SearchTerm) || (ExpertiseFilter != null && ExpertiseFilter.Count != 0) || SpeakerTypeFilter.HasValue || SectorFilter.HasValue || CategoryFilter.HasValue,
-                TotalResults = searchResults.RowCount
+                TotalResults = result.RowCount
             };
             SearchResultsCount = searchResultsModel;
 
@@ -232,9 +240,10 @@ public partial class IndexModel : PageModel
                 return Unauthorized();
             }
 
-            var targetUser = await _mentoringManager.GetMentorAsync(mentorId);
+            var targetUserResult = await _mentoringManager.GetMentorAsync(mentorId);
 
-            if (targetUser == null) return NotFound();
+            if (targetUserResult.IsFailure) return NotFound();
+            var targetUser = targetUserResult.Value;
 
             // Get expertise areas for the target user
             var expertise = targetUser.UserExpertise
@@ -274,20 +283,21 @@ public partial class IndexModel : PageModel
             }
 
             // Check if can request
-            var canRequest = await _mentoringManager.CanRequestMentorshipAsync(currentUser.Id, targetId);
-            if (!canRequest)
+            var canRequestResult = await _mentoringManager.CanRequestMentorshipAsync(currentUser.Id, targetId);
+            if (!canRequestResult.IsSuccess || !canRequestResult.Value)
             {
                 return Content(
                     "<div class='alert alert-warning'>You already have a pending or active connection with this person.</div>");
             }
 
-            mentorship = await _mentoringManager.RequestMentorshipWithDetailsAsync(
+            var mentorshipResult = await _mentoringManager.RequestMentorshipWithDetailsAsync(
                 currentUser.Id, targetId, type, requestMessage, selectedExpertiseIds, preferredFrequency);
 
-            if (mentorship == null)
+            if (mentorshipResult.IsFailure)
             {
                 return Content("<div class='alert alert-danger'>Failed to send request. Please try again.</div>");
             }
+            mentorship = mentorshipResult.Value;
         }
         catch (Exception ex)
         {

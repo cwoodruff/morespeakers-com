@@ -3,6 +3,7 @@ using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.Logging;
 using Moq;
+using MoreSpeakers.Domain;
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models;
 
@@ -30,12 +31,13 @@ public class SocialMediaSiteManagerTests
     {
         var id = 42;
         var expected = new SocialMediaSite { Id = id, Name = "X/Twitter", Icon = "x", UrlFormat = "https://twitter.com/{0}" };
-        _dataStoreMock.Setup(d => d.GetAsync(id)).ReturnsAsync(expected);
+        _dataStoreMock.Setup(d => d.GetAsync(id)).ReturnsAsync(Result.Success(expected));
         var sut = CreateSut();
 
         var result = await sut.GetAsync(id);
 
-        result.Should().BeSameAs(expected);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeSameAs(expected);
         _dataStoreMock.Verify(d => d.GetAsync(id), Times.Once);
     }
 
@@ -43,12 +45,12 @@ public class SocialMediaSiteManagerTests
     public async Task Delete_by_id_should_delegate()
     {
         var id = 7;
-        _dataStoreMock.Setup(d => d.DeleteAsync(id)).ReturnsAsync(true);
+        _dataStoreMock.Setup(d => d.DeleteAsync(id)).ReturnsAsync(Result.Success());
         var sut = CreateSut();
 
         var result = await sut.DeleteAsync(id);
 
-        result.Should().BeTrue();
+        result.IsSuccess.Should().BeTrue();
         _dataStoreMock.Verify(d => d.DeleteAsync(id), Times.Once);
     }
 
@@ -56,12 +58,13 @@ public class SocialMediaSiteManagerTests
     public async Task SaveAsync_should_delegate()
     {
         var entity = new SocialMediaSite { Id = 5, Name = "LinkedIn", Icon = "in", UrlFormat = "https://linkedin.com/in/{0}" };
-        _dataStoreMock.Setup(d => d.SaveAsync(entity)).ReturnsAsync(entity);
+        _dataStoreMock.Setup(d => d.SaveAsync(entity)).ReturnsAsync(Result.Success(entity));
         var sut = CreateSut();
 
         var result = await sut.SaveAsync(entity);
 
-        result.Should().BeSameAs(entity);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeSameAs(entity);
         _dataStoreMock.Verify(d => d.SaveAsync(entity), Times.Once);
     }
 
@@ -69,12 +72,13 @@ public class SocialMediaSiteManagerTests
     public async Task GetAllAsync_should_delegate()
     {
         var expected = new List<SocialMediaSite> { new() { Id = 1, Name = "YouTube", Icon = "yt", UrlFormat = "https://youtube.com/@{0}" } };
-        _dataStoreMock.Setup(d => d.GetAllAsync()).ReturnsAsync(expected);
+        _dataStoreMock.Setup(d => d.GetAllAsync()).ReturnsAsync(Result.Success(expected));
         var sut = CreateSut();
 
         var result = await sut.GetAllAsync();
 
-        result.Should().BeSameAs(expected);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeSameAs(expected);
         _dataStoreMock.Verify(d => d.GetAllAsync(), Times.Once);
     }
 
@@ -82,36 +86,38 @@ public class SocialMediaSiteManagerTests
     public async Task Delete_by_entity_should_delegate()
     {
         var entity = new SocialMediaSite { Id = 9, Name = "Mastodon", Icon = "mstdn", UrlFormat = "https://mastodon.social/@{0}" };
-        _dataStoreMock.Setup(d => d.DeleteAsync(entity)).ReturnsAsync(true);
+        _dataStoreMock.Setup(d => d.DeleteAsync(entity)).ReturnsAsync(Result.Success());
         var sut = CreateSut();
 
         var result = await sut.DeleteAsync(entity);
 
-        result.Should().BeTrue();
+        result.IsSuccess.Should().BeTrue();
         _dataStoreMock.Verify(d => d.DeleteAsync(entity), Times.Once);
     }
 
     [Fact]
     public async Task RefCountAsync_should_delegate()
     {
-        _dataStoreMock.Setup(d => d.RefCountAsync(3)).ReturnsAsync(2);
+        _dataStoreMock.Setup(d => d.RefCountAsync(3)).ReturnsAsync(Result.Success(2));
         var sut = CreateSut();
 
         var result = await sut.RefCountAsync(3);
 
-        result.Should().Be(2);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().Be(2);
         _dataStoreMock.Verify(d => d.RefCountAsync(3), Times.Once);
     }
 
     [Fact]
     public async Task InUseAsync_should_delegate()
     {
-        _dataStoreMock.Setup(d => d.InUseAsync(4)).ReturnsAsync(true);
+        _dataStoreMock.Setup(d => d.InUseAsync(4)).ReturnsAsync(Result.Success(true));
         var sut = CreateSut();
 
         var result = await sut.InUseAsync(4);
 
-        result.Should().BeTrue();
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeTrue();
         _dataStoreMock.Verify(d => d.InUseAsync(4), Times.Once);
     }
 }

@@ -4,12 +4,11 @@ namespace MoreSpeakers.Domain.Interfaces;
 
 public interface ISocialMediaSiteManager
 {
-    public Task<SocialMediaSite?> GetAsync(int primaryKey);
-    public Task<bool> DeleteAsync(int primaryKey);
-    public Task<SocialMediaSite> SaveAsync(SocialMediaSite entity);
-    public Task<List<SocialMediaSite>> GetAllAsync();
-    public Task<bool> DeleteAsync(SocialMediaSite entity);
-
-    Task<int> RefCountAsync(int primaryKey);
-    Task<bool> InUseAsync(int primaryKey);
+    Task<Result<SocialMediaSite>> GetAsync(int primaryKey);
+    Task<Result<List<SocialMediaSite>>> GetAllAsync();
+    Task<Result<SocialMediaSite>> SaveAsync(SocialMediaSite entity);
+    Task<Result> DeleteAsync(int primaryKey);
+    Task<Result> DeleteAsync(SocialMediaSite entity);
+    Task<Result<int>> RefCountAsync(int primaryKey);
+    Task<Result<bool>> InUseAsync(int primaryKey);
 }

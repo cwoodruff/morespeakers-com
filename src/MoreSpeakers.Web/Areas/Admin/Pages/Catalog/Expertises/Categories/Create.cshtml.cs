@@ -36,12 +36,14 @@ public partial class CreateModel(IExpertiseManager expertiseManager, ISectorMana
 
     public async Task OnGet()
     {
-        Sectors = await _sectorManager.GetAllSectorsAsync();
+        var sectorsResult = await _sectorManager.GetAllSectorsAsync();
+        Sectors = sectorsResult.IsSuccess ? sectorsResult.Value : [];
     }
 
     public async Task<IActionResult> OnPostAsync()
     {
-        Sectors = await _sectorManager.GetAllSectorsAsync();
+        var sectorsResult = await _sectorManager.GetAllSectorsAsync();
+        Sectors = sectorsResult.IsSuccess ? sectorsResult.Value : [];
 
         if (!ModelState.IsValid)
         {

@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -54,7 +54,9 @@ public partial class EditModel(IExpertiseManager expertiseManager, ISectorManage
             return RedirectToPage("../Expertises/Index");
         }
 
-        Sectors = await _sectorManager.GetAllSectorsAsync();
+        var sectorsResult = await _sectorManager.GetAllSectorsAsync();
+        Sectors = sectorsResult.IsSuccess ? sectorsResult.Value : [];
+
         var categoriesResult = await _expertiseManager.GetAllCategoriesAsync();
         if (categoriesResult.IsFailure)
         {
@@ -108,7 +110,8 @@ public partial class EditModel(IExpertiseManager expertiseManager, ISectorManage
         if (saveResult.IsFailure)
         {
             ModelState.AddModelError(string.Empty, saveResult.Error.Message);
-            Sectors = await _sectorManager.GetAllSectorsAsync();
+            var sectorsResult2 = await _sectorManager.GetAllSectorsAsync();
+            Sectors = sectorsResult2.IsSuccess ? sectorsResult2.Value : [];
             var categoriesResult = await _expertiseManager.GetAllCategoriesAsync();
             ExpertiseCategories = categoriesResult.IsSuccess ? categoriesResult.Value : [];
             return Page();

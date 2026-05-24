@@ -84,14 +84,14 @@ public class AdminSearchUsersTests
         // Search by email substring
         var result1 = await store.AdminSearchUsersAsync(new UserAdminFilter { Query = "example" },
             new UserAdminSort { By = UserAdminSortBy.Email, Direction = SortDirection.Asc }, 1, 20);
-        Assert.Equal(2, result1.TotalCount);
+        Assert.Equal(2, result1.Value.TotalCount);
 
         // Search by username substring
         var result2 = await store.AdminSearchUsersAsync(new UserAdminFilter { Query = "rol" },
             new UserAdminSort { By = UserAdminSortBy.Email, Direction = SortDirection.Asc }, 1, 20);
-        Assert.Equal(1, result2.TotalCount);
-        Assert.Single(result2.Items);
-        Assert.Equal("carol@test.com", result2.Items[0].Email);
+        Assert.Equal(1, result2.Value.TotalCount);
+        Assert.Single(result2.Value.Items);
+        Assert.Equal("carol@test.com", result2.Value.Items[0].Email);
     }
 
     [Fact]
@@ -106,23 +106,23 @@ public class AdminSearchUsersTests
 
         var onlyConfirmed = await store.AdminSearchUsersAsync(new UserAdminFilter { EmailConfirmed = TriState.True },
             new UserAdminSort(), 1, 50);
-        Assert.Equal(2, onlyConfirmed.TotalCount);
-        Assert.All(onlyConfirmed.Items, i => Assert.True(i.EmailConfirmed));
+        Assert.Equal(2, onlyConfirmed.Value.TotalCount);
+        Assert.All(onlyConfirmed.Value.Items, i => Assert.True(i.EmailConfirmed));
 
         var onlyUnconfirmed = await store.AdminSearchUsersAsync(new UserAdminFilter { EmailConfirmed = TriState.False },
             new UserAdminSort(), 1, 50);
-        Assert.Equal(1, onlyUnconfirmed.TotalCount);
-        Assert.All(onlyUnconfirmed.Items, i => Assert.False(i.EmailConfirmed));
+        Assert.Equal(1, onlyUnconfirmed.Value.TotalCount);
+        Assert.All(onlyUnconfirmed.Value.Items, i => Assert.False(i.EmailConfirmed));
 
         var onlyLocked = await store.AdminSearchUsersAsync(new UserAdminFilter { LockedOut = TriState.True },
             new UserAdminSort(), 1, 50);
-        Assert.Equal(1, onlyLocked.TotalCount);
-        Assert.All(onlyLocked.Items, i => Assert.True(i.IsLockedOut));
+        Assert.Equal(1, onlyLocked.Value.TotalCount);
+        Assert.All(onlyLocked.Value.Items, i => Assert.True(i.IsLockedOut));
 
         var onlyNotLocked = await store.AdminSearchUsersAsync(new UserAdminFilter { LockedOut = TriState.False },
             new UserAdminSort(), 1, 50);
-        Assert.Equal(2, onlyNotLocked.TotalCount);
-        Assert.All(onlyNotLocked.Items, i => Assert.False(i.IsLockedOut));
+        Assert.Equal(2, onlyNotLocked.Value.TotalCount);
+        Assert.All(onlyNotLocked.Value.Items, i => Assert.False(i.IsLockedOut));
     }
 
     [Fact]
@@ -137,8 +137,9 @@ public class AdminSearchUsersTests
         await ctx.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var res = await store.AdminSearchUsersAsync(new UserAdminFilter { RoleName = "Administrator" }, new UserAdminSort(), 1, 20);
-        Assert.Equal(2, res.TotalCount);
-        Assert.All(res.Items, i => Assert.Equal("Administrator", i.Role));
+        Assert.True(res.IsSuccess);
+        Assert.Equal(2, res.Value.TotalCount);
+        Assert.All(res.Value.Items, i => Assert.Equal("Administrator", i.Role));
     }
 
     [Fact]
@@ -159,17 +160,19 @@ public class AdminSearchUsersTests
         // Sort by Email descending, take page 2 (page size 10)
         var sort = new UserAdminSort { By = UserAdminSortBy.Email, Direction = SortDirection.Desc };
         var page2 = await store.AdminSearchUsersAsync(new UserAdminFilter(), sort, 2, 10);
-        Assert.Equal(30, page2.TotalCount);
-        Assert.Equal(10, page2.Items.Count);
+        Assert.True(page2.IsSuccess);
+        Assert.Equal(30, page2.Value.TotalCount);
+        Assert.Equal(10, page2.Value.Items.Count);
         // Verify first item on page 2 is the 11th email in descending order
-        var allDesc = (await store.AdminSearchUsersAsync(new UserAdminFilter(), sort, 1, 100)).Items.Select(i => i.Email).ToList();
-        Assert.Equal(allDesc.Skip(10).First(), page2.Items[0].Email);
+        var allDesc = (await store.AdminSearchUsersAsync(new UserAdminFilter(), sort, 1, 100)).Value.Items.Select(i => i.Email).ToList();
+        Assert.Equal(allDesc.Skip(10).First(), page2.Value.Items[0].Email);
 
         // Sort by CreatedUtc ascending
         var byCreatedAsc = await store.AdminSearchUsersAsync(new UserAdminFilter(),
             new UserAdminSort { By = UserAdminSortBy.CreatedUtc, Direction = SortDirection.Asc }, 1, 5);
-        Assert.Equal(5, byCreatedAsc.Items.Count);
-        var createdDates = byCreatedAsc.Items.Select(i => i.CreatedUtc).ToList();
+        Assert.True(byCreatedAsc.IsSuccess);
+        Assert.Equal(5, byCreatedAsc.Value.Items.Count);
+        var createdDates = byCreatedAsc.Value.Items.Select(i => i.CreatedUtc).ToList();
         Assert.True(createdDates.SequenceEqual(createdDates.OrderBy(d => d)));
     }
 
@@ -187,6 +190,6 @@ public class AdminSearchUsersTests
         await ctx.SaveChangesAsync(TestContext.Current.CancellationToken);
 
         var roles = await store.GetAllRoleNamesAsync();
-        Assert.Equal(ExpectedSortedRoles, roles);
+        Assert.Equal(ExpectedSortedRoles, roles.Value);
     }
 }

@@ -37,8 +37,8 @@ public partial class DetailsModel : PageModel
             return NotFound();
         }
 
-        var user = await _userManager.GetAsync(id);
-        if (user == null)
+        var userResult = await _userManager.GetAsync(id);
+        if (userResult.IsFailure)
         {
             return NotFound();
         }
@@ -46,8 +46,8 @@ public partial class DetailsModel : PageModel
         // Retrieve roles via Manager abstraction
         try
         {
-            Roles = await _userManager.GetRolesForUserAsync(id);
-            AllRoles = await _userManager.GetAllRoleNamesAsync();
+            Roles = (await _userManager.GetRolesForUserAsync(id)).Value;
+            AllRoles = (await _userManager.GetAllRoleNamesAsync()).Value;
             SelectedRoles = [.. Roles];
         }
         catch (Exception ex)
@@ -57,7 +57,7 @@ public partial class DetailsModel : PageModel
             AllRoles = [];
         }
 
-        User = user;
+        User = userResult.Value;
         // Not persisted today; conservative default
         LastSignInUtc = null;
 
@@ -87,19 +87,20 @@ public partial class DetailsModel : PageModel
         }
 
         // Prevent locking the last admin
-        var roles = await _userManager.GetRolesForUserAsync(id);
+        var rolesResult = await _userManager.GetRolesForUserAsync(id);
+        var roles = rolesResult.IsSuccess ? rolesResult.Value : (IReadOnlyList<string>)[];
         if (enabled && roles.Contains("Administrator", StringComparer.OrdinalIgnoreCase))
         {
-            var adminCount = await _userManager.GetUserCountInRoleAsync("Administrator");
-            if (adminCount <= 1)
+            var adminCountResult = await _userManager.GetUserCountInRoleAsync("Administrator");
+            if (!adminCountResult.IsSuccess || adminCountResult.Value <= 1)
             {
                 TempData["ErrorMessage"] = "Cannot enable lockout: this is the last administrator account.";
                 return RedirectToPage(new { id });
             }
         }
 
-        var ok = await _userManager.EnableLockoutAsync(id, enabled);
-        TempData[ok ? "StatusMessage" : "ErrorMessage"] = ok
+        var lockResult = await _userManager.EnableLockoutAsync(id, enabled);
+        TempData[lockResult.IsSuccess ? "StatusMessage" : "ErrorMessage"] = lockResult.IsSuccess
             ? (enabled ? "Lockout has been enabled." : "Lockout has been disabled.")
             : "Failed to update lockout setting.";
 
@@ -117,21 +118,23 @@ public partial class DetailsModel : PageModel
             return NotFound();
         }
 
-        var user = await _userManager.GetAsync(id);
-        if (user == null)
+        var userResult = await _userManager.GetAsync(id);
+        if (userResult.IsFailure)
         {
             return NotFound();
         }
+        var user = userResult.Value;
 
-        var currentRoles = await _userManager.GetRolesForUserAsync(id);
+        var currentRolesResult = await _userManager.GetRolesForUserAsync(id);
+        var currentRoles = currentRolesResult.IsSuccess ? currentRolesResult.Value.ToList() : [];
         var rolesToAdd = SelectedRoles.Except(currentRoles, StringComparer.OrdinalIgnoreCase).ToList();
         var rolesToRemove = currentRoles.Except(SelectedRoles, StringComparer.OrdinalIgnoreCase).ToList();
 
         // Prevent removing the last administrator
         if (rolesToRemove.Contains(Domain.Constants.UserRoles.Administrator, StringComparer.OrdinalIgnoreCase))
         {
-            var adminCount = await _userManager.GetUserCountInRoleAsync(Domain.Constants.UserRoles.Administrator);
-            if (adminCount <= 1)
+            var adminCountResult = await _userManager.GetUserCountInRoleAsync(Domain.Constants.UserRoles.Administrator);
+            if (!adminCountResult.IsSuccess || adminCountResult.Value <= 1)
             {
                 TempData["ErrorMessage"] = "Cannot remove Administrator role: this is the last administrator account.";
                 return await GetDetailsResult(id);
@@ -164,12 +167,14 @@ public partial class DetailsModel : PageModel
 
     private async Task<IActionResult> GetDetailsResult(Guid id)
     {
-        var user = await _userManager.GetAsync(id);
-        if (user == null) return NotFound();
+        var userGetResult = await _userManager.GetAsync(id);
+        if (userGetResult.IsFailure) return NotFound();
 
-        User = user;
-        Roles = await _userManager.GetRolesForUserAsync(id);
-        AllRoles = await _userManager.GetAllRoleNamesAsync();
+        User = userGetResult.Value;
+        var rolesResult = await _userManager.GetRolesForUserAsync(id);
+        Roles = rolesResult.IsSuccess ? rolesResult.Value : [];
+        var allRolesResult = await _userManager.GetAllRoleNamesAsync();
+        AllRoles = allRolesResult.IsSuccess ? allRolesResult.Value : [];
         SelectedRoles = [.. Roles];
         LastSignInUtc = null;
 
@@ -222,19 +227,20 @@ public partial class DetailsModel : PageModel
         }
 
         // Prevent locking the last admin
-        var roles = await _userManager.GetRolesForUserAsync(id);
-        if (lockoutEndUtc.HasValue && roles.Contains("Administrator", StringComparer.OrdinalIgnoreCase))
+        var lockoutRolesResult = await _userManager.GetRolesForUserAsync(id);
+        var lockoutRoles = lockoutRolesResult.IsSuccess ? lockoutRolesResult.Value : (IReadOnlyList<string>)[];
+        if (lockoutEndUtc.HasValue && lockoutRoles.Contains("Administrator", StringComparer.OrdinalIgnoreCase))
         {
-            var adminCount = await _userManager.GetUserCountInRoleAsync("Administrator");
-            if (adminCount <= 1)
+            var lockoutAdminCountResult = await _userManager.GetUserCountInRoleAsync("Administrator");
+            if (!lockoutAdminCountResult.IsSuccess || lockoutAdminCountResult.Value <= 1)
             {
                 TempData["ErrorMessage"] = "Cannot set lockout end: this is the last administrator account.";
                 return RedirectToPage(new { id });
             }
         }
 
-        var ok = await _userManager.SetLockoutEndAsync(id, lockoutEndUtc?.ToUniversalTime());
-        TempData[ok ? "StatusMessage" : "ErrorMessage"] = ok
+        var setLockoutResult = await _userManager.SetLockoutEndAsync(id, lockoutEndUtc?.ToUniversalTime());
+        TempData[setLockoutResult.IsSuccess ? "StatusMessage" : "ErrorMessage"] = setLockoutResult.IsSuccess
             ? (lockoutEndUtc.HasValue ? "Lockout end updated." : "Lockout removed.")
             : "Failed to update lockout end.";
 
@@ -249,8 +255,8 @@ public partial class DetailsModel : PageModel
         }
 
         // Self-unlock is allowed; no restriction here
-        var ok = await _userManager.UnlockAsync(id);
-        TempData[ok ? "StatusMessage" : "ErrorMessage"] = ok
+        var unlockResult = await _userManager.UnlockAsync(id);
+        TempData[unlockResult.IsSuccess ? "StatusMessage" : "ErrorMessage"] = unlockResult.IsSuccess
             ? "User has been unlocked."
             : "Failed to unlock the user.";
 
@@ -259,8 +265,9 @@ public partial class DetailsModel : PageModel
 
     public async Task<IActionResult> OnPostTriggerPasswordResetAsync(Guid id)
     {
-        var user = await _userManager.GetAsync(id);
-        if (user == null) return NotFound();
+        var triggerUserResult = await _userManager.GetAsync(id);
+        if (triggerUserResult.IsFailure) return NotFound();
+        var user = triggerUserResult.Value;
 
         var token = await _userManager.GeneratePasswordResetTokenAsync(user);
         
@@ -286,8 +293,9 @@ public partial class DetailsModel : PageModel
 
     public async Task<IActionResult> OnPostSetTemporaryPasswordAsync(Guid id)
     {
-        var user = await _userManager.GetAsync(id);
-        if (user == null) return NotFound();
+        var tempUserResult = await _userManager.GetAsync(id);
+        if (tempUserResult.IsFailure) return NotFound();
+        var user = tempUserResult.Value;
 
         // Generate a random temporary password
         var tempPassword = Guid.NewGuid().ToString("N")[..12];
@@ -298,7 +306,7 @@ public partial class DetailsModel : PageModel
         if (result.Succeeded)
         {
             user.MustChangePassword = true;
-            await _userManager.SaveAsync(user);
+            _ = await _userManager.SaveAsync(user);
             
             TempData["StatusMessage"] = $"Temporary password set to: {tempPassword}. User MUST change it on next login.";
         }
@@ -323,24 +331,28 @@ public partial class DetailsModel : PageModel
         }
 
         // Prevent deleting the last admin
-        var roles = await _userManager.GetRolesForUserAsync(id);
-        if (roles.Contains("Administrator", StringComparer.OrdinalIgnoreCase))
+        var deleteRolesResult = await _userManager.GetRolesForUserAsync(id);
+        var deleteRoles = deleteRolesResult.IsSuccess ? deleteRolesResult.Value : (IReadOnlyList<string>)[];
+        if (deleteRoles.Contains("Administrator", StringComparer.OrdinalIgnoreCase))
         {
-            var adminCount = await _userManager.GetUserCountInRoleAsync("Administrator");
-            if (adminCount <= 1)
+            var deleteAdminCountResult = await _userManager.GetUserCountInRoleAsync("Administrator");
+            if (!deleteAdminCountResult.IsSuccess || deleteAdminCountResult.Value <= 1)
             {
                 TempData["ErrorMessage"] = "Cannot delete: this is the last administrator account.";
                 return RedirectToPage(new { id });
             }
         }
 
-        var ok = await _userManager.SoftDeleteAsync(id);
-        TempData[ok ? "StatusMessage" : "ErrorMessage"] = ok ? "User has been soft-deleted." : "Failed to soft-delete user.";
+        var softDeleteResult = await _userManager.SoftDeleteAsync(id);
+        TempData[softDeleteResult.IsSuccess ? "StatusMessage" : "ErrorMessage"] = 
+            softDeleteResult.IsSuccess ? "User has been soft-deleted." : "Failed to soft-delete user.";
 
         if (Request.Headers.TryGetValue("HX-Request", out var hx) && string.Equals(hx, "true", StringComparison.OrdinalIgnoreCase))
         {
-            User = (await _userManager.GetAsync(id))!;
-            Roles = await _userManager.GetRolesForUserAsync(id);
+            var userResult = await _userManager.GetAsync(id);
+            User = userResult.IsSuccess ? userResult.Value : null;
+            var rolesResult = await _userManager.GetRolesForUserAsync(id);
+            Roles = rolesResult.IsSuccess ? rolesResult.Value : [];
             return Partial("_UserSecurityCard", this);
         }
 
@@ -351,13 +363,16 @@ public partial class DetailsModel : PageModel
     {
         if (id == Guid.Empty) return NotFound();
 
-        var ok = await _userManager.RestoreAsync(id);
-        TempData[ok ? "StatusMessage" : "ErrorMessage"] = ok ? "User has been restored." : "Failed to restore user.";
+        var restoreResult = await _userManager.RestoreAsync(id);
+        TempData[restoreResult.IsSuccess ? "StatusMessage" : "ErrorMessage"] = 
+            restoreResult.IsSuccess ? "User has been restored." : "Failed to restore user.";
 
         if (Request.Headers.TryGetValue("HX-Request", out var hx) && string.Equals(hx, "true", StringComparison.OrdinalIgnoreCase))
         {
-            User = (await _userManager.GetAsync(id))!;
-            Roles = await _userManager.GetRolesForUserAsync(id);
+            var userResult = await _userManager.GetAsync(id);
+            User = userResult.IsSuccess ? userResult.Value : null;
+            var rolesResult = await _userManager.GetRolesForUserAsync(id);
+            Roles = rolesResult.IsSuccess ? rolesResult.Value : [];
             return Partial("_UserSecurityCard", this);
         }
 
@@ -377,10 +392,12 @@ public partial class DetailsModel : PageModel
         }
 
         // Prevent deleting the last admin
-        var roles = await _userManager.GetRolesForUserAsync(id);
+        var rolesResult = await _userManager.GetRolesForUserAsync(id);
+        var roles = rolesResult.IsSuccess ? rolesResult.Value : [];
         if (roles.Contains("Administrator", StringComparer.OrdinalIgnoreCase))
         {
-            var adminCount = await _userManager.GetUserCountInRoleAsync("Administrator");
+            var adminCountResult = await _userManager.GetUserCountInRoleAsync("Administrator");
+            var adminCount = adminCountResult.IsSuccess ? adminCountResult.Value : 0;
             if (adminCount <= 1)
             {
                 TempData["ErrorMessage"] = "Cannot delete: this is the last administrator account.";
@@ -388,8 +405,8 @@ public partial class DetailsModel : PageModel
             }
         }
 
-        var ok = await _userManager.DeleteAsync(id);
-        if (ok)
+        var deleteResult = await _userManager.DeleteAsync(id);
+        if (deleteResult.IsSuccess)
         {
             TempData["StatusMessage"] = "User has been permanently deleted.";
             return RedirectToPage("Index");

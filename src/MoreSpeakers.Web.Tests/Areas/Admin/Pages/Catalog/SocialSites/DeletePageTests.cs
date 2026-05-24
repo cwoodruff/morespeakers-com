@@ -1,7 +1,10 @@
 using FluentAssertions;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Moq;
+using MoreSpeakers.Domain;
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Web.Areas.Admin.Pages.Catalog.SocialSites;
 using DomainSite = MoreSpeakers.Domain.Models.SocialMediaSite;
@@ -15,8 +18,9 @@ public class DeletePageTests
     public async Task OnGetAsync_should_redirect_to_index_when_site_not_found()
     {
         var manager = new Mock<ISocialMediaSiteManager>();
-        manager.Setup(m => m.GetAsync(10))!.ReturnsAsync((DomainSite?)null);
+        manager.Setup(m => m.GetAsync(10))!.ReturnsAsync(Result.Failure<DomainSite>(new Error("not-found", "Site not found.")));
         var page = new DeleteModel(manager.Object);
+        page.TempData = new TempDataDictionary(new DefaultHttpContext(), Mock.Of<ITempDataProvider>());
 
         var result = await page.OnGetAsync(10);
 
@@ -64,7 +68,7 @@ public class DeletePageTests
     {
         var manager = new Mock<ISocialMediaSiteManager>();
         manager.Setup(m => m.InUseAsync(7)).ReturnsAsync(false);
-        manager.Setup(m => m.DeleteAsync(7)).ReturnsAsync(true);
+        manager.Setup(m => m.DeleteAsync(7)).ReturnsAsync(Result.Success());
 
         var page = new DeleteModel(manager.Object) { Id = 7 };
 

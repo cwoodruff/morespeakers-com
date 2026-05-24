@@ -46,7 +46,9 @@ public partial class EditModel(IExpertiseManager expertiseManager, ISectorManage
             return RedirectToPage("Index");
         }
 
-        Sectors = await _sectorManager.GetAllSectorsAsync();
+        var sectorsResult = await _sectorManager.GetAllSectorsAsync();
+        Sectors = sectorsResult.IsSuccess ? sectorsResult.Value : [];
+
         Input = new InputModel
         {
             Name = categoryResult.Value.Name,
@@ -59,7 +61,8 @@ public partial class EditModel(IExpertiseManager expertiseManager, ISectorManage
 
     public async Task<IActionResult> OnPostAsync()
     {
-        Sectors = await _sectorManager.GetAllSectorsAsync();
+        var sectorsResult = await _sectorManager.GetAllSectorsAsync();
+        Sectors = sectorsResult.IsSuccess ? sectorsResult.Value : [];
 
         if (!ModelState.IsValid)
         {

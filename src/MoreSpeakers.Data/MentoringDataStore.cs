@@ -3,6 +3,7 @@ using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
+using MoreSpeakers.Domain;
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models;
 
@@ -10,87 +11,97 @@ using Mentorship = MoreSpeakers.Domain.Models.Mentorship;
 
 namespace MoreSpeakers.Data;
 
-public partial class MentoringDataStore: IMentoringDataStore
+public partial class MentoringDataStore : IMentoringDataStore
 {
     private readonly MoreSpeakersDbContext _context;
     private readonly IMapper _mapper;
     private readonly ILogger<MentoringDataStore> _logger;
 
-    public MentoringDataStore(MoreSpeakersDbContext context, IMapper mapper,  ILogger<MentoringDataStore> logger)
+    public MentoringDataStore(MoreSpeakersDbContext context, IMapper mapper, ILogger<MentoringDataStore> logger)
     {
         _context = context;
         _mapper = mapper;
         _logger = logger;
     }
 
-    public async Task<Mentorship?> GetAsync(Guid primaryKey)
+    public async Task<Result<Mentorship>> GetAsync(Guid primaryKey)
     {
         var mentorship = await _context.Mentorship.FirstOrDefaultAsync(e => e.Id == primaryKey);
-        return _mapper.Map<Mentorship?>(mentorship);
+        if (mentorship is null)
+        {
+            return Failure<Mentorship>("mentorship.not-found", $"Mentorship {primaryKey} was not found.");
+        }
+
+        return Result.Success(_mapper.Map<Mentorship>(mentorship));
     }
 
-    public async Task<Mentorship> SaveAsync(Mentorship mentorship)
+    public async Task<Result<Mentorship>> SaveAsync(Mentorship mentorship)
     {
         var dbMentorship = _mapper.Map<Models.Mentorship>(mentorship);
-        _context.Entry(dbMentorship).State = dbMentorship.Id == Guid.Empty ? EntityState.Added : EntityState.Modified;
+
+        if (dbMentorship.Id != Guid.Empty)
+        {
+            var tracked = _context.Mentorship.Local.FirstOrDefault(e => e.Id == dbMentorship.Id);
+            if (tracked != null)
+                _context.Entry(tracked).State = EntityState.Detached;
+        }
+
+        var exists = dbMentorship.Id != Guid.Empty && await _context.Mentorship.AnyAsync(e => e.Id == dbMentorship.Id);
+        _context.Entry(dbMentorship).State = exists ? EntityState.Modified : EntityState.Added;
 
         try
         {
-            var result = await _context.SaveChangesAsync() != 0;
-            if (result)
+            if (await _context.SaveChangesAsync() == 0)
             {
-                return _mapper.Map<Mentorship>(dbMentorship);
+                LogFailedToSaveMentorship(mentorship.Id);
+                return Failure<Mentorship>("mentorship.save-failed", $"Failed to save mentorship {mentorship.Id}.");
             }
-            LogFailedToSaveMentorship(mentorship.Id);
+
+            return Result.Success(_mapper.Map<Mentorship>(dbMentorship));
         }
-        catch (Exception ex)
+        catch (DbUpdateException ex)
         {
             LogFailedToSaveMentorship(ex, mentorship.Id);
+            return Result.Failure<Mentorship>(new Error("mentorship.save-failed", $"Failed to save mentorship {mentorship.Id}.", ex));
         }
-
-        throw new ApplicationException("Failed to save the mentorship.");
     }
 
-    public async Task<List<Mentorship>> GetAllAsync()
+    public async Task<Result<List<Mentorship>>> GetAllAsync()
     {
         var mentorships = await _context.Mentorship.ToListAsync();
-        return _mapper.Map<List<Mentorship>>(mentorships);
+        return Result.Success(_mapper.Map<List<Mentorship>>(mentorships));
     }
 
-    public async Task<bool> DeleteAsync(Mentorship entity)
-    {
-        return await DeleteAsync(entity.Id);
-    }
+    public Task<Result> DeleteAsync(Mentorship entity) => DeleteAsync(entity.Id);
 
-    public async Task<bool> DeleteAsync(Guid primaryKey)
+    public async Task<Result> DeleteAsync(Guid primaryKey)
     {
-        var mentorship = await _context.Mentorship
-            .FirstOrDefaultAsync(e => e.Id == primaryKey);
-
+        var mentorship = await _context.Mentorship.FirstOrDefaultAsync(e => e.Id == primaryKey);
         if (mentorship is null)
         {
-            return true;
+            return Failure("mentorship.delete.not-found", $"Mentorship {primaryKey} was not found.");
         }
 
         _context.Mentorship.Remove(mentorship);
 
         try
         {
-            var result = await _context.SaveChangesAsync() !=0;
-            if (result)
+            if (await _context.SaveChangesAsync() == 0)
             {
-                return true;
+                LogFailedToDeleteMentorship(primaryKey);
+                return Failure("mentorship.delete.failed", $"Failed to delete mentorship {primaryKey}.");
             }
-            LogFailedToDeleteMentorship(primaryKey);
+
+            return Result.Success();
         }
-        catch (Exception ex)
+        catch (DbUpdateException ex)
         {
             LogFailedToDeleteMentorship(ex, primaryKey);
+            return Result.Failure(new Error("mentorship.delete.failed", $"Failed to delete mentorship {primaryKey}.", ex));
         }
-        return false;
     }
 
-    public async Task<List<Expertise>> GetSharedExpertisesAsync(User mentor, User mentee)
+    public async Task<Result<List<Expertise>>> GetSharedExpertisesAsync(User mentor, User mentee)
     {
         var mentorExpertises = await _context.UserExpertise
             .Where(ue => ue.UserId == mentor.Id)
@@ -105,17 +116,20 @@ public partial class MentoringDataStore: IMentoringDataStore
             .Where(e => mentorExpertises.Contains(e.Id) && menteeExpertises.Contains(e.Id))
             .ToListAsync();
 
-        return _mapper.Map<List<Expertise>>(expertises);
+        return Result.Success(_mapper.Map<List<Expertise>>(expertises));
     }
 
-    public async Task<bool> DoesMentorshipRequestsExistsAsync(User mentor, User mentee)
+    public async Task<Result<bool>> DoesMentorshipRequestsExistsAsync(User mentor, User mentee)
     {
-        var exists = await _context.Mentorship.FirstOrDefaultAsync(m => m.MentorId == mentor.Id && m.MenteeId == mentee.Id && m.Status == Models.MentorshipStatus.Pending);
+        var exists = await _context.Mentorship.FirstOrDefaultAsync(m =>
+            m.MentorId == mentor.Id &&
+            m.MenteeId == mentee.Id &&
+            m.Status == Models.MentorshipStatus.Pending);
 
-        return exists != null;
+        return Result.Success(exists is not null);
     }
 
-    public async Task<bool> CreateMentorshipRequestAsync(Mentorship mentorship, List<int> expertiseIds)
+    public async Task<Result> CreateMentorshipRequestAsync(Mentorship mentorship, List<int> expertiseIds)
     {
         var dbMentorship = _mapper.Map<Data.Models.Mentorship>(mentorship);
 
@@ -123,38 +137,37 @@ public partial class MentoringDataStore: IMentoringDataStore
 
         try
         {
-            var created = await _context.SaveChangesAsync();
-            if (created == 0)
+            if (await _context.SaveChangesAsync() == 0)
             {
                 LogFailedToCreateMentorshipRequest(mentorship.MentorId, mentorship.MenteeId);
-                return false;
+                return Failure("mentorship.request.failed", "Failed to create mentorship request.");
             }
 
             foreach (var expertiseId in expertiseIds)
             {
                 await _context.UserExpertise.AddAsync(new Data.Models.UserExpertise
                 {
-                    UserId = mentorship.MentorId, ExpertiseId = expertiseId
+                    UserId = mentorship.MentorId,
+                    ExpertiseId = expertiseId
                 });
             }
 
-            var expertiseResult = await _context.SaveChangesAsync() != 0;
-            if (!expertiseResult)
+            if (await _context.SaveChangesAsync() == 0)
             {
                 LogFailedToCreateMentorshipRequestAddingExpertises(mentorship.MentorId, mentorship.MenteeId);
-                return false;
+                return Failure("mentorship.request.expertise-save-failed", "Failed to save mentorship request expertises.");
             }
 
-            return true;
+            return Result.Success();
         }
-        catch (Exception ex)
+        catch (DbUpdateException ex)
         {
             LogFailedToCreateMentorshipRequest(ex, mentorship.MentorId, mentorship.MenteeId);
+            return Result.Failure(new Error("mentorship.request.failed", "Failed to create mentorship request.", ex));
         }
-        return false;
     }
 
-    public async Task<Mentorship?> RespondToRequestAsync(Guid mentorshipId, Guid userId, bool accepted, string? message = null)
+    public async Task<Result<Mentorship>> RespondToRequestAsync(Guid mentorshipId, Guid userId, bool accepted, string? message = null)
     {
         var mentorship = await _context.Mentorship
             .Include(m => m.Mentor)
@@ -165,7 +178,7 @@ public partial class MentoringDataStore: IMentoringDataStore
 
         if (mentorship is null)
         {
-            return null;
+            return Failure<Mentorship>("mentorship.respond.not-found", $"Mentorship {mentorshipId} was not found for user {userId}.");
         }
 
         mentorship.Status = accepted ? Models.MentorshipStatus.Active : Models.MentorshipStatus.Declined;
@@ -180,24 +193,22 @@ public partial class MentoringDataStore: IMentoringDataStore
 
         try
         {
-            var saved = await _context.SaveChangesAsync();
-            if (saved != 0)
+            if (await _context.SaveChangesAsync() == 0)
             {
-                return _mapper.Map<Mentorship>(mentorship);
+                LogFailedToRespondToMentorshipRequest(mentorshipId, userId);
+                return Failure<Mentorship>("mentorship.respond.failed", $"Failed to respond to mentorship request {mentorshipId}.");
             }
 
-            LogFailedToRespondToMentorshipRequest(mentorshipId, userId);
-            return null;
-
+            return Result.Success(_mapper.Map<Mentorship>(mentorship));
         }
-        catch (Exception ex)
+        catch (DbUpdateException ex)
         {
             LogFailedToRespondToMentorshipRequest(ex, mentorshipId, userId);
-            return null;
+            return Result.Failure<Mentorship>(new Error("mentorship.respond.failed", $"Failed to respond to mentorship request {mentorshipId}.", ex));
         }
     }
 
-    public async Task<List<Mentorship>> GetActiveMentorshipsForUserAsync(Guid userId)
+    public async Task<Result<List<Mentorship>>> GetActiveMentorshipsForUserAsync(Guid userId)
     {
         var activeMentorships = await _context.Mentorship
             .Include(m => m.Mentor)
@@ -211,18 +222,22 @@ public partial class MentoringDataStore: IMentoringDataStore
             .OrderBy(m => m.StartedAt)
             .ToListAsync();
 
-        return _mapper.Map<List<Mentorship>>(activeMentorships);
+        return Result.Success(_mapper.Map<List<Mentorship>>(activeMentorships));
     }
 
-    public async Task<(int outboundCount, int inboundCount)> GetNumberOfMentorshipsPending(Guid userId)
+    public async Task<Result<(int outboundCount, int inboundCount)>> GetNumberOfMentorshipsPending(Guid userId)
     {
-        var outboundCount = await _context.Mentorship.CountAsync(m => m.MenteeId == userId && m.Status == Models.MentorshipStatus.Pending);
-        var inboundCount = await _context.Mentorship.CountAsync(m => m.MentorId == userId && m.Status == Models.MentorshipStatus.Pending);
+        var outboundCount = await _context.Mentorship.CountAsync(m =>
+            m.MenteeId == userId &&
+            m.Status == Models.MentorshipStatus.Pending);
+        var inboundCount = await _context.Mentorship.CountAsync(m =>
+            m.MentorId == userId &&
+            m.Status == Models.MentorshipStatus.Pending);
 
-        return (outboundCount, inboundCount);
+        return Result.Success((outboundCount, inboundCount));
     }
 
-    public async Task<List<Mentorship>> GetIncomingMentorshipRequests(Guid userId)
+    public async Task<Result<List<Mentorship>>> GetIncomingMentorshipRequests(Guid userId)
     {
         var mentorships = await _context.Mentorship
             .Include(m => m.Mentee)
@@ -232,10 +247,11 @@ public partial class MentoringDataStore: IMentoringDataStore
             .Where(m => m.MentorId == userId && m.Status == Models.MentorshipStatus.Pending)
             .OrderByDescending(m => m.RequestedAt)
             .ToListAsync();
-        return _mapper.Map<List<Mentorship>>(mentorships);
+
+        return Result.Success(_mapper.Map<List<Mentorship>>(mentorships));
     }
 
-    public async Task<List<Mentorship>> GetOutgoingMentorshipRequests(Guid userId)
+    public async Task<Result<List<Mentorship>>> GetOutgoingMentorshipRequests(Guid userId)
     {
         var mentorships = await _context.Mentorship
             .Include(m => m.Mentor)
@@ -245,74 +261,79 @@ public partial class MentoringDataStore: IMentoringDataStore
             .Where(m => m.MenteeId == userId)
             .OrderByDescending(m => m.RequestedAt)
             .ToListAsync();
-        return _mapper.Map<List<Mentorship>>(mentorships);
+
+        return Result.Success(_mapper.Map<List<Mentorship>>(mentorships));
     }
 
-    public async Task<bool> CancelMentorshipRequestAsync(Guid mentorshipId, Guid userId)
+    public async Task<Result> CancelMentorshipRequestAsync(Guid mentorshipId, Guid userId)
     {
         var mentorship = await _context.Mentorship
             .FirstOrDefaultAsync(m => m.Id == mentorshipId && (m.MenteeId == userId || m.MentorId == userId));
 
         if (mentorship is null)
         {
-            return false;
+            return Failure("mentorship.cancel.not-found", $"Mentorship {mentorshipId} was not found for user {userId}.");
         }
+
         mentorship.Status = Models.MentorshipStatus.Cancelled;
         mentorship.UpdatedAt = DateTime.UtcNow;
         _context.Mentorship.Remove(mentorship);
 
         try
         {
-            var result = await _context.SaveChangesAsync() != 0;
-            if (result)
+            if (await _context.SaveChangesAsync() == 0)
             {
-                return true;
+                LogFailedToCancelMentorshipRequest(mentorshipId, userId);
+                return Failure("mentorship.cancel.failed", $"Failed to cancel mentorship request {mentorshipId}.");
             }
-            LogFailedToCancelMentorshipRequest(mentorshipId, userId);
+
+            return Result.Success();
         }
-        catch (Exception ex)
+        catch (DbUpdateException ex)
         {
             LogFailedToCancelMentorshipRequest(ex, mentorshipId, userId);
+            return Result.Failure(new Error("mentorship.cancel.failed", $"Failed to cancel mentorship request {mentorshipId}.", ex));
         }
-        return false;
     }
 
-    public async Task<bool> CompleteMentorshipRequestAsync(Guid mentorshipId, Guid userId)
+    public async Task<Result> CompleteMentorshipRequestAsync(Guid mentorshipId, Guid userId)
     {
         var mentorship = await _context.Mentorship
             .FirstOrDefaultAsync(m => m.Id == mentorshipId && (m.MenteeId == userId || m.MentorId == userId));
 
         if (mentorship is null)
         {
-            return false;
+            return Failure("mentorship.complete.not-found", $"Mentorship {mentorshipId} was not found for user {userId}.");
         }
+
         mentorship.Status = Models.MentorshipStatus.Completed;
         mentorship.UpdatedAt = DateTime.UtcNow;
         _context.Mentorship.Remove(mentorship);
 
         try
         {
-            var result = await _context.SaveChangesAsync() != 0;
-            if (result)
+            if (await _context.SaveChangesAsync() == 0)
             {
-                return true;
+                LogFailedToCompleteMentorshipRequest(mentorshipId, userId);
+                return Failure("mentorship.complete.failed", $"Failed to complete mentorship request {mentorshipId}.");
             }
-            LogFailedToCompleteMentorshipRequest(mentorshipId, userId);
+
+            return Result.Success();
         }
-        catch (Exception ex)
+        catch (DbUpdateException ex)
         {
             LogFailedToCompleteMentorshipRequest(ex, mentorshipId, userId);
+            return Result.Failure(new Error("mentorship.complete.failed", $"Failed to complete mentorship request {mentorshipId}.", ex));
         }
-        return false;
     }
 
-    public async Task<List<User>> GetMentorsExceptForUserAsync(Guid userId, MentorshipType mentorshipType, List<string>? expertiseNames, bool? availability = true)
+    public async Task<Result<List<User>>> GetMentorsExceptForUserAsync(Guid userId, MentorshipType mentorshipType, List<string>? expertiseNames, bool? availability = true)
     {
         var query = _context.Users
             .Include(u => u.SpeakerType)
             .Include(u => u.UserExpertise)
             .ThenInclude(ue => ue.Expertise)
-            .Where(u => u.Id != userId && u.SpeakerTypeId == 2); // Need to fix this to be dynamic
+            .Where(u => u.Id != userId && u.SpeakerTypeId == 2);
 
         if (expertiseNames is not null && expertiseNames.Count > 0)
         {
@@ -321,14 +342,12 @@ public partial class MentoringDataStore: IMentoringDataStore
                 .Select(e => e.Id)
                 .ToListAsync();
 
-            // User must have all selected expertise areas
             foreach (var expertiseId in expertiseIds)
             {
                 query = query.Where(u => u.UserExpertise.Any(ue => ue.ExpertiseId == expertiseId));
             }
         }
 
-        // Filter by availability
         if (availability == true)
         {
             query = query.Where(u => u.IsAvailableForMentoring);
@@ -339,10 +358,10 @@ public partial class MentoringDataStore: IMentoringDataStore
             .ThenBy(u => u.FirstName)
             .ToListAsync();
 
-        return _mapper.Map<List<User>>(mentors);
+        return Result.Success(_mapper.Map<List<User>>(mentors));
     }
 
-    public async Task<User?> GetMentorAsync(Guid userId)
+    public async Task<Result<User>> GetMentorAsync(Guid userId)
     {
         var mentor = await _context.Users
             .Include(u => u.SpeakerType)
@@ -350,65 +369,65 @@ public partial class MentoringDataStore: IMentoringDataStore
             .ThenInclude(ue => ue.Expertise)
             .FirstOrDefaultAsync(u => u.Id == userId);
 
-        return _mapper.Map<User?>(mentor);
+        if (mentor is null)
+        {
+            return Failure<User>("mentorship.mentor.not-found", $"Mentor {userId} was not found.");
+        }
+
+        return Result.Success(_mapper.Map<User>(mentor));
     }
 
-    public async Task<bool> CanRequestMentorshipAsync(Guid menteeId, Guid mentorId)
+    public async Task<Result<bool>> CanRequestMentorshipAsync(Guid menteeId, Guid mentorId)
     {
-        // Check if there's already a pending or active mentorship
         var existingMentorship = await _context.Mentorship
             .AnyAsync(m =>
                 ((m.MenteeId == menteeId && m.MentorId == mentorId) ||
                  (m.MenteeId == mentorId && m.MentorId == menteeId)) &&
                 (m.Status == Models.MentorshipStatus.Pending || m.Status == Models.MentorshipStatus.Active));
 
-        return !existingMentorship;
+        return Result.Success(!existingMentorship);
     }
 
-    public async Task<Mentorship?> RequestMentorshipWithDetailsAsync(Guid menteeId, Guid mentorId,
+    public async Task<Result<Mentorship>> RequestMentorshipWithDetailsAsync(Guid menteeId, Guid mentorId,
         MentorshipType type, string? requestMessage, List<int>? focusAreaIds, string? preferredFrequency)
     {
+        var existingMentorship = await _context.Mentorship
+            .FirstOrDefaultAsync(m =>
+                ((m.MenteeId == menteeId && m.MentorId == mentorId) ||
+                 (m.MenteeId == mentorId && m.MentorId == menteeId)) &&
+                (m.Status == Models.MentorshipStatus.Pending || m.Status == Models.MentorshipStatus.Active));
+
+        if (existingMentorship is not null)
+        {
+            LogUserAlreadyHasAMentorshipRequest(menteeId, mentorId);
+            return Failure<Mentorship>("mentorship.request.already-exists", "A mentorship request already exists between these users.");
+        }
+
+        var dbMentorshipType = _mapper.Map<Data.Models.MentorshipType>(type);
+
+        var mentorship = new Models.Mentorship
+        {
+            Id = Guid.NewGuid(),
+            MentorId = mentorId,
+            MenteeId = menteeId,
+            Status = Models.MentorshipStatus.Pending,
+            Type = dbMentorshipType,
+            RequestedAt = DateTime.UtcNow,
+            RequestMessage = requestMessage,
+            PreferredFrequency = preferredFrequency
+        };
+
+        _context.Mentorship.Add(mentorship);
+
         try
         {
-            // Check if there's already a pending or active mentorship between these users
-            var existingMentorship = await _context.Mentorship
-                .FirstOrDefaultAsync(m =>
-                    ((m.MenteeId == menteeId && m.MentorId == mentorId) ||
-                     (m.MenteeId == mentorId && m.MentorId == menteeId)) &&
-                    (m.Status == Models.MentorshipStatus.Pending || m.Status == Models.MentorshipStatus.Active));
-
-            if (existingMentorship != null)
+            if (await _context.SaveChangesAsync() == 0)
             {
-                LogUserAlreadyHasAMentorshipRequest(menteeId, mentorId);
-                return null;
+                LogFailedToCreateMentorshipRequestWithDetails(mentorId, menteeId);
+                return Failure<Mentorship>("mentorship.request.failed", "Failed to create mentorship request.");
             }
 
-            var dbMentorshipType = _mapper.Map<Data.Models.MentorshipType>(type);
-
-            var mentorship = new Models.Mentorship
-            {
-                Id = Guid.NewGuid(),
-                MentorId = mentorId,
-                MenteeId = menteeId,
-                Status = Models.MentorshipStatus.Pending,
-                Type = dbMentorshipType,
-                RequestedAt = DateTime.UtcNow,
-                RequestMessage = requestMessage,
-                PreferredFrequency = preferredFrequency
-            };
-
-            _context.Mentorship.Add(mentorship);
-            var mentorshipAddResult = await _context.SaveChangesAsync() != 0;
-            {
-                if (!mentorshipAddResult)
-                {
-                    LogFailedToCreateMentorshipRequestWithDetails(mentorId, menteeId);
-                    return null;
-                }
-            }
-
-            // Add focus areas if provided
-            if (focusAreaIds != null && focusAreaIds.Count != 0)
+            if (focusAreaIds is not null && focusAreaIds.Count != 0)
             {
                 foreach (var expertiseId in focusAreaIds)
                 {
@@ -418,38 +437,52 @@ public partial class MentoringDataStore: IMentoringDataStore
                         ExpertiseId = expertiseId
                     });
                 }
-                var expertiseResult = await _context.SaveChangesAsync();
-                if (expertiseResult == 0)
+
+                if (await _context.SaveChangesAsync() == 0)
                 {
                     LogFailedToCreateMentorshipRequestDuringSaveExpertise(mentorId, menteeId);
-                    return null;
+                    return Failure<Mentorship>("mentorship.request.expertise-save-failed", "Failed to save mentorship request focus areas.");
                 }
             }
-
-            // Reload with navigation properties
-            var dbMentorship = await _context.Mentorship
-                .Include(m => m.Mentor)
-                .Include(m => m.Mentee)
-                .Include(m => m.FocusAreas)
-                    .ThenInclude(fa => fa.Expertise)
-                .FirstOrDefaultAsync(m => m.Id == mentorship.Id);
-            return _mapper.Map<Mentorship>(dbMentorship);
         }
-        catch (Exception ex)
+        catch (DbUpdateException ex)
         {
             LogFailedToCreateMentorshipRequestWithDetails(ex, menteeId, mentorId);
-            return null;
+            return Result.Failure<Mentorship>(new Error("mentorship.request.failed", "Failed to create mentorship request.", ex));
         }
+
+        var dbMentorship = await _context.Mentorship
+            .Include(m => m.Mentor)
+            .Include(m => m.Mentee)
+            .Include(m => m.FocusAreas)
+            .ThenInclude(fa => fa.Expertise)
+            .FirstOrDefaultAsync(m => m.Id == mentorship.Id);
+
+        if (dbMentorship is null)
+        {
+            return Failure<Mentorship>("mentorship.not-found", $"Mentorship {mentorship.Id} was not found.");
+        }
+
+        return Result.Success(_mapper.Map<Mentorship>(dbMentorship));
     }
 
-    public async Task<Mentorship?> GetMentorshipWithRelationships(Guid mentorshipId)
+    public async Task<Result<Mentorship>> GetMentorshipWithRelationships(Guid mentorshipId)
     {
         var mentorship = await _context.Mentorship
             .Include(m => m.Mentor)
             .Include(m => m.Mentee)
             .Include(m => m.FocusAreas)
-                .ThenInclude(fa => fa.Expertise)
+            .ThenInclude(fa => fa.Expertise)
             .FirstOrDefaultAsync(m => m.Id == mentorshipId);
-        return _mapper.Map<Mentorship>(mentorship);
+
+        if (mentorship is null)
+        {
+            return Failure<Mentorship>("mentorship.not-found", $"Mentorship {mentorshipId} was not found.");
+        }
+
+        return Result.Success(_mapper.Map<Mentorship>(mentorship));
     }
+
+    private static Result<T> Failure<T>(string code, string message) => Result.Failure<T>(new Error(code, message));
+    private static Result Failure(string code, string message) => Result.Failure(new Error(code, message));
 }

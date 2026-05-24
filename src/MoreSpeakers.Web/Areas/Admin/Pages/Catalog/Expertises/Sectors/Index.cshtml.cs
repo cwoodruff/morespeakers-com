@@ -21,45 +21,68 @@ public partial class IndexModel(ISectorManager manager, ILogger<IndexModel> logg
 
     public async Task OnGet()
     {
-        var sectors = await _manager.GetAllSectorsAsync(Status, Q);
-        Items = sectors;
+        var result = await _manager.GetAllSectorsAsync(Status, Q);
+        if (result.IsSuccess)
+        {
+            Items = result.Value;
+        }
     }
 
     public async Task<IActionResult> OnPostDeactivateAsync(int id)
     {
-        var sector = await _manager.GetAsync(id);
-        if (sector is null)
+        var result = await _manager.GetAsync(id);
+        if (result.IsFailure)
         {
+            TempData["ErrorMessage"] = result.ErrorMessage;
             return RedirectToPage();
         }
 
+        var sector = result.Value;
         if (!sector.IsActive)
         {
             return RedirectToPage(new { q = Q, status = Status });
         }
 
         sector.IsActive = false;
-        await _manager.SaveAsync(sector);
-        LogAdminSectorsDeactivated(sector.Id, sector.Name);
+        var saveResult = await _manager.SaveAsync(sector);
+        if (saveResult.IsFailure)
+        {
+            TempData["ErrorMessage"] = saveResult.ErrorMessage;
+        }
+        else
+        {
+            LogAdminSectorsDeactivated(sector.Id, sector.Name);
+        }
+
         return RedirectToPage(new { q = Q, status = Status });
     }
 
     public async Task<IActionResult> OnPostActivateAsync(int id)
     {
-        var sector = await _manager.GetAsync(id);
-        if (sector is null)
+        var result = await _manager.GetAsync(id);
+        if (result.IsFailure)
         {
+            TempData["ErrorMessage"] = result.ErrorMessage;
             return RedirectToPage();
         }
 
+        var sector = result.Value;
         if (sector.IsActive)
         {
             return RedirectToPage(new { q = Q, status = Status });
         }
 
         sector.IsActive = true;
-        await _manager.SaveAsync(sector);
-        LogAdminSectorsActivated(sector.Id, sector.Name);
+        var saveResult = await _manager.SaveAsync(sector);
+        if (saveResult.IsFailure)
+        {
+            TempData["ErrorMessage"] = saveResult.ErrorMessage;
+        }
+        else
+        {
+            LogAdminSectorsActivated(sector.Id, sector.Name);
+        }
+
         return RedirectToPage(new { q = Q, status = Status });
     }
 }

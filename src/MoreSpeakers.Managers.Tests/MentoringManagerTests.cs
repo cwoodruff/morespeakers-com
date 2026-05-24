@@ -4,6 +4,7 @@ using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.Logging;
 using Moq;
+using MoreSpeakers.Domain;
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models;
 
@@ -31,12 +32,13 @@ public class MentoringManagerTests
     {
         var id = Guid.NewGuid();
         var expected = new Mentorship { Id = id };
-        _dataStoreMock.Setup(d => d.GetAsync(id)).ReturnsAsync(expected);
+        _dataStoreMock.Setup(d => d.GetAsync(id)).ReturnsAsync(Result.Success(expected));
         var sut = CreateSut();
 
         var result = await sut.GetAsync(id);
 
-        result.Should().BeSameAs(expected);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeSameAs(expected);
         _dataStoreMock.Verify(d => d.GetAsync(id), Times.Once);
     }
 
@@ -44,12 +46,12 @@ public class MentoringManagerTests
     public async Task Delete_by_id_should_delegate()
     {
         var id = Guid.NewGuid();
-        _dataStoreMock.Setup(d => d.DeleteAsync(id)).ReturnsAsync(true);
+        _dataStoreMock.Setup(d => d.DeleteAsync(id)).ReturnsAsync(Result.Success());
         var sut = CreateSut();
 
         var result = await sut.DeleteAsync(id);
 
-        result.Should().BeTrue();
+        result.IsSuccess.Should().BeTrue();
         _dataStoreMock.Verify(d => d.DeleteAsync(id), Times.Once);
     }
 
@@ -57,12 +59,13 @@ public class MentoringManagerTests
     public async Task SaveAsync_should_delegate()
     {
         var entity = new Mentorship { Id = Guid.NewGuid() };
-        _dataStoreMock.Setup(d => d.SaveAsync(entity)).ReturnsAsync(entity);
+        _dataStoreMock.Setup(d => d.SaveAsync(entity)).ReturnsAsync(Result.Success(entity));
         var sut = CreateSut();
 
         var result = await sut.SaveAsync(entity);
 
-        result.Should().BeSameAs(entity);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeSameAs(entity);
         _dataStoreMock.Verify(d => d.SaveAsync(entity), Times.Once);
     }
 
@@ -70,12 +73,13 @@ public class MentoringManagerTests
     public async Task GetAllAsync_should_delegate()
     {
         var expected = new List<Mentorship> { new() { Id = Guid.NewGuid() } };
-        _dataStoreMock.Setup(d => d.GetAllAsync()).ReturnsAsync(expected);
+        _dataStoreMock.Setup(d => d.GetAllAsync()).ReturnsAsync(Result.Success(expected));
         var sut = CreateSut();
 
         var result = await sut.GetAllAsync();
 
-        result.Should().BeSameAs(expected);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeSameAs(expected);
         _dataStoreMock.Verify(d => d.GetAllAsync(), Times.Once);
     }
 
@@ -83,13 +87,13 @@ public class MentoringManagerTests
     public async Task Delete_by_entity_should_delegate()
     {
         var entity = new Mentorship { Id = Guid.NewGuid() };
-        _dataStoreMock.Setup(d => d.DeleteAsync(entity)).ReturnsAsync(true);
+        _dataStoreMock.Setup(d => d.DeleteAsync(entity.Id)).ReturnsAsync(Result.Success());
         var sut = CreateSut();
 
-        var result = await sut.DeleteAsync(entity);
+        var result = await sut.DeleteAsync(entity.Id);
 
-        result.Should().BeTrue();
-        _dataStoreMock.Verify(d => d.DeleteAsync(entity), Times.Once);
+        result.IsSuccess.Should().BeTrue();
+        _dataStoreMock.Verify(d => d.DeleteAsync(entity.Id), Times.Once);
     }
 
     [Fact]
@@ -98,12 +102,13 @@ public class MentoringManagerTests
         var mentor = new User { Id = Guid.NewGuid() };
         var mentee = new User { Id = Guid.NewGuid() };
         var expected = new List<Expertise> { new() { Id = 1 } };
-        _dataStoreMock.Setup(d => d.GetSharedExpertisesAsync(mentor, mentee)).ReturnsAsync(expected);
+        _dataStoreMock.Setup(d => d.GetSharedExpertisesAsync(mentor, mentee)).ReturnsAsync(Result.Success(expected));
         var sut = CreateSut();
 
         var result = await sut.GetSharedExpertisesAsync(mentor, mentee);
 
-        result.Should().BeSameAs(expected);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeSameAs(expected);
         _dataStoreMock.Verify(d => d.GetSharedExpertisesAsync(mentor, mentee), Times.Once);
     }
 
@@ -112,12 +117,13 @@ public class MentoringManagerTests
     {
         var mentor = new User { Id = Guid.NewGuid() };
         var mentee = new User { Id = Guid.NewGuid() };
-        _dataStoreMock.Setup(d => d.DoesMentorshipRequestsExistsAsync(mentor, mentee)).ReturnsAsync(true);
+        _dataStoreMock.Setup(d => d.DoesMentorshipRequestsExistsAsync(mentor, mentee)).ReturnsAsync(Result.Success(true));
         var sut = CreateSut();
 
         var result = await sut.DoesMentorshipRequestsExistsAsync(mentor, mentee);
 
-        result.Should().BeTrue();
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeTrue();
         _dataStoreMock.Verify(d => d.DoesMentorshipRequestsExistsAsync(mentor, mentee), Times.Once);
     }
 
@@ -126,12 +132,12 @@ public class MentoringManagerTests
     {
         var mentorship = new Mentorship { Id = Guid.NewGuid() };
         var expertiseIds = new List<int> { 1, 2 };
-        _dataStoreMock.Setup(d => d.CreateMentorshipRequestAsync(mentorship, expertiseIds)).ReturnsAsync(true);
+        _dataStoreMock.Setup(d => d.CreateMentorshipRequestAsync(mentorship, expertiseIds)).ReturnsAsync(Result.Success());
         var sut = CreateSut();
 
         var result = await sut.CreateMentorshipRequestAsync(mentorship, expertiseIds);
 
-        result.Should().BeTrue();
+        result.IsSuccess.Should().BeTrue();
         _dataStoreMock.Verify(d => d.CreateMentorshipRequestAsync(mentorship, expertiseIds), Times.Once);
     }
 
@@ -139,12 +145,12 @@ public class MentoringManagerTests
     public async Task CreateMentorshipRequestAsync_should_log_when_failed()
     {
         var mentorship = new Mentorship { Id = Guid.NewGuid(), MentorId = Guid.NewGuid() };
-        _dataStoreMock.Setup(d => d.CreateMentorshipRequestAsync(mentorship, It.IsAny<List<int>>())).ReturnsAsync(false);
+        _dataStoreMock.Setup(d => d.CreateMentorshipRequestAsync(mentorship, It.IsAny<List<int>>())).ReturnsAsync(Result.Failure(new Error("mentorship.create.failed", "Create failed")));
         var sut = CreateSut();
 
         var result = await sut.CreateMentorshipRequestAsync(mentorship, []);
 
-        result.Should().BeFalse();
+        result.IsFailure.Should().BeTrue();
         _dataStoreMock.Verify(d => d.CreateMentorshipRequestAsync(mentorship, It.IsAny<List<int>>()), Times.Once);
     }
 
@@ -154,12 +160,13 @@ public class MentoringManagerTests
         var mentorshipId = Guid.NewGuid();
         var userId = Guid.NewGuid();
         var expected = new Mentorship { Id = mentorshipId };
-        _dataStoreMock.Setup(d => d.RespondToRequestAsync(mentorshipId, userId, true, "ok")).ReturnsAsync(expected);
+        _dataStoreMock.Setup(d => d.RespondToRequestAsync(mentorshipId, userId, true, "ok")).ReturnsAsync(Result.Success(expected));
         var sut = CreateSut();
 
         var result = await sut.RespondToRequestAsync(mentorshipId, userId, true, "ok");
 
-        result.Should().BeSameAs(expected);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeSameAs(expected);
         _dataStoreMock.Verify(d => d.RespondToRequestAsync(mentorshipId, userId, true, "ok"), Times.Once);
     }
 
@@ -169,12 +176,13 @@ public class MentoringManagerTests
         var mentorshipId = Guid.NewGuid();
         var userId = Guid.NewGuid();
         var expected = new Mentorship { Id = mentorshipId };
-        _dataStoreMock.Setup(d => d.RespondToRequestAsync(mentorshipId, userId, false, null)).ReturnsAsync(expected);
+        _dataStoreMock.Setup(d => d.RespondToRequestAsync(mentorshipId, userId, false, null)).ReturnsAsync(Result.Success(expected));
         var sut = CreateSut();
 
         var result = await sut.RespondToRequestAsync(mentorshipId, userId, false);
 
-        result.Should().BeSameAs(expected);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeSameAs(expected);
         _dataStoreMock.Verify(d => d.RespondToRequestAsync(mentorshipId, userId, false, null), Times.Once);
     }
 
@@ -183,12 +191,13 @@ public class MentoringManagerTests
     {
         var userId = Guid.NewGuid();
         var expected = new List<Mentorship> { new() { Id = Guid.NewGuid() } };
-        _dataStoreMock.Setup(d => d.GetActiveMentorshipsForUserAsync(userId)).ReturnsAsync(expected);
+        _dataStoreMock.Setup(d => d.GetActiveMentorshipsForUserAsync(userId)).ReturnsAsync(Result.Success(expected));
         var sut = CreateSut();
 
         var result = await sut.GetActiveMentorshipsForUserAsync(userId);
 
-        result.Should().BeSameAs(expected);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeSameAs(expected);
         _dataStoreMock.Verify(d => d.GetActiveMentorshipsForUserAsync(userId), Times.Once);
     }
 
@@ -196,12 +205,13 @@ public class MentoringManagerTests
     public async Task GetNumberOfMentorshipsPending_should_delegate()
     {
         var userId = Guid.NewGuid();
-        _dataStoreMock.Setup(d => d.GetNumberOfMentorshipsPending(userId)).ReturnsAsync((2, 3));
+        _dataStoreMock.Setup(d => d.GetNumberOfMentorshipsPending(userId)).ReturnsAsync(Result.Success((2, 3)));
         var sut = CreateSut();
 
         var result = await sut.GetNumberOfMentorshipsPending(userId);
 
-        result.Should().Be((2, 3));
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().Be((2, 3));
         _dataStoreMock.Verify(d => d.GetNumberOfMentorshipsPending(userId), Times.Once);
     }
 
@@ -210,12 +220,13 @@ public class MentoringManagerTests
     {
         var userId = Guid.NewGuid();
         var expected = new List<Mentorship> { new() { Id = Guid.NewGuid() } };
-        _dataStoreMock.Setup(d => d.GetIncomingMentorshipRequests(userId)).ReturnsAsync(expected);
+        _dataStoreMock.Setup(d => d.GetIncomingMentorshipRequests(userId)).ReturnsAsync(Result.Success(expected));
         var sut = CreateSut();
 
         var result = await sut.GetIncomingMentorshipRequests(userId);
 
-        result.Should().BeSameAs(expected);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeSameAs(expected);
         _dataStoreMock.Verify(d => d.GetIncomingMentorshipRequests(userId), Times.Once);
     }
 
@@ -224,12 +235,13 @@ public class MentoringManagerTests
     {
         var userId = Guid.NewGuid();
         var expected = new List<Mentorship> { new() { Id = Guid.NewGuid() } };
-        _dataStoreMock.Setup(d => d.GetOutgoingMentorshipRequests(userId)).ReturnsAsync(expected);
+        _dataStoreMock.Setup(d => d.GetOutgoingMentorshipRequests(userId)).ReturnsAsync(Result.Success(expected));
         var sut = CreateSut();
 
         var result = await sut.GetOutgoingMentorshipRequests(userId);
 
-        result.Should().BeSameAs(expected);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeSameAs(expected);
         _dataStoreMock.Verify(d => d.GetOutgoingMentorshipRequests(userId), Times.Once);
     }
 
@@ -238,12 +250,12 @@ public class MentoringManagerTests
     {
         var mentorshipId = Guid.NewGuid();
         var userId = Guid.NewGuid();
-        _dataStoreMock.Setup(d => d.CancelMentorshipRequestAsync(mentorshipId, userId)).ReturnsAsync(true);
+        _dataStoreMock.Setup(d => d.CancelMentorshipRequestAsync(mentorshipId, userId)).ReturnsAsync(Result.Success());
         var sut = CreateSut();
 
         var result = await sut.CancelMentorshipRequestAsync(mentorshipId, userId);
 
-        result.Should().BeTrue();
+        result.IsSuccess.Should().BeTrue();
         _dataStoreMock.Verify(d => d.CancelMentorshipRequestAsync(mentorshipId, userId), Times.Once);
     }
 
@@ -252,12 +264,12 @@ public class MentoringManagerTests
     {
         var mentorshipId = Guid.NewGuid();
         var userId = Guid.NewGuid();
-        _dataStoreMock.Setup(d => d.CancelMentorshipRequestAsync(mentorshipId, userId)).ReturnsAsync(false);
+        _dataStoreMock.Setup(d => d.CancelMentorshipRequestAsync(mentorshipId, userId)).ReturnsAsync(Result.Failure(new Error("mentorship.cancel.failed", "Cancel failed")));
         var sut = CreateSut();
 
         var result = await sut.CancelMentorshipRequestAsync(mentorshipId, userId);
 
-        result.Should().BeFalse();
+        result.IsFailure.Should().BeTrue();
         _dataStoreMock.Verify(d => d.CancelMentorshipRequestAsync(mentorshipId, userId), Times.Once);
     }
 
@@ -266,12 +278,12 @@ public class MentoringManagerTests
     {
         var mentorshipId = Guid.NewGuid();
         var userId = Guid.NewGuid();
-        _dataStoreMock.Setup(d => d.CompleteMentorshipRequestAsync(mentorshipId, userId)).ReturnsAsync(true);
+        _dataStoreMock.Setup(d => d.CompleteMentorshipRequestAsync(mentorshipId, userId)).ReturnsAsync(Result.Success());
         var sut = CreateSut();
 
         var result = await sut.CompleteMentorshipRequestAsync(mentorshipId, userId);
 
-        result.Should().BeTrue();
+        result.IsSuccess.Should().BeTrue();
         _dataStoreMock.Verify(d => d.CompleteMentorshipRequestAsync(mentorshipId, userId), Times.Once);
     }
 
@@ -280,12 +292,12 @@ public class MentoringManagerTests
     {
         var mentorshipId = Guid.NewGuid();
         var userId = Guid.NewGuid();
-        _dataStoreMock.Setup(d => d.CompleteMentorshipRequestAsync(mentorshipId, userId)).ReturnsAsync(false);
+        _dataStoreMock.Setup(d => d.CompleteMentorshipRequestAsync(mentorshipId, userId)).ReturnsAsync(Result.Failure(new Error("mentorship.complete.failed", "Complete failed")));
         var sut = CreateSut();
 
         var result = await sut.CompleteMentorshipRequestAsync(mentorshipId, userId);
 
-        result.Should().BeFalse();
+        result.IsSuccess.Should().BeFalse();
         _dataStoreMock.Verify(d => d.CompleteMentorshipRequestAsync(mentorshipId, userId), Times.Once);
     }
 
@@ -294,12 +306,13 @@ public class MentoringManagerTests
     {
         var userId = Guid.NewGuid();
         var expected = new List<User> { new() { Id = Guid.NewGuid() } };
-        _dataStoreMock.Setup(d => d.GetMentorsExceptForUserAsync(userId, MentorshipType.NewToExperienced, new List<string> { "AI" }, true)).ReturnsAsync(expected);
+        _dataStoreMock.Setup(d => d.GetMentorsExceptForUserAsync(userId, MentorshipType.NewToExperienced, new List<string> { "AI" }, true)).ReturnsAsync(Result.Success(expected));
         var sut = CreateSut();
 
         var result = await sut.GetMentorsExceptForUserAsync(userId, MentorshipType.NewToExperienced, ["AI"]);
 
-        result.Should().BeSameAs(expected);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeSameAs(expected);
         _dataStoreMock.Verify(d => d.GetMentorsExceptForUserAsync(userId, MentorshipType.NewToExperienced, It.IsAny<List<string>>(), true), Times.Once);
     }
 
@@ -308,12 +321,13 @@ public class MentoringManagerTests
     {
         var userId = Guid.NewGuid();
         var expected = new User { Id = Guid.NewGuid() };
-        _dataStoreMock.Setup(d => d.GetMentorAsync(userId)).ReturnsAsync(expected);
+        _dataStoreMock.Setup(d => d.GetMentorAsync(userId)).ReturnsAsync(Result.Success(expected));
         var sut = CreateSut();
 
         var result = await sut.GetMentorAsync(userId);
 
-        result.Should().BeSameAs(expected);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeSameAs(expected);
         _dataStoreMock.Verify(d => d.GetMentorAsync(userId), Times.Once);
     }
 
@@ -322,12 +336,13 @@ public class MentoringManagerTests
     {
         var menteeId = Guid.NewGuid();
         var mentorId = Guid.NewGuid();
-        _dataStoreMock.Setup(d => d.CanRequestMentorshipAsync(menteeId, mentorId)).ReturnsAsync(true);
+        _dataStoreMock.Setup(d => d.CanRequestMentorshipAsync(menteeId, mentorId)).ReturnsAsync(Result.Success(true));
         var sut = CreateSut();
 
         var result = await sut.CanRequestMentorshipAsync(menteeId, mentorId);
 
-        result.Should().BeTrue();
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeTrue();
         _dataStoreMock.Verify(d => d.CanRequestMentorshipAsync(menteeId, mentorId), Times.Once);
     }
 
@@ -337,13 +352,14 @@ public class MentoringManagerTests
         var requesterId = Guid.NewGuid();
         var targetId = Guid.NewGuid();
         var expected = new Mentorship { Id = Guid.NewGuid() };
-        _dataStoreMock.Setup(d => d.RequestMentorshipWithDetailsAsync(requesterId, targetId, MentorshipType.NewToExperienced, "msg", It.IsAny<List<int>?>(), "weekly")).ReturnsAsync(expected);
+        _dataStoreMock.Setup(d => d.RequestMentorshipWithDetailsAsync(requesterId, targetId, MentorshipType.NewToExperienced, "msg", It.IsAny<List<int>?>(), "weekly")).ReturnsAsync(Result.Success(expected));
         var sut = CreateSut();
 
         var result = await sut.RequestMentorshipWithDetailsAsync(requesterId, targetId, MentorshipType.NewToExperienced, "msg",
             [1, 2], "weekly");
 
-        result.Should().BeSameAs(expected);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeSameAs(expected);
         _dataStoreMock.Verify(d => d.RequestMentorshipWithDetailsAsync(requesterId, targetId, MentorshipType.NewToExperienced, "msg", It.IsAny<List<int>?>(), "weekly"), Times.Once);
     }
 
@@ -354,12 +370,13 @@ public class MentoringManagerTests
         var targetId = Guid.NewGuid();
         var expected = new Mentorship { Id = Guid.NewGuid() };
         _dataStoreMock.Setup(d => d.RequestMentorshipWithDetailsAsync(requesterId, targetId, MentorshipType.ExperiencedToExperienced, null, It.IsAny<List<int>?>(), null))
-            .ReturnsAsync(expected);
+            .ReturnsAsync(Result.Success(expected));
         var sut = CreateSut();
 
         var result = await sut.RequestMentorshipWithDetailsAsync(requesterId, targetId, MentorshipType.ExperiencedToExperienced, null, null, null);
 
-        result.Should().BeSameAs(expected);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeSameAs(expected);
         _dataStoreMock.Verify(d => d.RequestMentorshipWithDetailsAsync(requesterId, targetId, MentorshipType.ExperiencedToExperienced, null, It.IsAny<List<int>?>(), null), Times.Once);
     }
 
@@ -369,12 +386,12 @@ public class MentoringManagerTests
         var requesterId = Guid.NewGuid();
         var targetId = Guid.NewGuid();
         _dataStoreMock.Setup(d => d.RequestMentorshipWithDetailsAsync(requesterId, targetId, MentorshipType.ExperiencedToExperienced, null, It.IsAny<List<int>?>(), null))
-            .ReturnsAsync((Mentorship?)null);
+            .ReturnsAsync(Result.Failure<Mentorship>(new Error("mentorship.request.failed", "Request failed")));
         var sut = CreateSut();
 
         var result = await sut.RequestMentorshipWithDetailsAsync(requesterId, targetId, MentorshipType.ExperiencedToExperienced, null, null, null);
 
-        result.Should().BeNull();
+        result.IsFailure.Should().BeTrue();
         _dataStoreMock.Verify(d => d.RequestMentorshipWithDetailsAsync(requesterId, targetId, MentorshipType.ExperiencedToExperienced, null, It.IsAny<List<int>?>(), null), Times.Once);
     }
 
@@ -383,12 +400,13 @@ public class MentoringManagerTests
     {
         var mentorshipId = Guid.NewGuid();
         var expected = new Mentorship { Id = mentorshipId };
-        _dataStoreMock.Setup(d => d.GetMentorshipWithRelationships(mentorshipId)).ReturnsAsync(expected);
+        _dataStoreMock.Setup(d => d.GetMentorshipWithRelationships(mentorshipId)).ReturnsAsync(Result.Success(expected));
         var sut = CreateSut();
 
         var result = await sut.GetMentorshipWithRelationships(mentorshipId);
 
-        result.Should().BeSameAs(expected);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeSameAs(expected);
         _dataStoreMock.Verify(d => d.GetMentorshipWithRelationships(mentorshipId), Times.Once);
     }
 }

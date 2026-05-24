@@ -33,7 +33,13 @@ public class CreateModel(ISocialMediaSiteManager manager) : PageModel
             return Page();
         }
 
-        await manager.SaveAsync(Form);
+        var result = await manager.SaveAsync(Form);
+        if (result.IsFailure)
+        {
+            ModelState.AddModelError(string.Empty, result.ErrorMessage ?? "Failed to save social media site.");
+            return Page();
+        }
+
         return RedirectToPage("Index");
     }
 
