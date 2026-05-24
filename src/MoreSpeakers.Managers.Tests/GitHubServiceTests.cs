@@ -149,4 +149,92 @@ public class GitHubServiceTests
             It.IsAny<Exception>(),
             It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.Once);
     }
+
+    // ───────────────────────────────────────────────────────────────────────────
+    // Supplemental tests
+    // ───────────────────────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task GetContributorsAsync_returns_empty_when_api_returns_non_success_status()
+    {
+        // Arrange – any 4xx/5xx causes EnsureSuccessStatusCode to throw
+        var cache = new MemoryCache(new MemoryCacheOptions());
+        var handler = new TestHttpMessageHandler(_ =>
+            Task.FromResult(new HttpResponseMessage(System.Net.HttpStatusCode.NotFound)));
+        var httpClient = new HttpClient(handler);
+        var logger = new Mock<ILogger<GitHubService>>();
+        var sut = new GitHubService(httpClient, cache, CreateSettings(), logger.Object);
+
+        // Act
+        var result = await sut.GetContributorsAsync();
+
+        // Assert – error is swallowed and an empty enumerable is returned
+        result.Should().BeEmpty();
+        cache.TryGetValue("github-cache", out _).Should().BeFalse("nothing should be cached on failure");
+    }
+
+    [Fact]
+    public async Task GetContributorsAsync_makes_exactly_one_http_request_when_second_call_hits_cache()
+    {
+        // Arrange
+        var cache = new MemoryCache(new MemoryCacheOptions());
+        var callCount = 0;
+        var contributors = new List<GitHubContributor>
+        {
+            new() { Login = "cached-user", Contributions = 5 }
+        };
+        var json = System.Text.Json.JsonSerializer.Serialize(contributors);
+
+        var handler = new TestHttpMessageHandler(_ =>
+        {
+            callCount++;
+            var response = new HttpResponseMessage(System.Net.HttpStatusCode.OK)
+            {
+                Content = new System.Net.Http.StringContent(json, System.Text.Encoding.UTF8, "application/json")
+            };
+            return Task.FromResult(response);
+        });
+
+        var httpClient = new HttpClient(handler);
+        var logger = new Mock<ILogger<GitHubService>>();
+        var sut = new GitHubService(httpClient, cache, CreateSettings(), logger.Object);
+
+        // Act – fetch twice
+        var firstResult = (await sut.GetContributorsAsync()).ToList();
+        var secondResult = (await sut.GetContributorsAsync()).ToList();
+
+        // Assert – only one real HTTP request was made
+        callCount.Should().Be(1, "the second call should be served from cache");
+        firstResult.Should().BeEquivalentTo(contributors);
+        secondResult.Should().BeEquivalentTo(contributors);
+    }
+
+    [Fact]
+    public async Task GetContributorsAsync_sends_user_agent_header_to_github_api()
+    {
+        // Arrange
+        var cache = new MemoryCache(new MemoryCacheOptions());
+        var contributors = new List<GitHubContributor> { new() { Login = "user" } };
+        var json = System.Text.Json.JsonSerializer.Serialize(contributors);
+
+        var handler = new TestHttpMessageHandler(_ =>
+        {
+            var response = new HttpResponseMessage(System.Net.HttpStatusCode.OK)
+            {
+                Content = new System.Net.Http.StringContent(json, System.Text.Encoding.UTF8, "application/json")
+            };
+            return Task.FromResult(response);
+        });
+
+        var httpClient = new HttpClient(handler);
+        var logger = new Mock<ILogger<GitHubService>>();
+        var sut = new GitHubService(httpClient, cache, CreateSettings(), logger.Object);
+
+        // Act
+        await sut.GetContributorsAsync();
+
+        // Assert
+        handler.LastRequest.Should().NotBeNull();
+        handler.LastRequest!.Headers.UserAgent.ToString().Should().Contain("MoreSpeakers-App");
+    }
 }

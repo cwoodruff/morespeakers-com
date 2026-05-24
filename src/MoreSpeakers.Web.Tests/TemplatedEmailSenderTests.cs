@@ -1,3 +1,5 @@
+using FluentAssertions;
+
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.DataContracts;
@@ -123,5 +125,109 @@ public sealed class TemplatedEmailSenderTests : IDisposable
     public void Dispose()
     {
         _fakeTelemetryChannel.Dispose();
+    }
+
+    // ───────────────────────────────────────────────────────────────────────────
+    // Whitespace guard supplemental tests
+    // ───────────────────────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task SendTemplatedEmail_ShouldThrowArgumentException_WhenEmailTemplateIsWhitespace()
+    {
+        // Arrange / Act
+        var ex = await Assert.ThrowsAsync<ArgumentException>(async () =>
+            await _templatedEmailSender.SendTemplatedEmail(
+                emailTemplate: "   ",
+                telemetryEventName: "eventName",
+                subject: "subject",
+                toUser: new User(),
+                model: null));
+
+        // Assert
+        ex.ParamName.Should().Be("emailTemplate");
+    }
+
+    [Fact]
+    public async Task SendTemplatedEmail_ShouldThrowArgumentException_WhenTelemetryEventNameIsWhitespace()
+    {
+        // Arrange / Act
+        var ex = await Assert.ThrowsAsync<ArgumentException>(async () =>
+            await _templatedEmailSender.SendTemplatedEmail(
+                emailTemplate: "template",
+                telemetryEventName: "\t",
+                subject: "subject",
+                toUser: new User(),
+                model: null));
+
+        // Assert
+        ex.ParamName.Should().Be("telemetryEventName");
+    }
+
+    [Fact]
+    public async Task SendTemplatedEmail_ShouldThrowArgumentException_WhenSubjectIsWhitespace()
+    {
+        // Arrange / Act
+        var ex = await Assert.ThrowsAsync<ArgumentException>(async () =>
+            await _templatedEmailSender.SendTemplatedEmail(
+                emailTemplate: "template",
+                telemetryEventName: "eventName",
+                subject: "  ",
+                toUser: new User(),
+                model: null));
+
+        // Assert
+        ex.ParamName.Should().Be("subject");
+    }
+
+    // ───────────────────────────────────────────────────────────────────────────
+    // Email-sender integration supplemental tests
+    // ───────────────────────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task SendTemplatedEmail_ShouldQueueEmailToCorrectRecipient_WhenAllArgumentsAreValid()
+    {
+        // Arrange – use a dedicated mock so we can verify the call
+        var emailSenderMock = new Mock<IEmailSender>();
+        var sut = new TemplatedEmailSender(
+            emailSenderMock.Object,
+            _stringRendererMock.Object,
+            _fakeLogger,
+            CreateStubTelemetryClient(_fakeTelemetryChannel));
+
+        // Act
+        await sut.SendTemplatedEmail("template", "eventName", "Test Subject", _user, null);
+
+        // Assert – QueueEmail called once with the user's address and the correct subject
+        emailSenderMock.Verify(e =>
+            e.QueueEmail(
+                It.Is<System.Net.Mail.MailAddress>(m => m.Address == _user.Email),
+                "Test Subject",
+                It.IsAny<string>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task SendTemplatedEmail_ShouldReturnFalse_WhenEmailSenderThrows()
+    {
+        // Arrange
+        var emailSenderMock = new Mock<IEmailSender>();
+        emailSenderMock
+            .Setup(e => e.QueueEmail(
+                It.IsAny<System.Net.Mail.MailAddress>(),
+                It.IsAny<string>(),
+                It.IsAny<string>()))
+            .ThrowsAsync(new InvalidOperationException("SMTP connection refused"));
+
+        var sut = new TemplatedEmailSender(
+            emailSenderMock.Object,
+            _stringRendererMock.Object,
+            _fakeLogger,
+            CreateStubTelemetryClient(_fakeTelemetryChannel));
+
+        // Act
+        var result = await sut.SendTemplatedEmail("template", "eventName", "Subject", _user, null);
+
+        // Assert
+        result.Should().BeFalse();
     }
 }
