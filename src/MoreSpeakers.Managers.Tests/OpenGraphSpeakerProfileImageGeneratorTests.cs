@@ -168,9 +168,9 @@ public sealed class OpenGraphSpeakerProfileImageGeneratorTests : IDisposable
         var result = await _generator.GenerateSpeakerProfileFromUrlsAsync("http://speaker.com/i.png", "http://logo.com/i.png", "John Doe", [availableFontName]);
 
         // Assert
-        Assert.NotNull(result);
-        Assert.Equal(1200, result.Width);
-        Assert.Equal(630, result.Height);
+        Assert.True(result.IsSuccess);
+        Assert.Equal(1200, result.Value.Width);
+        Assert.Equal(630, result.Value.Height);
     }
 
     [Fact]

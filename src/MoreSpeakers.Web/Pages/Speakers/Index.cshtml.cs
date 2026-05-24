@@ -306,19 +306,19 @@ public partial class IndexModel : PageModel
         }
 
         // Send emails to both mentee and mentor
-        var emailSent = await _templatedEmailSender.SendTemplatedEmail("~/EmailTemplates/MentorshipRequestFromMentee.cshtml",
+        var emailResult = await _templatedEmailSender.SendTemplatedEmail("~/EmailTemplates/MentorshipRequestFromMentee.cshtml",
             Domain.Constants.TelemetryEvents.EmailGenerated.MentorshipRequested,
             "Your mentorship request was sent", mentorship.Mentee, mentorship);
-        if (!emailSent)
+        if (emailResult.IsFailure)
         {
             LogFailedToSendMentorshipRequestEmailToMentee();
             // TODO: Create a visual indicator that the email was not sent
         }
 
-        emailSent = await _templatedEmailSender.SendTemplatedEmail("~/EmailTemplates/MentorshipRequestToMentor.cshtml",
+        emailResult = await _templatedEmailSender.SendTemplatedEmail("~/EmailTemplates/MentorshipRequestToMentor.cshtml",
             Domain.Constants.TelemetryEvents.EmailGenerated.MentorshipRequested,
             "A mentorship was requested", mentorship.Mentor, mentorship);
-        if (!emailSent)
+        if (emailResult.IsFailure)
         {
             LogFailedToSendMentorshipRequestEmailToMentor();
             // TODO: Create a visual indicator that the email was not sent

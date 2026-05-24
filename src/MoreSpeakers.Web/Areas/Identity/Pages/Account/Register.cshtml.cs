@@ -650,10 +650,10 @@ public partial class RegisterModel : PageModel
         }
 
         // Send the welcome email
-        var emailSent = await _templatedEmailSender.SendTemplatedEmail("~/EmailTemplates/WelcomeEmail.cshtml",
+        var emailResult = await _templatedEmailSender.SendTemplatedEmail("~/EmailTemplates/WelcomeEmail.cshtml",
             Domain.Constants.TelemetryEvents.EmailGenerated.Welcome,
             "Welcome to MoreSpeakers.com - Your Speaking Journey Begins!", user, user);
-        if (!emailSent)
+        if (emailResult.IsFailure)
         {
             LogFailedToSendTheWelcomeEmail();
             // TODO: Create a visual indicator that the email was not sent
@@ -673,10 +673,10 @@ public partial class RegisterModel : PageModel
         else
         {
             var confirmationModel = new UserConfirmationEmail { ConfirmationUrl = confirmationLink, User = user };
-            emailSent = await _templatedEmailSender.SendTemplatedEmail("~/EmailTemplates/ConfirmUserEmail.cshtml",
+            emailResult = await _templatedEmailSender.SendTemplatedEmail("~/EmailTemplates/ConfirmUserEmail.cshtml",
                 Domain.Constants.TelemetryEvents.EmailGenerated.Confirmation,
                 "Welcome to MoreSpeakers.com - Let's confirm your email!", user, confirmationModel);
-            if (!emailSent)
+            if (emailResult.IsFailure)
             {
                 LogFailedToSendConfirmationEmail(user.Id);
             }

@@ -34,3 +34,7 @@
 ## Issue #384 Completion (2026-05-22)
 
 - Issue #384 xUnit version sync completed. Standardized all test projects to xUnit v3 (3.2.1). Key changes: upgraded MoreSpeakers.Managers.Tests from xUnit v2 (2.9.3) to v3, added FluentAssertions to Data.Tests for consistency, added OutputType=Exe for v3 compatibility. All 262 tests pass. Final versions: xunit.v3 3.2.1, xunit.runner.visualstudio 3.1.5, Microsoft.NET.Test.Sdk 18.0.1, FluentAssertions 8.8.0, Moq 4.20.72. PR #404 created.
+
+## Issue #390 Test Gap Analysis (2026-05-24)
+
+- **Audit Summary:** Completed test coverage audit for 4 services Dallas is converting to Result<T> on branch `issue-390-result-t-final-cleanup`. GitHubService (6 tests), TemplatedEmailSender (6 tests), and OpenGraphSpeakerProfileImageGenerator (~25 tests) have existing coverage that needs Result<T> rewiring. **CRITICAL GAP:** FileUploadService has ZERO tests and `[ExcludeFromCodeCoverage]` attribute. Comprehensive test plan created: 3 new tests for GitHubService, 4 for TemplatedEmailSender, 9 for OpenGraphSpeakerProfileImageGenerator (including new QueueSpeakerOpenGraphProfileImageCreation coverage), and 15 from scratch for FileUploadService. Test infrastructure ready: ResultTestExtensions with `.ShouldSucceed()` / `.ShouldFail("error-code")` patterns established. Test plan documented in `.squad/decisions/inbox/vasquez-390-test-plan.md`. Blocked on branch availability from Dallas.

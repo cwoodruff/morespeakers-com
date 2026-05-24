@@ -74,7 +74,8 @@ public class GitHubServiceTests
 
         var result = await sut.GetContributorsAsync();
 
-        result.Should().BeEmpty();
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeEmpty();
     }
 
     [Fact]
@@ -98,9 +99,10 @@ public class GitHubServiceTests
         var logger = new Mock<ILogger<GitHubService>>();
         var sut = new GitHubService(httpClient, cache, CreateSettings(), logger.Object);
 
-        var result = (await sut.GetContributorsAsync()).ToList();
+        var result = await sut.GetContributorsAsync();
 
-        result.Should().BeEquivalentTo(contributors);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeEquivalentTo(contributors);
         handler.LastRequest.Should().NotBeNull();
         handler.LastRequest!.RequestUri!.ToString().Should().Be("https://api.github.com/repos/owner/repo/contributors");
         handler.LastRequest.Headers.UserAgent.ToString().Should().Contain("MoreSpeakers-App");
@@ -126,7 +128,8 @@ public class GitHubServiceTests
 
         var result = await sut.GetContributorsAsync();
 
-        result.Should().BeEmpty();
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeEmpty();
         cache.TryGetValue("github-cache", out _).Should().BeFalse();
     }
 
@@ -141,7 +144,8 @@ public class GitHubServiceTests
 
         var result = await sut.GetContributorsAsync();
 
-        result.Should().BeEmpty();
+        result.IsFailure.Should().BeTrue();
+        result.Error.Code.Should().Be("github.request-failed");
         logger.Verify(l => l.Log(
             LogLevel.Error,
             It.IsAny<EventId>(),

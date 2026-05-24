@@ -45,7 +45,7 @@ public sealed class TemplatedEmailSenderTests : IDisposable
     public async Task SendTemplatedEmail_LogsSuccess()
     {
         var result = await _templatedEmailSender.SendTemplatedEmail("template", "eventName", "subject", _user, null);
-        Assert.True(result);
+        Assert.True(result.IsSuccess);
         var fakeLogRecords = _fakeLogger.Collector.GetSnapshot();
         Assert.Single(fakeLogRecords, e=>e.Level == LogLevel.Information && e.Message == $"eventName email was successfully sent to {_user.Email}");
     }
@@ -56,7 +56,8 @@ public sealed class TemplatedEmailSenderTests : IDisposable
         _stringRendererMock.Setup(mock => mock.RenderPartialToStringAsync(It.IsAny<string>(), It.IsAny<object?>()))
             .ThrowsAsync(new InvalidOperationException("Rendering failed"));
         var result = await _templatedEmailSender.SendTemplatedEmail("template", "eventName", "subject", _user, null);
-        Assert.False(result);
+        Assert.True(result.IsFailure);
+        Assert.Equal("email.render-failed", result.Error.Code);
         var fakeLogRecords = _fakeLogger.Collector.GetSnapshot();
         Assert.Single(fakeLogRecords, e=>e.Level == LogLevel.Error && e.Message == $"Failed to send eventName email to {_user.Email}");
     }
@@ -65,7 +66,7 @@ public sealed class TemplatedEmailSenderTests : IDisposable
     public async Task SendTemplatedEmail_EmitsSuccessTelemetry()
     {
         var result = await _templatedEmailSender.SendTemplatedEmail("template", "eventName", "subject", _user, null);
-        Assert.True(result);
+        Assert.True(result.IsSuccess);
         var telemetryEntry = Assert.Single(_fakeTelemetryChannel.SentTelemetries);
         var supportProperties = Assert.IsType<ISupportProperties>(telemetryEntry, exactMatch: false);
 

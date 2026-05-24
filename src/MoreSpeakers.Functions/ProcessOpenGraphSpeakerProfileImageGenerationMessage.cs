@@ -59,9 +59,17 @@ public class ProcessOpenGraphSpeakerProfileImageGenerationMessage
             }
 
             // Create the image
-            var speakerImage = await _openGraphSpeakerProfileImageGenerator.GenerateSpeakerProfileFromUrlsAsync(
+            var speakerImageResult = await _openGraphSpeakerProfileImageGenerator.GenerateSpeakerProfileFromUrlsAsync(
                 createOpenGraphProfileImage.ProfileImageUrl, _settings.LogoImageUrl,
                 createOpenGraphProfileImage.SpeakerName, ubuntuFont.Value);
+
+            if (speakerImageResult.IsFailure)
+            {
+                _logger.LogError("ProcessOpenGraphSpeakerProfileImageGenerationMessage: Failed to generate OpenGraph profile image: {ErrorMessage}", speakerImageResult.ErrorMessage);
+                throw new ApplicationException($"Failed to generate speaker image: {speakerImageResult.ErrorMessage}");
+            }
+
+            var speakerImage = speakerImageResult.Value;
 
             // Save the image to blob storage
             var blobName = $"{createOpenGraphProfileImage.UserId}.png";

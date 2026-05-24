@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 
+using MoreSpeakers.Domain;
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models.DTOs;
 
@@ -23,12 +24,12 @@ public partial class GitHubService : IGitHubService
         _logger = logger;
     }
 
-    public async Task<IEnumerable<GitHubContributor>> GetContributorsAsync()
+    public async Task<Result<IEnumerable<GitHubContributor>>> GetContributorsAsync()
     {
         var cacheKey = _settings.GitHub.CacheKey;
         if (_cache.TryGetValue(cacheKey, out IEnumerable<GitHubContributor>? contributors))
         {
-            return contributors ?? [];
+            return Result.Success(contributors ?? (IEnumerable<GitHubContributor>)Array.Empty<GitHubContributor>());
         }
 
         try
@@ -49,14 +50,20 @@ public partial class GitHubService : IGitHubService
                     .SetAbsoluteExpiration(TimeSpan.FromMinutes(_settings.GitHub.CacheDurationInMinutes));
 
                 _cache.Set(cacheKey, contributors, cacheEntryOptions);
-                return contributors;
+                return Result.Success(contributors);
             }
+            
+            return Result.Success((IEnumerable<GitHubContributor>)Array.Empty<GitHubContributor>());
+        }
+        catch (HttpRequestException ex)
+        {
+            LogErrorGettingGithubContributors(ex, _settings.GitHub.RepoOwner, _settings.GitHub.RepoName);
+            return Result.Failure<IEnumerable<GitHubContributor>>(new Error("github.request-failed", $"Failed to fetch GitHub contributors for {_settings.GitHub.RepoOwner}/{_settings.GitHub.RepoName}", ex));
         }
         catch (Exception ex)
         {
             LogErrorGettingGithubContributors(ex, _settings.GitHub.RepoOwner, _settings.GitHub.RepoName);
+            return Result.Failure<IEnumerable<GitHubContributor>>(new Error("github.deserialization-failed", "Failed to deserialize GitHub contributors response", ex));
         }
-
-        return [];
     }
 }
