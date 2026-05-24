@@ -24,6 +24,8 @@
 - Expertise Result<T> coverage now lives in `src\MoreSpeakers.Managers.Tests\ExpertiseManagerTests.cs`, `src\MoreSpeakers.Web.Tests\Areas\Admin\Pages\Catalog\Expertises\**\*.cs`, and `src\MoreSpeakers.Data.Tests\ExpertiseDataStoreResultTests.cs`.
 - `src\MoreSpeakers.Data.Tests\MoreSpeakers.Data.Tests.csproj` needs `xunit.runner.visualstudio` for `dotnet test` to discover xUnit v3 tests in this repo.
 - Expertise manager validation currently normalizes names/descriptions and returns manager-level error codes like `expertise.validation.name-required` and `expertise.validation.invalid-id`.
+- Issue #394 test harness scaffolding now lives in `src\MoreSpeakers.Data.Tests\DataStoreTestBase.cs`, `DataStoreFakers.cs`, and `ResultTestExtensions.cs`; new DataStore tests should inherit the base harness instead of re-creating DbContext/mapper setup.
+- `src\MoreSpeakers.Data.Tests\ExpertiseDataStoreTests.cs` establishes the pattern: seed minimal sector/category graphs with Bogus-backed helpers, clear the EF change tracker before update-path assertions, and assert `Result` success/failure via `ShouldSucceed()` / `ShouldFail()` helpers.
 
 ## Issue #386 Completion (2026-04-15)
 
