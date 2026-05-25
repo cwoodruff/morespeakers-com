@@ -31,10 +31,10 @@ public interface IOpenGraphSpeakerProfileImageGenerator
     /// <param name="fontFamilyNames">A string array of font names to use for the speaker name and other text elements</param>
     /// <param name="width">The width of the generated image.</param>
     /// <param name="height">The height of the generated image.</param>
-    /// <returns>A <see cref="SixLabors.ImageSharp.Image"/> representing the speaker profile</returns>
+    /// <returns>A <see cref="Result{Image}"/> containing the speaker profile on success or an error on failure</returns>
     /// <exception cref="ArgumentNullException">If any of the parameters are null or empty</exception>
     /// <exception cref="ArgumentException">If any of the urls are not well-formed</exception>
-    Task<Image?> GenerateSpeakerProfileFromUrlsAsync(string speakerImageUrl, string logoUrl, string speakerName,
+    Task<Result<Image>> GenerateSpeakerProfileFromUrlsAsync(string speakerImageUrl, string logoUrl, string speakerName,
         string[] fontFamilyNames,
         int width = 1200, int height = 630);
 
@@ -47,11 +47,11 @@ public interface IOpenGraphSpeakerProfileImageGenerator
     /// <param name="fontFamilyFile">The fully qualified font file to use for the speaker name and other text elements</param>
     /// <param name="width">The width of the generated image.</param>
     /// <param name="height">The height of the generated image.</param>
-    /// <returns>A <see cref="SixLabors.ImageSharp.Image"/> representing the speaker profile</returns>
+    /// <returns>A <see cref="Result{Image}"/> containing the speaker profile on success or an error on failure</returns>
     /// <exception cref="ArgumentNullException">If any of the parameters are null or empty</exception>
     /// <exception cref="ArgumentException">If any of the urls are not well-formed</exception>
     /// <exception cref="FileNotFoundException">If the font file cannot be found</exception>
-    Task<Image?> GenerateSpeakerProfileFromUrlsAsync(string speakerImageUrl, string logoUrl, string speakerName,
+    Task<Result<Image>> GenerateSpeakerProfileFromUrlsAsync(string speakerImageUrl, string logoUrl, string speakerName,
         string fontFamilyFile,
         int width = 1200, int height = 630);
 
@@ -64,10 +64,10 @@ public interface IOpenGraphSpeakerProfileImageGenerator
     /// <param name="fontFamily">The <see cref="SixLabors.Fonts.FontFamily"/> to use for the speaker name and other text elements</param>
     /// <param name="width">The width of the generated image.</param>
     /// <param name="height">The height of the generated image.</param>
-    /// <returns>A <see cref="SixLabors.ImageSharp.Image"/> representing the speaker profile</returns>
+    /// <returns>A <see cref="Result{Image}"/> containing the speaker profile on success or an error on failure</returns>
     /// <exception cref="ArgumentNullException">If any of the parameters are null or empty</exception>
     /// <exception cref="ArgumentException">If any of the urls are not well-formed</exception>
-    Task<Image?> GenerateSpeakerProfileFromUrlsAsync(string speakerImageUrl, string logoUrl, string speakerName,
+    Task<Result<Image>> GenerateSpeakerProfileFromUrlsAsync(string speakerImageUrl, string logoUrl, string speakerName,
         FontFamily fontFamily,
         int width = 1200, int height = 630);
 

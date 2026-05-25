@@ -168,9 +168,9 @@ public sealed class OpenGraphSpeakerProfileImageGeneratorTests : IDisposable
         var result = await _generator.GenerateSpeakerProfileFromUrlsAsync("http://speaker.com/i.png", "http://logo.com/i.png", "John Doe", [availableFontName]);
 
         // Assert
-        Assert.NotNull(result);
-        Assert.Equal(1200, result.Width);
-        Assert.Equal(630, result.Height);
+        Assert.True(result.IsSuccess);
+        Assert.Equal(1200, result.Value.Width);
+        Assert.Equal(630, result.Value.Height);
     }
 
     [Fact]
@@ -418,7 +418,7 @@ public sealed class OpenGraphSpeakerProfileImageGeneratorTests : IDisposable
         _loggerMock.Verify(l => l.Log(
             LogLevel.Error,
             It.IsAny<EventId>(),
-            It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("Error loading fonts from file")),
+            It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("IO error loading font from file")),
             It.IsAny<Exception>(),
             It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.Once);
     }
@@ -538,8 +538,10 @@ public sealed class OpenGraphSpeakerProfileImageGeneratorTests : IDisposable
         _mockHttp.When("http://error.com/i.png").Respond(HttpStatusCode.NotFound);
 
         // GetImageStreamFromUrlAsync is private, but we can test it via GenerateSpeakerProfileFromUrlsAsync
-        await Assert.ThrowsAsync<HttpRequestException>(() =>
-            _generator.GenerateSpeakerProfileFromUrlsAsync("http://error.com/i.png", "http://logo.com/i.png", "Name", ["Arial"]));
+        // Dallas's Result<T> conversion catches HttpRequestException and returns a failure Result
+        var result = await _generator.GenerateSpeakerProfileFromUrlsAsync("http://error.com/i.png", "http://logo.com/i.png", "Name", ["Arial"]);
+        result.IsFailure.Should().BeTrue();
+        result.Error.Code.Should().Be("opengraph.image-download-failed");
     }
 
     [Fact]

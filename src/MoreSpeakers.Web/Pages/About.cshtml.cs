@@ -17,6 +17,7 @@ public class AboutModel : PageModel
 
     public async Task OnGet()
     {
-        Contributors = await _gitHubService.GetContributorsAsync();
+        var result = await _gitHubService.GetContributorsAsync();
+        Contributors = result.IsSuccess ? result.Value : [];
     }
 }

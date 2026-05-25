@@ -1,5 +1,6 @@
 using Microsoft.ApplicationInsights;
 
+using MoreSpeakers.Domain;
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models;
 
@@ -28,7 +29,7 @@ public partial class TemplatedEmailSender: ITemplatedEmailSender
         _telemetryClient = telemetryClient;
     }
 
-    public async Task<bool> SendTemplatedEmail(string emailTemplate, string telemetryEventName, string subject, User toUser, object? model)
+    public async Task<Result> SendTemplatedEmail(string emailTemplate, string telemetryEventName, string subject, User toUser, object? model)
     {
         if (string.IsNullOrWhiteSpace(emailTemplate))
         {
@@ -55,13 +56,17 @@ public partial class TemplatedEmailSender: ITemplatedEmailSender
                 { "Email", toUser.Email! }
             });
             LogEmailWasSuccessfullySent(telemetryEventName, toUser.Email!);
+            return Result.Success();
+        }
+        catch (InvalidOperationException ex)
+        {
+            LogFailedToSendEmail(ex, telemetryEventName, toUser.Email!);
+            return Result.Failure(new Error("email.render-failed", $"Failed to render email template {emailTemplate}", ex));
         }
         catch (Exception ex)
         {
             LogFailedToSendEmail(ex, telemetryEventName, toUser.Email!);
-            return false;
+            return Result.Failure(new Error("email.send-failed", $"Failed to send email to {toUser.Email}", ex));
         }
-
-        return true;
     }
 }

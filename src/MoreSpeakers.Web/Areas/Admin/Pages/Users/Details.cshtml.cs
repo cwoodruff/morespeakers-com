@@ -278,13 +278,13 @@ public partial class DetailsModel : PageModel
             values: new { area = "Identity", token, email = user.Email },
             protocol: Request.Scheme);
         
-        var ok = await _emailSender.SendTemplatedEmail("~/EmailTemplates/PasswordReset.cshtml",
+        var emailResult = await _emailSender.SendTemplatedEmail("~/EmailTemplates/PasswordReset.cshtml",
             "AdminTriggeredPasswordReset",
             "Reset your password",
             user,
             new UserPasswordResetEmail { User = user, ResetEmailUrl = callbackUrl });
 
-        TempData[ok ? "StatusMessage" : "ErrorMessage"] = ok
+        TempData[emailResult.IsSuccess ? "StatusMessage" : "ErrorMessage"] = emailResult.IsSuccess
             ? "Password reset email has been sent."
             : "Failed to send password reset email.";
 

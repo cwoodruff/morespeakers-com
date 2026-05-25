@@ -1,3 +1,4 @@
+using MoreSpeakers.Domain;
 using MoreSpeakers.Domain.Models;
 
 namespace MoreSpeakers.Web.Services;
@@ -13,6 +14,6 @@ public interface ITemplatedEmailSender
     /// <param name="toUser"></param>
     /// <param name="model"></param>
     /// <returns></returns>
-    public Task<bool> SendTemplatedEmail(string emailTemplate, string telemetryEventName, string subject, User toUser, object? model); 
+    public Task<Result> SendTemplatedEmail(string emailTemplate, string telemetryEventName, string subject, User toUser, object? model); 
     
 }

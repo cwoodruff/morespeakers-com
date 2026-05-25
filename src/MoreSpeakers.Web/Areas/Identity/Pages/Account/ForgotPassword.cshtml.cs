@@ -54,14 +54,14 @@ public partial class ForgotPasswordModel : PageModel
                 values: new { area = "Identity", token, email = user.Email },
                 protocol: Request.Scheme);
 
-            var ok = await _emailSender.SendTemplatedEmail(
+            var emailResult = await _emailSender.SendTemplatedEmail(
                 "~/EmailTemplates/PasswordReset.cshtml",
                 "UserForgotPassword",
                 "Reset your password",
                 user,
                 new UserPasswordResetEmail { User = user, ResetEmailUrl = callbackUrl });
 
-            if (!ok)
+            if (emailResult.IsFailure)
             {
                 LogFailedToSendPasswordResetEmail(Input.Email);
             }

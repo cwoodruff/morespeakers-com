@@ -1,5 +1,6 @@
 using Azure.Storage.Queues;
 using Microsoft.Extensions.Logging;
+using MoreSpeakers.Domain;
 using MoreSpeakers.Domain.Interfaces;
 using MoreSpeakers.Domain.Models.Messages;
 
@@ -55,10 +56,10 @@ public partial class OpenGraphSpeakerProfileImageGenerator(
     /// Loads an image from a URL and returns it as a Stream.
     /// </summary>
     /// <param name="url">The URL of the image.</param>
-    /// <returns>A Stream that can be loaded with SixLabors.Image.LoadAsync.</returns>
+    /// <returns>A Result containing a Stream that can be loaded with SixLabors.Image.LoadAsync.</returns>
     /// <exception cref="ArgumentNullException">If the URL is null or empty.</exception>
     /// <exception cref="ArgumentException">If the URL is not well-formed.</exception>
-    private async Task<Stream> GetImageStreamFromUrlAsync(string url)
+    private async Task<Result<Stream>> GetImageStreamFromUrlAsync(string url)
     {
         if (string.IsNullOrEmpty(url))
         {
@@ -73,12 +74,13 @@ public partial class OpenGraphSpeakerProfileImageGenerator(
         {
             var response = await httpClient.GetAsync(url);
             response.EnsureSuccessStatusCode();
-            return await response.Content.ReadAsStreamAsync();
+            var stream = await response.Content.ReadAsStreamAsync();
+            return Result.Success(stream);
         }
-        catch (Exception e)
+        catch (HttpRequestException e)
         {
             LogFailedToGetImageStreamFromUrl(logger, url, e);
-            throw;
+            return Result.Failure<Stream>(new Error("opengraph.image-download-failed", $"Failed to download image from {url}", e));
         }
     }
 
@@ -91,10 +93,10 @@ public partial class OpenGraphSpeakerProfileImageGenerator(
     /// <param name="fontFamilyNames">A string array of font names to use for the speaker name and other text elements</param>
     /// <param name="width">The width of the generated image.</param>
     /// <param name="height">The height of the generated image.</param>
-    /// <returns>A <see cref="SixLabors.ImageSharp.Image"/> representing the speaker profile</returns>
+    /// <returns>A <see cref="Result{Image}"/> containing the speaker profile on success or an error on failure</returns>
     /// <exception cref="ArgumentNullException">If any of the parameters are null or empty</exception>
     /// <exception cref="ArgumentException">If any of the urls are not well-formed</exception>
-    public async Task<Image?> GenerateSpeakerProfileFromUrlsAsync(string speakerImageUrl, string logoUrl,
+    public async Task<Result<Image>> GenerateSpeakerProfileFromUrlsAsync(string speakerImageUrl, string logoUrl,
         string speakerName,
         string[] fontFamilyNames,
         int width = 1200, int height = 630)
@@ -125,13 +127,25 @@ public partial class OpenGraphSpeakerProfileImageGenerator(
         }
 
         // Download the images
-        await using var speakerImageStream = await GetImageStreamFromUrlAsync(speakerImageUrl);
-        await using var logoImageStream = await GetImageStreamFromUrlAsync(logoUrl);
+        var speakerImageStreamResult = await GetImageStreamFromUrlAsync(speakerImageUrl);
+        if (speakerImageStreamResult.IsFailure)
+        {
+            return Result.Failure<Image>(speakerImageStreamResult.Error);
+        }
+
+        var logoImageStreamResult = await GetImageStreamFromUrlAsync(logoUrl);
+        if (logoImageStreamResult.IsFailure)
+        {
+            return Result.Failure<Image>(logoImageStreamResult.Error);
+        }
+
+        await using var speakerImageStream = speakerImageStreamResult.Value;
+        await using var logoImageStream = logoImageStreamResult.Value;
 
         using var speakerImage = await Image.LoadAsync(speakerImageStream);
         using var logoImage = await Image.LoadAsync(logoImageStream);
 
-        return GenerateSpeakerProfile(speakerImage, logoImage, speakerName, fontFamilyNames, width, height);
+        return Result.Success(GenerateSpeakerProfile(speakerImage, logoImage, speakerName, fontFamilyNames, width, height));
     }
 
     /// <summary>
@@ -143,11 +157,11 @@ public partial class OpenGraphSpeakerProfileImageGenerator(
     /// <param name="fontFamilyFile">The fully qualified font file to use for the speaker name and other text elements</param>
     /// <param name="width">The width of the generated image.</param>
     /// <param name="height">The height of the generated image.</param>
-    /// <returns>A <see cref="SixLabors.ImageSharp.Image"/> representing the speaker profile</returns>
+    /// <returns>A <see cref="Result{Image}"/> containing the speaker profile on success or an error on failure</returns>
     /// <exception cref="ArgumentNullException">If any of the parameters are null or empty</exception>
     /// <exception cref="ArgumentException">If any of the urls are not well-formed</exception>
     /// <exception cref="FileNotFoundException">If the font file cannot be found</exception>
-    public async Task<Image?> GenerateSpeakerProfileFromUrlsAsync(string speakerImageUrl, string logoUrl,
+    public async Task<Result<Image>> GenerateSpeakerProfileFromUrlsAsync(string speakerImageUrl, string logoUrl,
         string speakerName,
         string fontFamilyFile,
         int width = 1200, int height = 630)
@@ -182,13 +196,25 @@ public partial class OpenGraphSpeakerProfileImageGenerator(
         }
 
         // Download the images
-        await using var speakerImageStream = await GetImageStreamFromUrlAsync(speakerImageUrl);
-        await using var logoImageStream = await GetImageStreamFromUrlAsync(logoUrl);
+        var speakerImageStreamResult = await GetImageStreamFromUrlAsync(speakerImageUrl);
+        if (speakerImageStreamResult.IsFailure)
+        {
+            return Result.Failure<Image>(speakerImageStreamResult.Error);
+        }
+
+        var logoImageStreamResult = await GetImageStreamFromUrlAsync(logoUrl);
+        if (logoImageStreamResult.IsFailure)
+        {
+            return Result.Failure<Image>(logoImageStreamResult.Error);
+        }
+
+        await using var speakerImageStream = speakerImageStreamResult.Value;
+        await using var logoImageStream = logoImageStreamResult.Value;
 
         using var speakerImage = await Image.LoadAsync(speakerImageStream);
         using var logoImage = await Image.LoadAsync(logoImageStream);
 
-        return GenerateSpeakerProfile(speakerImage, logoImage, speakerName, fontFamilyFile, width, height);
+        return Result.Success(GenerateSpeakerProfile(speakerImage, logoImage, speakerName, fontFamilyFile, width, height));
     }
 
     /// <summary>
@@ -200,10 +226,10 @@ public partial class OpenGraphSpeakerProfileImageGenerator(
     /// <param name="fontFamily">The <see cref="SixLabors.Fonts.FontFamily"/> to use for the speaker name and other text elements</param>
     /// <param name="width">The width of the generated image.</param>
     /// <param name="height">The height of the generated image.</param>
-    /// <returns>A <see cref="SixLabors.ImageSharp.Image"/> representing the speaker profile</returns>
+    /// <returns>A <see cref="Result{Image}"/> containing the speaker profile on success or an error on failure</returns>
     /// <exception cref="ArgumentNullException">If any of the parameters are null or empty</exception>
     /// <exception cref="ArgumentException">If any of the urls are not well-formed</exception>
-    public async Task<Image?> GenerateSpeakerProfileFromUrlsAsync(string speakerImageUrl, string logoUrl,
+    public async Task<Result<Image>> GenerateSpeakerProfileFromUrlsAsync(string speakerImageUrl, string logoUrl,
         string speakerName,
         FontFamily fontFamily,
         int width = 1200, int height = 630)
@@ -228,14 +254,27 @@ public partial class OpenGraphSpeakerProfileImageGenerator(
         {
             throw new ArgumentException("Logo URL is not well-formed.", nameof(logoUrl));
         }
+
         // Download the images
-        await using var speakerImageStream = await GetImageStreamFromUrlAsync(speakerImageUrl);
-        await using var logoImageStream = await GetImageStreamFromUrlAsync(logoUrl);
+        var speakerImageStreamResult = await GetImageStreamFromUrlAsync(speakerImageUrl);
+        if (speakerImageStreamResult.IsFailure)
+        {
+            return Result.Failure<Image>(speakerImageStreamResult.Error);
+        }
+
+        var logoImageStreamResult = await GetImageStreamFromUrlAsync(logoUrl);
+        if (logoImageStreamResult.IsFailure)
+        {
+            return Result.Failure<Image>(logoImageStreamResult.Error);
+        }
+
+        await using var speakerImageStream = speakerImageStreamResult.Value;
+        await using var logoImageStream = logoImageStreamResult.Value;
 
         using var speakerImage = await Image.LoadAsync(speakerImageStream);
         using var logoImage = await Image.LoadAsync(logoImageStream);
 
-        return GenerateSpeakerProfile(speakerImage, logoImage, speakerName, fontFamily, width, height);
+        return Result.Success(GenerateSpeakerProfile(speakerImage, logoImage, speakerName, fontFamily, width, height));
     }
 
     /// <summary>
@@ -522,9 +561,9 @@ using var canvas = new Image<Rgba32>(width, height);
                 var fontFamily = fontCollection.Get(fontFamilyName);
                 return fontFamily;
             }
-            catch
+            catch (FontFamilyNotFoundException)
             {
-                // Do nothing, we'll cycle through the list of fonts until we find one that works
+                // Continue trying other fonts in the list
             }
         }
 
@@ -532,9 +571,9 @@ using var canvas = new Image<Rgba32>(width, height);
         {
             return fontCollection.Get(defaultFontFamily);
         }
-        catch (Exception e)
+        catch (FontFamilyNotFoundException ex)
         {
-            logger.LogError(e, "Error loading fonts");
+            logger.LogError(ex, "Error loading fonts: none of the requested fonts or default font '{DefaultFontFamily}' could be found", defaultFontFamily);
             return null;
         }
     }
@@ -561,9 +600,14 @@ using var canvas = new Image<Rgba32>(width, height);
         {
             return new FontCollection().Add(fontFamilyFile);
         }
-        catch (Exception e)
+        catch (IOException ex)
         {
-            logger.LogError(e, "Error loading fonts from file \'{FontFamilyFile}\'", fontFamilyFile);
+            logger.LogError(ex, "IO error loading font from file '{FontFamilyFile}'", fontFamilyFile);
+            return null;
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            logger.LogError(ex, "Access denied loading font from file '{FontFamilyFile}'", fontFamilyFile);
             return null;
         }
     }

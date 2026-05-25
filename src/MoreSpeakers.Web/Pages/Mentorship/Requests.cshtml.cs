@@ -147,21 +147,21 @@ public partial class RequestsModel : PageModel
             return BadRequest();
         }
 
-        var emailSent = await _templatedEmailSender.SendTemplatedEmail("~/EmailTemplates/MentorshipRequestAcceptedFromMentee.cshtml",
+        var emailResult = await _templatedEmailSender.SendTemplatedEmail("~/EmailTemplates/MentorshipRequestAcceptedFromMentee.cshtml",
             Domain.Constants.TelemetryEvents.EmailGenerated.MentorshipAccepted,
             "Your mentorship request was accepted", mentorship.Mentee, mentorship
             );
-        if (!emailSent)
+        if (emailResult.IsFailure)
         {
             LogFailedToSendMentorshipAcceptedEmailToMentee();
             // TODO: Create a visual indicator that the email was not sent
         }
 
-        emailSent = await _templatedEmailSender.SendTemplatedEmail("~/EmailTemplates/MentorshipRequestAcceptedToMentor.cshtml",
+        emailResult = await _templatedEmailSender.SendTemplatedEmail("~/EmailTemplates/MentorshipRequestAcceptedToMentor.cshtml",
             Domain.Constants.TelemetryEvents.EmailGenerated.MentorshipAccepted,
             "A mentorship was accepted", mentorship.Mentor, mentorship
             );
-        if (!emailSent)
+        if (emailResult.IsFailure)
         {
             LogFailedToSendMentorshipAcceptedEmailToMentor();
             // TODO: Create a visual indicator that the email was not sent
@@ -195,21 +195,21 @@ public partial class RequestsModel : PageModel
 
             var mentorship = mentorshipResult.Value;
 
-            var emailSent = await _templatedEmailSender.SendTemplatedEmail("~/EmailTemplates/MentorshipRequestDeclinedFromMentee.cshtml",
+            var emailResult = await _templatedEmailSender.SendTemplatedEmail("~/EmailTemplates/MentorshipRequestDeclinedFromMentee.cshtml",
                 Domain.Constants.TelemetryEvents.EmailGenerated.MentorshipDeclined,
                 "Your mentorship request was declined", mentorship.Mentee, mentorship
                 );
-            if (!emailSent)
+            if (emailResult.IsFailure)
             {
                 LogFailedToSendMentorshipDeclinedEmailToMentee();
                 // TODO: Create a visual indicator that the email was not sent
             }
 
-            emailSent = await _templatedEmailSender.SendTemplatedEmail("~/EmailTemplates/MentorshipRequestDeclinedToMentor.cshtml",
+            emailResult = await _templatedEmailSender.SendTemplatedEmail("~/EmailTemplates/MentorshipRequestDeclinedToMentor.cshtml",
                 Domain.Constants.TelemetryEvents.EmailGenerated.MentorshipDeclined,
                 "A mentorship request was declined", mentorship.Mentor, mentorship
                 );
-            if (!emailSent)
+            if (emailResult.IsFailure)
             {
                 LogFailedToSendMentorshipDeclinedEmailToMentor();
                 // TODO: Create a visual indicator that the email was not sent
@@ -435,19 +435,19 @@ public partial class RequestsModel : PageModel
         }
 
         // Send emails to both mentee and mentor
-        var emailSent = await _templatedEmailSender.SendTemplatedEmail("~/EmailTemplates/MentorshipRequestCancelledFromMentee.cshtml",
+        var emailResult = await _templatedEmailSender.SendTemplatedEmail("~/EmailTemplates/MentorshipRequestCancelledFromMentee.cshtml",
             Domain.Constants.TelemetryEvents.EmailGenerated.MentorshipCancelled,
             "Your mentorship request was cancelled", mentorship.Mentee, mentorship);
-        if (!emailSent)
+        if (emailResult.IsFailure)
         {
             LogFailedToSendMentorshipCancelledEmailToMentee();
             // TODO: Create a visual indicator that the email was not sent
         }
 
-        emailSent = await _templatedEmailSender.SendTemplatedEmail("~/EmailTemplates/MentorshipRequestCancelledToMentor.cshtml",
+        emailResult = await _templatedEmailSender.SendTemplatedEmail("~/EmailTemplates/MentorshipRequestCancelledToMentor.cshtml",
             Domain.Constants.TelemetryEvents.EmailGenerated.MentorshipCancelled,
             "A mentorship request was cancelled", mentorship.Mentor, mentorship);
-        if (!emailSent)
+        if (emailResult.IsFailure)
         {
             LogFailedToSendMentorshipCancelledEmailToMentor();
             // TODO: Create a visual indicator that the email was not sent
